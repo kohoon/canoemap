@@ -837,6 +837,10 @@ export default {
           const coords = Array.isArray(b.coords) ? b.coords.slice(0, 5000) : [];
           if (coords.length < 2) return new Response("bad", { status: 400, headers: cors });
           if (!adminOk && !(uid && tokOk)) return new Response("relogin", { status: 401, headers: cors });
+          const clientId = String(b.clientId || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64);
+          const owner = adminOk ? "admin" : uid;
+          const existing = clientId ? arr.find((x) => String(x.owner || "") === String(owner) && String(x.clientId || "") === clientId) : null;
+          if (existing) return J(JSON.stringify({ ok: true, course: existing, duplicate: true }));
           const segments = Array.isArray(b.segments) ? b.segments.slice(0, 40).map((s) => ({
             name: String((s && s.name) || "구간").slice(0, 30),
             km: Number(s && s.km) || 0,
@@ -844,7 +848,7 @@ export default {
           })) : [];
           const now = Date.now();
           const color = /^#[0-9a-f]{6}$/i.test(String(b.color || "")) ? String(b.color).toLowerCase() : "";
-          savedCourse = { id: now, name: String(b.name || "코스").slice(0, 80), color: color, coords: coords, km: Number(b.km) || 0, segments: segments, t: now, owner: adminOk ? "admin" : uid, nick: String(b.nick || "").slice(0, 20) };
+          savedCourse = { id: now, name: String(b.name || "코스").slice(0, 80), color: color, coords: coords, km: Number(b.km) || 0, segments: segments, t: now, owner: owner, nick: String(b.nick || "").slice(0, 20), clientId: clientId };
           arr.unshift(savedCourse);
           if (arr.length > 200) arr = arr.slice(0, 200);
         } else {
@@ -1194,7 +1198,14 @@ export default {
             if (track.length < 2) return TXT("bad", 400);
             const breaks = Array.isArray(b.breaks) ? b.breaks.slice(0, 200).map(Number).filter((x) => Number.isInteger(x) && x > 0 && x < track.length) : [];
             const distKm = Math.round(_trackKm(track, breaks) * 100) / 100;
-            const id = String(b.id) + "_" + Date.now();
+            const clientId = String(b.clientId || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64);
+            const id = String(b.id) + "_" + (clientId || Date.now());
+            const previous = clientId ? await KV.get("trip:" + id) : null;
+            if (previous) {
+              const old = JSON.parse(previous);
+              if (String(old.uid) !== String(b.id)) return TXT("forbidden", 403);
+              return J(JSON.stringify({ ok: true, id, distKm: old.distKm, duplicate: true }));
+            }
             const trip = {
               id, uid: String(b.id), nick: String(b.nick || "").slice(0, 20),
               title: String(b.title || "카누잉").slice(0, 40),
@@ -1203,7 +1214,7 @@ export default {
               gpsTrack: Array.isArray(b.gpsTrack) ? b.gpsTrack.slice(0, 5000) : null,
               estimated: !!b.estimated, courseId: String(b.courseId || "").slice(0, 30),
               courseName: String(b.courseName || "").slice(0, 80), courseProgress: Math.max(0, Math.min(100, Number(b.courseProgress) || 0)),
-              shared: !!b.shared, ct: Date.now(),
+              shared: !!b.shared, ct: Date.now(), clientId: clientId,
             };
             await KV.put("trip:" + id, JSON.stringify(trip));
             const sum = { id, title: trip.title, start: trip.start, distKm, durSec: trip.durSec, shared: trip.shared,

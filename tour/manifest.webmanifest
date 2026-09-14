@@ -1,0 +1,20 @@
+{
+  "name": "마이카누 지도",
+  "short_name": "마이카누",
+  "description": "카누 코스와 안전정보를 통신 없이 확인하는 오프라인 지도",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#dce7eb",
+  "theme_color": "#0f6174",
+  "icons": [
+    {
+      "src": "./pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

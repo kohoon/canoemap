@@ -15,6 +15,8 @@
 <meta name="twitter:title" content="마이카누 지도">
 <meta name="twitter:description" content="전국 카누 명소·코스·물길 거리측정">
 <meta name="twitter:image" content="https://canoe.crowdbase.kr/og.png">
+<meta name="theme-color" content="#0f6174">
+<link rel="manifest" href="./manifest.webmanifest">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-W75JHWTDYS"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-W75JHWTDYS");</script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -294,6 +296,18 @@
   .course-btn.ghost{background:#fff;color:#455a64}
   .course-btn.danger{background:#fff;color:#c62828;border-color:#efb4b4}
   .course-btn.danger.on{background:#c62828;color:#fff;border-color:#c62828}
+  .offline-btn{cursor:pointer;font:800 12.5px/1.2 sans-serif;background:#0f6174;color:#fff;padding:9px 11px;border-radius:8px;box-shadow:0 2px 7px rgba(0,0,0,.3);white-space:nowrap;user-select:none;border:0}
+  html.tour-mode #offlineCtl{position:fixed;left:10px;top:max(52px,calc(env(safe-area-inset-top,0px) + 48px))}
+  .offline-banner{position:fixed;left:50%;top:max(9px,env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:2100;display:none;align-items:center;gap:7px;max-width:calc(100vw - 180px);box-sizing:border-box;padding:7px 11px;border-radius:18px;background:#0f6174;color:#fff;font:800 12px/1.2 sans-serif;box-shadow:0 2px 9px rgba(0,0,0,.32);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  .offline-banner.warn{background:#8b4b00}.offline-banner.on{display:flex}
+  #offlineModal .pmodal{max-width:500px}
+  .offline-status{border:1px solid #d5e2e5;background:#f2f8f8;border-radius:11px;padding:11px 12px;margin:10px 0;color:#345;font:13px/1.5 sans-serif}
+  .offline-status b{display:block;color:#0f6174;font-size:14px}.offline-status small{display:block;color:#74858b;margin-top:2px}
+  .offline-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 14px}
+  .offline-actions button{border:0;border-radius:10px;padding:11px 8px;font:800 13px sans-serif;cursor:pointer}.offline-save{background:#0f6174;color:#fff}.offline-use{background:#e3f0f2;color:#0b5666}.offline-delete{grid-column:1/-1;background:#f3eeee;color:#a23b3b}
+  .offline-actions button:disabled{opacity:.48;cursor:default}
+  .offline-progress{height:6px;border-radius:6px;background:#dfe8ea;overflow:hidden;margin:8px 0;display:none}.offline-progress.on{display:block}.offline-progress i{display:block;width:0;height:100%;background:#00a2b8;transition:width .2s}
+  .offline-guide{margin:12px 0 0;padding:12px 12px 12px 29px;border-top:1px solid #e4eaec;color:#344b52;font:13px/1.55 sans-serif}.offline-guide li{margin:5px 0;padding-left:2px}.offline-limit{margin-top:10px;padding:9px 10px;border-radius:9px;background:#fff7e0;color:#6c5100;font:12px/1.5 sans-serif}
   .pm-padmin{display:flex;flex-wrap:wrap;gap:6px}
   .pm-cat a[data-k="candidate"]{border-color:#ffb74d;color:#ef6c00}
   .pm-cat a[data-k="candidate"].on{background:#ff9800;color:#fff;border-color:#ff9800}
@@ -458,6 +472,7 @@
 <body>
 <div id="map"></div>
 <div id="hint"></div>
+<button id="offlineBanner" class="offline-banner" type="button" onclick="openOfflineModal()"></button>
 <div id="gate">
   <div class="gate-card">
     <div class="gate-logo"><svg class="canoe-ico" viewBox="0 0 64 40" aria-hidden="true">
@@ -533,6 +548,27 @@
 <div id="noticeModal" class="pmodal-wrap">
   <div class="pmodal-bg" onclick="closeNotices()"></div>
   <div class="pmodal"><button class="pmodal-x" onclick="closeNotices()">✕</button><div id="ntBody"></div></div>
+</div>
+<div id="offlineModal" class="pmodal-wrap">
+  <div class="pmodal-bg" onclick="closeOfflineModal()"></div>
+  <div class="pmodal"><button class="pmodal-x" onclick="closeOfflineModal()">✕</button>
+    <h3>📥 오프라인 지도</h3>
+    <div id="offlineStatus" class="offline-status">저장 상태를 확인하는 중…</div>
+    <div id="offlineProgress" class="offline-progress"><i></i></div>
+    <div class="offline-actions">
+      <button id="offlineSave" class="offline-save" type="button" onclick="saveOfflinePack()">현재 화면 저장</button>
+      <button id="offlineUse" class="offline-use" type="button" onclick="useOfflineMap()" disabled>오프라인 지도 보기</button>
+      <button id="offlineDelete" class="offline-delete" type="button" onclick="deleteOfflinePack()" disabled>저장본 삭제</button>
+    </div>
+    <b>사용법</b>
+    <ol class="offline-guide">
+      <li>통신이 되는 곳에서 코스를 연 뒤 <b>오프라인 저장</b>을 누르세요. 코스가 없으면 현재 보이는 지도 영역이 저장됩니다.</li>
+      <li>저장 완료 메시지가 나올 때까지 화면을 닫지 마세요.</li>
+      <li>출발 전에 비행기 모드로 바꿔 이 페이지를 다시 열고, 상단의 <b>오프라인 지도 사용 중</b> 표시와 코스를 확인하세요.</li>
+      <li>자주 쓸 경우 브라우저 메뉴에서 <b>홈 화면에 추가</b>해 두는 것을 권장합니다.</li>
+    </ol>
+    <div class="offline-limit">⚠️ 저장되는 것은 간이 도로·하천, 선택 코스와 안전구역입니다. 항공사진·일반 지도 타일, CCTV·로드뷰·실시간 수위·장소 상세는 통신이 필요합니다. 웹 GPS는 화면이 꺼지거나 브라우저가 백그라운드에 있으면 누락될 수 있습니다.</div>
+  </div>
 </div>
 <div id="courseModal" class="pmodal-wrap">
   <div class="pmodal-bg" onclick="closeCourseModal()"></div>
@@ -753,6 +789,8 @@ let measureMode = false;   // 물길 거리측정 모드
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;   // 모바일/터치 여부
 L.control.zoom({position:'bottomleft'}).addTo(map);
 map.addControl(new AuthCtl());   // 카카오 로그인 박스(우상단)
+const OfflineCtl=L.Control.extend({options:{position:'bottomleft'},onAdd:function(){const b=L.DomUtil.create('button','offline-btn');b.id='offlineCtl';b.type='button';b.textContent='📥 오프라인';b.title='오프라인 지도 저장 및 사용법';L.DomEvent.disableClickPropagation(b);L.DomEvent.on(b,'click',function(e){L.DomEvent.stop(e);openOfflineModal();});return b;}});
+map.addControl(new OfflineCtl());
 const CafeCtl=L.Control.extend({ options:{position:'topright'},
   onAdd:function(){ const d=L.DomUtil.create('div','cafe-actions');
     const cafe=L.DomUtil.create('a','cafecard',d); cafe.href='https://cafe.naver.com/mytalon'; cafe.target='_blank'; cafe.rel='noopener'; cafe.title='마이카누 카페'; cafe.setAttribute('aria-label','마이카누 카페');
@@ -786,6 +824,11 @@ const satLabels = VKEY
 const satImgV = VKEY ? L.tileLayer('https://api.vworld.kr/req/wmts/1.0.0/'+VKEY+'/Satellite/{z}/{y}/{x}.jpeg',
   {maxNativeZoom:SAT_MAXZOOM_V, maxZoom:SAT_MAXZOOM_V, attribution:'© VWorld(국토지리정보원)'}) : null;
 const baseSat = L.layerGroup();   // 내용은 setSatSource 가 Esri/VWorld 로 교체
+map.createPane('offlineBasePane');map.getPane('offlineBasePane').style.zIndex='210';map.getPane('offlineBasePane').style.pointerEvents='none';
+const offlineBase=L.layerGroup();
+let _offlinePack=null,_offlineCandidate=null,_offlineBusy=false;
+let _offlineDetected=!navigator.onLine;
+function _offToast(m){const h=document.getElementById('hint');if(!h)return;h.textContent=m;h.style.opacity='1';clearTimeout(window._offHid);window._offHid=setTimeout(function(){h.style.opacity='0';},3800);}
 let _satSrc='esri'; try{ _satSrc=localStorage.getItem('mc_satsrc')||'esri'; }catch(e){}
 if(_satSrc==='vworld' && !satImgV) _satSrc='esri';   // 키 없으면 Esri 고정
 function setSatSource(src){
@@ -1673,7 +1716,8 @@ function openCourseComments(key,course,shareId){
   const canAnalyze=!!(course.coords && course.coords.length>=2);
   const actions=[
     (shareId?'<a class="course-btn" onclick="shareCourse(\''+shareId+'\')">🔗 공유</a>':''),
-    (canAnalyze?'<a class="course-btn ghost" onclick="toggleCourseAnalysis()">📊 분석</a>':'')
+    (canAnalyze?'<a class="course-btn ghost" onclick="toggleCourseAnalysis()">📊 분석</a>':''),
+    (canAnalyze?'<a class="course-btn ghost" onclick="openOfflineModal(_courseInfoCourse)">📥 오프라인 저장</a>':'')
   ].join('');
   let _cadm='';
   if(shareId && _canEditCourse(course, shareId)){
@@ -2590,7 +2634,7 @@ _ov['<span class="rv-sw">🛣️</span>로드뷰 구간'] = roadviewLayer;   // 
 _ov['<span class="rv-sw">💧</span>수위'] = waterLevelLayer;        // 기본 OFF, 줌≥12 표시
 _ov['<span class="rv-sw">🏞️</span>호수·댐 수위'] = damLevelLayer;  // 기본 OFF, 줌≥10 표시
 _ov['<span class="rv-sw">📹</span>수위관측 CCTV'] = cctvLayer;   // 기본 OFF, 줌≥12 표시
-const _layerControl=L.control.layers({'일반지도':baseOSM, '위성지도':baseSat}, _ov, {collapsed:false, position:'bottomright'}).addTo(map);
+const _layerControl=L.control.layers({'일반지도':baseOSM, '위성지도':baseSat, '오프라인 지도':offlineBase}, _ov, {collapsed:false, position:'bottomright'}).addTo(map);
 // 관리자 전용 전국 하천 중심선(OSM named river/stream, 기본 OFF, 최초 토글 시 지연 로드)
 const _riverAdminGroup=L.layerGroup();
 const _riverSearchFocus=L.layerGroup().addTo(map);
@@ -2790,11 +2834,14 @@ function _syncSatToggle(){
 map.on('baselayerchange', function(e){
   if(e.name==='위성지도'){ const mz=(_satSrc==='vworld')?SAT_MAXZOOM_V:SAT_MAXZOOM_E; map.setMaxZoom(mz); if(map.getZoom()>mz) map.setZoom(mz); }
   else { map.setMaxZoom(19); _closeWayback(); }
+  if(e.name==='오프라인 지도')map.attributionControl.addAttribution('간이 지도 &copy; OpenStreetMap 기여자');else map.attributionControl.removeAttribution('간이 지도 &copy; OpenStreetMap 기여자');
+  if(e.name==='오프라인 지도'&&!_offlinePack){_offToast('먼저 오프라인 지도를 저장하세요');setTimeout(function(){if(!_offlinePack){if(map.hasLayer(offlineBase))map.removeLayer(offlineBase);baseOSM.addTo(map);}},0);}
   _syncSatToggle();
   try{ localStorage.setItem('mc_basemap', e.name); }catch(err){} });
 // 저장된 베이스맵으로 시작(기본 일반지도)
 (function(){ let saved='일반지도'; try{ saved=localStorage.getItem('mc_basemap')||'일반지도'; }catch(e){}
   if(saved==='위성지도'){ baseSat.addTo(map); const mz=(_satSrc==='vworld')?SAT_MAXZOOM_V:SAT_MAXZOOM_E; map.setMaxZoom(mz); if(map.getZoom()>mz) map.setZoom(mz); }
+  else if(saved==='오프라인 지도') offlineBase.addTo(map);
   else baseOSM.addTo(map);
   _syncSatToggle(); })();
 
@@ -3639,6 +3686,71 @@ async function deleteNotice(nid){ if(!isAdmin()) return; if(!confirm('이 공지
 async function deleteReply(nid, rt){ if(!isAdmin()) return; if(!confirm('이 답글을 삭제할까요?')) return;
   try{ const r=await fetch(napi(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'replyDelete',adminKey:adminKey(),noticeId:nid,replyT:rt})});
     if(r.ok){ gaEvent('notice_reply_del'); openNotices(); } else alert('실패(권한 확인)'); }catch(e){ alert('오류'); } }
+
+// ---- 코스 주변 오프라인 팩(PWA + IndexedDB + CacheStorage) ----
+const OFFLINE_DB='mycanoe-offline-v1',OFFLINE_STORE='packs',OFFLINE_KEY='active',OFFLINE_CACHE='mycanoe-offline-pack-v1';
+function _offlineDb(){return new Promise(function(resolve,reject){if(!('indexedDB'in window)){reject(new Error('indexeddb'));return;}const q=indexedDB.open(OFFLINE_DB,1);q.onupgradeneeded=function(){if(!q.result.objectStoreNames.contains(OFFLINE_STORE))q.result.createObjectStore(OFFLINE_STORE);};q.onsuccess=function(){resolve(q.result);};q.onerror=function(){reject(q.error);};});}
+async function _offlineRead(){const db=await _offlineDb();return new Promise(function(resolve,reject){const q=db.transaction(OFFLINE_STORE,'readonly').objectStore(OFFLINE_STORE).get(OFFLINE_KEY);q.onsuccess=function(){resolve(q.result||null);db.close();};q.onerror=function(){reject(q.error);db.close();};});}
+async function _offlineWrite(pack){const db=await _offlineDb();return new Promise(function(resolve,reject){const tx=db.transaction(OFFLINE_STORE,'readwrite');tx.objectStore(OFFLINE_STORE).put(pack,OFFLINE_KEY);tx.oncomplete=function(){resolve();db.close();};tx.onerror=function(){reject(tx.error);db.close();};});}
+async function _offlineRemove(){const db=await _offlineDb();return new Promise(function(resolve,reject){const tx=db.transaction(OFFLINE_STORE,'readwrite');tx.objectStore(OFFLINE_STORE).delete(OFFLINE_KEY);tx.oncomplete=function(){resolve();db.close();};tx.onerror=function(){reject(tx.error);db.close();};});}
+function _offInside(lat,lng,b){return isFinite(lat)&&isFinite(lng)&&lat>=b.s&&lat<=b.n&&lng>=b.w&&lng<=b.e;}
+function _offBounds(course){
+  let bb=null;if(course&&Array.isArray(course.coords)&&course.coords.length>1)try{bb=L.latLngBounds(course.coords);}catch(e){}
+  if(!bb||!bb.isValid())bb=map.getBounds();const c=bb.getCenter(),latPad=Math.max(.022,(bb.getNorth()-bb.getSouth())*.18),lngPad=Math.max(.027/Math.max(.35,Math.cos(c.lat*Math.PI/180)),(bb.getEast()-bb.getWest())*.18);
+  return {s:Math.max(32,bb.getSouth()-latPad),w:Math.max(123,bb.getWest()-lngPad),n:Math.min(40,bb.getNorth()+latPad),e:Math.min(132,bb.getEast()+lngPad)};
+}
+function _offClipOne(line,b){const out=[];let part=[];for(let i=1;i<(line||[]).length;i++){const a=line[i-1],z=line[i];if(!a||!z)continue;const hit=Math.max(a[0],z[0])>=b.w&&Math.min(a[0],z[0])<=b.e&&Math.max(a[1],z[1])>=b.s&&Math.min(a[1],z[1])<=b.n;if(hit){if(!part.length)part.push(a);part.push(z);}else if(part.length){if(part.length>1)out.push(part);part=[];}}if(part.length>1)out.push(part);return out;}
+function _offClip(fc,b){const features=[];(fc&&fc.features||[]).forEach(function(f){const g=f.geometry||{},lines=g.type==='LineString'?[g.coordinates]:(g.type==='MultiLineString'?g.coordinates:[]),parts=[];lines.forEach(function(line){Array.prototype.push.apply(parts,_offClipOne(line,b));});if(parts.length)features.push({type:'Feature',properties:f.properties||{},geometry:{type:'MultiLineString',coordinates:parts}});});return {type:'FeatureCollection',features:features};}
+function _offCourse(){
+  const focus=String(_courseFocusId||''),c=focus?(focus.charAt(0)==='k'?_kvCourses[focus.slice(1)]:_courseByCid[focus]):null;
+  return (c&&c.coords&&c.coords.length>1)?c:((_offlineCandidate&&_offlineCandidate.coords&&_offlineCandidate.coords.length>1)?_offlineCandidate:null);
+}
+function _offCourseCopy(c){return c?{id:c.id,static:!!c.static,name:String(c.name||'코스').slice(0,100),km:Number(c.km)||0,color:validCourseColor(c.color),coords:c.coords.slice(0,10000).map(function(p){return[+p[0],+p[1]];})}:null;}
+function _offDate(ms){const d=new Date(ms);return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'. '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+function _offProgress(n,text){const p=document.getElementById('offlineProgress'),i=p&&p.querySelector('i'),s=document.getElementById('offlineStatus');if(p)p.classList.toggle('on',n<100);if(i)i.style.width=Math.max(0,Math.min(100,n))+'%';if(s&&text)s.innerHTML='<b>'+pmEsc(text)+'</b><small>저장이 끝날 때까지 이 화면을 유지하세요.</small>';}
+function _offlineStatus(){
+  const s=document.getElementById('offlineStatus'),sv=document.getElementById('offlineSave'),us=document.getElementById('offlineUse'),del=document.getElementById('offlineDelete');if(!s)return;
+  sv.disabled=_offlineBusy||!navigator.onLine;us.disabled=!_offlinePack;del.disabled=!_offlinePack;
+  sv.textContent=_offlinePack?'저장본 업데이트':'현재 화면 저장';
+  if(_offlineBusy)return;
+  if(_offlinePack){const kb=Math.max(1,Math.round((_offlinePack.bytes||0)/1024)),scope=_offlinePack.course?('코스 · '+_offlinePack.course.name):'현재 지도 영역';s.innerHTML='<b>✅ '+pmEsc(scope)+' 저장됨</b><small>'+_offDate(_offlinePack.savedAt)+' · 간이 하천 '+(_offlinePack.rivers.features||[]).length+'개 · 도로 '+(_offlinePack.roads.features||[]).length+'개 · 간이 배경 약 '+kb.toLocaleString()+'KB + 안전자료</small>';}
+  else s.innerHTML='<b>저장된 오프라인 지도가 없습니다</b><small>통신이 될 때 코스 또는 현재 화면을 저장하세요.</small>';
+}
+function openOfflineModal(course){if(course&&course.coords&&course.coords.length>1)_offlineCandidate=course;document.getElementById('offlineModal').classList.add('open');_offlineStatus();gaEvent('offline_open');}
+function closeOfflineModal(){document.getElementById('offlineModal').classList.remove('open');}
+function _offSanitizePlaces(b,u){if(!u||!u.uid)return[];return (_kvPlaces||[]).filter(function(x){return _offInside(+x.lat,+x.lng,b);}).slice(0,1000).map(function(x){const cat=x.cat==='명소'?'spot':(x.cat==='런칭/랜딩 후보지'?'candidate':'canoe');return{id:String(x.id||''),name:String(x.name||'').slice(0,80),memo:String(x.memo||'').slice(0,500),lat:+x.lat,lng:+x.lng,cat:cat,rv:!!x.rv};});}
+function _offSanitizeObstacles(b){return Object.keys(_obstacles||{}).map(function(k){return _obstacles[k];}).filter(function(x){return x&&!x.del&&_offInside(+x.lat,+x.lng,b);}).slice(0,1000).map(function(x){return{id:String(x.id||''),lat:+x.lat,lng:+x.lng,type:String(x.type||'보'),note:String(x.note||'').slice(0,200),name:String(x.name||'').slice(0,60),kakaoUrl:String(x.kakaoUrl||'').slice(0,500),kakaoPlaceName:String(x.kakaoPlaceName||'').slice(0,80),kakaoMatchDistance:Number(x.kakaoMatchDistance)||0};});}
+async function saveOfflinePack(){
+  if(_offlineBusy)return;if(!navigator.onLine||_offlineDetected){_offToast('온라인 상태에서 저장해 주세요');return;}if(!('caches'in window)||!('indexedDB'in window)){_offToast('이 브라우저는 오프라인 저장을 지원하지 않아요');return;}
+  _offlineBusy=true;_offlineStatus();_offProgress(5,'저장 준비 중…');const course=_offCourse(),b=_offBounds(course),urls=[['protect','./protect_polygons.geojson?v='+DATAVER.protect],['wlz','./wlz.geojson?v='+DATAVER.wlz],['waterplay','./waterplay.geojson?v='+DATAVER.waterplay],['rivers','./rivers.geojson?v='+DATAVER.rivers],['roads','./roads.geojson?v='+DATAVER.roads]];
+  try{
+    const cache=await caches.open(OFFLINE_CACHE),data={};let done=0;
+    await Promise.all(urls.map(async function(row){const r=await fetch(row[1],{cache:'reload'});if(!r.ok)throw new Error(row[0]+' '+r.status);if(row[0]!=='rivers'&&row[0]!=='roads')await cache.put(row[1],r.clone());data[row[0]]=await r.json();done++;_offProgress(10+done*13,'지도 자료 저장 중… '+done+'/'+urls.length);}));
+    const u=getUser()||{},pack={version:1,savedAt:Date.now(),uid:String(u.uid||''),bounds:b,course:_offCourseCopy(course),rivers:_offClip(data.rivers,b),roads:_offClip(data.roads,b),places:_offSanitizePlaces(b,u),obstacles:_offSanitizeObstacles(b)};pack.bytes=new Blob([JSON.stringify(pack)]).size;_offProgress(86,'오프라인 지도 구성 중…');
+    await _offlineWrite(pack);_offlinePack=pack;_renderOfflinePack(pack);if(navigator.storage&&navigator.storage.persist)try{await navigator.storage.persist();}catch(e){}_offProgress(100,'저장 완료');_offlineStatus();useOfflineMap(true);gaEvent('offline_save',{course:course?1:0});_offToast('✅ 오프라인 지도 저장 완료');
+  }catch(e){const s=document.getElementById('offlineStatus');if(s)s.innerHTML='<b>저장하지 못했습니다</b><small>통신 상태와 기기 저장공간을 확인한 뒤 다시 시도하세요.</small>';_offToast('오프라인 지도 저장 실패');}
+  finally{_offlineBusy=false;_offlineStatus();}
+}
+function _renderOfflinePack(pack){
+  offlineBase.clearLayers();if(!pack)return;L.rectangle([[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],{pane:'offlineBasePane',stroke:false,fill:true,fillColor:'#f4f2eb',fillOpacity:1,interactive:false}).addTo(offlineBase);
+  L.geoJSON(pack.roads,{pane:'offlineBasePane',interactive:false,style:function(f){const k=(f.properties||{}).kind;return{color:k==='expressway'?'#8d8277':(k==='national'?'#aaa096':'#c2bab2'),weight:k==='expressway'?3:(k==='national'?2:1.2),opacity:.9};}}).addTo(offlineBase);
+  L.geoJSON(pack.rivers,{pane:'offlineBasePane',interactive:false,style:function(f){return{color:(f.properties||{}).kind==='river'?'#2386b8':'#69afd0',weight:(f.properties||{}).kind==='river'?3:1.5,opacity:.95};}}).addTo(offlineBase);
+}
+function _restoreOfflinePrivate(pack){
+  const u=getUser()||{};if(pack.uid&&String(pack.uid)===String(u.uid||''))(pack.places||[]).forEach(function(x){if(!_placeMarkerById[String(x.id)])_upsertSecurePlace(x);});
+  (pack.obstacles||[]).forEach(function(x){if(!_obstacles[String(x.id)])renderObstacle(x);});
+  const c=pack.course;if(c&&!c.static&&c.coords&&c.coords.length>1&&!_kvCourses[String(c.id)])renderKVCourse(c);
+  if(c&&String(_courseFocusId||'')===('k'+c.id)){hideGate();_showCourseFocusBar(c.name);_courseFocusFound=true;_applyCourseFocus();_fitAndPop(c.coords,c.name,c.km);}
+}
+function useOfflineMap(silent){if(!_offlinePack){if(!silent)_offToast('먼저 오프라인 지도를 저장하세요');return;}[baseOSM,baseSat].forEach(function(l){if(map.hasLayer(l))map.removeLayer(l);});if(!map.hasLayer(offlineBase))offlineBase.addTo(map);map.setMaxZoom(19);try{localStorage.setItem('mc_basemap','오프라인 지도');}catch(e){}if(_layerControl&&_layerControl._update)_layerControl._update();_syncSatToggle();_offlineNetworkUi();if(!silent)_offToast('오프라인 간이 지도로 전환했어요');}
+async function deleteOfflinePack(){if(!_offlinePack)return;if(!confirm('기기에 저장된 오프라인 지도를 삭제할까요?'))return;await _offlineRemove();if('caches'in window)await caches.delete(OFFLINE_CACHE);_offlinePack=null;offlineBase.clearLayers();if(map.hasLayer(offlineBase)){map.removeLayer(offlineBase);baseOSM.addTo(map);}try{localStorage.setItem('mc_basemap','일반지도');}catch(e){}_offlineStatus();_offlineNetworkUi();_offToast('오프라인 저장본을 삭제했어요');}
+function _offlineNetworkUi(forced){if(typeof forced==='boolean')_offlineDetected=forced;const b=document.getElementById('offlineBanner'),off=_offlineDetected||!navigator.onLine;if(!b)return;if(!off){b.className='offline-banner';b.textContent='';return;}b.className='offline-banner on'+(_offlinePack?'':' warn');b.textContent=_offlinePack?'📴 오프라인 지도 사용 중':'⚠️ 오프라인 지도 미저장';if(_offlinePack&&!map.hasLayer(offlineBase))useOfflineMap(true);}
+async function _offlineProbe(){if(!navigator.onLine)return true;try{const ctl=new AbortController(),tm=setTimeout(function(){ctl.abort();},3500);await fetch('./__online_probe__?t='+Date.now(),{cache:'no-store',signal:ctl.signal});clearTimeout(tm);return false;}catch(e){return true;}}
+async function _offlineInit(){
+  try{_offlinePack=await _offlineRead();if(_offlinePack){_renderOfflinePack(_offlinePack);_restoreOfflinePrivate(_offlinePack);let saved='';try{saved=localStorage.getItem('mc_basemap')||'';}catch(e){}if(!navigator.onLine||saved==='오프라인 지도')useOfflineMap(true);}}catch(e){}_offlineDetected=await _offlineProbe();if(_offlineDetected&&_offlinePack)useOfflineMap(true);_offlineStatus();_offlineNetworkUi();
+  if('serviceWorker'in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'))navigator.serviceWorker.register('./service-worker.js').catch(function(){});
+}
+window.addEventListener('online',function(){_offlineNetworkUi(false);if(typeof flushOfflineTrips==='function')flushOfflineTrips();});window.addEventListener('offline',function(){_offlineNetworkUi(true);});setTimeout(_offlineInit,0);
 
 // ---- 범례는 레이어 패널에 통합됨(위 _layerControl) ----
 if(TOUR_MODE){
