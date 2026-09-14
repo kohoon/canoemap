@@ -1,4 +1,4 @@
-const APP_CACHE = 'mycanoe-app-v1';
+const APP_CACHE = 'mycanoe-app-v2';
 const PACK_CACHE = 'mycanoe-offline-pack-v1';
 
 const APP_SHELL = [
@@ -40,7 +40,9 @@ async function cachedNavigation(request) {
     if (response.ok) await cache.put('./index.html', response.clone());
     return response;
   } catch (error) {
-    return (await cache.match('./index.html')) || (await cache.match('./')) || Response.error();
+    // Cloudflare Pages redirects /index.html to /. A cached redirected response cannot
+    // be returned to a navigation request, so prefer the non-redirected root response.
+    return (await cache.match('./')) || (await cache.match('./index.html')) || Response.error();
   }
 }
 
