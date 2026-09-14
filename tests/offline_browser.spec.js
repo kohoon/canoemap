@@ -99,3 +99,29 @@ test('tour offline control does not cover tracker actions', async () => {
   await context.close();
   await browser.close();
 });
+
+test('Yangyang Namdaecheon shared view uses one connected river', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/?river=' + encodeURIComponent('양양남대천') + '&riverAt=38.05,128.64', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => _riverFeatures.length > 0 && document.querySelector('#riverFocusBar')?.classList.contains('on'), null, { timeout: 15000 });
+  const state = await page.evaluate(() => {
+    const features = _riverFeatures.filter((feature) => feature.properties.name === '양양남대천');
+    return {
+      features: features.length,
+      components: _riverComponents(features, '양양남대천').length,
+      coords: features[0].geometry.coordinates.length,
+      highlightLayers: _riverSearchFocus.getLayers().length,
+      label: document.querySelector('#riverFocusBar .river-focus-name').textContent,
+    };
+  });
+  expect(state).toEqual({ features: 1, components: 1, coords: 213, highlightLayers: 2, label: '양양남대천' });
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});

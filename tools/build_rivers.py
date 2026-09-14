@@ -11,6 +11,10 @@ BASE = Path(__file__).resolve().parent.parent
 OUT = BASE / "rivers.geojson"
 BOUNDARY_URL = "https://nominatim.openstreetmap.org/search?format=jsonv2&country=South%20Korea&polygon_geojson=1&limit=1"
 OVERPASS_URL = "https://overpass.kumi.systems/api/interpreter"
+NAME_ALIASES = {
+    # OSM의 공백 표기 차이로 본류와 북쪽 짧은 구간이 별도 검색 결과가 되지 않게 한다.
+    "양양 남대천": "양양남대천",
+}
 # OSM에 이름이 없지만 공식 본류 구간인 선분. 원본 way 546163695·546166922(2026-08-06 확인).
 FORCED_EXTENSIONS = [{"name": "홍천강", "kind": "river", "coordinates": [
     [128.012857, 37.858959], [128.014867, 37.854185], [128.019874, 37.847986],
@@ -140,7 +144,7 @@ def normalize_name(name):
     name = str(name or "").strip()
     if "임진강" in name:
         return "임진강"
-    return name
+    return NAME_ALIASES.get(name, name)
 
 
 def main():
