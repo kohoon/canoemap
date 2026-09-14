@@ -50,14 +50,29 @@ test('course pack survives a mobile offline reload', async () => {
   await page.locator('#offlineSave').click();
   await expect(page.locator('#offlineStatus')).toContainText('저장됨', { timeout: 45000 });
   await expect(page.locator('#offlineUse')).toBeEnabled();
-  expect(await page.evaluate(() => offlineBase.getLayers().length)).toBeGreaterThan(2);
+  const stored = await page.evaluate(async () => {
+    const requests = await (await caches.open(_offlinePack.cacheName)).keys();
+    return {
+      provider: _offlinePack.satellite.provider,
+      tiles: _offlinePack.satellite.tiles,
+      bytes: _offlinePack.satellite.bytes,
+      cachedTiles: requests.filter((request) => request.url.includes('/World_Imagery/MapServer/tile/')).length,
+      hasTileLayer: offlineBase.getLayers().some((layer) => layer instanceof L.TileLayer),
+    };
+  });
+  expect(stored.provider).toBe('Esri World Imagery');
+  expect(stored.tiles).toBeGreaterThan(0);
+  expect(stored.cachedTiles).toBe(stored.tiles);
+  expect(stored.bytes).toBeGreaterThan(0);
+  expect(stored.hasTileLayer).toBe(true);
 
   await page.evaluate(() => navigator.serviceWorker.ready);
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
   await expect(page.locator('#offlineBanner')).toContainText('오프라인 지도 사용 중', { timeout: 10000 });
   await expect(page.locator('#courseFocusBar')).toHaveClass(/on/, { timeout: 10000 });
-  expect(await page.evaluate(() => offlineBase.getLayers().length)).toBeGreaterThan(2);
+  expect(await page.evaluate(() => offlineBase.getLayers().some((layer) => layer instanceof L.TileLayer))).toBe(true);
+  await expect.poll(() => page.locator('.leaflet-tile-loaded').count(), { timeout: 10000 }).toBeGreaterThan(0);
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();

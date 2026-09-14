@@ -1,5 +1,7 @@
-const APP_CACHE = 'mycanoe-app-v2';
-const PACK_CACHE = 'mycanoe-offline-pack-v1';
+const APP_CACHE = 'mycanoe-app-v3';
+const LEGACY_PACK_CACHE = 'mycanoe-offline-pack-v1';
+const PACK_CACHE_PREFIX = 'mycanoe-offline-pack-v2-';
+const ESRI_IMAGERY_HOST = 'server.arcgisonline.com';
 
 const APP_SHELL = [
   './',
@@ -27,8 +29,8 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    const keep = new Set([APP_CACHE, PACK_CACHE]);
-    await Promise.all((await caches.keys()).filter((key) => key.startsWith('mycanoe-') && !keep.has(key)).map((key) => caches.delete(key)));
+    const keep = new Set([APP_CACHE, LEGACY_PACK_CACHE]);
+    await Promise.all((await caches.keys()).filter((key) => key.startsWith('mycanoe-') && !keep.has(key) && !key.startsWith(PACK_CACHE_PREFIX)).map((key) => caches.delete(key)));
     await self.clients.claim();
   })());
 });
@@ -46,9 +48,17 @@ async function cachedNavigation(request) {
   }
 }
 
+async function matchOfflinePack(request, options = {}) {
+  const names = (await caches.keys()).filter((key) => key === LEGACY_PACK_CACHE || key.startsWith(PACK_CACHE_PREFIX)).reverse();
+  for (const name of names) {
+    const cached = await (await caches.open(name)).match(request, options);
+    if (cached) return cached;
+  }
+  return null;
+}
+
 async function cachedData(request) {
-  const pack = await caches.open(PACK_CACHE);
-  const cached = await pack.match(request, { ignoreSearch: true });
+  const cached = await matchOfflinePack(request, { ignoreSearch: true });
   if (!self.navigator.onLine && cached) return cached;
   try {
     const response = await fetch(request);
@@ -56,6 +66,16 @@ async function cachedData(request) {
   } catch (error) {
     if (cached) return cached;
     throw error;
+  }
+}
+
+async function cachedSatellite(request) {
+  const cached = await matchOfflinePack(request);
+  if (cached) return cached;
+  try {
+    return await fetch(request);
+  } catch (error) {
+    return Response.error();
   }
 }
 
@@ -73,6 +93,10 @@ self.addEventListener('fetch', (event) => {
   }
   if (url.origin === self.location.origin && /\/(protect_polygons|wlz|waterplay|rivers|roads)\.geojson$/.test(url.pathname)) {
     event.respondWith(cachedData(request));
+    return;
+  }
+  if (url.hostname === ESRI_IMAGERY_HOST && /\/World_Imagery\/MapServer\/tile\/\d+\/\d+\/\d+$/.test(url.pathname)) {
+    event.respondWith(cachedSatellite(request));
     return;
   }
   if (url.origin === self.location.origin || url.hostname === 'unpkg.com') {
