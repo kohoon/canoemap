@@ -2218,9 +2218,9 @@ function _addRoadviewFeature(f){
   const ln=L.polyline(ll,{
     color:'#00acc1', weight:7, opacity:0.92, lineCap:'round', lineJoin:'round'
   });
-  ln.bindTooltip('🛣️ '+name, {sticky:true, direction:'top', opacity:0.95});
-  ln.on('click',function(){ openRoadview(lat,lng,name,f.properties.id); });
-  roadviewLayer.addLayer(ln);
+  const dot=L.circleMarker([lat,lng],{radius:5,color:'#fff',weight:2,fillColor:'#00acc1',fillOpacity:1});
+  [ln,dot].forEach(function(layer){layer.bindTooltip('🛣️ '+name,{sticky:true,direction:'top',opacity:0.95});layer.on('click',function(){openRoadview(lat,lng,name,f.properties.id);});});
+  roadviewLayer.addLayer(L.layerGroup([ln,dot]));
 }
 
 // ---- 로그인 사용자용 런칭·랜딩 범위 조회 ----
@@ -2637,6 +2637,10 @@ _ov['<span class="rv-sw">💧</span>수위'] = waterLevelLayer;        // 기본
 _ov['<span class="rv-sw">🏞️</span>호수·댐 수위'] = damLevelLayer;  // 기본 OFF, 줌≥10 표시
 _ov['<span class="rv-sw">📹</span>수위관측 CCTV'] = cctvLayer;   // 기본 OFF, 줌≥12 표시
 const _layerControl=L.control.layers({'일반지도':baseOSM, '위성지도':baseSat, '오프라인 지도':offlineBase}, _ov, {collapsed:false, position:'bottomright'}).addTo(map);
+map.on('overlayadd',function(e){
+  if(!e||e.layer!==roadviewLayer)return;_offToast('🛣️ 로드뷰 가능 장소를 불러오는 중…');
+  Promise.resolve(_loadSecureBounds(true)).then(function(){const n=Object.keys(_roadviewPlaceIds).length;_offToast(n?('🛣️ 불러온 로드뷰 가능 장소 '+n+'곳 표시'):'현재 화면에 표시할 로드뷰 가능 장소가 없거나 자료를 불러오지 못했습니다');});
+});
 // 관리자 전용 전국 하천 중심선(OSM named river/stream, 기본 OFF, 최초 토글 시 지연 로드)
 const _riverAdminGroup=L.layerGroup();
 const _riverSearchFocus=L.layerGroup().addTo(map);

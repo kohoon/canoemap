@@ -125,3 +125,52 @@ test('Yangyang Namdaecheon shared view uses one connected river', async () => {
   await context.close();
   await browser.close();
 });
+
+test('roadview layer toggle loads visible clickable locations', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'current-test-user', tok: 'current-test-token', nick: '테스트' })));
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/profile')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ profile: { nick: '테스트', mypageTourSeen: 1 } }) });
+    } else if (url.pathname.endsWith('/launch-sites')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [
+        { id: 'rv-test', name: '로드뷰 테스트', memo: '', lat: 36.4, lng: 127.8, cat: 'canoe', rv: true, rvline: null },
+        { id: 'no-rv-test', name: '로드뷰 없음', memo: '', lat: 36.41, lng: 127.81, cat: 'canoe', rv: false, rvline: null },
+      ], truncated: false }) });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    }
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#gate')).toBeHidden({ timeout: 10000 });
+  await page.waitForFunction(() => Object.keys(_roadviewPlaceIds).length === 1, null, { timeout: 10000 });
+  await page.locator('.lc-title').click();
+  const toggle = page.locator('.leaflet-control-layers-overlays label').filter({ hasText: '로드뷰 구간' });
+  await toggle.click();
+  await page.waitForFunction(() => map.hasLayer(roadviewLayer));
+  await expect(page.locator('#hint')).toContainText('로드뷰 가능 장소 1곳 표시', { timeout: 10000 });
+  const state = await page.evaluate(() => {
+    const item = roadviewLayer.getLayers()[0];
+    const children = item.getLayers();
+    const dot = children.find((layer) => layer instanceof L.CircleMarker);
+    return {
+      locations: roadviewLayer.getLayers().length,
+      line: children.some((layer) => layer instanceof L.Polyline && !(layer instanceof L.CircleMarker)),
+      dot: !!dot,
+      dotPixels: dot?._map ? dot._radius * 2 : 0,
+      rendered: !!dot?._renderer?._container?.isConnected,
+      visible: map.hasLayer(roadviewLayer),
+    };
+  });
+  expect(state).toEqual({ locations: 1, line: true, dot: true, dotPixels: 10, rendered: true, visible: true });
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});

@@ -31,6 +31,12 @@ def main():
     callback = source.index("_rvClient.getNearestPanoId(pos,120")
     restored_id = source.index("state&&isFinite(state.panoId)", callback)
     assert callback < restored_id
+
+    # 짧은 선이 권역 축척에서 사라져 토글이 고장처럼 보이지 않도록 고정 픽셀 지점을 함께 표시한다.
+    assert "const dot=L.circleMarker([lat,lng]" in source
+    assert "roadviewLayer.addLayer(L.layerGroup([ln,dot]))" in source
+    assert "e.layer!==roadviewLayer" in source
+    assert "_loadSecureBounds(true)" in source
     print("roadview provider availability regression: ok")
 
 
