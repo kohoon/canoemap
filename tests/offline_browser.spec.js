@@ -126,6 +126,45 @@ test('Yangyang Namdaecheon shared view uses one connected river', async () => {
   await browser.close();
 });
 
+test('Illicheon shared view reaches the Seomgang confluence', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/?river=' + encodeURIComponent('일리천') + '&riverAt=37.45,127.89', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => _riverFeatures.length > 0 && document.querySelector('#riverFocusBar')?.classList.contains('on'), null, { timeout: 15000 });
+  const state = await page.evaluate(() => {
+    const confluence = [127.898118, 37.421672];
+    const features = _riverFeatures.filter((feature) => feature.properties.name === '일리천');
+    const seomgang = _riverFeatures.find((feature) => feature.properties.name === '섬강');
+    const coords = features[0].geometry.coordinates;
+    return {
+      features: features.length,
+      components: _riverComponents(features, '일리천').length,
+      coords: coords.length,
+      last: coords[coords.length - 1],
+      seomgangSharesConfluence: seomgang.geometry.coordinates.some((point) => point[0] === confluence[0] && point[1] === confluence[1]),
+      highlightLayers: _riverSearchFocus.getLayers().length,
+      label: document.querySelector('#riverFocusBar .river-focus-name').textContent,
+    };
+  });
+  expect(state).toEqual({
+    features: 1,
+    components: 1,
+    coords: 83,
+    last: [127.898118, 37.421672],
+    seomgangSharesConfluence: true,
+    highlightLayers: 2,
+    label: '일리천',
+  });
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('roadview layer toggle loads visible clickable locations', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

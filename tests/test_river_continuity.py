@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from tools.build_rivers import normalize_name
+from tools.build_rivers import FORCED_EXTENSIONS, normalize_name
 
 
 def haversine_km(a, b):
@@ -37,6 +37,22 @@ def main():
     assert haversine_km(coords[join], coords[join + 1]) < 0.2
     assert min(lat for _, lat in coords) < 37.824
     assert max(lat for _, lat in coords) > 38.108
+
+    illicheon = [f for f in data["features"] if f["properties"].get("name") == "일리천"]
+    assert len(illicheon) == 1
+    illicheon_coords = illicheon[0]["geometry"]["coordinates"]
+    named_end = [127.89414, 37.469201]
+    confluence = [127.898118, 37.421672]
+    join = illicheon_coords.index(named_end)
+    assert illicheon_coords[join + 1] == [127.895214, 37.469172]
+    assert haversine_km(illicheon_coords[join], illicheon_coords[join + 1]) < 0.2
+    assert illicheon_coords[-1] == confluence
+
+    seomgang = next(f for f in data["features"] if f["properties"].get("name") == "섬강")
+    assert confluence in seomgang["geometry"]["coordinates"]
+    illicheon_extension = next(x for x in FORCED_EXTENSIONS if x["name"] == "일리천")
+    assert illicheon_extension["coordinates"][0] == named_end
+    assert illicheon_extension["coordinates"][-1] == confluence
     print("river continuity regression: ok")
 
 

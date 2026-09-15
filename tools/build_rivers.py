@@ -15,15 +15,36 @@ NAME_ALIASES = {
     # OSM의 공백 표기 차이로 본류와 북쪽 짧은 구간이 별도 검색 결과가 되지 않게 한다.
     "양양 남대천": "양양남대천",
 }
-# OSM에 이름이 없지만 공식 본류 구간인 선분. 원본 way 546163695·546166922(2026-08-06 확인).
-FORCED_EXTENSIONS = [{"name": "홍천강", "kind": "river", "coordinates": [
-    [128.012857, 37.858959], [128.014867, 37.854185], [128.019874, 37.847986],
-    [128.020044, 37.846694], [128.019618, 37.84344], [128.018, 37.841046],
-    [128.017864, 37.838706], [128.016553, 37.833702], [128.012278, 37.827205],
-    [128.007697, 37.822039], [128.00429, 37.819362], [128.000731, 37.818824],
-    [127.998772, 37.817196], [127.995928, 37.809998], [127.994719, 37.807831],
-    [127.991074, 37.803633],
-]}]
+# OSM에 이름이 없지만 공식 본류 구간인 선분.
+FORCED_EXTENSIONS = [
+    # 홍천강 원본 way 546163695·546166922(2026-08-06 확인).
+    {"name": "홍천강", "kind": "river", "coordinates": [
+        [128.012857, 37.858959], [128.014867, 37.854185], [128.019874, 37.847986],
+        [128.020044, 37.846694], [128.019618, 37.84344], [128.018, 37.841046],
+        [128.017864, 37.838706], [128.016553, 37.833702], [128.012278, 37.827205],
+        [128.007697, 37.822039], [128.00429, 37.819362], [128.000731, 37.818824],
+        [127.998772, 37.817196], [127.995928, 37.809998], [127.994719, 37.807831],
+        [127.991074, 37.803633],
+    ]},
+    # 일리천의 이름 있는 way 131296958 끝부터 섬강 공유 노드까지 이어지는 하류
+    # way 130242548(version 4, 2023-05-29, 2026-09-15 재확인).
+    {"name": "일리천", "kind": "river", "coordinates": [
+        [127.89414, 37.469201], [127.895214, 37.469172], [127.89692, 37.46798],
+        [127.897982, 37.466873], [127.898256, 37.465328], [127.899956, 37.46606],
+        [127.900938, 37.46566], [127.901195, 37.464233], [127.898594, 37.464152],
+        [127.896571, 37.463109], [127.899929, 37.462666], [127.900638, 37.46207],
+        [127.899495, 37.461144], [127.897081, 37.461466], [127.896394, 37.46107],
+        [127.895257, 37.458608], [127.893444, 37.456888], [127.893986, 37.454307],
+        [127.893691, 37.451774], [127.887516, 37.452855], [127.887506, 37.451109],
+        [127.888368, 37.449257], [127.890413, 37.447843], [127.89452, 37.446553],
+        [127.894828, 37.444934], [127.891824, 37.441369], [127.891201, 37.439401],
+        [127.889032, 37.439627], [127.885687, 37.441113], [127.884775, 37.440887],
+        [127.884572, 37.439293], [127.885494, 37.436818], [127.886484, 37.435956],
+        [127.888445, 37.435208], [127.890928, 37.436147], [127.893042, 37.435489],
+        [127.896298, 37.432645], [127.89692, 37.430332], [127.896073, 37.426826],
+        [127.898118, 37.421672],
+    ]},
+]
 
 
 def fetch_json(url, data=None):
@@ -133,6 +154,37 @@ def merge_named_features(features):
     return merged
 
 
+def apply_forced_extensions_to_existing():
+    """Apply curated unnamed main-stem extensions without refreshing all OSM data."""
+    fc = json.loads(OUT.read_text(encoding="utf-8"))
+    features = fc.get("features", [])
+    changed = []
+    for extension in FORCED_EXTENSIONS:
+        name = extension["name"]
+        target = extension["coordinates"][-1]
+        matches = [f for f in features if f.get("properties", {}).get("name") == name]
+        if any(target in f.get("geometry", {}).get("coordinates", []) for f in matches):
+            continue
+        merged = merge_named_features(matches + [{
+            "type": "Feature",
+            "properties": {"name": name, "kind": extension["kind"]},
+            "geometry": {"type": "LineString", "coordinates": extension["coordinates"]},
+        }])
+        updated = []
+        inserted = False
+        for feature in features:
+            if feature.get("properties", {}).get("name") == name:
+                if not inserted:
+                    updated.extend(merged)
+                    inserted = True
+                continue
+            updated.append(feature)
+        features[:] = updated
+        changed.append(name)
+    OUT.write_text(json.dumps(fc, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"{OUT}: extensions applied to {', '.join(changed) if changed else 'none'}")
+
+
 def load_overpass(kind, local_path=None):
     if local_path:
         return json.loads(Path(local_path).read_text(encoding="utf-8"))
@@ -148,6 +200,9 @@ def normalize_name(name):
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "--extensions-only":
+        apply_forced_extensions_to_existing()
+        return
     river_path = sys.argv[1] if len(sys.argv) > 1 else None
     stream_path = sys.argv[2] if len(sys.argv) > 2 else None
     boundary = fetch_json(BOUNDARY_URL)[0]["geojson"]
