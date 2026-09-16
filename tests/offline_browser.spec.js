@@ -459,3 +459,81 @@ test('measurement labels show segment and cumulative distance at each endpoint',
   await context.close();
   await browser.close();
 });
+
+test('campsites are visible only while administrator mode is active', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.addInitScript(() => localStorage.setItem('mc_admin', 'test-admin-key'));
+  const campsite = { id: 'camp-test', lat: 36.3, lng: 127.8, type: '캠핑사이트', name: '관리자 캠프', note: '관리자 전용', t: 1 };
+  const publicFood = { id: 'food-test', lat: 36.301, lng: 127.801, type: '식당/카페', name: '공개 식당', note: '', t: 1 };
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/admincheck')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) });
+    } else if (url.pathname.endsWith('/obstacles')) {
+      const body = route.request().method() === 'POST' ? route.request().postDataJSON() : null;
+      expect(body === null || body.action === 'list-admin').toBe(true);
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([publicFood, campsite]) });
+    } else if (url.pathname.endsWith('/launch-sites')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], truncated: false }) });
+    } else if (url.pathname.endsWith('/admin-sheet-link')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, url: '' }) });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    }
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => isAdmin() && !!_obstacles['camp-test']);
+  await expect(page.locator('.obs-camp')).toHaveCount(1);
+  expect(await page.evaluate(() => _localSearch('관리자 캠프').some((item) => item.o?.id === 'camp-test'))).toBe(true);
+
+  await page.evaluate(() => openObsModal('add', { lat: 36.3, lng: 127.8 }));
+  const campsiteButton = page.locator('#obBody .seg-b[data-ty="캠핑사이트"]');
+  await expect(campsiteButton).toBeVisible();
+  expect(await campsiteButton.evaluate((node) => getComputedStyle(node).gridColumnStart)).toBe('2');
+  await campsiteButton.click();
+  await expect(campsiteButton).toHaveClass(/on/);
+  await expect(page.locator('#obNameRow')).toBeVisible();
+  await page.evaluate(() => closeObsModal());
+
+  await page.evaluate(() => _setAdmin(false));
+  await page.waitForFunction(() => !_obstacles['camp-test']);
+  await expect(page.locator('.obs-camp')).toHaveCount(0);
+  expect(await page.evaluate(() => _localSearch('관리자 캠프').length)).toBe(0);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
+test('plain refresh restores map center and zoom while share URLs take priority', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof map !== 'undefined');
+  await page.evaluate(() => map.setView([37.123456, 128.54321], 14, { animate: false }));
+  await page.waitForFunction(() => JSON.parse(localStorage.getItem('mc_map_view_v1') || 'null')?.zoom === 14);
+
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof map !== 'undefined');
+  const restored = await page.evaluate(() => ({ center: map.getCenter(), zoom: map.getZoom() }));
+  expect(restored.zoom).toBe(14);
+  expect(Math.abs(restored.center.lat - 37.123456)).toBeLessThan(0.00001);
+  expect(Math.abs(restored.center.lng - 128.54321)).toBeLessThan(0.00001);
+
+  await page.goto(baseURL + '/?course=1', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof map !== 'undefined');
+  expect(await page.evaluate(() => _initialMapView)).toBeNull();
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});

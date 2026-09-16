@@ -226,6 +226,7 @@ __GTAG__
   .obs-wind{background:#7e57c2}
   .obs-dragons{background:#455a64}
   .obs-food{background:#00897b}
+  .obs-camp{background:#33691e}
   .leaflet-div-icon.wp-div{background:transparent;border:0}
   .wp-ring{display:block;width:18px;height:18px;box-sizing:border-box;border:5px solid #1976d2;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5),0 0 0 2px rgba(255,255,255,.9)}
   .wp-ring.risk{width:20px;height:20px;border-color:#d32f2f;box-shadow:0 1px 5px rgba(0,0,0,.55),0 0 0 2px #fff}
@@ -234,6 +235,7 @@ __GTAG__
   .obs-div .obs-ic{position:absolute;transform:translate(-50%,-50%)}
   #obBody .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
   #obBody .seg-b{padding:9px 5px;font-size:12px}
+  #obBody .seg-b[data-ty="캠핑사이트"]{grid-column:2}
   #obNote{width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccd;border-radius:11px;font-size:14px;resize:vertical;font-family:inherit}
   #obMsg{font-size:13px;color:#888;margin-top:9px;min-height:18px;text-align:center}
   .leaflet-control-layers{padding:8px 11px!important;border-radius:8px!important;box-shadow:0 1px 5px rgba(0,0,0,.3)!important;font:13px/1.55 sans-serif}
@@ -889,7 +891,7 @@ async function openAdminMembers(){
       +(list.length?list.map(function(x){const t=(+x.loginCount||0)+(+x.visitCount||0),dt=x.lastAt?new Date(x.lastAt).toLocaleDateString('ko-KR'):'-';return '<div class="my-list-row"><span class="my-kind">👤</span><div class="my-list-main"><b>'+pmEsc(x.nick||'회원')+'</b><small>#'+pmEsc(String(x.memberId||'').slice(0,8))+' · 최근 '+dt+'</small></div><div style="text-align:right;font-size:12px"><b>'+t+'회</b><br><small>로그인 '+(+x.loginCount||0)+' · 방문 '+(+x.visitCount||0)+'</small></div></div>';}).join(''):'<div class="my-empty"><b>전환 후 가입 회원이 없습니다</b></div>');
   }catch(e){ body.innerHTML='<h3>회원 현황</h3><div class="my-empty"><b>불러오지 못했습니다</b>관리자 인증을 다시 확인해 주세요.</div>'; }
 }
-function _setAdmin(on){ _adminOk=on; _adminBadge(on); _updateAdminActions(on); _updateAdminSheetLink(on); _updateAdminMemberButton(on); const ob=document.getElementById('obsBtnBox'); if(ob) ob.style.display=on?'block':'none'; try{ _refreshObsPopups(); }catch(e){} applyPlaceOver(); _applyCourseFocus(); _maybeSyncAdminCourseFavs(); try{_syncAdminRiverLayer(on);_syncAdminRoadLayer(on);reloadSecurePlaces();}catch(e){} try{reloadCoursesForViewer();}catch(e){} if(on)try{focusPlaceFromUrl();}catch(e){} }
+function _setAdmin(on){ _adminOk=on; _adminBadge(on); _updateAdminActions(on); _updateAdminSheetLink(on); _updateAdminMemberButton(on); const ob=document.getElementById('obsBtnBox'); if(ob) ob.style.display=on?'block':'none'; try{ _refreshObsPopups(); reloadObstaclesForViewer(); }catch(e){} applyPlaceOver(); _applyCourseFocus(); _maybeSyncAdminCourseFavs(); try{_syncAdminRiverLayer(on);_syncAdminRoadLayer(on);reloadSecurePlaces();}catch(e){} try{reloadCoursesForViewer();}catch(e){} if(on)try{focusPlaceFromUrl();}catch(e){} }
 async function exportComments(){
   if(!isAdmin()) return;
   if(!confirm('기존 코멘트를 전부 시트(comments 탭)로 내보낼까요?')) return;
@@ -1023,8 +1025,17 @@ const ua = navigator.userAgent;
 const isiOS = /iphone|ipad|ipod/i.test(ua);
 const isAndroid = /android/i.test(ua);
 
-const map = L.map('map', {preferCanvas:true, zoomControl:false}).setView([36.3, 127.8], 7);
+function _mapUrlOwnsView(){ const q=new URLSearchParams(location.search); return q.has('course')||q.has('measure')||q.has('place')||q.has('river')||q.get('view')==='roadview'; }
+function _savedMapView(){
+  if(_mapUrlOwnsView())return null;
+  try{const v=JSON.parse(localStorage.getItem('mc_map_view_v1')||'null'),lat=Number(v&&v.lat),lng=Number(v&&v.lng),zoom=Number(v&&v.zoom);
+    if(isFinite(lat)&&lat>=-85&&lat<=85&&isFinite(lng)&&lng>=-180&&lng<=180&&isFinite(zoom)&&zoom>=2&&zoom<=19)return {lat:lat,lng:lng,zoom:zoom};
+  }catch(e){} return null;
+}
+const _initialMapView=_savedMapView();
+const map = L.map('map', {preferCanvas:true, zoomControl:false}).setView(_initialMapView?[_initialMapView.lat,_initialMapView.lng]:[36.3,127.8],_initialMapView?_initialMapView.zoom:7);
 window.map = map;
+map.on('moveend',function(){if(_mapUrlOwnsView())return;try{const c=map.getCenter();localStorage.setItem('mc_map_view_v1',JSON.stringify({lat:+c.lat.toFixed(6),lng:+c.lng.toFixed(6),zoom:map.getZoom()}));}catch(e){}});
 map.attributionControl.setPrefix(false);   // 🇺🇦 깃발 + "Leaflet" 접두사 제거(© OpenStreetMap 만 유지)
 let measureMode = false;   // 물길 거리측정 모드
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;   // 모바일/터치 여부
@@ -2007,7 +2018,7 @@ function courseCmt(kind,id){
   if(kind==='c'){ const c=_courseByCid[String(id)]; if(c) openCourseComments('course_c'+id, c, id); }
   else { const c=_kvCourses[id]; if(c) openCourseComments('course_k'+id, c, 'k'+id); }
 }
-// ---- 지형지물(보/징검다리/잠수교/용치/낮은바닥/여울/유명지/강풍지대/식당·카페) ----
+// ---- 지형지물(보/징검다리/잠수교/용치/낮은바닥/여울/유명지/강풍지대/식당·카페/캠핑사이트) ----
 // 줌 게이팅: 마커를 전용 pane에 넣고 줌<12(런칭/랜딩 아이콘 전환 기준)에서는 pane 자체를 숨김
 // (레이어 토글과 독립 — 체크 상태 유지한 채 줌으로만 표시/숨김)
 map.createPane('obsPane'); map.getPane('obsPane').style.zIndex='640';
@@ -2020,9 +2031,10 @@ function _zoomPaneGate(){ const on=map.getZoom()>=13?'':'none';
   map.getPane('damPane').style.display=map.getZoom()>=10?'':'none';
   map.getPane('obsPane').style.display=map.getZoom()>=13?'':'none'; }
 map.on('zoomend', _zoomPaneGate);
-const OBS_TYPES={'보':{c:'obs-bo',e:'🚧',label:'보'},'징검다리':{c:'obs-jing',e:'🪨',label:'징검다리'},'잠수교':{c:'obs-lowbridge',e:'🌉',label:'잠수교'},'용치':{c:'obs-dragons',e:'🔺',label:'용치'},'낮은바닥':{c:'obs-shal',e:'〰️',label:'얕음'},'여울':{c:'obs-yeoul',e:'🌊',label:'여울'},'유명지':{c:'obs-spot',e:'⭐',label:'유명지'},'강풍지대':{c:'obs-wind',e:'💨',label:'강풍지대'},'식당/카페':{c:'obs-food',e:'🍽️',label:'식당/카페'}};
-function _obHasName(ty){ return ty==='여울'||ty==='유명지'||ty==='식당/카페'; }
+const OBS_TYPES={'보':{c:'obs-bo',e:'🚧',label:'보'},'징검다리':{c:'obs-jing',e:'🪨',label:'징검다리'},'잠수교':{c:'obs-lowbridge',e:'🌉',label:'잠수교'},'용치':{c:'obs-dragons',e:'🔺',label:'용치'},'낮은바닥':{c:'obs-shal',e:'〰️',label:'얕음'},'여울':{c:'obs-yeoul',e:'🌊',label:'여울'},'유명지':{c:'obs-spot',e:'⭐',label:'유명지'},'강풍지대':{c:'obs-wind',e:'💨',label:'강풍지대'},'식당/카페':{c:'obs-food',e:'🍽️',label:'식당/카페'},'캠핑사이트':{c:'obs-camp',e:'🏕️',label:'캠핑사이트'}};
+function _obHasName(ty){ return ty==='여울'||ty==='유명지'||ty==='식당/카페'||ty==='캠핑사이트'; }
 function _obHasKakao(ty){ return ty==='식당/카페'; }
+function _obAdminOnly(o){ return !!o&&o.type==='캠핑사이트'; }
 function _obKakaoUrl(v){
   const raw=String(v||'').trim(); if(!raw) return '';
   try{ const u=new URL(raw), h=u.hostname.toLowerCase();
@@ -2039,12 +2051,12 @@ const obstacleLayer=L.layerGroup();
 const _obstacles={};
 function staticWeirId(w){ return 'weir:'+encodeURIComponent(String(w.nm||'보'))+'|'+Number(w.lat).toFixed(5)+'|'+Number(w.lng).toFixed(5); }
 function obsIcon(type,name){ const t=OBS_TYPES[type]||OBS_TYPES['보']; const disp=(name&&String(name).trim())?pmEsc(String(name).trim()):t.label; return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+'">'+t.e+' '+disp+'</span>',iconSize:null}); }
-function obsPopup(o){ const t=OBS_TYPES[o.type]||OBS_TYPES['보']; const nm=(o.name&&String(o.name).trim())?pmEsc(String(o.name).trim()):'';
+function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; const t=OBS_TYPES[o.type]||OBS_TYPES['보']; const nm=(o.name&&String(o.name).trim())?pmEsc(String(o.name).trim()):'';
   const kakao=o.type==='식당/카페'?'<div style="margin:8px 0 4px"><a href="'+_obKakaoLink(o)+'" target="_blank" rel="noopener" style="color:#1565c0;font-weight:700">🟡 카카오맵 장소 상세</a></div>':'';
   const matched=o.kakaoPlaceName?'<div style="margin:6px 0 0;color:#60747c;font-size:11.5px">카카오맵 자동 연결: '+pmEsc(o.kakaoPlaceName)+(isFinite(Number(o.kakaoMatchDistance))?' · '+Math.round(Number(o.kakaoMatchDistance))+'m':'')+'</div>':'';
   return '<span class="obs-ic '+t.c+'">'+t.e+' '+(nm||t.label)+'</span>'+(nm?'<small style="color:#99a;margin-left:6px">'+t.label+'</small>':'')+matched+(o.note?'<div style="margin:7px 0 4px;color:#445;font-size:13px">'+linkify(o.note)+'</div>':'<br>')+kakao
     +(isAdmin()?'<a onclick="editObstacle(\''+o.id+'\')" style="color:#1565c0;cursor:pointer;margin-right:10px">✏️ 수정</a><a onclick="moveObstacle(\''+o.id+'\')" style="color:#2e9e5b;cursor:pointer;margin-right:10px">📍 이동</a><a onclick="deleteObstacle(\''+o.id+'\')" style="color:#c62828;cursor:pointer">삭제</a>':''); }
-function renderObstacle(o){ if(!o||o.lat==null||o.del) return; _obstacles[o.id]=o;
+function renderObstacle(o){ if(!o||o.lat==null||o.del||(_obAdminOnly(o)&&!isAdmin())) return; _obstacles[o.id]=o;
   const m=L.marker([o.lat,o.lng],{icon:obsIcon(o.type,o.name),pane:'obsPane'});
   if(isAdmin()||o.type==='식당/카페') m.bindPopup(obsPopup(o));   // 식당/카페 상세는 일반 사용자에게도 공개
   m.addTo(obstacleLayer); o._m=m; }
@@ -2052,11 +2064,17 @@ function renderStaticWeir(w){ if(!w||w.lat==null) return; renderObstacle({id:sta
 // 관리자 인증이 로드 뒤에 될 수 있어, 관리자 활성 시 지형지물 팝업 재바인딩
 function _refreshObsPopups(){ const on=isAdmin(); Object.keys(_obstacles).forEach(function(id){ const o=_obstacles[id]; if(!o||!o._m) return;
   if(on||o.type==='식당/카페') o._m.bindPopup(obsPopup(o)); else o._m.unbindPopup(); }); }
-function loadObstacles(){ fetch(WORKER_URL.replace(/\/+$/,'')+'/obstacles').then(function(r){return r.json();})
-  .then(function(list){ (list||[]).forEach(function(o){ if(o&&!o.del) renderObstacle(o); }); }).catch(function(){}); }
+let _obstacleLoadSeq=0;
+function _clearStoredObstacles(){Object.keys(_obstacles).forEach(function(id){if(String(id).indexOf('weir:')===0)return;const o=_obstacles[id];if(o&&o._m)obstacleLayer.removeLayer(o._m);delete _obstacles[id];});}
+function _removeAdminOnlyObstacles(){Object.keys(_obstacles).forEach(function(id){const o=_obstacles[id];if(!_obAdminOnly(o))return;if(o&&o._m)obstacleLayer.removeLayer(o._m);delete _obstacles[id];});}
+async function loadObstacles(adminMode){const seq=++_obstacleLoadSeq,url=WORKER_URL.replace(/\/+$/,'')+'/obstacles';try{
+  const r=adminMode?await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'list-admin',adminKey:adminKey()})}):await fetch(url,{cache:'no-store'});
+  if(!r.ok)throw 0;const list=await r.json();if(seq!==_obstacleLoadSeq)return;_clearStoredObstacles();(list||[]).forEach(function(o){if(o&&!o.del)renderObstacle(o);});
+}catch(e){}}
+function reloadObstaclesForViewer(){if(TOUR_MODE)return;const adminMode=isAdmin();if(!adminMode)_removeAdminOnlyObstacles();loadObstacles(adminMode);}
 obstacleLayer.addTo(map);   // 기본 ON — 별도 토글(통합 패널), 줌<12에서는 pane 게이팅으로 숨김
 _zoomPaneGate();
-if(!TOUR_MODE){WEIRS.forEach(renderStaticWeir);loadObstacles();}
+if(!TOUR_MODE){WEIRS.forEach(renderStaticWeir);loadObstacles(false);}
 // 지형지물 추가(관리자 전용 버튼 — 거리측정 버튼 옆)
 let obsPlaceMode=false;
 const ObstacleCtl=L.Control.extend({ options:{position:'topleft'},
@@ -2084,13 +2102,13 @@ function openObsModal(mode,data){ if(!isAdmin()) return;
     if(data.kakaoPlaceId) kakaoAuto='현재 자동 연결: '+pmEsc(data.kakaoPlaceName||name)+(isFinite(Number(data.kakaoMatchDistance))?' · '+Math.round(Number(data.kakaoMatchDistance))+'m':'')+' (저장 시 다시 검색)';
     else kakaoUrl=data.kakaoUrl||''; }
   else { _obCur=null; _obLL={lat:data.lat,lng:data.lng}; }
-  const tys=['보','징검다리','잠수교','용치','낮은바닥','여울','유명지','강풍지대','식당/카페'];
+  const tys=['보','징검다리','잠수교','용치','낮은바닥','여울','유명지','강풍지대','식당/카페','캠핑사이트'];
   let seg=''; for(let i=0;i<tys.length;i++){ const t=tys[i],info=OBS_TYPES[t]; seg+='<button class="seg-b'+(t===ty?' on':'')+'" data-ty="'+t+'" onclick="obPick(this)">'+info.e+' '+t+'</button>'; }
   document.getElementById('obBody').innerHTML=
     '<h3>'+(mode==='edit'?'✏️ 지형지물 수정':'🗺️ 지형지물 추가')+'</h3>'
     +'<div class="sg-label">유형</div><div class="seg">'+seg+'</div>'
     +'<div id="obNameRow" style="display:'+(_obHasName(ty)?'block':'none')+'"><div class="sg-label">이름</div>'
-    +'<input id="obName" maxlength="40" placeholder="예: 도담삼봉 / 한강 여울 / 강변카페" value="'+pmEsc(name)+'"></div>'
+    +'<input id="obName" maxlength="40" placeholder="예: 도담삼봉 / 한강 여울 / 강변카페 / 강변 캠핑사이트" value="'+pmEsc(name)+'"></div>'
     +'<div id="obKakaoRow" style="display:'+(_obHasKakao(ty)?'block':'none')+'"><div class="sg-label">카카오맵 장소 URL (직접 지정할 때만)</div>'
     +'<input id="obKakaoUrl" maxlength="500" placeholder="비워두면 이름과 좌표로 자동 연결" value="'+pmEsc(kakaoUrl)+'">'
     +(kakaoAuto?'<div style="margin:-5px 0 10px;color:#60747c;font-size:11.5px">'+kakaoAuto+'</div>':'')+'</div>'
@@ -2105,6 +2123,7 @@ async function doSaveObs(){ if(!isAdmin()||!_obLL) return;
   const msg=document.getElementById('obMsg'); msg.style.color='#888'; msg.textContent='저장 중…';
   const kuEl=document.getElementById('obKakaoUrl'), kuRaw=(_obHasKakao(type)&&kuEl)?(kuEl.value||'').trim():'', kakaoUrl=_obKakaoUrl(kuRaw);
   if(type==='식당/카페'&&!name){ msg.style.color='#c0392b'; msg.textContent='식당/카페 이름을 입력하세요'; return; }
+  if(type==='캠핑사이트'&&!name){ msg.style.color='#c0392b'; msg.textContent='캠핑사이트 이름을 입력하세요'; return; }
   if(kuRaw&&!kakaoUrl){ msg.style.color='#c0392b'; msg.textContent='카카오맵 장소 링크를 확인하세요'; return; }
   const base=WORKER_URL.replace(/\/+$/,'')+'/obstacle';
   try{ let body;
@@ -3289,6 +3308,7 @@ function _localSearch(q){
     if(nm.replace(/\s/g,'').toLowerCase().indexOf(nq)>=0)
       out.push({kind:'kvplace', label:(pl.cat==='명소'?'📍 ':'🛶 ')+nm, lat:pl.lat, lng:pl.lng, pl:pl}); });
   Object.keys(_obstacles||{}).forEach(function(k){ const o=_obstacles[k]; const nm=o.name||'';
+    if(_obAdminOnly(o)&&!isAdmin())return;
     if(nm && nm.replace(/\s/g,'').toLowerCase().indexOf(nq)>=0){ const t=OBS_TYPES[o.type]||OBS_TYPES['보'];
       out.push({kind:'obs', label:t.e+' '+nm, lat:o.lat, lng:o.lng, o:o}); } });
   if(isAdmin()){

@@ -1102,21 +1102,22 @@ export default {
       return new Response(JSON.stringify(out), { headers: { ...cors, "Content-Type": "application/json" } });
     }
 
-    // 0-3e) 지형지물(보/징검다리/잠수교/용치/낮은바닥/여울/유명지/강풍지대/식당·카페) — 관리자. KV "obstacles"
+    // 0-3e) 지형지물(보/징검다리/잠수교/용치/낮은바닥/여울/유명지/강풍지대/식당·카페/캠핑사이트) — 관리자. KV "obstacles"
     if (url.pathname.endsWith("/obstacles") || url.pathname.endsWith("/obstacle")) {
       const origin = req.headers.get("Origin") || "*";
       const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
       if (req.method === "OPTIONS") return new Response(null, { headers: cors });
       const KV = env.PLACES;
       const J = (s) => new Response(s, { headers: { ...cors, "Content-Type": "application/json" } });
-      if (req.method === "GET") { return _cacheJson(ctx, url.toString(), async () => {
-        const d = KV ? await KV.get("obstacles") : null;
-        return new Response(d || "[]", { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=60" } });
-      }, 60); }
+      if (req.method === "GET") {
+        let arr = []; try { arr = JSON.parse((KV && await KV.get("obstacles")) || "[]"); } catch (e) {}
+        const publicItems = (Array.isArray(arr) ? arr : []).filter((x) => x && x.type !== "캠핑사이트");
+        return new Response(JSON.stringify(publicItems), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" } });
+      }
       if (req.method === "POST") {
         let b = {}; try { b = await req.json(); } catch (e) {}
         if (!KV) return new Response("no-store", { status: 500, headers: cors });
-        const TYPES = ["보", "징검다리", "잠수교", "용치", "낮은바닥", "여울", "유명지", "강풍지대", "식당/카페"];
+        const TYPES = ["보", "징검다리", "잠수교", "용치", "낮은바닥", "여울", "유명지", "강풍지대", "식당/카페", "캠핑사이트"];
         const cleanKakaoUrl = (value) => {
           const raw = String(value || "").trim(); if (!raw) return "";
           try {
@@ -1128,10 +1129,14 @@ export default {
         const hasKakaoUrlInput = b.kakaoUrl != null;
         const rawKakaoUrl = String(b.kakaoUrl || "").trim(), kakaoUrl = cleanKakaoUrl(rawKakaoUrl);
         if (rawKakaoUrl && !kakaoUrl) return new Response("bad-kakao-url", { status: 400, headers: cors });
-        if ((b.action === "add" || b.action === "edit") && b.type === "식당/카페" && !String(b.name || "").trim()) {
+        if ((b.action === "add" || b.action === "edit") && (b.type === "식당/카페" || b.type === "캠핑사이트") && !String(b.name || "").trim()) {
           return new Response("name-required", { status: 400, headers: cors });
         }
         let arr = []; try { arr = JSON.parse((await KV.get("obstacles")) || "[]"); } catch (e) {}
+        if (b.action === "list-admin") {
+          if (!env.ADMIN_KEY || String(b.adminKey) !== String(env.ADMIN_KEY)) return new Response("forbidden", { status: 403, headers: cors });
+          return new Response(JSON.stringify(arr), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+        }
         let created = null;
         const clearKakaoMatch = (it) => {
           delete it.kakaoPlaceId; delete it.kakaoPlaceName; delete it.kakaoMatchDistance; delete it.kakaoMatchedAt;
@@ -1167,7 +1172,7 @@ export default {
           if (b.note != null) it.note = String(b.note).slice(0, 200);
           if (b.name != null) it.name = String(b.name).slice(0, 40);
           if (b.lat != null && b.lng != null) { it.lat = Number(b.lat); it.lng = Number(b.lng); }
-          if (it.type === "식당/카페" && !String(it.name || "").trim()) return new Response("name-required", { status: 400, headers: cors });
+          if ((it.type === "식당/카페" || it.type === "캠핑사이트") && !String(it.name || "").trim()) return new Response("name-required", { status: 400, headers: cors });
           await syncKakaoPlace(it, previousKakaoUrl);
           created = it;
         } else if (b.action === "add" && String(b.obsId || "").trim()) {
@@ -1181,7 +1186,7 @@ export default {
             it.note = String(b.note || "").slice(0, 200);
             it.name = String(b.name || "").slice(0, 40);
             it.lat = lat; it.lng = lng;
-            if (it.type === "식당/카페" && !it.name.trim()) return new Response("name-required", { status: 400, headers: cors });
+            if ((it.type === "식당/카페" || it.type === "캠핑사이트") && !it.name.trim()) return new Response("name-required", { status: 400, headers: cors });
             await syncKakaoPlace(it, "");
             created = it;
           } else {
