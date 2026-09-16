@@ -384,13 +384,14 @@ __GTAG__
   .loc-canoe-in svg{width:38px;height:auto}
   @keyframes locbob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
   .cafe-actions{display:flex;align-items:stretch;gap:6px}
-  .cafecard,.admin-sheet-card{display:flex;align-items:center;gap:8px;box-sizing:border-box;background:#fff;padding:7px 12px 7px 7px;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.2);text-decoration:none;cursor:pointer}
+  .cafecard,.admin-sheet-card,.admin-members-card{display:flex;align-items:center;gap:8px;box-sizing:border-box;background:#fff;padding:7px 12px 7px 7px;border:0;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.2);text-decoration:none;cursor:pointer}
   .cafecard{width:150px}
   .cafecard .cf-badge{width:30px;height:30px;flex:none;border-radius:8px;background:#03C75A;display:flex;align-items:center;justify-content:center}
   .cafecard .cf-badge svg{width:20px;height:auto}
-  .cafecard .cf-t,.admin-sheet-card .cf-t{font:800 13px sans-serif;color:#1f2d25;white-space:nowrap}
-  .admin-sheet-card{display:none;width:112px}
-  .admin-sheet-card .sheet-badge{width:30px;height:30px;flex:none;border-radius:8px;background:#188038;color:#fff;display:flex;align-items:center;justify-content:center;font:800 19px/1 sans-serif}
+  .cafecard .cf-t,.admin-sheet-card .cf-t,.admin-members-card .cf-t{font:800 13px sans-serif;color:#1f2d25;white-space:nowrap}
+  .admin-sheet-card,.admin-members-card{display:none;width:112px}
+  .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge{width:30px;height:30px;flex:none;border-radius:8px;background:#188038;color:#fff;display:flex;align-items:center;justify-content:center;font:800 19px/1 sans-serif}
+  .admin-members-card .sheet-badge{background:#1565c0}
   .legend-c{width:150px;box-sizing:border-box}
   .spot-pin-in{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #ec407a;box-shadow:0 1px 4px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
   .spot-pin-in svg{width:23px;height:auto;overflow:visible}
@@ -624,6 +625,12 @@ __GTAG__
   .auth-card p{font-size:12.5px;color:#7a8a93;margin:0 0 16px}
   #authKey{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd;border-radius:10px;font-size:15px;text-align:center;letter-spacing:2px}
   #nickInput{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd;border-radius:10px;font-size:15px;text-align:center}
+  #nickModal .auth-card{width:340px;max-height:92vh;overflow:auto;text-align:left}
+  #nickModal .auth-lock,#nickModal h3,#nickModal .signup-lead{text-align:center}
+  .signup-info{background:#f4f7f8;border:1px solid #dce5e9;border-radius:10px;padding:10px 12px;margin:12px 0;font:11.5px/1.55 sans-serif;color:#50636d}
+  .signup-info b{display:block;color:#263238;margin-bottom:3px}
+  .signup-consent{display:flex;align-items:flex-start;gap:8px;margin:9px 1px;font:12px/1.45 sans-serif;color:#34454d;cursor:pointer}
+  .signup-consent input{margin-top:2px;accent-color:#1565c0}
   .auth-row{display:flex;gap:9px;margin-top:14px}
   .auth-row button{flex:1;border:0;border-radius:10px;padding:12px;font:700 14px sans-serif;cursor:pointer}
   .auth-ok{background:#263238;color:#fff}
@@ -647,10 +654,10 @@ __GTAG__
     .authbox button{padding:7px 11px;font-size:12.5px}
     .authbox .who{font-size:12.5px;padding:6px 9px}
     .cafe-actions{justify-content:flex-end}
-    .cafecard,.admin-sheet-card{width:40px;height:40px;padding:6px;justify-content:center;gap:0}
+    .cafecard,.admin-sheet-card,.admin-members-card{width:40px;height:40px;padding:6px;justify-content:center;gap:0}
     .cafecard .cf-badge{width:27px;height:27px}
-    .cafecard .cf-t,.admin-sheet-card .cf-t{display:none}
-    .admin-sheet-card .sheet-badge{width:27px;height:27px;font-size:17px}
+    .cafecard .cf-t,.admin-sheet-card .cf-t,.admin-members-card .cf-t{display:none}
+    .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge{width:27px;height:27px;font-size:17px}
     .legend-c{width:138px;font-size:12px}
     .leaflet-control-layers:not(.lc-collapsed){box-sizing:border-box;max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
     .leaflet-control-layers:not(.lc-collapsed) .lc-title{position:sticky;top:0;z-index:3;background:#fff;padding:2px 0 5px}
@@ -686,7 +693,7 @@ __GTAG__
     </ul>
     <div class="gate-warn"><span>⚠️</span><span>베타 서비스입니다. 접속·속도가 불안정할 수 있고, 남긴 코멘트가 사라질 수 있어요.</span></div>
     <button id="gateLogin" class="kakao-btn"><svg class="kakao-ico" viewBox="0 0 24 24"><path d="M12 3.4C6.7 3.4 2.4 6.9 2.4 11.1c0 2.7 1.8 5.1 4.5 6.5-.2.7-.7 2.5-.8 2.9-.1.5.2.5.4.4.2-.1 2.5-1.7 3.5-2.4.5.1 1 .2 1.5.2 5.3 0 9.6-3.4 9.6-7.6S17.3 3.4 12 3.4z"/></svg>카카오로 시작하기</button>
-    <small>로그인 후 바로 이용할 수 있어요</small>
+    <small>카카오 로그인 후 회원가입 동의를 거쳐 이용합니다</small>
     <!-- /GATEBODY -->
   </div>
 </div>
@@ -728,12 +735,19 @@ __GTAG__
   <div class="pmodal-bg"></div>
   <div class="auth-card">
     <div class="auth-lock">👤</div>
-    <h3>마이카누 닉네임</h3>
-    <p>앱에서 활동할 닉네임을 최초 한 번 설정합니다</p>
+    <h3>마이카누 회원가입</h3>
+    <p class="signup-lead">앱에서 사용할 닉네임과 필수 동의를 확인해 주세요</p>
     <input id="nickInput" type="text" maxlength="20" autocomplete="nickname" placeholder="2~20자 닉네임">
-    <div class="auth-row"><button class="auth-ok" id="nickOk">시작하기</button></div>
+    <div class="signup-info"><b>수집·보관 정보 · 시행일 2026-09-16</b>카카오 로그인 식별자의 서버 가명값, 앱 닉네임, 가입·최근 접속 시각, 로그인·접속 횟수, 모바일/PC 구분을 서비스 운영과 보안 목적으로 보관합니다. 이메일·전화번호·정확한 위치는 회원정보로 수집하지 않습니다. 탈퇴 시 닉네임과 최근 기기정보를 제거하고 가명 집계만 보존합니다. 동의를 거부할 수 있으나 회원 기능은 이용할 수 없습니다.</div>
+    <label class="signup-consent"><input id="termsAgree" type="checkbox"><span><b>[필수] 서비스 이용 동의</b><br>지도 정보는 참고용이며 현장 안전과 법규 확인 책임은 이용자에게 있습니다.</span></label>
+    <label class="signup-consent"><input id="privacyAgree" type="checkbox"><span><b>[필수] 개인정보 수집·이용 동의</b><br>위 항목을 회원 탈퇴 시까지 보관하며, 접속 통계의 가명 집계는 운영 분석 목적으로 보존합니다.</span></label>
+    <div class="auth-row"><button class="auth-ok" id="nickOk">동의하고 가입</button></div>
     <div id="nickMsg"></div>
   </div>
+</div>
+<div id="memberAdminModal" class="pmodal-wrap">
+  <div class="pmodal-bg" onclick="closeAdminMembers()"></div>
+  <div class="pmodal"><button class="pmodal-x" onclick="closeAdminMembers()">✕</button><div id="memberAdminBody"></div></div>
 </div>
 <div id="mypageTour" role="dialog" aria-live="polite" aria-label="마이페이지 안내">
   <b>마이페이지가 새로 생겼어요</b>
@@ -853,7 +867,19 @@ async function _updateAdminSheetLink(on){
     const d=await r.json(); if(r.ok&&d&&/^https:\/\/docs\.google\.com\/spreadsheets\//.test(d.url||'')){ a.href=d.url; a.style.display='flex'; }
   }catch(e){}
 }
-function _setAdmin(on){ _adminOk=on; _adminBadge(on); _updateAdminSheetLink(on); const ob=document.getElementById('obsBtnBox'); if(ob) ob.style.display=on?'block':'none'; try{ _refreshObsPopups(); }catch(e){} applyPlaceOver(); _applyCourseFocus(); _maybeSyncAdminCourseFavs(); try{_syncAdminRiverLayer(on);_syncAdminRoadLayer(on);reloadSecurePlaces();}catch(e){} try{reloadCoursesForViewer();}catch(e){} if(on)try{focusPlaceFromUrl();}catch(e){} }
+function _updateAdminMemberButton(on){ const b=document.getElementById('adminMembersBtn'); if(b)b.style.display=on?'flex':'none'; }
+function closeAdminMembers(){ const m=document.getElementById('memberAdminModal'); if(m)m.classList.remove('open'); }
+async function openAdminMembers(){
+  if(!isAdmin())return; const m=document.getElementById('memberAdminModal'),body=document.getElementById('memberAdminBody');
+  if(!m||!body)return; m.classList.add('open'); body.innerHTML='<div class="pm-empty">회원 현황을 불러오는 중…</div>';
+  try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/admin-members',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:adminKey()})}); const d=await r.json(); if(!r.ok||!d.ok)throw 0;
+    const list=d.active||[],total=list.reduce(function(s,x){return s+(+x.loginCount||0)+(+x.visitCount||0);},0);
+    body.innerHTML='<h3>회원 현황</h3><p style="color:#718087;font-size:12px">회원가입 전환 이후 통계 · 원본 카카오 ID 미표시</p>'
+      +'<div class="my-stats compact"><div class="my-stat"><b>'+list.length+'</b><span>활성 회원</span></div><div class="my-stat"><b>'+total+'</b><span>총 접속</span></div><div class="my-stat"><b>'+((d.withdrawnCount||0))+'</b><span>탈퇴</span></div></div>'
+      +(list.length?list.map(function(x){const t=(+x.loginCount||0)+(+x.visitCount||0),dt=x.lastAt?new Date(x.lastAt).toLocaleDateString('ko-KR'):'-';return '<div class="my-list-row"><span class="my-kind">👤</span><div class="my-list-main"><b>'+pmEsc(x.nick||'회원')+'</b><small>#'+pmEsc(String(x.memberId||'').slice(0,8))+' · 최근 '+dt+'</small></div><div style="text-align:right;font-size:12px"><b>'+t+'회</b><br><small>로그인 '+(+x.loginCount||0)+' · 방문 '+(+x.visitCount||0)+'</small></div></div>';}).join(''):'<div class="my-empty"><b>전환 후 가입 회원이 없습니다</b></div>');
+  }catch(e){ body.innerHTML='<h3>회원 현황</h3><div class="my-empty"><b>불러오지 못했습니다</b>관리자 인증을 다시 확인해 주세요.</div>'; }
+}
+function _setAdmin(on){ _adminOk=on; _adminBadge(on); _updateAdminSheetLink(on); _updateAdminMemberButton(on); const ob=document.getElementById('obsBtnBox'); if(ob) ob.style.display=on?'block':'none'; try{ _refreshObsPopups(); }catch(e){} applyPlaceOver(); _applyCourseFocus(); _maybeSyncAdminCourseFavs(); try{_syncAdminRiverLayer(on);_syncAdminRoadLayer(on);reloadSecurePlaces();}catch(e){} try{reloadCoursesForViewer();}catch(e){} if(on)try{focusPlaceFromUrl();}catch(e){} }
 async function exportComments(){
   if(!isAdmin()) return;
   if(!confirm('기존 코멘트를 전부 시트(comments 탭)로 내보낼까요?')) return;
@@ -912,20 +938,21 @@ function ensureAppProfile(){
       const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||''),{cache:'no-store'});
       if(r.status===401){ setUser(null); showGate(); return false; }
       const d=await r.json();
-      if(d.profile&&d.profile.nick){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); renderAuth(); logVisit(); showMyPageTour(d.profile); return true; }
-      return await openNicknameModal(u);
+      if(d.profile&&d.profile.nick){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showMyPageTour(d.profile); return true; }
+      return await openNicknameModal(u,d.suggestedNick||'');
     }catch(e){ _profilePromise=null; return false; }
   })();
   return _profilePromise;
 }
-function openNicknameModal(u){ return new Promise(function(resolve){
-  const m=document.getElementById('nickModal'), inp=document.getElementById('nickInput'), msg=document.getElementById('nickMsg'), ok=document.getElementById('nickOk');
-  inp.value=(u.kakaoNick||u.nick||'').slice(0,20); msg.textContent=''; m.classList.add('open');
+function openNicknameModal(u,suggestedNick){ return new Promise(function(resolve){
+  const m=document.getElementById('nickModal'), inp=document.getElementById('nickInput'), msg=document.getElementById('nickMsg'), ok=document.getElementById('nickOk'),terms=document.getElementById('termsAgree'),privacy=document.getElementById('privacyAgree');
+  inp.value=(suggestedNick||u.kakaoNick||u.nick||'').slice(0,20); terms.checked=false; privacy.checked=false; msg.textContent=''; m.classList.add('open');
   async function submit(){ const nick=(inp.value||'').trim(); if(nick.length<2){ msg.textContent='닉네임을 2자 이상 입력하세요'; return; }
+    if(!terms.checked||!privacy.checked){msg.textContent='필수 동의 두 항목을 확인해 주세요';return;}
     ok.disabled=true; msg.style.color='#778'; msg.textContent='확인 중…';
-    try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:u.uid,tok:u.tok||'',nick:nick})});
+    try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:u.uid,tok:u.tok||'',nick:nick,termsAgreed:true,privacyAgreed:true,dev:devType()})});
       const d=await r.json().catch(function(){return {};});
-      if(r.ok&&d.profile){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); m.classList.remove('open'); renderAuth(); logVisit(); showMyPageTour(d.profile); resolve(true); }
+      if(r.ok&&d.profile){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showMyPageTour(d.profile); resolve(true); }
       else { msg.style.color='#e53935'; msg.textContent=r.status===409?'이미 사용 중인 닉네임입니다':(r.status===401?'다시 로그인해 주세요':'한글·영문·숫자와 공백, . _ - 만 사용할 수 있습니다'); }
     }catch(e){ msg.style.color='#e53935'; msg.textContent='저장하지 못했습니다. 다시 시도하세요'; }
     finally{ ok.disabled=false; }
@@ -955,9 +982,8 @@ function showMyPageTour(profile){
     const uid=decodeURIComponent(m[1]), nick=nk?decodeURIComponent(nk[1]):'';
     setUser({uid:uid, nick:nick, kakaoNick:nick, tok:tk?decodeURIComponent(tk[1]):'', t:Date.now()});
     history.replaceState(null,'',location.pathname+location.search);
-    if(window.gtag) gtag('set',{user_id:uid});
     gaEvent('login',{method:'kakao'});
-  } else { const u=getUser(); if(u&&u.uid){ if(window.gtag) gtag('set',{user_id:u.uid}); } }
+  }
 })();
 // 로그인 관문: 미로그인 시 지도 차단(로그인 화면 표시)
 function showGate(){ const g=document.getElementById('gate'); if(g) g.style.display='flex'; }
@@ -1002,10 +1028,13 @@ const CafeCtl=L.Control.extend({ options:{position:'topright'},
     cafe.innerHTML='<span class="cf-badge">'+CANOE_SVG+'</span><span class="cf-t">마이카누 카페</span>';
     const sheet=L.DomUtil.create('a','admin-sheet-card',d); sheet.id='adminSheetLink'; sheet.target='_blank'; sheet.rel='noopener'; sheet.title='로그인 및 접속기록 스프레드시트';
     sheet.innerHTML='<span class="sheet-badge">▦</span><span class="cf-t">접속기록</span>';
+    const members=L.DomUtil.create('button','admin-members-card',d); members.id='adminMembersBtn'; members.type='button'; members.title='회원 현황';
+    members.innerHTML='<span class="sheet-badge">👥</span><span class="cf-t">회원관리</span>';
     L.DomEvent.disableClickPropagation(d);
     L.DomEvent.on(cafe,'click',function(){ gaEvent('cafe_click'); });
     L.DomEvent.on(sheet,'click',function(){ gaEvent('admin_sheet_click'); });
-    setTimeout(function(){ _updateAdminSheetLink(isAdmin()); },0);
+    L.DomEvent.on(members,'click',function(){ openAdminMembers(); });
+    setTimeout(function(){ _updateAdminSheetLink(isAdmin()); _updateAdminMemberButton(isAdmin()); },0);
     return d; } });
 
 const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -2372,7 +2401,12 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
       +'<div class="my-section-title">기본정보</div><div class="my-info-row"><span>가입일</span><b>'+dateText(p.t)+'</b></div><div class="my-info-row"><span>닉네임</span><b>'+pmEsc(u.nick||'회원')+'</b></div>'
       +'<div class="my-section-title">'+(TOUR_MODE?'활동통계':'저장 현황')+'</div><div class="my-stats'+(TOUR_MODE?'':' compact')+'"><div class="my-stat"><b>'+_favList.length+'</b><span>즐겨찾기</span></div><div class="my-stat"><b>'+state.mine.length+'</b><span>내 코스</span></div>'
       +(TOUR_MODE?'<div class="my-stat"><b>'+state.trips.length+'</b><span>패들링</span></div><div class="my-stat"><b>'+km.toFixed(1)+'</b><span>누적 km</span></div>':'')+'</div>'
-      +(TOUR_MODE&&state.trips.length?'<div class="my-info-row"><span>누적 시간</span><b>'+durText(sec)+'</b></div>':''));
+      +(TOUR_MODE&&state.trips.length?'<div class="my-info-row"><span>누적 시간</span><b>'+durText(sec)+'</b></div>':'')
+      +'<div class="my-section-title">회원정보 보호</div><div style="font-size:12px;line-height:1.55;color:#64747c">카카오 ID는 회원 DB에 원문으로 저장하지 않으며, 가명 회원번호와 30일 만료 세션을 사용합니다.</div><button id="myWithdraw" class="my-icon-btn del" style="margin-top:12px">회원 탈퇴</button>');
+    const withdraw=document.getElementById('myWithdraw'); if(withdraw)withdraw.onclick=async function(){
+      if(!confirm('회원 탈퇴 시 즉시 이용이 중지되고 회원 닉네임·최근 기기정보가 제거됩니다. 기존 작성 콘텐츠는 자동 삭제되지 않습니다. 탈퇴할까요?'))return;
+      try{const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'withdraw',id:u.uid,tok:u.tok||''})});if(!r.ok)throw 0;setUser(null);_profilePromise=null;_appProfile=null;closeMyPage();renderAuth();showGate();}catch(e){alert('탈퇴 처리에 실패했습니다. 다시 시도해 주세요.');}
+    };
   }
   function renderFavs(){
     const q=state.q.toLowerCase(), list=_favList.map(function(x,i){return {x:x,i:i};}).filter(function(z){return (state.favKind==='all'||z.x.k===state.favKind)&&(!q||String(z.x.n||z.x.t).toLowerCase().indexOf(q)>=0);});

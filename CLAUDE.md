@@ -36,7 +36,8 @@ tools/deploy_tour.sh             # Cloudflare Pages mycanoe-tour 정적 자원 �
 - `ADMIN_KEY`·`LOG_WEBHOOK`(Apps Script URL)·Kakao Client Secret → **Cloudflare Secret만**. 코드/레포 금지.
 - `vworld_key.txt`·`auth_state.json`·`hrfco_key.txt`·`gmail_app_password.txt` 등 → `.gitignore`.
 - `KAKAO_REST_KEY`는 OAuth client_id로 어차피 노출(Redirect URI 화이트리스트 보호) → `wrangler.toml` vars 허용.
-- 쓰기 API는 HMAC 서명 토큰(`mc1|uid`, ADMIN_KEY) 검증 — 자기신고 uid 신뢰 금지(2026-06-11 점검).
+- 회원 API는 30일 만료 HMAC 서명 토큰(`mc2`, ADMIN_KEY)과 `member.status=active`를 함께 검증한다.
+  외부 ID나 회원 레코드 존재만으로 현재 회원으로 판정하지 않으며, 원본 카카오 ID는 회원 정본·접속 시트에 새로 저장하지 않는다.
 
 ## 운영 원칙
 - **큰 변경(코스/데이터)은 "보여주고 컨펌 후 반영"**.

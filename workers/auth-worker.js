@@ -1,3 +1,13 @@
+import {
+  SESSION_TTL_SECONDS,
+  sessionExpiryIsValid,
+  TERMS_VERSION,
+  PRIVACY_VERSION,
+  memberRecordIsActive,
+  memberProfile,
+  publicMemberSummary,
+} from "./member-security.mjs";
+
 /**
  * Cloudflare Worker — 카카오 로그인 OAuth 콜백.
  * 정적 사이트는 토큰 교환을 직접 못 하므로 이 Worker가 대신 처리한다.
@@ -30,17 +40,72 @@ async function _hmacHex(msg, secret) {
   const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(String(msg)));
   return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-async function _tokFor(env, uid) {
-  if (!env.ADMIN_KEY) return "";
-  return (await _hmacHex("mc1|" + uid, env.ADMIN_KEY)).slice(0, 32);
+function _safeEqual(a, b) {
+  a = String(a || ""); b = String(b || "");
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
-async function _tokOk(env, uid, tok) {
-  if (!env.ADMIN_KEY) return true;     // 키 미설정(개발) 시 통과
+async function _tokFor(env, uid, now = Date.now()) {
+  if (!env.ADMIN_KEY || !uid) return "";
+  const exp = Math.floor(now / 1000) + SESSION_TTL_SECONDS;
+  const sig = (await _hmacHex("mc2|" + uid + "|" + exp, env.ADMIN_KEY)).slice(0, 32);
+  return "mc2." + exp + "." + sig;
+}
+async function _tokOk(env, uid, tok, now = Date.now()) {
+  if (!env.ADMIN_KEY) return false;     // 비밀키 누락은 보안 오류: fail closed
   if (!uid || !tok) return false;
-  return (await _tokFor(env, uid)) === String(tok);
+  const m = String(tok).match(/^mc2\.([0-9]{10})\.([0-9a-f]{32})$/);
+  if (!m) return false;
+  const exp = Number(m[1]), nowSec = Math.floor(now / 1000);
+  if (!sessionExpiryIsValid(exp, nowSec)) return false;
+  const expected = (await _hmacHex("mc2|" + uid + "|" + exp, env.ADMIN_KEY)).slice(0, 32);
+  return _safeEqual(expected, m[2]);
 }
 async function _uidHash(env, uid) {    // 공개 응답용 가명(원 uid 비노출)
   return (await _hmacHex("uh|" + uid, env.ADMIN_KEY || "x")).slice(0, 10);
+}
+async function _memberStorageKey(env, uid) {
+  if (!env.ADMIN_KEY || !uid) return "";
+  return "member:" + (await _hmacHex("member-key|" + uid, env.ADMIN_KEY)).slice(0, 32);
+}
+async function _memberId(env, uid) {
+  return (await _hmacHex("member-id|" + uid, env.ADMIN_KEY)).slice(0, 16);
+}
+async function _memberGet(env, uid) {
+  const KV = env.PLACES, key = await _memberStorageKey(env, uid);
+  if (!KV || !key) return null;
+  try { return JSON.parse((await KV.get(key)) || "null"); } catch (e) { return null; }
+}
+async function _memberPut(env, uid, member) {
+  const key = await _memberStorageKey(env, uid);
+  if (!env.PLACES || !key) throw new Error("member-store-unavailable");
+  await env.PLACES.put(key, JSON.stringify(member));
+}
+async function _memberOk(env, uid, tok) {
+  if (!(await _tokOk(env, uid, tok))) return false;
+  return memberRecordIsActive(await _memberGet(env, uid));
+}
+async function _recordMemberAccess(env, uid, type, dev, member) {
+  const current = member || await _memberGet(env, uid);
+  if (!memberRecordIsActive(current)) return false;
+  const now = Date.now(), isLogin = type === "login";
+  const logType = isLogin ? "login" : (type === "paddling_visit" ? "paddling_visit" : "visit");
+  current.loginCount = Math.max(0, Number(current.loginCount) || 0) + (isLogin ? 1 : 0);
+  current.visitCount = Math.max(0, Number(current.visitCount) || 0) + (isLogin ? 0 : 1);
+  current.lastAt = now;
+  current[isLogin ? "lastLoginAt" : "lastVisitAt"] = now;
+  current.lastDevice = dev === "모바일" ? "mobile" : "pc";
+  current.updatedAt = now;
+  await _memberPut(env, uid, current);
+  if (env.LOG_WEBHOOK) {
+    await fetch(env.LOG_WEBHOOK, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: current.memberId, nick: current.nick, type: logType, dev: dev === "모바일" ? "모바일" : "PC" }),
+    }).catch(() => {});
+  }
+  return true;
 }
 // 허용 Origin(우리 사이트)만 — 비브라우저 클라이언트는 Origin 위조 가능하나 캐주얼 남용 차단
 function _allowedOrigin(req, env) {
@@ -222,17 +287,22 @@ export default {
         "Access-Control-Allow-Headers": "Content-Type",
       };
       if (req.method === "OPTIONS") return new Response(null, { headers: cors });
-      if (req.method === "POST" && env.LOG_WEBHOOK) {
+      if (req.method === "POST") {
         let b = {};
         try { b = await req.json(); } catch (e) {}
-        // A: 진짜 카카오 id(숫자) + 유효 서명토큰만 기록 — 봇/가짜 id 차단
+        // A: 진짜 카카오 id + 만료 전 서명토큰 + 현재 active 회원만 집계한다.
         const idOk = /^[0-9]+$/.test(String(b.id || ""));
-        if (idOk && (await _tokOk(env, String(b.id), b.tok)) && _allowedOrigin(req, env)) {
-          ctx.waitUntil(fetch(env.LOG_WEBHOOK, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: b.id || "", nick: b.nick || "", type: b.type || "visit", dev: b.dev || "" }),
-          }).catch(() => {}));
+        const uid = String(b.id || "");
+        if (idOk && (await _tokOk(env, uid, b.tok)) && _allowedOrigin(req, env)) {
+          const member = await _memberGet(env, uid);
+          if (memberRecordIsActive(member)) ctx.waitUntil(_recordMemberAccess(env, uid, b.type === "paddling_visit" ? "paddling_visit" : "visit", b.dev, member));
+          else if (b.type === "paddling_visit" && env.LOG_WEBHOOK) {
+            const pseudonym = await _memberId(env, uid);
+            ctx.waitUntil(fetch(env.LOG_WEBHOOK, {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: pseudonym, nick: String(b.nick || "").slice(0, 20), type: "paddling_visit", dev: b.dev === "모바일" ? "모바일" : "PC" }),
+            }).catch(() => {}));
+          }
         }
       }
       return new Response("ok", { headers: cors });   // 항상 ok(공격자에게 정보 비노출)
@@ -262,7 +332,31 @@ export default {
       return new Response(JSON.stringify({ ok: true, url: env.SHEET_URL || "" }), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
     }
 
-    // 0-1d) 앱 전용 닉네임 — 최초 1회 설정, 카카오 프로필명과 분리
+    // 0-1c-2) 관리자 회원 현황. 원본 카카오 ID는 응답하지 않는다.
+    if (url.pathname.endsWith("/admin-members")) {
+      const origin = req.headers.get("Origin") || "*";
+      const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+      const J = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+      if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+      if (req.method !== "POST") return J({ ok: false }, 405);
+      const ip = req.headers.get("CF-Connecting-IP") || "0";
+      if (await _rateLimited(env, "admin_members", ip, 20)) return J({ ok: false, error: "rate-limit" }, 429);
+      let b = {}; try { b = await req.json(); } catch (e) {}
+      if (!env.ADMIN_KEY || !_safeEqual(String(b.key || ""), String(env.ADMIN_KEY))) return J({ ok: false }, 403);
+      const KV = env.PLACES; if (!KV) return J({ ok: false, error: "no-store" }, 500);
+      const members = []; let cursor;
+      do {
+        const page = await KV.list({ prefix: "member:", cursor });
+        for (const item of page.keys) {
+          try { const member = JSON.parse((await KV.get(item.name)) || "null"); if (member) members.push(publicMemberSummary(member)); } catch (e) {}
+        }
+        cursor = page.list_complete ? null : page.cursor;
+      } while (cursor && members.length < 5000);
+      members.sort((a, b2) => b2.lastAt - a.lastAt);
+      return J({ ok: true, active: members.filter((m) => m.status === "active"), withdrawnCount: members.filter((m) => m.status !== "active").length });
+    }
+
+    // 0-1d) 명시적 회원가입/회원상태. 원본 카카오 ID는 KV 키·회원 레코드에 저장하지 않는다.
     if (url.pathname.endsWith("/profile")) {
       const origin = req.headers.get("Origin") || "*";
       const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, X-Admin-Key" };
@@ -272,30 +366,55 @@ export default {
       if (req.method === "GET") {
         const uid = String(url.searchParams.get("uid") || "").slice(0, 40);
         if (!uid || !(await _tokOk(env, uid, url.searchParams.get("tok")))) return J({ ok: false, error: "relogin" }, 401);
-        let profile = null; try { profile = JSON.parse((await KV.get("profile:" + uid)) || "null"); } catch (e) {}
-        return J({ ok: true, profile });
+        const member = await _memberGet(env, uid);
+        if (memberRecordIsActive(member)) return J({ ok: true, profile: memberProfile(member), registrationRequired: false });
+        let legacy = null; try { legacy = JSON.parse((await KV.get("profile:" + uid)) || "null"); } catch (e) {}
+        return J({ ok: true, profile: null, registrationRequired: true, suggestedNick: String((legacy && legacy.nick) || "").slice(0, 20) });
       }
       if (req.method === "POST") {
         let b = {}; try { b = await req.json(); } catch (e) {}
         const uid = String(b.id || "").slice(0, 40);
         if (!uid || !(await _tokOk(env, uid, b.tok))) return J({ ok: false, error: "relogin" }, 401);
-        let current = null; try { current = JSON.parse((await KV.get("profile:" + uid)) || "null"); } catch (e) {}
+        let current = await _memberGet(env, uid);
         if (b.action === "mypage-tour-seen") {
-          if (!current || !current.nick) return J({ ok: false, error: "no-profile" }, 400);
+          if (!memberRecordIsActive(current)) return J({ ok: false, error: "inactive-member" }, 403);
           current.mypageTourSeen = Date.now();
-          await KV.put("profile:" + uid, JSON.stringify(current));
-          return J({ ok: true, profile: current });
+          current.updatedAt = Date.now();
+          await _memberPut(env, uid, current);
+          return J({ ok: true, profile: memberProfile(current) });
         }
-        if (current && current.nick) return J({ ok: true, profile: current });
+        if (b.action === "withdraw") {
+          if (!memberRecordIsActive(current)) return J({ ok: false, error: "inactive-member" }, 403);
+          const oldNick = String(current.nick || ""), norm = oldNick.toLocaleLowerCase("ko-KR");
+          const nk = "member_nick:" + norm;
+          if ((await KV.get(nk)) === current.memberId) await KV.delete(nk);
+          current.status = "withdrawn";
+          current.withdrawnAt = Date.now();
+          current.updatedAt = current.withdrawnAt;
+          current.nick = "탈퇴회원";
+          delete current.lastDevice;
+          await _memberPut(env, uid, current);
+          return J({ ok: true, status: "withdrawn" });
+        }
+        if (memberRecordIsActive(current)) return J({ ok: true, profile: memberProfile(current) });
+        if (b.termsAgreed !== true || b.privacyAgreed !== true) return J({ ok: false, error: "consent-required" }, 400);
         const nick = String(b.nick || "").trim().replace(/\s+/g, " ").slice(0, 20);
         const norm = nick.toLocaleLowerCase("ko-KR");
         if (nick.length < 2 || !/^[\p{L}\p{N}._ -]+$/u.test(nick) || /^(관리자|admin|마이카누)$/i.test(nick)) return J({ ok: false, error: "invalid" }, 400);
-        const nk = "profile_nick:" + norm;
+        const memberId = await _memberId(env, uid), nk = "member_nick:" + norm;
         const owner = await KV.get(nk);
-        if (owner && String(owner) !== uid) return J({ ok: false, error: "duplicate" }, 409);
-        const profile = { nick, t: Date.now(), mypageTourSeen: 0 };
-        await KV.put(nk, uid); await KV.put("profile:" + uid, JSON.stringify(profile));
-        return J({ ok: true, profile });
+        if (owner && String(owner) !== memberId) return J({ ok: false, error: "duplicate" }, 409);
+        const now = Date.now();
+        current = {
+          v: 1, memberId, status: "active", nick,
+          joinedAt: (current && Number(current.joinedAt)) || now,
+          consentAt: now, termsVersion: TERMS_VERSION, privacyVersion: PRIVACY_VERSION,
+          mypageTourSeen: 0, loginCount: Math.max(0, Number(current && current.loginCount) || 0),
+          visitCount: Math.max(0, Number(current && current.visitCount) || 0), updatedAt: now,
+        };
+        await KV.put(nk, memberId); await _memberPut(env, uid, current);
+        await _recordMemberAccess(env, uid, "login", b.dev, current);
+        return J({ ok: true, profile: memberProfile(current) });
       }
       return J({ ok: false, error: "method" }, 405);
     }
@@ -308,7 +427,7 @@ export default {
       if (req.method !== "GET") return new Response("method", { status: 405, headers: cors });
       if (!origin || !_allowedOrigin(req, env)) return new Response("forbidden-origin", { status: 403, headers: cors });
       const uid = String(req.headers.get("X-User-Id") || "").slice(0, 40), tok = req.headers.get("X-Auth-Token") || "";
-      if (!uid || !(await _tokOk(env, uid, tok))) return new Response(JSON.stringify({ error: "relogin" }), { status: 401, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+      if (!uid || !(await _memberOk(env, uid, tok))) return new Response(JSON.stringify({ error: "inactive-member" }), { status: 401, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
       const ip = req.headers.get("CF-Connecting-IP") || "0";
       if (await _rateLimited(env, "launch_" + (await _uidHash(env, uid)), ip, 30))
         return new Response(JSON.stringify({ error: "rate-limit" }), { status: 429, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store", "Retry-After": "60" } });
@@ -481,7 +600,7 @@ export default {
           }
         } else {
           if (!b.id) return new Response("forbidden", { status: 403, headers: cors });
-          if (!(await _tokOk(env, String(b.id), b.tok))) return new Response("relogin", { status: 401, headers: cors });
+          if (!(await _memberOk(env, String(b.id), b.tok))) return new Response("relogin", { status: 401, headers: cors });
           const text = String(b.text || "").trim().slice(0, 100);
           const imgKey = String(b.img || "").replace(/[^a-zA-Z0-9_]/g, "").slice(0, 40);
           if (!text && !imgKey) return new Response("bad", { status: 400, headers: cors });
@@ -684,7 +803,7 @@ export default {
       if (req.method === "OPTIONS") return new Response(null, { headers: cors });
       if (req.method !== "POST") return new Response("method", { status: 405, headers: cors });
       let b = {}; try { b = await req.json(); } catch (e) {}
-      if (!b.id || !(await _tokOk(env, String(b.id), b.tok))) return new Response("relogin", { status: 401, headers: cors });
+      if (!b.id || !(await _memberOk(env, String(b.id), b.tok))) return new Response("relogin", { status: 401, headers: cors });
       const KV = env.PLACES; if (!KV) return new Response("no-store", { status: 500, headers: cors });
       const m = String(b.img || "").match(/^data:image\/(?:jpeg|jpg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
       if (!m) return new Response("bad-image", { status: 400, headers: cors });
@@ -721,7 +840,7 @@ export default {
         let b = {};
         try { b = await req.json(); } catch (e) {}
         if (!b.id) return new Response("forbidden", { status: 403, headers: cors });
-        if (!(await _tokOk(env, String(b.id), b.tok))) return new Response("relogin", { status: 401, headers: cors });
+        if (!(await _memberOk(env, String(b.id), b.tok))) return new Response("relogin", { status: 401, headers: cors });
         if (env.LOG_WEBHOOK) ctx.waitUntil(fetch(env.LOG_WEBHOOK, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -756,7 +875,7 @@ export default {
         if (url.searchParams.get("mine")) {
           const adminOk = !!env.ADMIN_KEY && String(req.headers.get("X-Admin-Key") || "") === String(env.ADMIN_KEY);
           const uid = (url.searchParams.get("uid") || "").slice(0, 40);
-          const userOk = !!uid && await _tokOk(env, uid, url.searchParams.get("tok"));
+          const userOk = !!uid && await _memberOk(env, uid, url.searchParams.get("tok"));
           if (!adminOk && !userOk) return J("[]");
           arr = arr.filter((x) => {
             const owner = String(x.owner || "");
@@ -778,7 +897,7 @@ export default {
           ].map((u) => caches.default.delete(new Request(u, { method: "GET" }))));
         };
         const uid = String(b.id || "").slice(0, 40);
-        const tokOk = uid && (await _tokOk(env, uid, b.tok));
+        const tokOk = uid && (await _memberOk(env, uid, b.tok));
         const adminOk = !!env.ADMIN_KEY && String(b.adminKey) === String(env.ADMIN_KEY);
         const ownerEditOk = async (courseId) => {
           const arr0 = JSON.parse((await KV.get("courses")) || "[]");
@@ -871,7 +990,7 @@ export default {
       if (!KV) return new Response("no-store", { status: 500, headers: cors });
       if (req.method === "GET") {
         let uid = (url.searchParams.get("uid") || "").slice(0, 40);
-        if (uid && !(await _tokOk(env, uid, url.searchParams.get("tok")))) uid = "";   // 무효 토큰이면 내 별점만 비표시
+        if (uid && !(await _memberOk(env, uid, url.searchParams.get("tok")))) uid = "";   // 무효/비활성 회원이면 내 별점만 비표시
         const targets = (url.searchParams.get("targets") || "").split(",").filter(Boolean).slice(0, 30);
         const out = {};
         for (const t of targets) {
@@ -887,7 +1006,7 @@ export default {
         const uid = String(b.id || "").slice(0, 40); const t = String(b.target || "").slice(0, 60);
         const stars = Math.round(Number(b.stars));
         if (!uid || !t || !(stars >= 1 && stars <= 5)) return new Response("bad", { status: 400, headers: cors });
-        if (!(await _tokOk(env, uid, b.tok))) return new Response("relogin", { status: 401, headers: cors });
+        if (!(await _memberOk(env, uid, b.tok))) return new Response("relogin", { status: 401, headers: cors });
         const key = "rate_" + t;
         let m = {}; try { m = JSON.parse((await KV.get(key)) || "{}"); } catch (e) {}
         m[uid] = stars;
@@ -908,7 +1027,7 @@ export default {
       if (!KV) return new Response("no-store", { status: 500, headers: cors });
       if (req.method === "GET") {
         const uid = (url.searchParams.get("uid") || "").slice(0, 40);
-        if (!uid || !(await _tokOk(env, uid, url.searchParams.get("tok")))) return J([]);   // 본인만 열람
+        if (!uid || !(await _memberOk(env, uid, url.searchParams.get("tok")))) return J([]);   // 현재 회원 본인만 열람
         let a = []; try { a = JSON.parse((await KV.get("favs_" + uid)) || "[]"); } catch (e) {}
         return J(a);
       }
@@ -916,7 +1035,7 @@ export default {
         let b = {}; try { b = await req.json(); } catch (e) {}
         const uid = String(b.id || "").slice(0, 40); const t = String(b.target || "").slice(0, 60);
         if (!uid || !t) return new Response("bad", { status: 400, headers: cors });
-        if (!(await _tokOk(env, uid, b.tok))) return new Response("relogin", { status: 401, headers: cors });
+        if (!(await _memberOk(env, uid, b.tok))) return new Response("relogin", { status: 401, headers: cors });
         let a = []; try { a = JSON.parse((await KV.get("favs_" + uid)) || "[]"); } catch (e) {}
         a = a.filter((x) => x && x.t !== t);
         if (b.on) a.unshift({ t: t, n: String(b.name || "").slice(0, 60), k: String(b.kind || "p").slice(0, 1), lat: Number(b.lat) || null, lng: Number(b.lng) || null });
@@ -937,14 +1056,14 @@ export default {
       if (!KV) return J({ ok: false, error: "no-store" }, 500);
       if (req.method === "GET") {
         const uid = String(url.searchParams.get("uid") || "").slice(0, 40);
-        if (!uid || !(await _tokOk(env, uid, url.searchParams.get("tok")))) return J({ ok: false, error: "relogin" }, 401);
+        if (!uid || !(await _memberOk(env, uid, url.searchParams.get("tok")))) return J({ ok: false, error: "relogin" }, 401);
         let state = {}; try { state = JSON.parse((await KV.get("paddling_" + uid)) || "{}"); } catch (e) {}
         return J({ ok: true, favorites: state.favorites || [], recent: state.recent || [] });
       }
       if (req.method === "POST") {
         let b = {}; try { b = await req.json(); } catch (e) {}
         const uid = String(b.id || "").slice(0, 40);
-        if (!uid || !(await _tokOk(env, uid, b.tok))) return J({ ok: false, error: "relogin" }, 401);
+        if (!uid || !(await _memberOk(env, uid, b.tok))) return J({ ok: false, error: "relogin" }, 401);
         const clean = (a, max) => [...new Set((Array.isArray(a) ? a : []).map((x) => String(x).slice(0, 60)).filter(Boolean))].slice(0, max);
         const state = { favorites: clean(b.favorites, 100), recent: clean(b.recent, 20), updated: Date.now() };
         await KV.put("paddling_" + uid, JSON.stringify(state));
@@ -1150,7 +1269,7 @@ export default {
 
         if (tp.endsWith("/trips")) {            // 내 트립 목록(본인만 — 토큰 필수)
           const uid = url.searchParams.get("uid") || "";
-          if (!uid || !(await _tokOk(env, uid, url.searchParams.get("tok")))) return J("[]");
+          if (!uid || !(await _memberOk(env, uid, url.searchParams.get("tok")))) return J("[]");
           const data = KV ? await KV.get("utrips:" + uid) : null;
           return J(data || "[]");
         }
@@ -1164,7 +1283,7 @@ export default {
           let obj = {};
           try { obj = JSON.parse((KV ? await KV.get("board") : null) || "{}"); } catch (e) {}
           let me = url.searchParams.get("uid") || "";
-          if (me && !(await _tokOk(env, me, url.searchParams.get("tok")))) me = "";
+          if (me && !(await _memberOk(env, me, url.searchParams.get("tok")))) me = "";
           const arr = [];
           for (const k of Object.keys(obj)) {
             arr.push({ h: await _uidHash(env, k), nick: obj[k].nick, totalKm: obj[k].totalKm, trips: obj[k].trips, me: String(k) === String(me) });
@@ -1179,7 +1298,7 @@ export default {
           if (!t) return TXT("not found", 404);
           const trip = JSON.parse(t);
           if (!trip.shared) {
-            const ok = String(viewer) === String(trip.uid) && (await _tokOk(env, viewer, url.searchParams.get("tok")));
+            const ok = String(viewer) === String(trip.uid) && (await _memberOk(env, viewer, url.searchParams.get("tok")));
             if (!ok) return TXT("forbidden", 403);
           }
           return J(t);
@@ -1190,7 +1309,7 @@ export default {
           const action = b.action || "save";
           if (!b.id) return TXT("forbidden", 403);
           const isAdminReq = !!env.ADMIN_KEY && String(b.adminKey) === String(env.ADMIN_KEY);
-          if (!isAdminReq && !(await _tokOk(env, String(b.id), b.tok))) return TXT("relogin", 401);
+          if (!isAdminReq && !(await _memberOk(env, String(b.id), b.tok))) return TXT("relogin", 401);
           if (!KV) return TXT("no-store", 500);
 
           if (action === "save") {
@@ -1369,19 +1488,14 @@ export default {
       (me.kakao_account && me.kakao_account.profile && me.kakao_account.profile.nickname) ||
       (me.properties && me.properties.nickname) || "";
     let nick = kakaoNick;
-    if (env.PLACES && id) { try { const p = JSON.parse((await env.PLACES.get("profile:" + id)) || "null"); if (p && p.nick) nick = p.nick; } catch (e) {} }
-
-    // 로그인 기록 → Google Sheet(Apps Script 웹앱). LOG_WEBHOOK 은 대시보드 Secret 으로 설정.
-    if (env.LOG_WEBHOOK) {
-      const _ua = req.headers.get("User-Agent") || "";
-      const _dev = /mobile|android|iphone|ipad|ipod/i.test(_ua) ? "모바일" : "PC";
-      ctx.waitUntil(
-        fetch(env.LOG_WEBHOOK, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: id, nick: nick, type: "login", dev: _dev }),
-        }).catch(() => {})
-      );
+    const member = id ? await _memberGet(env, id) : null;
+    if (memberRecordIsActive(member)) {
+      nick = member.nick;
+      const ua = req.headers.get("User-Agent") || "";
+      ctx.waitUntil(_recordMemberAccess(env, id, "login", /mobile|android|iphone|ipad|ipod/i.test(ua) ? "모바일" : "PC", member));
+    } else if (env.PLACES && id) {
+      // 기존 닉네임은 명시적 재동의를 받는 가입 화면의 제안값으로만 사용한다.
+      try { const legacy = JSON.parse((await env.PLACES.get("profile:" + id)) || "null"); if (legacy && legacy.nick) nick = legacy.nick; } catch (e) {}
     }
 
     const site = env.SITE_URL || "https://canoe.crowdbase.kr/";

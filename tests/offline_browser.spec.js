@@ -253,3 +253,39 @@ test('roadview layer toggle loads visible clickable locations', async () => {
   await context.close();
   await browser.close();
 });
+
+test('explicit member registration requires both consents', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: '4936913088', tok: 'mc2.test', nick: '카카오닉', kakaoNick: '카카오닉' })));
+  let registration = null;
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/profile') && route.request().method() === 'GET') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, profile: null, registrationRequired: true, suggestedNick: '기존닉네임' }) });
+    } else if (url.pathname.endsWith('/profile') && route.request().method() === 'POST') {
+      registration = route.request().postDataJSON();
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, profile: { memberId: 'a1b2c3d4e5f60708', nick: registration.nick, t: Date.now(), mypageTourSeen: 1 } }) });
+    } else if (url.pathname.endsWith('/launch-sites')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], truncated: false }) });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    }
+  });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#nickModal')).toHaveClass(/open/);
+  await expect(page.locator('#nickInput')).toHaveValue('기존닉네임');
+  await page.locator('#nickOk').click();
+  await expect(page.locator('#nickMsg')).toContainText('필수 동의 두 항목');
+  await page.locator('#termsAgree').check();
+  await page.locator('#privacyAgree').check();
+  await page.locator('#nickOk').click();
+  await expect(page.locator('#nickModal')).not.toHaveClass(/open/);
+  expect(registration).toMatchObject({ nick: '기존닉네임', termsAgreed: true, privacyAgreed: true, dev: '모바일' });
+  expect(JSON.stringify(registration)).toContain('4936913088'); // provider ID is transient request data only
+  await context.close();
+  await browser.close();
+});
