@@ -176,6 +176,8 @@ test('North-connected shared rivers include their North Korea sections', async (
   const cases = [
     { name: '북한강', riverAt: '38.1,127.8', coords: 843, maxLat: 38.83 },
     { name: '임진강', riverAt: '38.1,126.95', coords: 730, maxLat: 39.17 },
+    { name: '한탄강', riverAt: '38.2,127.2', coords: 543, maxLat: 38.52 },
+    { name: '수입천', riverAt: '38.2,127.95', coords: 213, maxLat: 38.38 },
   ];
   for (const item of cases) {
     await page.goto(baseURL + '/?river=' + encodeURIComponent(item.name) + '&riverAt=' + item.riverAt, { waitUntil: 'domcontentloaded' });

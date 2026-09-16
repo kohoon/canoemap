@@ -31,6 +31,9 @@ def main():
     assert normalize_name("양양 남대천") == "양양남대천"
     assert normalize_name("림진강") == "임진강"
     assert normalize_name("림진강/임진강") == "임진강"
+    assert normalize_name("한탄천", {"wikidata": "Q492822"}) == "한탄강"
+    assert normalize_name("한탄천") == "한탄천"
+    assert normalize_name("한탄천", {"wikidata": "Q999999"}) == "한탄천"
 
     _inside_cache.clear()
     square = [((0, 0, 1, 1), [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]])]
@@ -86,7 +89,8 @@ def main():
         "사태천": 38.39,
         "사미천": 38.10,
         "판문천": 38.02,
-        "한탄강": 38.326,
+        "한탄강": 38.52,
+        "수입천": 38.38,
         "한강": 37.84,
     }
     for name, expected_max_lat in north_extents.items():
@@ -99,6 +103,10 @@ def main():
                for f in data["features"] if f["properties"].get("name") == "금성천")
     assert any(max(lat for _, lat in f["geometry"]["coordinates"]) < 38
                for f in data["features"] if f["properties"].get("name") == "역곡천")
+
+    suipcheon_extension = next(x for x in FORCED_EXTENSIONS if x["name"] == "수입천")
+    assert suipcheon_extension["coordinates"][0] == [127.985863, 38.289983]
+    assert suipcheon_extension["coordinates"][-1] == [127.988491, 38.380291]
     print("river continuity regression: ok")
 
 
