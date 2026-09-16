@@ -84,7 +84,7 @@
   #obNote{width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccd;border-radius:11px;font-size:14px;resize:vertical;font-family:inherit}
   #obMsg{font-size:13px;color:#888;margin-top:9px;min-height:18px;text-align:center}
   .leaflet-control-layers{padding:8px 11px!important;border-radius:8px!important;box-shadow:0 1px 5px rgba(0,0,0,.3)!important;font:13px/1.55 sans-serif}
-  .leaflet-control-layers-expanded{width:162px;color:#222}
+  .leaflet-control-layers-expanded{width:206px;color:#222}
   .lc-title{font-weight:700;font-size:13px;color:#13312a;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;user-select:none}
   .lc-arrow{font-size:11px;color:#789;transition:transform .15s}
   .lc-collapsed .lc-arrow{transform:rotate(-90deg)}
@@ -99,6 +99,9 @@
   .sat-src button{font:600 12.5px sans-serif;border:0;border-left:1px solid #d3def0;background:#fff;color:#41566b;padding:7px 12px;cursor:pointer;white-space:nowrap;line-height:1}
   .sat-src button:first-of-type{border-left:0}
   .sat-src button.on{background:#185fa5;color:#fff;font-weight:700}
+  .sat-base-row{display:flex!important;align-items:center;gap:4px}
+  .sat-base-row>span{display:flex;align-items:center;flex:1;min-width:0}
+  .wayback-open{flex:none;border:1px solid #90a4ae;border-radius:7px;background:#f7fbff;color:#254b65;padding:5px 7px;font:700 11px sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.08)}
   .wayback-ctl{display:none;margin:5px 0 7px 4px;padding:8px;border:1px solid #b9cadf;border-radius:7px;background:#f7fbff;color:#31465a}
   .wayback-ctl.on{display:block}
   .wayback-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px;font-size:12px;font-weight:700}
@@ -111,7 +114,6 @@
   .wayback-side{position:absolute;top:12px;transform:translateX(-50%);padding:6px 10px;border-radius:6px;background:rgba(20,31,42,.84);color:#fff;font:700 12px/1.2 sans-serif;box-shadow:0 2px 7px rgba(0,0,0,.28);white-space:nowrap}
   .wayback-now{left:25%}
   .wayback-old{left:75%}
-  .dam-wayback{margin-top:8px;border:1px solid #90a4ae;border-radius:6px;background:#fff;color:#254b65;padding:6px 9px;font-size:12px;font-weight:700;cursor:pointer}
   .sw-course{background:linear-gradient(90deg,#7c4dff 0 33%,#d500f9 33% 66%,#00897b 66% 100%)!important}
   .rv-sw{display:inline-block;width:14px;margin-right:6px;text-align:center;font-size:12px;flex:none}
   .leaflet-div-icon.rv-div{background:transparent;border:0;width:auto!important;height:auto!important}
@@ -983,13 +985,18 @@ function _closeWayback(){
   const c=_layerControl&&_layerControl.getContainer(); if(c) c.style.width='';
 }
 map.on('move zoom resize',_wbClip);
-function _openWayback(cd){
-  const d=(DAMS||[]).find(function(x){return String(x.cd)===String(cd);}); if(!d) return;
+function _openWaybackAtMapCenter(){
+  const center=map.getCenter();
+  const d={cd:'map-center:'+Number(center.lat).toFixed(4)+','+Number(center.lng).toFixed(4),lat:center.lat,lng:center.lng,lake:'현재 지도 중심'};
   const loadSeq=++_wbLoadSeq;
   _wbTarget=d;
   if(map.hasLayer(baseOSM)) map.removeLayer(baseOSM);
+  if(map.hasLayer(offlineBase)) map.removeLayer(offlineBase);
   if(!map.hasLayer(baseSat)) baseSat.addTo(map);
   if(_layerControl&&_layerControl._update) _layerControl._update();
+  _mountWaybackOpen();
+  try{ localStorage.setItem('mc_basemap','위성지도'); }catch(e){}
+  map.attributionControl.removeAttribution('간이 지도 &copy; OpenStreetMap 기여자');
   map.setMaxZoom(SAT_MAXZOOM_E); if(map.getZoom()<11) map.setView([d.lat,d.lng],11); else map.panTo([d.lat,d.lng]);
   const p=document.getElementById('waybackCtl'), sel=document.getElementById('waybackDate'), nm=document.getElementById('waybackName');
   if(!p||!sel) return;
@@ -2647,8 +2654,7 @@ function _damSpark24M(d){
 }
 function _damPopupHtml(d, rec){
   let h='<b>🏞️ '+pmEsc(d.lake)+'</b> <small style="color:#889">('+pmEsc(d.nm)+')</small><br>';
-  const wb='<br><button type="button" class="dam-wayback" onclick="_openWayback(\''+String(d.cd).replace(/'/g,'')+'\')">과거 위성사진 보기</button>';
-  if(!rec||!isFinite(parseFloat(rec.swl))) return h+'<span style="color:#999">저수위 조회 실패</span>'+wb;
+  if(!rec||!isFinite(parseFloat(rec.swl))) return h+'<span style="color:#999">저수위 조회 실패</span>';
   const swl=parseFloat(rec.swl), pfh=parseFloat(d.pfh), fld=parseFloat(d.fld);
   h+='<span style="font-size:19px;font-weight:800">'+swl.toFixed(2)+' EL.m</span>';
   h+='<br><small style="color:#889">'+_wlTime(rec.t)+' 관측'+(rec.src&&rec.src!=='10M'?' · '+rec.src:'')+'</small>';
@@ -2661,7 +2667,7 @@ function _damPopupHtml(d, rec){
   if(isFinite(fld)) refs.push('제한수위'+fldTip+'까지 '+(fld-swl).toFixed(2)+'m');
   if(isFinite(pfh)) refs.push('계획홍수위'+pfhTip+'까지 '+(pfh-swl).toFixed(2)+'m');
   if(refs.length) h+='<br><small style="color:#aab">'+refs.join(' · ')+'</small>';
-  h+='<div id="damSpark_'+d.cd+'"></div><div id="damDay_'+d.cd+'"></div><div id="damYr_'+d.cd+'"></div>'+wb;
+  h+='<div id="damSpark_'+d.cd+'"></div><div id="damDay_'+d.cd+'"></div><div id="damYr_'+d.cd+'"></div>';
   return h;
 }
 const damLevelLayer=L.layerGroup(DAMS.map(function(d){
@@ -2903,14 +2909,25 @@ function _syncSatToggle(){
     L.DomEvent.on(b,'click',function(ev){ L.DomEvent.stop(ev); setSatSource(b.getAttribute('data-src')); gaEvent('sat_src_'+b.getAttribute('data-src')); });
   });
 })();
-// 과거 영상 컨트롤은 호수 팝업의 버튼을 누른 뒤에만 표시한다.
+// 과거 영상은 범례의 위성지도 행에서 현재 지도 중심을 기준으로 연다.
+function _mountWaybackOpen(){
+  const c=_layerControl&&_layerControl.getContainer(); if(!c) return;
+  const base=c.querySelector('.leaflet-control-layers-base'); if(!base) return;
+  const satLabel=Array.from(base.querySelectorAll('label')).find(function(x){return (x.textContent||'').indexOf('위성지도')>=0;});
+  if(!satLabel||satLabel.querySelector('.wayback-open'))return;
+  satLabel.classList.add('sat-base-row');
+  const open=L.DomUtil.create('button','wayback-open',satLabel);open.type='button';open.innerHTML='🕘 과거';open.title='현재 지도 중심의 과거 위성사진 보기';open.setAttribute('aria-label',open.title);
+  open.onclick=function(e){e.preventDefault();e.stopPropagation();_openWaybackAtMapCenter();return false;};
+}
 (function(){
   const c=_layerControl&&_layerControl.getContainer(); if(!c) return;
   const base=c.querySelector('.leaflet-control-layers-base'); if(!base) return;
+  _mountWaybackOpen();
+  new MutationObserver(_mountWaybackOpen).observe(base,{childList:true,subtree:true});
   const p=L.DomUtil.create('div','wayback-ctl'); p.id='waybackCtl';
   p.innerHTML='<div class="wayback-head"><span>과거 위성 · <span id="waybackName"></span></span><button id="waybackClose" type="button" title="과거 영상 닫기">×</button></div>'
     +'<select id="waybackDate" aria-label="과거 위성영상 배포일"></select>'
-    +'<small class="wayback-note">선택한 댐 위치의 영상이 실제로 바뀐 배포본만 표시합니다. 왼쪽은 현재, 오른쪽은 과거 영상이며 실제 촬영일은 지역별로 다를 수 있습니다.</small>';
+    +'<small class="wayback-note">현재 지도 중심 위치의 영상이 실제로 바뀐 배포본만 표시합니다. 왼쪽은 현재, 오른쪽은 과거 영상이며 실제 촬영일은 지역별로 다를 수 있습니다.</small>';
   const src=document.getElementById('satSrcToggle');
   if(src) src.insertAdjacentElement('afterend',p); else base.insertAdjacentElement('afterend',p);
   L.DomEvent.disableClickPropagation(p); L.DomEvent.disableScrollPropagation(p);

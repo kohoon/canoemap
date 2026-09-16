@@ -537,3 +537,55 @@ test('plain refresh restores map center and zoom while share URLs take priority'
   await context.close();
   await browser.close();
 });
+
+test('historical imagery opens from the satellite legend row at the current map center', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.route('https://wayback.maptiles.arcgis.com/**', async (route) => {
+    if (route.request().url().includes('GetCapabilities')) {
+      const xml = '<?xml version="1.0"?><Capabilities><Contents><Layer><Title>Wayback 2024-01-01</Title><ResourceURL template="https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/123/{TileMatrix}/{TileRow}/{TileCol}"/></Layer></Contents></Capabilities>';
+      await route.fulfill({ status: 200, contentType: 'application/xml', headers: { 'Access-Control-Allow-Origin': '*' }, body: xml });
+    } else {
+      const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+XwQYVwAAAABJRU5ErkJggg==', 'base64');
+      await route.fulfill({ status: 200, contentType: 'image/png', headers: { 'Access-Control-Allow-Origin': '*' }, body: png });
+    }
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof map !== 'undefined' && !!document.querySelector('.wayback-open'));
+  await page.evaluate(() => {
+    document.getElementById('gate').style.display = 'none';
+    map.setView([37.1234, 127.5678], 12, { animate: false });
+    document.querySelector('.leaflet-control-layers').classList.remove('lc-collapsed');
+  });
+
+  const button = page.locator('.sat-base-row .wayback-open');
+  await expect(button).toHaveText('🕘 과거');
+  await button.click({ force: true, timeout: 5000 });
+  await page.waitForFunction(() => !!_wbTarget && document.getElementById('waybackCtl').classList.contains('on'), null, { timeout: 5000 });
+  const opened = await page.evaluate(() => ({
+    lat: _wbTarget.lat,
+    lng: _wbTarget.lng,
+    label: document.getElementById('waybackName').textContent,
+    satellite: map.hasLayer(baseSat),
+    savedBase: localStorage.getItem('mc_basemap'),
+    damStillHasButton: _damPopupHtml(DAMS[0], null).includes('과거 위성사진 보기'),
+  }));
+  expect(Math.abs(opened.lat - 37.1234)).toBeLessThan(0.0001);
+  expect(Math.abs(opened.lng - 127.5678)).toBeLessThan(0.0001);
+  expect(opened.label).toBe('현재 지도 중심 주변');
+  expect(opened.satellite).toBe(true);
+  expect(opened.savedBase).toBe('위성지도');
+  expect(opened.damStillHasButton).toBe(false);
+  await expect(page.locator('#waybackDate')).toBeEnabled({ timeout: 5000 });
+
+  await page.locator('#waybackClose').click({ force: true });
+  await page.waitForFunction(() => _wbTarget === null, null, { timeout: 5000 });
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
