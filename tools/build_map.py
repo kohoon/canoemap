@@ -735,8 +735,8 @@ __GTAG__
   <div class="pmodal-bg"></div>
   <div class="auth-card">
     <div class="auth-lock">👤</div>
-    <h3>마이카누 회원가입</h3>
-    <p class="signup-lead">앱에서 사용할 닉네임과 필수 동의를 확인해 주세요</p>
+    <h3>카누맵 회원가입</h3>
+    <p class="signup-lead">카누맵에서 사용할 닉네임과 필수 동의를 확인해 주세요</p>
     <input id="nickInput" type="text" maxlength="20" autocomplete="nickname" placeholder="2~20자 닉네임">
     <div class="signup-info"><b>수집·보관 정보 · 시행일 2026-09-16</b>카카오 로그인 식별자의 서버 가명값, 앱 닉네임, 가입·최근 접속 시각, 로그인·접속 횟수, 모바일/PC 구분을 서비스 운영과 보안 목적으로 보관합니다. 이메일·전화번호·정확한 위치는 회원정보로 수집하지 않습니다. 탈퇴 시 닉네임과 최근 기기정보를 제거하고 가명 집계만 보존합니다. 동의를 거부할 수 있으나 회원 기능은 이용할 수 없습니다.</div>
     <label class="signup-consent"><input id="termsAgree" type="checkbox"><span><b>[필수] 서비스 이용 동의</b><br>지도 정보는 참고용이며 현장 안전과 법규 확인 책임은 이용자에게 있습니다.</span></label>
