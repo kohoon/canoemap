@@ -400,7 +400,7 @@ export default {
         if (b.termsAgreed !== true || b.privacyAgreed !== true) return J({ ok: false, error: "consent-required" }, 400);
         const nick = String(b.nick || "").trim().replace(/\s+/g, " ").slice(0, 20);
         const norm = nick.toLocaleLowerCase("ko-KR");
-        if (nick.length < 2 || !/^[\p{L}\p{N}._ -]+$/u.test(nick) || /^(관리자|admin|마이카누)$/i.test(nick)) return J({ ok: false, error: "invalid" }, 400);
+        if (nick.length < 2 || !/^[\p{L}\p{N}._ -]+$/u.test(nick) || /^(관리자|admin|마이카누|카누맵)$/i.test(nick)) return J({ ok: false, error: "invalid" }, 400);
         const memberId = await _memberId(env, uid), nk = "member_nick:" + norm;
         const owner = await KV.get(nk);
         if (owner && String(owner) !== memberId) return J({ ok: false, error: "duplicate" }, 409);

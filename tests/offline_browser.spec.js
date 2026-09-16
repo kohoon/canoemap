@@ -100,6 +100,106 @@ test('tour offline control does not cover tracker actions', async () => {
   await browser.close();
 });
 
+test('Japanese lake names appear only on the satellite map', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof map !== 'undefined' && JAPAN_LAKES.length > 0, null, { timeout: 10000 });
+  await expect(page.locator('.cafecard')).toHaveCount(0);
+  expect(await page.locator('#adminActions').evaluate((node) => getComputedStyle(node).display)).toBe('none');
+
+  await page.evaluate(() => {
+    document.querySelector('#gate').style.display = 'none';
+    map.invalidateSize();
+    if (map.hasLayer(baseOSM)) map.removeLayer(baseOSM);
+    if (!map.hasLayer(baseSat)) baseSat.addTo(map);
+    map.setView([35.262441, 136.079407], 8);
+  });
+  await page.waitForFunction(() => Math.abs(map.getCenter().lng - 136.079407) < 0.1
+    && japanLakeLabels.getLayers().length > 0, null, { timeout: 10000 });
+  const satellite = await page.evaluate(() => ({
+      sourceCount: JAPAN_LAKES.length,
+      visibleLabels: japanLakeLabels.getLayers().length,
+      text: Array.from(document.querySelectorAll('.jp-lake-label span')).map((node) => node.textContent),
+    }));
+  expect(satellite.sourceCount).toBeGreaterThanOrEqual(70);
+  expect(satellite.visibleLabels).toBeGreaterThan(0);
+  expect(satellite.text).toContain('비와호');
+
+  const general = await page.evaluate(() => {
+    map.removeLayer(baseSat);
+    baseOSM.addTo(map);
+    _renderJapanLakeLabels();
+    return japanLakeLabels.getLayers().length;
+  });
+  expect(general).toBe(0);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
+test('candidate promotion persists in the unified place override', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.addInitScript(() => {
+    localStorage.setItem('mc_user', JSON.stringify({ uid: 'admin-user', tok: 'current-test-token', nick: '관리자' }));
+    localStorage.setItem('mc_admin', 'test-admin-key');
+  });
+  const writes = [];
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/admincheck')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) });
+    } else if (url.pathname.endsWith('/profile')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ profile: { nick: '관리자', mypageTourSeen: 1 } }) });
+    } else if (url.pathname.endsWith('/launch-sites')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [
+        { id: 'candidate-test', name: '후보지 테스트', memo: '', lat: 36.3, lng: 127.8, cat: 'candidate', rv: false, rvline: null },
+      ], truncated: false }) });
+    } else if (url.pathname.endsWith('/placeover') && route.request().method() === 'POST') {
+      writes.push(route.request().postDataJSON());
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true }) });
+    } else if (url.pathname.endsWith('/admin-sheet-link')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, url: '' }) });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: url.searchParams.has('over') ? '{}' : '[]' });
+    }
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => isAdmin() && !!_placeMarkerById['candidate-test'], null, { timeout: 10000 });
+  await page.evaluate(() => setPlaceKind('candidate-test', 'canoe', true));
+  await expect.poll(() => writes.length).toBe(1);
+  expect(writes[0]).toMatchObject({ id: 'candidate-test', cat: 'canoe' });
+  const promoted = await page.evaluate(() => ({
+    kind: _placeMarkerById['candidate-test'].cat,
+    label: _placeMarkerById['candidate-test'].rec.cat,
+    saved: _placeOver['candidate-test'].cat,
+  }));
+  expect(promoted).toEqual({ kind: 'canoe', label: '런칭/랜딩', saved: 'canoe' });
+
+  await page.evaluate(() => {
+    openPlaceModal(_placeMarkerById['candidate-test'].rec);
+    editPlace();
+    document.querySelector('#peName').value = '정식 런칭지';
+    savePlaceEdit();
+  });
+  await expect.poll(() => writes.length).toBe(2);
+  expect(writes[1]).toMatchObject({ id: 'candidate-test', name: '정식 런칭지', cat: 'canoe' });
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('Yangyang Namdaecheon shared view uses one connected river', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

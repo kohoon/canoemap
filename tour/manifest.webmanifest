@@ -1,6 +1,6 @@
 {
-  "name": "마이카누 지도",
-  "short_name": "마이카누",
+  "name": "카누맵",
+  "short_name": "카누맵",
   "description": "카누 코스와 안전정보를 통신 없이 확인하는 오프라인 지도",
   "lang": "ko",
   "start_url": "./",

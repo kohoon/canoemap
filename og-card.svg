@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d7f1ff"/>
+      <stop offset="1" stop-color="#f2fff2"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1aa8df"/>
+      <stop offset="1" stop-color="#12ba92"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#083f52" flood-opacity=".15"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <path d="M0 548 Q150 510 300 548 T600 548 T900 548 T1200 548 V630 H0Z" fill="#caefff"/>
+  <path d="M0 580 Q150 542 300 580 T600 580 T900 580 T1200 580 V630 H0Z" fill="#9edcf7" opacity=".72"/>
+  <circle cx="164" cy="315" r="104" fill="url(#mark)" filter="url(#shadow)"/>
+  <ellipse cx="164" cy="315" rx="65" ry="22" fill="#fff"/>
+  <ellipse cx="164" cy="315" rx="49" ry="13" fill="#dfeefb"/>
+  <path d="M145 305v20M183 305v20" stroke="#9bc9ee" stroke-width="5" stroke-linecap="round"/>
+  <text x="312" y="286" font-family="Apple SD Gothic Neo,Noto Sans KR,sans-serif" font-size="108" font-weight="800" fill="#052b24">카누맵</text>
+  <rect x="785" y="231" width="101" height="46" rx="17" fill="#ff7043"/>
+  <text x="836" y="264" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="800" fill="#fff">BETA</text>
+  <text x="312" y="352" font-family="Apple SD Gothic Neo,Noto Sans KR,sans-serif" font-size="45" font-weight="700" fill="#087561">전국 카누 명소 · 코스 · 물길 거리측정</text>
+  <g font-family="Apple SD Gothic Neo,Noto Sans KR,sans-serif" font-size="25" font-weight="700" fill="#075845" filter="url(#shadow)">
+    <rect x="310" y="388" width="194" height="54" rx="27" fill="#fff"/>
+    <text x="407" y="423" text-anchor="middle">🛶 런칭/랜딩</text>
+    <rect x="518" y="388" width="218" height="54" rx="27" fill="#fff"/>
+    <text x="627" y="423" text-anchor="middle">🟣 카누잉 코스</text>
+    <rect x="750" y="388" width="260" height="54" rx="27" fill="#fff"/>
+    <text x="880" y="423" text-anchor="middle">💧 상수원보호구역</text>
+  </g>
+  <text x="1138" y="580" text-anchor="end" font-family="Arial,Apple SD Gothic Neo,sans-serif" font-size="31" font-weight="700" fill="#156c70">canoe.crowdbase.kr</text>
+</svg>

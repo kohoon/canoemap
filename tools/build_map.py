@@ -108,6 +108,11 @@ _cctvf = DATA / "cctv_stations.json"
 cctvs = json.loads(_cctvf.read_text(encoding="utf-8")) if _cctvf.exists() else []
 print(f"수위관측 CCTV {len(cctvs)}곳")
 
+# ---- 일본 위성지도 호수명(국토지리원 조사 호수 목록) ----
+_jlf = DATA / "japan_lakes.json"
+japan_lakes = json.loads(_jlf.read_text(encoding="utf-8")).get("items", []) if _jlf.exists() else []
+print(f"일본 호수 라벨 {len(japan_lakes)}곳")
+
 # ---- 수상레저 금지구역: 해수면(해경청 SHP) + 내수면(고시 도면 디지타이징) ----
 # 외부 fetch용 단일 wlz.geojson 으로 병합 생성(런타임에 줌인 시 fetch). HTML 임베드 안 함.
 wlz = {"type": "FeatureCollection", "features": []}
@@ -154,16 +159,16 @@ HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>마이카누 지도 — 카누 명소·코스·물길 거리측정</title>
+<title>카누맵 — 카누 명소·코스·물길 거리측정</title>
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://canoe.crowdbase.kr/">
-<meta property="og:title" content="마이카누 지도">
+<meta property="og:title" content="카누맵">
 <meta property="og:description" content="전국 카누 명소·런칭/랜딩·카누잉 코스·물길 거리측정. 카누 타는 곳을 한눈에.">
 <meta property="og:image" content="https://canoe.crowdbase.kr/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="마이카누 지도">
+<meta name="twitter:title" content="카누맵">
 <meta name="twitter:description" content="전국 카누 명소·코스·물길 거리측정">
 <meta name="twitter:image" content="https://canoe.crowdbase.kr/og.png">
 <meta name="theme-color" content="#0f6174">
@@ -383,15 +388,14 @@ __GTAG__
     filter:drop-shadow(0 2px 4px rgba(13,71,161,.65));animation:locbob 2.4s ease-in-out infinite}
   .loc-canoe-in svg{width:38px;height:auto}
   @keyframes locbob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
-  .cafe-actions{display:flex;align-items:stretch;gap:6px}
-  .cafecard,.admin-sheet-card,.admin-members-card{display:flex;align-items:center;gap:8px;box-sizing:border-box;background:#fff;padding:7px 12px 7px 7px;border:0;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.2);text-decoration:none;cursor:pointer}
-  .cafecard{width:150px}
-  .cafecard .cf-badge{width:30px;height:30px;flex:none;border-radius:8px;background:#03C75A;display:flex;align-items:center;justify-content:center}
-  .cafecard .cf-badge svg{width:20px;height:auto}
-  .cafecard .cf-t,.admin-sheet-card .cf-t,.admin-members-card .cf-t{font:800 13px sans-serif;color:#1f2d25;white-space:nowrap}
+  .admin-actions{display:none;align-items:stretch;gap:6px}
+  .admin-sheet-card,.admin-members-card{align-items:center;gap:8px;box-sizing:border-box;background:#fff;padding:7px 12px 7px 7px;border:0;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.2);text-decoration:none;cursor:pointer}
+  .admin-sheet-card .cf-t,.admin-members-card .cf-t{font:800 13px sans-serif;color:#1f2d25;white-space:nowrap}
   .admin-sheet-card,.admin-members-card{display:none;width:112px}
   .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge{width:30px;height:30px;flex:none;border-radius:8px;background:#188038;color:#fff;display:flex;align-items:center;justify-content:center;font:800 19px/1 sans-serif}
   .admin-members-card .sheet-badge{background:#1565c0}
+  .jp-lake-label{background:transparent!important;border:0!important;pointer-events:none!important}
+  .jp-lake-label span{display:inline-block;transform:translate(-50%,-50%);white-space:nowrap;color:#dff6ff;font:800 12px/1.1 sans-serif;letter-spacing:-.2px;text-shadow:-1px -1px 0 #07547a,1px -1px 0 #07547a,-1px 1px 0 #07547a,1px 1px 0 #07547a,0 1px 4px rgba(0,0,0,.95)}
   .legend-c{width:150px;box-sizing:border-box}
   .spot-pin-in{width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid #ec407a;box-shadow:0 1px 4px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
   .spot-pin-in svg{width:23px;height:auto;overflow:visible}
@@ -654,9 +658,8 @@ __GTAG__
     .authbox button{padding:7px 11px;font-size:12.5px}
     .authbox .who{font-size:12.5px;padding:6px 9px}
     .cafe-actions{justify-content:flex-end}
-    .cafecard,.admin-sheet-card,.admin-members-card{width:40px;height:40px;padding:6px;justify-content:center;gap:0}
-    .cafecard .cf-badge{width:27px;height:27px}
-    .cafecard .cf-t,.admin-sheet-card .cf-t,.admin-members-card .cf-t{display:none}
+    .admin-sheet-card,.admin-members-card{width:40px;height:40px;padding:6px;justify-content:center;gap:0}
+    .admin-sheet-card .cf-t,.admin-members-card .cf-t{display:none}
     .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge{width:27px;height:27px;font-size:17px}
     .legend-c{width:138px;font-size:12px}
     .leaflet-control-layers:not(.lc-collapsed){box-sizing:border-box;max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
@@ -683,7 +686,7 @@ __GTAG__
       <path d="M23 15.2V24.8M41 15.2V24.8" stroke="#bcd6ea" stroke-width="1.5" stroke-linecap="round"/>
     </svg></div>
     <!-- GATEBODY -->
-    <h1>마이카누 지도<span class="beta-tag">BETA</span></h1>
+    <h1>카누맵<span class="beta-tag">BETA</span></h1>
     <p class="gate-sub">전국 카누 명소를 한눈에</p>
     <ul class="gate-feats">
       <li><span>💧</span><span>상수원보호구역 안내</span></li>
@@ -868,6 +871,7 @@ async function _updateAdminSheetLink(on){
   }catch(e){}
 }
 function _updateAdminMemberButton(on){ const b=document.getElementById('adminMembersBtn'); if(b)b.style.display=on?'flex':'none'; }
+function _updateAdminActions(on){ const d=document.getElementById('adminActions'); if(d)d.style.display=on?'flex':'none'; }
 function closeAdminMembers(){ const m=document.getElementById('memberAdminModal'); if(m)m.classList.remove('open'); }
 async function openAdminMembers(){
   if(!isAdmin())return; const m=document.getElementById('memberAdminModal'),body=document.getElementById('memberAdminBody');
@@ -879,7 +883,7 @@ async function openAdminMembers(){
       +(list.length?list.map(function(x){const t=(+x.loginCount||0)+(+x.visitCount||0),dt=x.lastAt?new Date(x.lastAt).toLocaleDateString('ko-KR'):'-';return '<div class="my-list-row"><span class="my-kind">👤</span><div class="my-list-main"><b>'+pmEsc(x.nick||'회원')+'</b><small>#'+pmEsc(String(x.memberId||'').slice(0,8))+' · 최근 '+dt+'</small></div><div style="text-align:right;font-size:12px"><b>'+t+'회</b><br><small>로그인 '+(+x.loginCount||0)+' · 방문 '+(+x.visitCount||0)+'</small></div></div>';}).join(''):'<div class="my-empty"><b>전환 후 가입 회원이 없습니다</b></div>');
   }catch(e){ body.innerHTML='<h3>회원 현황</h3><div class="my-empty"><b>불러오지 못했습니다</b>관리자 인증을 다시 확인해 주세요.</div>'; }
 }
-function _setAdmin(on){ _adminOk=on; _adminBadge(on); _updateAdminSheetLink(on); _updateAdminMemberButton(on); const ob=document.getElementById('obsBtnBox'); if(ob) ob.style.display=on?'block':'none'; try{ _refreshObsPopups(); }catch(e){} applyPlaceOver(); _applyCourseFocus(); _maybeSyncAdminCourseFavs(); try{_syncAdminRiverLayer(on);_syncAdminRoadLayer(on);reloadSecurePlaces();}catch(e){} try{reloadCoursesForViewer();}catch(e){} if(on)try{focusPlaceFromUrl();}catch(e){} }
+function _setAdmin(on){ _adminOk=on; _adminBadge(on); _updateAdminActions(on); _updateAdminSheetLink(on); _updateAdminMemberButton(on); const ob=document.getElementById('obsBtnBox'); if(ob) ob.style.display=on?'block':'none'; try{ _refreshObsPopups(); }catch(e){} applyPlaceOver(); _applyCourseFocus(); _maybeSyncAdminCourseFavs(); try{_syncAdminRiverLayer(on);_syncAdminRoadLayer(on);reloadSecurePlaces();}catch(e){} try{reloadCoursesForViewer();}catch(e){} if(on)try{focusPlaceFromUrl();}catch(e){} }
 async function exportComments(){
   if(!isAdmin()) return;
   if(!confirm('기존 코멘트를 전부 시트(comments 탭)로 내보낼까요?')) return;
@@ -1022,19 +1026,16 @@ L.control.zoom({position:'bottomleft'}).addTo(map);
 map.addControl(new AuthCtl());   // 카카오 로그인 박스(우상단)
 const OfflineCtl=L.Control.extend({options:{position:'bottomleft'},onAdd:function(){const b=L.DomUtil.create('button','offline-btn');b.id='offlineCtl';b.type='button';b.textContent='📥 오프라인';b.title='오프라인 지도 저장 및 사용법';L.DomEvent.disableClickPropagation(b);L.DomEvent.on(b,'click',function(e){L.DomEvent.stop(e);openOfflineModal();});return b;}});
 map.addControl(new OfflineCtl());
-const CafeCtl=L.Control.extend({ options:{position:'topright'},
-  onAdd:function(){ const d=L.DomUtil.create('div','cafe-actions');
-    const cafe=L.DomUtil.create('a','cafecard',d); cafe.href='https://cafe.naver.com/mytalon'; cafe.target='_blank'; cafe.rel='noopener'; cafe.title='마이카누 카페'; cafe.setAttribute('aria-label','마이카누 카페');
-    cafe.innerHTML='<span class="cf-badge">'+CANOE_SVG+'</span><span class="cf-t">마이카누 카페</span>';
+const AdminCtl=L.Control.extend({ options:{position:'topright'},
+  onAdd:function(){ const d=L.DomUtil.create('div','admin-actions'); d.id='adminActions';
     const sheet=L.DomUtil.create('a','admin-sheet-card',d); sheet.id='adminSheetLink'; sheet.target='_blank'; sheet.rel='noopener'; sheet.title='로그인 및 접속기록 스프레드시트';
     sheet.innerHTML='<span class="sheet-badge">▦</span><span class="cf-t">접속기록</span>';
     const members=L.DomUtil.create('button','admin-members-card',d); members.id='adminMembersBtn'; members.type='button'; members.title='회원 현황';
     members.innerHTML='<span class="sheet-badge">👥</span><span class="cf-t">회원관리</span>';
     L.DomEvent.disableClickPropagation(d);
-    L.DomEvent.on(cafe,'click',function(){ gaEvent('cafe_click'); });
     L.DomEvent.on(sheet,'click',function(){ gaEvent('admin_sheet_click'); });
     L.DomEvent.on(members,'click',function(){ openAdminMembers(); });
-    setTimeout(function(){ _updateAdminSheetLink(isAdmin()); _updateAdminMemberButton(isAdmin()); },0);
+    setTimeout(function(){ _updateAdminActions(isAdmin()); _updateAdminSheetLink(isAdmin()); _updateAdminMemberButton(isAdmin()); },0);
     return d; } });
 
 const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -1058,6 +1059,20 @@ const satLabels = VKEY
 const satImgV = VKEY ? L.tileLayer('https://api.vworld.kr/req/wmts/1.0.0/'+VKEY+'/Satellite/{z}/{y}/{x}.jpeg',
   {maxNativeZoom:SAT_MAXZOOM_V, maxZoom:SAT_MAXZOOM_V, attribution:'© VWorld(국토지리정보원)'}) : null;
 const baseSat = L.layerGroup();   // 내용은 setSatSource 가 Esri/VWorld 로 교체
+const JAPAN_LAKES=__JAPAN_LAKES__;   // 일본 국토지리원 조사 호수 77곳
+const japanLakeLabels=L.layerGroup();
+function _renderJapanLakeLabels(){
+  japanLakeLabels.clearLayers(); if(!map.hasLayer(baseSat))return;
+  const z=map.getZoom(),bounds=map.getBounds().pad(.08),placed=[];
+  (JAPAN_LAKES||[]).slice().sort(function(a,b){return (+a.minZoom||9)-(+b.minZoom||9);}).forEach(function(d){
+    if(z<(+d.minZoom||9)||!bounds.contains([d.lat,d.lng]))return;
+    const p=map.latLngToContainerPoint([d.lat,d.lng]),gap=z>=10?30:z>=8?42:58;
+    if(placed.some(function(q){return Math.abs(q.x-p.x)<gap&&Math.abs(q.y-p.y)<22;}))return;
+    placed.push(p); const label=d.ko||d.name,tip=d.ko?(d.ko+' · '+d.name):d.name;
+    L.marker([d.lat,d.lng],{interactive:false,keyboard:false,icon:L.divIcon({className:'jp-lake-label',html:'<span title="'+pmEsc(tip)+'">'+pmEsc(label)+'</span>',iconSize:[1,1],iconAnchor:[0,0]})}).addTo(japanLakeLabels);
+  });
+}
+map.on('moveend zoomend',_renderJapanLakeLabels);
 map.createPane('offlineBasePane');map.getPane('offlineBasePane').style.zIndex='210';map.getPane('offlineBasePane').style.pointerEvents='none';
 const offlineBase=L.layerGroup();
 const OFFLINE_ESRI_TEMPLATE='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -1073,9 +1088,10 @@ function setSatSource(src){
   baseSat.clearLayers();
   baseSat.addLayer(src==='vworld' ? satImgV : satImgEsri);
   baseSat.addLayer(satLabels);
+  baseSat.addLayer(japanLakeLabels);
   if(map.hasLayer(baseSat)){ const mz=(src==='vworld')?SAT_MAXZOOM_V:SAT_MAXZOOM_E; map.setMaxZoom(mz); if(map.getZoom()>mz) map.setZoom(mz); }
   const now=document.querySelector('#waybackCompare .wayback-now'); if(now) now.textContent='현재 · '+(src==='vworld'?'VWorld':'Esri');
-  _syncSatToggle();
+  _syncSatToggle(); _renderJapanLakeLabels();
 }
 setSatSource(_satSrc);   // baseSat 초기 채움(토글 UI는 아직 없으니 _syncSatToggle 은 no-op)
 
@@ -1899,7 +1915,7 @@ function placeShareUrl(pl){
   else if(pl)u.searchParams.set('placeAt',(+pl.lat).toFixed(5)+','+(+pl.lng).toFixed(5));
   return u.toString();
 }
-function sharePlace(pl){const u=placeShareUrl(pl);gaEvent('place_share',{name:(pl&&pl.name)||''});if(navigator.share){navigator.share({title:'마이카누 · '+((pl&&pl.name)||'런칭/랜딩'),url:u}).catch(function(){});}else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){alert('장소 링크가 복사됐어요!\n'+u);}).catch(function(){prompt('아래 링크 복사',u);});}else prompt('아래 링크 복사',u);}
+function sharePlace(pl){const u=placeShareUrl(pl);gaEvent('place_share',{name:(pl&&pl.name)||''});if(navigator.share){navigator.share({title:'카누맵 · '+((pl&&pl.name)||'런칭/랜딩'),url:u}).catch(function(){});}else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){alert('장소 링크가 복사됐어요!\n'+u);}).catch(function(){prompt('아래 링크 복사',u);});}else prompt('아래 링크 복사',u);}
 let _placeUrlFocused=false;
 function focusPlaceFromUrl(){
   if(_placeUrlFocused)return;const u=new URL(location.href),id=u.searchParams.get('place'),at=(u.searchParams.get('placeAt')||'').split(',').map(Number);let e=id!=null?_placeMarkerById[id]:null;
@@ -1919,9 +1935,10 @@ function editPlace(){ if(!isAdmin()||!_pmPlace||_pmPlace.id==null) return; const
     +'<div><button class="sg-submit" onclick="savePlaceEdit()">저장</button> <a class="pe-cancel" onclick="openPlaceModal(_pmPlace)">취소</a></div><div id="peMsg"></div></div>'; }
 async function savePlaceEdit(){ if(!isAdmin()||!_pmPlace||_pmPlace.id==null) return; const p=_pmPlace;
   const nm=(document.getElementById('peName').value||'').trim().slice(0,60); const mo=(document.getElementById('peMemo').value||'').slice(0,500);
+  const ent=_placeMarkerById[p.id],cat=(ent&&ent.cat)||'canoe';
   const msg=document.getElementById('peMsg'); msg.textContent='저장 중…';
-  try{ const r=await fetch(fapi('/placeover'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminKey:adminKey(),id:String(p.id),name:nm,memo:mo})});
-    if(r.ok){ _placeOver[p.id]=Object.assign({},_placeOver[p.id]||{},{name:nm,memo:mo});
+  try{ const r=await fetch(fapi('/placeover'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adminKey:adminKey(),id:String(p.id),name:nm,memo:mo,cat:cat})});
+    if(r.ok){ _placeOver[p.id]=Object.assign({},_placeOver[p.id]||{},{name:nm,memo:mo,cat:cat});
       const e=_placeMarkerById[p.id]; if(e){ e.name=nm; if(e.f){e.f.properties.name=nm;e.f.properties.memo=mo;} if(e.rec){e.rec.name=nm;e.rec.memo=mo;} }
       _pmPlace.name=nm; _pmPlace.memo=mo; gaEvent('place_edit'); openPlaceModal(_pmPlace); }
     else msg.textContent=(r.status===403?'권한 없음':'실패'); }catch(e){ msg.textContent='오류'; } }
@@ -2220,8 +2237,16 @@ function setPlaceKind(id, cat, save){
     e.m._kind=ik; e.m.options.pane=_placePane(ik); e.m.options.zIndexOffset=(ik==='canoe'||ik==='candidate')?1000:0; const dot=map.getZoom()<Z_ICON; e.m._isDot=dot; e.m.setIcon(dot?dotIcon(ik):fullIcon(ik));
     (cat==='spot'?famousLayer:canoeLayer).addLayer(e.m); e.cat=cat;
   }
-  if(save){ fetch(fapi('/placecat'),{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({adminKey:adminKey(),id:String(id),cat:cat})}).catch(function(){}); gaEvent('placecat',{cat:cat}); }
+  const catLabel=cat==='spot'?'명소':(cat==='candidate'?'런칭/랜딩 후보지':'런칭/랜딩');
+  if(e.rec)e.rec.cat=catLabel;
+  if(e.f)e.f.properties.cat=cat;
+  if(_pmPlace&&String(_pmPlace.id)===String(id))_pmPlace.cat=catLabel;
+  if(save){
+    fetch(fapi('/placeover'),{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({adminKey:adminKey(),id:String(id),cat:cat})})
+      .then(function(r){if(!r.ok)throw new Error(String(r.status));_placeOver[id]=Object.assign({},_placeOver[id]||{},{cat:cat});gaEvent('placecat',{cat:cat});})
+      .catch(function(){alert('분류 저장에 실패했습니다. 관리자 권한을 다시 확인해 주세요.');reloadSecurePlaces();});
+  }
 }
 // ---- 통합 장소 오버라이드(placeover): 임베드 점 수정/삭제/분류 + 신규 점 ----
 function renderNewPlace(id,o){ if(_placeMarkerById[id]||o.del||o.lat==null) return;
@@ -2959,7 +2984,7 @@ function _riverRegionLabel(lat,lng){
 }
 function clearRiverSearch(keepUrl){_riverPopupSeq++;_riverSearchFocus.clearLayers();if(_riverPopup){map.closePopup(_riverPopup);_riverPopup=null;}const d=document.getElementById('riverFocusBar');if(d)d.classList.remove('on');if(!keepUrl){const u=new URL(location.href);if(u.searchParams.has('river')||u.searchParams.has('riverAt')){u.searchParams.delete('river');u.searchParams.delete('riverAt');history.replaceState(null,'',u.pathname+(u.searchParams.toString()?'?'+u.searchParams.toString():'')+u.hash);}}}
 function riverShareUrl(name,lat,lng){const u=new URL(location.href);u.searchParams.delete('course');u.searchParams.set('river',name);if(isFinite(lat)&&isFinite(lng))u.searchParams.set('riverAt',(+lat).toFixed(5)+','+(+lng).toFixed(5));return u.toString();}
-function shareRiver(name,lat,lng){const u=riverShareUrl(name,lat,lng);gaEvent('river_share',{name:name});if(navigator.share){navigator.share({title:'마이카누 · '+name,url:u}).catch(function(){});}else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){alert('하천 링크가 복사됐어요!\n'+u);}).catch(function(){prompt('아래 링크 복사',u);});}else prompt('아래 링크 복사',u);}
+function shareRiver(name,lat,lng){const u=riverShareUrl(name,lat,lng);gaEvent('river_share',{name:name});if(navigator.share){navigator.share({title:'카누맵 · '+name,url:u}).catch(function(){});}else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){alert('하천 링크가 복사됐어요!\n'+u);}).catch(function(){prompt('아래 링크 복사',u);});}else prompt('아래 링크 복사',u);}
 function shareRiverEncoded(name,lat,lng){try{shareRiver(decodeURIComponent(name),lat,lng);}catch(e){}}
 function focusRiverSearch(x,keepUrl){
   clearRiverSearch(!!keepUrl);_showRiverFocusBar(x.name);const seq=++_riverPopupSeq,bounds=L.latLngBounds([]);let anchor=null;
@@ -3081,14 +3106,14 @@ map.on('baselayerchange', function(e){
   else { map.setMaxZoom(19); _closeWayback(); }
   if(e.name==='오프라인 지도')map.attributionControl.addAttribution('간이 지도 &copy; OpenStreetMap 기여자');else map.attributionControl.removeAttribution('간이 지도 &copy; OpenStreetMap 기여자');
   if(e.name==='오프라인 지도'&&!_offlinePack&&_offlineReady){_offToast('먼저 오프라인 지도를 저장하세요');setTimeout(function(){if(!_offlinePack){if(map.hasLayer(offlineBase))map.removeLayer(offlineBase);baseOSM.addTo(map);}},0);}
-  _syncSatToggle();
+  _syncSatToggle(); _renderJapanLakeLabels();
   try{ localStorage.setItem('mc_basemap', e.name); }catch(err){} });
 // 저장된 베이스맵으로 시작(기본 일반지도)
 (function(){ let saved='일반지도'; try{ saved=localStorage.getItem('mc_basemap')||'일반지도'; }catch(e){}
   if(saved==='위성지도'){ baseSat.addTo(map); const mz=(_satSrc==='vworld')?SAT_MAXZOOM_V:SAT_MAXZOOM_E; map.setMaxZoom(mz); if(map.getZoom()>mz) map.setZoom(mz); }
   else if(saved==='오프라인 지도') {}   // IndexedDB 저장본을 읽은 뒤 _offlineInit에서 추가
   else baseOSM.addTo(map);
-  _syncSatToggle(); })();
+  _syncSatToggle(); _renderJapanLakeLabels(); })();
 
 // ---- 등록 코스(KV) 로드/렌더 ----
 const _kvCourseGrp=L.layerGroup();
@@ -3137,7 +3162,7 @@ function courseShareUrl(idStr){ return location.origin+location.pathname+'?cours
 function _courseShareInfo(idStr,name,km){
   const key=String(idStr||''),saved=key.charAt(0)==='k'?_kvCourses[key.slice(1)]:_courseByCid[key],c=saved||_courseInfoCourse||{};
   const n=Number(km!=null?km:c.km),dist=isFinite(n)&&n>0?String(Math.round(n*100)/100):'';
-  return {name:String(name||c.name||'마이카누 코스').trim()||'마이카누 코스',dist:dist};
+  return {name:String(name||c.name||'카누맵 코스').trim()||'카누맵 코스',dist:dist};
 }
 function shareCourse(idStr,name,km){ const u=courseShareUrl(idStr),info=_courseShareInfo(idStr,name,km),lines=['🛶 코스명: '+info.name];if(info.dist)lines.push('📏 거리: 약 '+info.dist+'km');lines.push('🔗 '+u);const full=lines.join('\n');gaEvent('course_share');
   if(navigator.share){ navigator.share({text:full}).catch(function(){}); }
@@ -3421,7 +3446,7 @@ let _lastMeasureShare=null;
 function _encMeasure(coords){let out='',la=0,ln=0;function one(v){v=v<0?~(v<<1):(v<<1);while(v>=32){out+=String.fromCharCode((32|(v&31))+63);v>>=5;}out+=String.fromCharCode(v+63);}coords.forEach(function(p){const a=Math.round(+p[0]*1e5),b=Math.round(+p[1]*1e5);one(a-la);one(b-ln);la=a;ln=b;});return out;}
 function _decMeasure(s){let i=0,la=0,ln=0,out=[];function one(){let r=0,sh=0,c;do{if(i>=s.length)throw 0;c=s.charCodeAt(i++)-63;r|=(c&31)<<sh;sh+=5;}while(c>=32);return (r&1)?~(r>>1):(r>>1);}try{while(i<s.length&&out.length<6000){la+=one();ln+=one();out.push([la/1e5,ln/1e5]);}}catch(e){return [];}return out;}
 function measureShareUrl(data){const u=new URL(location.origin+location.pathname);u.searchParams.set('measure',_encMeasure(data.coords));u.searchParams.set('km',Number(data.km||0).toFixed(2));return u.toString();}
-function shareMeasureResult(){if(!_lastMeasureShare)return;const u=measureShareUrl(_lastMeasureShare);gaEvent('measure_share',{km:Math.round(_lastMeasureShare.km*10)/10});if(navigator.share){navigator.share({title:'마이카누 거리측정 '+_lastMeasureShare.km.toFixed(2)+'km',url:u}).catch(function(){});}else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){alert('거리측정 링크가 복사됐어요!');}).catch(function(){prompt('아래 링크 복사',u);});}else prompt('아래 링크 복사',u);}
+function shareMeasureResult(){if(!_lastMeasureShare)return;const u=measureShareUrl(_lastMeasureShare);gaEvent('measure_share',{km:Math.round(_lastMeasureShare.km*10)/10});if(navigator.share){navigator.share({title:'카누맵 거리측정 '+_lastMeasureShare.km.toFixed(2)+'km',url:u}).catch(function(){});}else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){alert('거리측정 링크가 복사됐어요!');}).catch(function(){prompt('아래 링크 복사',u);});}else prompt('아래 링크 복사',u);}
 function showSharedMeasure(){const q=new URLSearchParams(location.search),s=q.get('measure');if(!s)return;const coords=_decMeasure(s),km=parseFloat(q.get('km'));if(coords.length<2)return;const grp=L.layerGroup().addTo(measDone),line=L.polyline(coords,{color:'#ff7043',weight:5,opacity:.95,lineCap:'round'}).addTo(grp);L.circleMarker(coords[0],{radius:5,color:'#fff',weight:2,fillColor:'#2e7d32',fillOpacity:1}).addTo(grp);L.circleMarker(coords[coords.length-1],{radius:5,color:'#fff',weight:2,fillColor:'#c62828',fillOpacity:1}).addTo(grp);try{map.fitBounds(line.getBounds().pad(.15));}catch(e){}L.popup({closeButton:true}).setLatLng(coords[Math.floor(coords.length/2)]).setContent('<b>공유된 거리측정</b>'+(isFinite(km)?'<br>'+km.toFixed(2)+'km':'')).openOn(map);gaEvent('measure_share_open');}
 function finishMeasure(){
   if(measPts.length<2){ cancelMeasure(); return; }
@@ -4206,7 +4231,7 @@ if(TOUR_MODE){
   [famousLayer,canoeLayer,obstacleLayer,roadviewLayer,waterLevelLayer,damLevelLayer,cctvLayer,
    _protectPH,_wlzPH,_waterplayPH].forEach(function(l){if(l&&map.hasLayer(l))map.removeLayer(l);});
   if(!_courseFocusId&&map.hasLayer(allCoursesGroup))map.removeLayer(allCoursesGroup);
-}else map.addControl(new CafeCtl());   // 카페·접속기록: 마이페이지 아래 우상단 스택
+}else map.addControl(new AdminCtl());   // 관리자 인증 뒤에만 접속기록·회원관리 표시
 </script>
 </body>
 </html>
@@ -4220,6 +4245,7 @@ html = (HTML
         .replace("__WATERPLAY_VER__", WATERPLAY_VER)
         .replace("__WLSTN__", json.dumps(wlstn, ensure_ascii=False, separators=(",", ":")))
         .replace("__CCTVS__", json.dumps(cctvs, ensure_ascii=False, separators=(",", ":")))
+        .replace("__JAPAN_LAKES__", json.dumps(japan_lakes, ensure_ascii=False, separators=(",", ":")))
         .replace("__WEIRS__", json.dumps(weirs, ensure_ascii=False, separators=(",", ":")))
         .replace("__HRFCO_KEY__", HRFCO_KEY)
         .replace("__COURSES__", json.dumps(courses, ensure_ascii=False, separators=(",", ":")))
@@ -4240,7 +4266,7 @@ def _strip_trip(h):
     return h
 
 _TOUR_GATE_BODY = r"""
-    <h1>마이카누 투어<span class="beta-tag">BETA</span></h1>
+    <h1>카누맵 투어<span class="beta-tag">BETA</span></h1>
     <p class="gate-sub">카누 활동을 실시간으로 기록하세요</p>
     <ul class="gate-feats">
       <li><span>🧭</span><span>GPS 이동 경로·거리·속도</span></li>
@@ -4266,9 +4292,10 @@ else:
     (BASE / "map.html").write_text(prod, encoding="utf-8")
     (BASE / "index.html").write_text(prod, encoding="utf-8")
     tour = _gate_mode(html.replace("__TOUR_MODE__", "true"), tour=True)
-    tour = tour.replace("<title>마이카누 지도 — 카누 명소·코스·물길 거리측정</title>", "<title>마이카누 투어 — 실시간 GPS 카누잉 기록</title>")
+    tour = tour.replace("<title>카누맵 — 카누 명소·코스·물길 거리측정</title>", "<title>카누맵 투어 — 실시간 GPS 카누잉 기록</title>")
     tour = tour.replace('<meta property="og:url" content="https://canoe.crowdbase.kr/">', '<meta property="og:url" content="https://tour.crowdbase.kr/">')
-    tour = tour.replace('<meta property="og:title" content="마이카누 지도">', '<meta property="og:title" content="마이카누 투어">')
+    tour = tour.replace('<meta property="og:title" content="카누맵">', '<meta property="og:title" content="카누맵 투어">')
+    tour = tour.replace('<meta name="twitter:title" content="카누맵">', '<meta name="twitter:title" content="카누맵 투어">')
     tour_dir = BASE / "tour"; tour_dir.mkdir(exist_ok=True)
     (tour_dir / "index.html").write_text(tour, encoding="utf-8")
     for _asset in ("service-worker.js", "manifest.webmanifest", "pwa-icon.svg"):

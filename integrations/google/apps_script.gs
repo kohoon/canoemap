@@ -1,5 +1,5 @@
 /**
- * 마이카누 지도 — Google Apps Script (LOG_WEBHOOK 수신).
+ * 카누맵 — Google Apps Script (LOG_WEBHOOK 수신).
  * Cloudflare Worker 가 보내는 모든 type 을 각 시트 탭에 한 줄씩 기록한다.
  *
  * 적용:
