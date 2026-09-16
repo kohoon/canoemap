@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a compact South Korea named river/stream centerline GeoJSON from Overpass JSON."""
+"""Build compact named river/stream centerlines connected to South Korea."""
 import json
 import math
 import sys
@@ -10,7 +10,9 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent.parent
 OUT = BASE / "rivers.geojson"
 BOUNDARY_URL = "https://nominatim.openstreetmap.org/search?format=jsonv2&country=South%20Korea&polygon_geojson=1&limit=1"
-OVERPASS_URL = "https://overpass.kumi.systems/api/interpreter"
+OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+PENINSULA_BBOX = "33,124,43.2,132"
+NORTH_AUDIT_BBOX = "37.5,124.5,39.5,129.5"
 NAME_ALIASES = {
     # OSM의 공백 표기 차이로 본류와 북쪽 짧은 구간이 별도 검색 결과가 되지 않게 한다.
     "양양 남대천": "양양남대천",
@@ -115,7 +117,7 @@ def runs_in_country(points, polygons):
     return runs
 
 
-def merge_named_features(features):
+def merge_named_features(features, river_tolerance=0.04, stream_tolerance=0.0015):
     groups = {}
     for feature in features:
         p = feature["properties"]
@@ -124,7 +126,7 @@ def merge_named_features(features):
     for name, parts in groups.items():
         kind = "river" if any(k == "river" for k, _ in parts) else "stream"
         lines = [line for _, line in parts]
-        tolerance = 0.04 if kind == "river" else 0.0015
+        tolerance = river_tolerance if kind == "river" else stream_tolerance
         while lines:
             chain = lines.pop()
             changed = True
@@ -152,6 +154,92 @@ def merge_named_features(features):
                     changed = True
             merged.append({"type": "Feature", "properties": {"name": name, "kind": kind}, "geometry": {"type": "LineString", "coordinates": chain}})
     return merged
+
+
+def load_country_polygons():
+    _inside_cache.clear()
+    boundary = fetch_json(BOUNDARY_URL)[0]["geojson"]
+    raw_polygons = boundary["coordinates"] if boundary["type"] == "MultiPolygon" else [boundary["coordinates"]]
+    polygons = []
+    for poly in raw_polygons:
+        xs = [p[0] for p in poly[0]]
+        ys = [p[1] for p in poly[0]]
+        polygons.append(((min(xs), min(ys), max(xs), max(ys)), poly))
+    return polygons
+
+
+def named_features_from_overpass(raw, fallback_kind=None):
+    features = []
+    for way in raw.get("elements", []):
+        tags = way.get("tags", {})
+        kind = tags.get("waterway") or fallback_kind
+        if kind not in ("river", "stream"):
+            continue
+        name = normalize_name(tags.get("name:ko") or tags.get("name"))
+        if not name:
+            continue
+        points = [[round(n["lon"], 6), round(n["lat"], 6)] for n in way.get("geometry", [])]
+        coords = simplify(points, 0.00022 if kind == "river" else 0.00035)
+        if len(coords) >= 2:
+            features.append({"type": "Feature", "properties": {"name": name, "kind": kind},
+                             "geometry": {"type": "LineString", "coordinates": coords}})
+    return features
+
+
+def connected_features_touching_country(features, polygons):
+    # OSM way 분할·터널 등 200m 안팎의 미세 간격까지만 같은 국경 연결망으로 본다.
+    components = merge_named_features(features, river_tolerance=0.002, stream_tolerance=0.0015)
+    return [feature for feature in components if any(
+        inside_country(lon, lat, polygons) for lon, lat in feature["geometry"]["coordinates"]
+    )]
+
+
+def cross_border_components(raw, polygons):
+    components = connected_features_touching_country(named_features_from_overpass(raw), polygons)
+    return [feature for feature in components if any(
+        not inside_country(lon, lat, polygons) for lon, lat in feature["geometry"]["coordinates"]
+    )]
+
+
+def apply_north_extensions_to_existing(local_path=None, base_path=None):
+    """Replace clipped border components with their connected North Korea geometry."""
+    polygons = load_country_polygons()
+    raw = load_north_overpass(local_path)
+    # 국내 빌드가 동일 이름 주요 하천의 작은 간격을 이미 보완하므로, 북한 연결 조각도 같은
+    # 최종 병합 규칙으로 먼저 합친다. 그렇지 않으면 한 조각을 교체하며 국내 가지가 빠질 수 있다.
+    extensions = merge_named_features(cross_border_components(raw, polygons))
+    source = Path(base_path) if base_path else OUT
+    fc = json.loads(source.read_text(encoding="utf-8"))
+    features = fc.get("features", [])
+    changed = []
+    for extension in extensions:
+        name = extension["properties"]["name"]
+        extension_coordinates = extension["geometry"]["coordinates"]
+        extension_segments = list(zip(extension_coordinates, extension_coordinates[1:]))
+        matched = []
+        for i, feature in enumerate(features):
+            if feature.get("properties", {}).get("name") != name:
+                continue
+            coordinates = feature.get("geometry", {}).get("coordinates", [])
+            hits = sum(any(point_line_distance(point, a, b) <= 0.0005
+                           for a, b in extension_segments) for point in coordinates)
+            if coordinates and hits / len(coordinates) >= 0.8:
+                matched.append(i)
+        if not matched:
+            continue
+        first = matched[0]
+        matched_set = set(matched)
+        updated = []
+        for i, feature in enumerate(features):
+            if i == first:
+                updated.append(extension)
+            if i not in matched_set:
+                updated.append(feature)
+        features[:] = updated
+        changed.append(name)
+    OUT.write_text(json.dumps(fc, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    names = sorted(set(changed))
+    print(f"{OUT}: North-connected extensions applied to {', '.join(names) if names else 'none'}")
 
 
 def apply_forced_extensions_to_existing():
@@ -188,13 +276,21 @@ def apply_forced_extensions_to_existing():
 def load_overpass(kind, local_path=None):
     if local_path:
         return json.loads(Path(local_path).read_text(encoding="utf-8"))
-    query = f'[out:json][timeout:240];way["waterway"="{kind}"]["name"](33,124,39,132);out tags geom;'
-    return fetch_json(OVERPASS_URL, urllib.parse.urlencode({"data": query}).encode())
+    query = f'[out:json][timeout:240];way["waterway"="{kind}"]["name"]({PENINSULA_BBOX});out tags geom;'
+    return fetch_json(OVERPASS_URL + "?" + urllib.parse.urlencode({"data": query}))
+
+
+def load_north_overpass(local_path=None):
+    if local_path:
+        return json.loads(Path(local_path).read_text(encoding="utf-8"))
+    query = (f'[out:json][timeout:180];way["waterway"~"river|stream"]["name"]'
+             f'({NORTH_AUDIT_BBOX});out tags geom;')
+    return fetch_json(OVERPASS_URL + "?" + urllib.parse.urlencode({"data": query}))
 
 
 def normalize_name(name):
     name = str(name or "").strip()
-    if "임진강" in name:
+    if "임진강" in name or "림진강" in name:
         return "임진강"
     return NAME_ALIASES.get(name, name)
 
@@ -203,25 +299,19 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--extensions-only":
         apply_forced_extensions_to_existing()
         return
+    if len(sys.argv) > 1 and sys.argv[1] == "--extend-north":
+        local_path = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] != "-" else None
+        base_path = sys.argv[3] if len(sys.argv) > 3 else None
+        apply_north_extensions_to_existing(local_path, base_path)
+        return
     river_path = sys.argv[1] if len(sys.argv) > 1 else None
     stream_path = sys.argv[2] if len(sys.argv) > 2 else None
-    boundary = fetch_json(BOUNDARY_URL)[0]["geojson"]
-    raw_polygons = boundary["coordinates"] if boundary["type"] == "MultiPolygon" else [boundary["coordinates"]]
-    polygons = []
-    for poly in raw_polygons:
-        xs = [p[0] for p in poly[0]]; ys = [p[1] for p in poly[0]]
-        polygons.append(((min(xs), min(ys), max(xs), max(ys)), poly))
+    polygons = load_country_polygons()
     features = []
-    for kind, path, tol in (("river", river_path, 0.00022), ("stream", stream_path, 0.00035)):
+    for kind, path in (("river", river_path), ("stream", stream_path)):
         raw = load_overpass(kind, path)
-        for way in raw.get("elements", []):
-            tags = way.get("tags", {})
-            name = normalize_name(tags.get("name:ko") or tags.get("name"))
-            points = [[round(n["lon"], 6), round(n["lat"], 6)] for n in way.get("geometry", [])]
-            for run in runs_in_country(points, polygons):
-                coords = simplify(run, tol)
-                if len(coords) >= 2:
-                    features.append({"type": "Feature", "properties": {"name": name, "kind": kind}, "geometry": {"type": "LineString", "coordinates": coords}})
+        features.extend(named_features_from_overpass(raw, kind))
+    features = connected_features_touching_country(features, polygons)
     for extension in FORCED_EXTENSIONS:
         features.append({"type": "Feature", "properties": {"name": extension["name"], "kind": extension["kind"]},
                          "geometry": {"type": "LineString", "coordinates": extension["coordinates"]}})

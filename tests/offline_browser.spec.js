@@ -165,6 +165,44 @@ test('Illicheon shared view reaches the Seomgang confluence', async () => {
   await browser.close();
 });
 
+test('North-connected shared rivers include their North Korea sections', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const cases = [
+    { name: '북한강', riverAt: '38.1,127.8', coords: 843, maxLat: 38.83 },
+    { name: '임진강', riverAt: '38.1,126.95', coords: 730, maxLat: 39.17 },
+  ];
+  for (const item of cases) {
+    await page.goto(baseURL + '/?river=' + encodeURIComponent(item.name) + '&riverAt=' + item.riverAt, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction((name) => _riverFeatures.length > 0
+      && document.querySelector('#riverFocusBar .river-focus-name')?.textContent === name, item.name, { timeout: 15000 });
+    const state = await page.evaluate((name) => {
+      const features = _riverFeatures.filter((feature) => feature.properties.name === name);
+      const coords = features[0].geometry.coordinates;
+      return {
+        features: features.length,
+        components: _riverComponents(features, name).length,
+        coords: coords.length,
+        maxLat: Math.max(...coords.map((point) => point[1])),
+        highlightLayers: _riverSearchFocus.getLayers().length,
+      };
+    }, item.name);
+    expect(state.features).toBe(1);
+    expect(state.components).toBe(1);
+    expect(state.coords).toBe(item.coords);
+    expect(state.maxLat).toBeGreaterThan(item.maxLat);
+    expect(state.highlightLayers).toBe(2);
+  }
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('roadview layer toggle loads visible clickable locations', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
