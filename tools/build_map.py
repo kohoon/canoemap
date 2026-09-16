@@ -360,7 +360,12 @@ __GTAG__
   .lg-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
   .lg-pills .obs-ic{font-size:10px;padding:1px 6px;border-width:1.5px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
   .meas-pill{background:#ff7043;color:#fff;border-radius:11px;padding:2px 8px;font:700 12px sans-serif;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.35);cursor:pointer;text-align:center}
-  .meas-seg-label{background:#fff;color:#bf360c;border:1px solid rgba(191,54,12,.35);border-radius:999px;padding:3px 8px;font:800 11px sans-serif;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.25);text-align:center}
+  .meas-seg-label{background:transparent;border:0;pointer-events:none}
+  .meas-seg-card{position:relative;width:112px;box-sizing:border-box;background:rgba(255,255,255,.98);border:1.5px solid #ef6c00;border-radius:10px;box-shadow:0 3px 10px rgba(42,44,45,.22);font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;text-align:left}
+  .meas-seg-card:after{content:'';position:absolute;left:50%;bottom:-7px;width:12px;height:12px;background:#fff;border-right:1.5px solid #ef6c00;border-bottom:1.5px solid #ef6c00;transform:translateX(-50%) rotate(45deg)}
+  .meas-seg-net{position:relative;z-index:1;color:#bf360c;font:800 11px/1.15 sans-serif;padding:6px 7px 4px;white-space:nowrap}
+  .meas-seg-cum{position:relative;z-index:1;color:#00695c;font:800 10px/1.15 sans-serif;padding:4px 7px 6px;border-top:1px solid #f1e4dc;white-space:nowrap}
+  .meas-seg-num{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#ef6c00;color:#fff;font-size:9px;margin-right:3px;vertical-align:middle}
   .locbtn{cursor:pointer;background:#fff;width:40px;height:40px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.3);user-select:none;display:flex;align-items:center;justify-content:center}
   .locbtn.loading{opacity:.45}
   .loc-dot{filter:drop-shadow(0 0 3px rgba(25,118,210,.6))}
@@ -3379,10 +3384,6 @@ function startMeasure(){ measureMode=true; measPts=[]; measSegs=[]; _measQueue=[
   measHint('🗺️ 지도를 탭해 출발점을 찍으세요 ('+(measMode==='water'?'🌊물길 따라':'📏직선')+' 모드 · 좌상단에서 전환)'); }
 function cancelMeasure(){ measureMode=false; measPts=[]; measSegs=[]; _measQueue=[]; measDraft.clearLayers(); map.getContainer().style.cursor=''; updateMeasBtn(); _showMeasMode(false); measHint(false); }
 let _measQueue=[], _measRunning=false;
-function _segMid(coords){
-  if(!coords||!coords.length) return null;
-  return coords[Math.floor(coords.length/2)];
-}
 function _segName(i,totalPts){
   if(totalPts<=2) return '출발~도착';
   const lastSeg=totalPts-2;
@@ -3390,9 +3391,12 @@ function _segName(i,totalPts){
   if(i===lastSeg) return '경유'+i+'~도착';
   return '경유'+i+'~경유'+(i+1);
 }
-function _addSegLabel(grp, coords, text){
-  const m=_segMid(coords); if(!m) return;
-  L.marker(m,{icon:L.divIcon({className:'meas-seg-label',html:pmEsc(text),iconSize:null,iconAnchor:[42,12]}),interactive:false}).addTo(grp);
+function _fmtMeasKm(km){ return Number(km||0).toFixed(2).replace(/0$/,'').replace(/\.0$/,''); }
+function _addSegLabel(grp, coords, i, km, cumulativeKm){
+  if(!coords||!coords.length) return;
+  const end=coords[coords.length-1], n=i+1;
+  const html='<div class="meas-seg-card"><div class="meas-seg-net"><span class="meas-seg-num">'+n+'</span>구간 '+_fmtMeasKm(km)+' km</div><div class="meas-seg-cum">Σ 누적 '+_fmtMeasKm(cumulativeKm)+' km</div></div>';
+  L.marker(end,{icon:L.divIcon({className:'meas-seg-label',html:html,iconSize:[112,52],iconAnchor:[56,66]}),interactive:false,zIndexOffset:700+i}).addTo(grp);
 }
 function _drawMeasAccess(grp, access){
   (access||[]).forEach(function(a){
@@ -3402,10 +3406,12 @@ function _drawMeasAccess(grp, access){
 }
 function _redrawMeasDraft(){
   measDraft.clearLayers();
+  let cumulativeKm=0;
   measSegs.forEach(function(sg,i){
+    cumulativeKm+=sg.km;
     _drawMeasAccess(measDraft,sg.access);
     L.polyline(sg.coords,{color:'#ff7043',weight:4,opacity:.85,dashArray:sg.straight?'6,8':null}).addTo(measDraft);
-    _addSegLabel(measDraft, sg.coords, '구간 '+(i+1)+' · '+sg.km.toFixed(2)+'km');
+    _addSegLabel(measDraft,sg.coords,i,sg.km,cumulativeKm);
   });
   measPts.forEach(function(p){ L.circleMarker(p,{radius:5,color:'#bf360c',fillColor:'#ff7043',fillOpacity:1}).addTo(measDraft); });
 }
@@ -3458,16 +3464,18 @@ function finishMeasure(){
   measDraft.clearLayers();
   const grp=L.layerGroup().addTo(measDone);
   const totalPts=measPts.length;
+  let cumulativeKm=0;
   measSegs.forEach(function(sg,i){
+    cumulativeKm+=sg.km;
     const label=_segName(i,totalPts)+' · '+sg.km.toFixed(2)+'km';
     _drawMeasAccess(grp,sg.access);
     L.polyline(sg.coords,{color:'#ff7043',weight:5,opacity:.95,lineCap:'round',dashArray:sg.straight?'6,8':null})
       .bindTooltip(label,{sticky:true,opacity:.95}).addTo(grp);
-    _addSegLabel(grp, sg.coords, label);
+    _addSegLabel(grp,sg.coords,i,sg.km,cumulativeKm);
   });
   measPts.forEach(function(p){ L.circleMarker(p,{radius:4,color:'#bf360c',fillColor:'#ff7043',fillOpacity:1}).addTo(grp); });
   const end=measPts[measPts.length-1];
-  const pill=L.marker(end,{icon:L.divIcon({className:'meas-pill',html:km.toFixed(1)+'km&nbsp;✕',iconSize:[64,22],iconAnchor:[32,30]}),riseOnHover:true}).addTo(grp);
+  const pill=L.marker(end,{icon:L.divIcon({className:'meas-pill',html:km.toFixed(1)+'km&nbsp;✕',iconSize:[64,22],iconAnchor:[32,-12]}),riseOnHover:true}).addTo(grp);
   pill.on('click', function(){ measDone.removeLayer(grp); });
   pill.bindTooltip('클릭하면 이 측정 삭제',{direction:'top'});
   gaEvent('measure_done',{km:Math.round(km*10)/10, points:measPts.length});

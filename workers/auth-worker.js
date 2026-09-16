@@ -176,7 +176,8 @@ async function _launchAll(KV, includeCandidates) {
   return out;
 }
 
-// 카카오 로컬 키워드 검색 결과에서 등록 이름·좌표와 충분히 가까운 식당/카페만 자동 연결한다.
+// 카카오 로컬 키워드 검색 결과에서 등록 이름·좌표와 충분히 가까운 장소만 자동 연결한다.
+// 유사 이름은 식당/카페만 허용하되, 정확히 같은 이름이 250m 이내면 카카오의 업종 분류가 달라도 연결한다.
 function _kakaoPlaceName(v) {
   return String(v || "").normalize("NFKC").toLowerCase().replace(/\([^)]*\)/g, "").replace(/[^0-9a-z가-힣]/g, "");
 }
@@ -204,12 +205,14 @@ async function _matchKakaoPlace(env, name, lat, lng) {
     for (const d of docs) {
       const got = _kakaoPlaceName(d.place_name), distance = Number(d.distance);
       const food = d.category_group_code === "FD6" || d.category_group_code === "CE7" || String(d.category_name || "").includes("음식점");
-      if (!got || !food || !isFinite(distance) || distance > 3000) continue;
+      const exact = wanted === got;
+      if (!got || (!food && !exact) || !isFinite(distance) || distance > 3000) continue;
+      if (!food && distance > 250) continue;
       const shorter = Math.min(wanted.length, got.length), longer = Math.max(wanted.length, got.length);
       const contains = shorter >= 3 && (wanted.includes(got) || got.includes(wanted));
       const dice = _kakaoNameDice(wanted, got);
-      let nameScore = wanted === got ? 100 : (contains ? 82 + 10 * shorter / longer : dice * 80);
-      if (nameScore < 66 || (wanted !== got && distance > 1500)) continue;
+      let nameScore = exact ? 100 : (contains ? 82 + 10 * shorter / longer : dice * 80);
+      if (nameScore < 66 || (!exact && distance > 1500)) continue;
       const score = nameScore - Math.min(distance / 200, 12);
       if (!best || score > best.score) best = { score, d, distance };
     }

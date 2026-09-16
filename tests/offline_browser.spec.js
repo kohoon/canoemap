@@ -404,3 +404,58 @@ test('explicit member registration requires both consents', async () => {
   await context.close();
   await browser.close();
 });
+
+test('measurement labels show segment and cumulative distance at each endpoint', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof map !== 'undefined' && typeof startMeasure === 'function');
+  const draft = await page.evaluate(async () => {
+    document.querySelector('#gate').style.display = 'none';
+    const points = [[38.191, 127.812], [38.1845, 127.831], [38.177, 127.85], [38.1665, 127.867]];
+    map.fitBounds(L.latLngBounds(points), { padding: [55, 100] });
+    measMode = 'straight';
+    startMeasure();
+    points.forEach((point) => _measPickPoint(L.latLng(point[0], point[1])));
+    for (let i = 0; i < 50 && measSegs.length !== 3; i++) await new Promise((resolve) => setTimeout(resolve, 20));
+    let cumulative = 0;
+    const expected = measSegs.map((segment) => {
+      cumulative += segment.km;
+      return { segment: _fmtMeasKm(segment.km), cumulative: _fmtMeasKm(cumulative) };
+    });
+    const labelLayers = measDraft.getLayers().filter((layer) => layer.getElement?.()?.classList.contains('meas-seg-label'));
+    const endpointDistances = labelLayers.map((layer, i) => {
+      const coords = measSegs[i].coords;
+      return map.distance(layer.getLatLng(), coords[coords.length - 1]);
+    });
+    return { expected, endpointDistances };
+  });
+
+  expect(draft.expected).toHaveLength(3);
+  expect(draft.endpointDistances.every((distance) => distance < 0.5)).toBe(true);
+  await expect(page.locator('.meas-seg-card')).toHaveCount(3);
+  for (let i = 0; i < draft.expected.length; i++) {
+    const label = page.locator('.meas-seg-card').nth(i);
+    await expect(label.locator('.meas-seg-net')).toContainText(`${i + 1}구간 ${draft.expected[i].segment} km`);
+    await expect(label.locator('.meas-seg-cum')).toContainText(`Σ 누적 ${draft.expected[i].cumulative} km`);
+  }
+
+  await page.evaluate(() => { finishMeasure(); map.closePopup(); });
+  await expect(page.locator('.meas-seg-card')).toHaveCount(3);
+  await expect(page.locator('.meas-pill')).toHaveCount(1);
+  const separated = await page.evaluate(() => {
+    const cards = document.querySelectorAll('.meas-seg-card');
+    const card = cards[cards.length - 1].getBoundingClientRect();
+    const pill = document.querySelector('.meas-pill').getBoundingClientRect();
+    return pill.top >= card.bottom;
+  });
+  expect(separated).toBe(true);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
