@@ -195,6 +195,21 @@ test('candidate promotion persists in the unified place override', async () => {
   });
   await expect.poll(() => writes.length).toBe(2);
   expect(writes[1]).toMatchObject({ id: 'candidate-test', name: '정식 런칭지', cat: 'canoe' });
+
+  await page.evaluate(() => {
+    closePlaceModal();
+    _lastCourse = { km: 1.2, coords: [[36.3, 127.8], [36.31, 127.81]], segments: [] };
+    openCourseModal('add');
+  });
+  await expect(page.locator('#cmPalette .cm-color')).toHaveCount(24);
+  const paletteLayout = await page.locator('#cmPalette').evaluate((node) => ({
+    columns: getComputedStyle(node).gridTemplateColumns.split(' ').length,
+    fits: node.scrollWidth <= node.clientWidth,
+  }));
+  expect(paletteLayout).toEqual({ columns: 6, fits: true });
+  await page.locator('#cmPalette .cm-color[data-color="#c2185b"]').click();
+  await expect(page.locator('#cmPalette .cm-color[data-color="#c2185b"]')).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.evaluate(() => _cmColor())).toBe('#c2185b');
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();

@@ -516,7 +516,7 @@ __GTAG__
   .cm-quick a{color:#1565c0;cursor:pointer;font-weight:700;text-decoration:underline}
   .cm-note{font-size:11.5px;color:#8a93a0;margin-top:7px}
   .cm-note b{color:#d500f9}
-  .cm-palette{display:grid;grid-template-columns:repeat(6,32px);gap:8px;margin:6px 0 13px}
+  .cm-palette{display:grid;grid-template-columns:repeat(8,32px);gap:8px;margin:6px 0 13px}
   .cm-color{width:32px;height:32px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #b9c4ca;cursor:pointer;padding:0;position:relative}
   .cm-color.on{box-shadow:0 0 0 3px #263238}
   .cm-color.on::after{content:'✓';position:absolute;inset:0;color:#fff;font:800 16px/26px sans-serif;text-shadow:0 1px 3px rgba(0,0,0,.7)}
@@ -668,6 +668,7 @@ __GTAG__
     .leaflet-control-layers:not(.lc-collapsed)::-webkit-scrollbar-thumb{background:#b8c5cb;border-radius:5px}
     .leaflet-control-layers.lc-collapsed{overflow:hidden}
     .pmodal{padding:16px 14px 20px}
+    .cm-palette{grid-template-columns:repeat(6,32px)}
     #tripbar{bottom:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px))}.trip-live{padding:9px 7px;gap:3px}.trip-live b{font-size:13px}.trip-live small{font-size:9.5px}.tb-start{padding:12px 15px;font-size:14px}.tb-pause,.tb-refresh{padding:11px 10px;font-size:12px}
     #rvModal .rv-pmodal{width:100%;max-width:none;max-height:92vh}
     #rvView{height:68vh;max-height:none;min-height:320px}
@@ -1659,9 +1660,12 @@ function _lazyLoadWaterplay(){
 // 서브카테고리별 색상(보라 계열, 서로 구분)
 const COURSE_COLORS={'엑스페디션':'#7c4dff','초심자코스':'#d500f9','기타':'#00897b'};
 const COURSE_PALETTE=[
-  ['#d32f2f','빨강'],['#ef6c00','주황'],['#f9a825','노랑'],['#2e7d32','초록'],
-  ['#00897b','청록'],['#0277bd','파랑'],['#3949ab','남색'],['#7c4dff','보라'],
-  ['#d500f9','분홍'],['#6d4c41','갈색'],['#546e7a','회색'],['#263238','검정']
+  ['#b71c1c','진빨강'],['#d32f2f','빨강'],['#e64a19','다홍'],['#ef6c00','주황'],
+  ['#ff8f00','황금'],['#f9a825','노랑'],['#827717','올리브'],['#558b2f','연두'],
+  ['#2e7d32','초록'],['#00695c','진청록'],['#00897b','청록'],['#00838f','청록파랑'],
+  ['#0277bd','파랑'],['#1565c0','코발트'],['#3949ab','남색'],['#283593','인디고'],
+  ['#512da8','진보라'],['#7c4dff','보라'],['#8e24aa','자주'],['#d500f9','분홍'],
+  ['#c2185b','진분홍'],['#6d4c41','갈색'],['#546e7a','회색'],['#263238','검정']
 ];
 const KNOWN_CATS=['엑스페디션','초심자코스'];
 function subcatColor(sc){ return COURSE_COLORS[sc]||COURSE_COLORS['기타']; }

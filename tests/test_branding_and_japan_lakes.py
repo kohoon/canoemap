@@ -2,6 +2,7 @@
 """카누맵 표기와 일본 위성지도 호수 라벨의 정적 회귀 점검."""
 
 import json
+import re
 from pathlib import Path
 
 
@@ -34,6 +35,10 @@ def main():
     assert "fetch(fapi('/placeover')" in place_kind
     assert "fetch(fapi('/placecat')" not in place_kind
     assert "name:nm,memo:mo,cat:cat" in source
+    palette = source[source.index("const COURSE_PALETTE=["):source.index("const KNOWN_CATS=")]
+    colors = re.findall(r"#[0-9a-f]{6}", palette, flags=re.I)
+    assert len(colors) == 24
+    assert len(set(color.lower() for color in colors)) == 24
     print("branding and Japan lake labels regression: ok")
 
 
