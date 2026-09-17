@@ -7,6 +7,7 @@ import {
   memberProfile,
   publicMemberSummary,
 } from "./member-security.mjs";
+import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
 
 /**
  * Cloudflare Worker — 카카오 로그인 OAuth 콜백.
@@ -856,6 +857,41 @@ export default {
         return new Response("ok", { headers: cors });
       }
       return new Response("method", { status: 405, headers: cors });
+    }
+
+    // 0-3c-2) 거리측정 공유 — 인증된 생성자만 저장, 짧은 해시는 공개 조회
+    if (url.pathname.endsWith("/measure-share")) {
+      const origin = req.headers.get("Origin") || "*";
+      const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+      const J = (o, status = 200, cache = "no-store") => new Response(JSON.stringify(o), { status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": cache } });
+      if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+      const KV = env.PLACES;
+      if (!KV) return J({ ok: false, error: "no-store" }, 500);
+      if (req.method === "GET") {
+        const id = String(url.searchParams.get("id") || "");
+        if (!/^m[0-9a-f]{20}$/.test(id)) return J({ ok: false, error: "bad-id" }, 400);
+        const stored = await KV.get("measure_share:" + id);
+        if (!stored) return J({ ok: false, error: "not-found" }, 404);
+        let record = null; try { record = JSON.parse(stored); } catch (e) {}
+        const clean = normalizeMeasureShare(record);
+        if (!clean) return J({ ok: false, error: "invalid-record" }, 500);
+        return new Response(JSON.stringify({ ok: true, path: clean.path, km: clean.km }), { headers: { "Access-Control-Allow-Origin": "*", "Content-Type": "application/json", "Cache-Control": "public, max-age=31536000, immutable" } });
+      }
+      if (req.method === "POST") {
+        const ip = req.headers.get("CF-Connecting-IP") || "0";
+        if (await _rateLimited(env, "measure_share", ip, 20)) return J({ ok: false, error: "rate-limit" }, 429);
+        let b = {}; try { b = await req.json(); } catch (e) {}
+        const uid = String(b.id || "").slice(0, 40);
+        const adminOk = !!env.ADMIN_KEY && _safeEqual(String(b.adminKey || ""), String(env.ADMIN_KEY));
+        const memberOk = !!uid && await _memberOk(env, uid, b.tok);
+        if (!adminOk && !memberOk) return J({ ok: false, error: "relogin" }, 401);
+        const record = normalizeMeasureShare(b);
+        if (!record) return J({ ok: false, error: "bad-measure" }, 400);
+        const id = await measureShareId(record);
+        await KV.put("measure_share:" + id, JSON.stringify({ ...record, createdAt: Date.now() }));
+        return J({ ok: true, id });
+      }
+      return J({ ok: false, error: "method" }, 405);
     }
 
     // 0-3d) 코스 등록(관리자) — 거리측정 경로를 코스로. KV "courses"

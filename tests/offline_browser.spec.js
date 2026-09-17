@@ -527,8 +527,9 @@ test('plain refresh restores map center and zoom while share URLs take priority'
   await page.waitForFunction(() => typeof map !== 'undefined');
   const restored = await page.evaluate(() => ({ center: map.getCenter(), zoom: map.getZoom() }));
   expect(restored.zoom).toBe(14);
-  expect(Math.abs(restored.center.lat - 37.123456)).toBeLessThan(0.00001);
-  expect(Math.abs(restored.center.lng - 128.54321)).toBeLessThan(0.00001);
+  // Leaflet rounds a restored center to the nearest mobile viewport pixel (about 2 m at z14).
+  expect(Math.abs(restored.center.lat - 37.123456)).toBeLessThan(0.00003);
+  expect(Math.abs(restored.center.lng - 128.54321)).toBeLessThan(0.00003);
 
   await page.goto(baseURL + '/?course=1', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof map !== 'undefined');
@@ -585,6 +586,84 @@ test('historical imagery opens from the satellite legend row at the current map 
 
   await page.locator('#waybackClose').click({ force: true });
   await page.waitForFunction(() => _wbTarget === null, null, { timeout: 5000 });
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
+test('course name suggestion omits province and starts at city or county', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof _shortCoursePlace === 'function');
+  const names = await page.evaluate(() => ({
+    chuncheon: _shortCoursePlace('', '강원특별자치도 춘천시 신북읍 신포리 1'),
+    gokseong: _shortCoursePlace('', '전라남도 곡성군 석곡면 공북리 2'),
+    suwon: _shortCoursePlace('', '경기도 수원시 영통구 이의동 3'),
+    seoul: _shortCoursePlace('', '서울특별시 강남구 청담동 4'),
+    labelled: _shortCoursePlace('강원특별자치도 춘천시 - 신포리(신북읍)', ''),
+  }));
+  expect(names).toEqual({
+    chuncheon: '춘천시 신포리',
+    gokseong: '곡성군 공북리',
+    suwon: '수원시 영통구 이의동',
+    seoul: '서울특별시 강남구 청담동',
+    labelled: '춘천시 신포리(신북읍)',
+  });
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
+test('short measure links load the stored path and legacy links still decode', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const path = '_p~iF~ps|U_ulLnnqC_mqNvxq`@';
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/measure-share')) {
+      if (route.request().method() === 'POST') {
+        const body = route.request().postDataJSON();
+        expect(body.path).toBe(path);
+        expect(body.km).toBe(10.13);
+        await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ ok: true, id: 'm0123456789abcdefabcd' }) });
+      } else {
+        expect(url.searchParams.get('id')).toBe('m0123456789abcdefabcd');
+        await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ ok: true, path, km: 10.13 }) });
+      }
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: '[]' });
+    }
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/?measure=m0123456789abcdefabcd', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => document.querySelector('.leaflet-popup-content')?.textContent.includes('10.13km'));
+  expect(await page.evaluate(() => measDone.getLayers().some((group) => group.getLayers
+    && group.getLayers().some((layer) => layer instanceof L.Polyline)))).toBe(true);
+  const prepared = await page.evaluate(async ({ encoded }) => {
+    localStorage.setItem('mc_user', JSON.stringify({ uid: '123', tok: 'test-token' }));
+    const data = { coords: _decMeasure(encoded), km: 10.13 };
+    _lastMeasureShare = data;
+    await _prepareMeasureShare(data);
+    return _lastMeasureShortUrl;
+  }, { encoded: path });
+  expect(prepared).toBe(baseURL + '/?measure=m0123456789abcdefabcd');
+  expect(errors).toEqual([]);
+
+  await context.unroute('https://mycanoe-map.kohoon0140.workers.dev/**');
+  await page.goto(baseURL + '/?measure=' + encodeURIComponent(path) + '&km=10.13', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => document.querySelector('.leaflet-popup-content')?.textContent.includes('10.13km'));
+  expect(await page.evaluate(() => measDone.getLayers().some((group) => group.getLayers
+    && group.getLayers().some((layer) => layer instanceof L.Polyline)))).toBe(true);
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();

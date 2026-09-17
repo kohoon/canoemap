@@ -3279,12 +3279,14 @@ async function _runMeasQueue(){
   }
   _measRunning=false;
 }
-let _lastMeasureShare=null;
+let _lastMeasureShare=null,_lastMeasureShortUrl='';
 function _encMeasure(coords){let out='',la=0,ln=0;function one(v){v=v<0?~(v<<1):(v<<1);while(v>=32){out+=String.fromCharCode((32|(v&31))+63);v>>=5;}out+=String.fromCharCode(v+63);}coords.forEach(function(p){const a=Math.round(+p[0]*1e5),b=Math.round(+p[1]*1e5);one(a-la);one(b-ln);la=a;ln=b;});return out;}
 function _decMeasure(s){let i=0,la=0,ln=0,out=[];function one(){let r=0,sh=0,c;do{if(i>=s.length)throw 0;c=s.charCodeAt(i++)-63;r|=(c&31)<<sh;sh+=5;}while(c>=32);return (r&1)?~(r>>1):(r>>1);}try{while(i<s.length&&out.length<6000){la+=one();ln+=one();out.push([la/1e5,ln/1e5]);}}catch(e){return [];}return out;}
 function measureShareUrl(data){const u=new URL(location.origin+location.pathname);u.searchParams.set('measure',_encMeasure(data.coords));u.searchParams.set('km',Number(data.km||0).toFixed(2));return u.toString();}
-function shareMeasureResult(){if(!_lastMeasureShare)return;const u=measureShareUrl(_lastMeasureShare);gaEvent('measure_share',{km:Math.round(_lastMeasureShare.km*10)/10});if(navigator.share){navigator.share({title:'카누맵 거리측정 '+_lastMeasureShare.km.toFixed(2)+'km',url:u}).catch(function(){});}else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){alert('거리측정 링크가 복사됐어요!');}).catch(function(){prompt('아래 링크 복사',u);});}else prompt('아래 링크 복사',u);}
-function showSharedMeasure(){const q=new URLSearchParams(location.search),s=q.get('measure');if(!s)return;const coords=_decMeasure(s),km=parseFloat(q.get('km'));if(coords.length<2)return;const grp=L.layerGroup().addTo(measDone),line=L.polyline(coords,{color:'#ff7043',weight:5,opacity:.95,lineCap:'round'}).addTo(grp);L.circleMarker(coords[0],{radius:5,color:'#fff',weight:2,fillColor:'#2e7d32',fillOpacity:1}).addTo(grp);L.circleMarker(coords[coords.length-1],{radius:5,color:'#fff',weight:2,fillColor:'#c62828',fillOpacity:1}).addTo(grp);try{map.fitBounds(line.getBounds().pad(.15));}catch(e){}L.popup({closeButton:true}).setLatLng(coords[Math.floor(coords.length/2)]).setContent('<b>공유된 거리측정</b>'+(isFinite(km)?'<br>'+km.toFixed(2)+'km':'')).openOn(map);gaEvent('measure_share_open');}
+async function _prepareMeasureShare(data){const ref=data;_lastMeasureShortUrl='';const u=getUser(),body={path:_encMeasure(data.coords),km:Number(data.km||0)};if(u&&u.uid){body.id=u.uid;body.tok=u.tok||'';}if(isAdmin())body.adminKey=adminKey();if(!body.id&&!body.adminKey)return;try{const r=await fetch(fapi('/measure-share'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),d=await r.json();if(r.ok&&d&&/^m[0-9a-f]{20}$/.test(d.id||'')&&_lastMeasureShare===ref){const out=new URL(location.origin+location.pathname);out.searchParams.set('measure',d.id);_lastMeasureShortUrl=out.toString();}}catch(e){}}
+function shareMeasureResult(){if(!_lastMeasureShare)return;const u=_lastMeasureShortUrl||measureShareUrl(_lastMeasureShare);gaEvent('measure_share',{km:Math.round(_lastMeasureShare.km*10)/10,short:!!_lastMeasureShortUrl});if(navigator.share){navigator.share({title:'카누맵 거리측정 '+_lastMeasureShare.km.toFixed(2)+'km',url:u}).catch(function(){});}else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){alert('거리측정 링크가 복사됐어요!');}).catch(function(){prompt('아래 링크 복사',u);});}else prompt('아래 링크 복사',u);}
+function _renderSharedMeasure(coords,km){if(coords.length<2)return;const grp=L.layerGroup().addTo(measDone),line=L.polyline(coords,{color:'#ff7043',weight:5,opacity:.95,lineCap:'round'}).addTo(grp);L.circleMarker(coords[0],{radius:5,color:'#fff',weight:2,fillColor:'#2e7d32',fillOpacity:1}).addTo(grp);L.circleMarker(coords[coords.length-1],{radius:5,color:'#fff',weight:2,fillColor:'#c62828',fillOpacity:1}).addTo(grp);try{map.fitBounds(line.getBounds().pad(.15));}catch(e){}L.popup({closeButton:true}).setLatLng(coords[Math.floor(coords.length/2)]).setContent('<b>공유된 거리측정</b>'+(isFinite(km)?'<br>'+km.toFixed(2)+'km':'')).openOn(map);gaEvent('measure_share_open');}
+async function showSharedMeasure(){const q=new URLSearchParams(location.search),s=q.get('measure');if(!s)return;let encoded=s,km=parseFloat(q.get('km'));if(/^m[0-9a-f]{20}$/.test(s)){try{const r=await fetch(fapi('/measure-share?id='+encodeURIComponent(s)),{cache:'force-cache'}),d=await r.json();if(!r.ok||!d||!d.ok)return;encoded=d.path||'';km=Number(d.km);}catch(e){return;}}_renderSharedMeasure(_decMeasure(encoded),km);}
 function finishMeasure(){
   if(measPts.length<2){ cancelMeasure(); return; }
   const km=measSegs.reduce(function(s,x){return s+x.km;},0);
@@ -3308,7 +3310,7 @@ function finishMeasure(){
   gaEvent('measure_done',{km:Math.round(km*10)/10, points:measPts.length});
   let cc=[]; measSegs.forEach(function(sg,i){ cc=cc.concat(i?sg.coords.slice(1):sg.coords); });
   cc=cc.map(function(p){return [+(+p[0]).toFixed(6),+(+p[1]).toFixed(6)];});
-  _lastMeasureShare={coords:cc,km:Math.round(km*100)/100};
+  _lastMeasureShare={coords:cc,km:Math.round(km*100)/100}; _prepareMeasureShare(_lastMeasureShare);
   let resultBtns='<button class="addplace-btn" onclick="shareMeasureResult()">🔗 거리 공유</button>';
   if(isAdmin() || _curUid()){   // 로그인 사용자도 이 경로를 자기 코스로 등록
     const riverCounts={};measSegs.forEach(function(sg){if(sg.riverName)riverCounts[sg.riverName]=(riverCounts[sg.riverName]||0)+1;});
@@ -3474,10 +3476,11 @@ function cmPickCat(el){ const bs=document.querySelectorAll('#cmBody .seg-b'); fo
 function cmPreview(){ const p=document.getElementById('cmPrev'); if(!p) return; p.textContent=_joinCourse(_cmCat(),_cmNo(),(document.getElementById('cmName').value||''))||'—'; }
 function _shortCoursePlace(label,addr){
   label=(label||'').trim();
-  if(label){const halves=label.split(/\s+-\s+/),region=(halves[0]||'').replace(/\([^)]*\)/g,'').trim(),place=(halves.length>1?halves.slice(1).join(' - '):label).replace(/^(춘천|양구|곡성|구례|연천|홍천|인제|화천)\s*[()]/,'').trim();return (region&&place.indexOf(region)!==0?region+' ':'')+place;}
-  const parts=(addr||'').trim().split(/\s+/).filter(Boolean);let region='',place='';
-  for(const p of parts){if(!region&&/[시군구]$/.test(p)&&!/특별시$|광역시$/.test(p))region=p.replace(/[시군구]$/,'');if(/[리가동읍면]$/.test(p))place=p;}
-  return [region,place].filter(Boolean).join(' ')||parts.slice(-2).join(' ');
+  function regionText(value){const p=(value||'').trim().split(/\s+/).filter(Boolean);let i=p.findIndex(function(x){return /(특별시|광역시|특별자치시|시|군|구)$/.test(x)&&!/(특별자치도|도)$/.test(x);});if(i<0)return p.filter(function(x){return !/(특별자치도|도)$/.test(x);}).join(' ');const r=[p[i]];if(/시$/.test(p[i])&&p[i+1]&&/구$/.test(p[i+1]))r.push(p[i+1]);return r.join(' ');}
+  if(label){const halves=label.split(/\s+-\s+/),raw=(halves[0]||'').replace(/\([^)]*\)/g,'').trim(),region=regionText(raw),place=(halves.length>1?halves.slice(1).join(' - '):label).replace(/^(춘천|양구|곡성|구례|연천|홍천|인제|화천)\s*[()]/,'').trim();return (region&&place.indexOf(region)!==0?region+' ':'')+place;}
+  const parts=(addr||'').trim().split(/\s+/).filter(Boolean),region=regionText(addr);let place='';
+  for(const p of parts){if(/[리가동]$/.test(p))place=p;else if(!place&&/[읍면]$/.test(p))place=p;}
+  return [region,place].filter(Boolean).join(' ')||parts.filter(function(x){return !/(특별자치도|도)$/.test(x);}).slice(-2).join(' ');
 }
 async function _coursePointName(x){
   if(!x)return '';
