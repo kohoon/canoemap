@@ -474,6 +474,7 @@ test('wide reservoir access routes around land instead of crossing it', async ()
     type: 'relation', id: 1, tags: { natural: 'water' }, members: [
       { role: 'outer', geometry: ring([[36.99, 126.995], [37.02, 126.995], [37.02, 127.015], [36.99, 127.015], [36.99, 126.995]]) },
       { role: 'inner', geometry: ring([[36.998, 127.003], [37.004, 127.003], [37.004, 127.008], [36.998, 127.008], [36.998, 127.003]]) },
+      { role: 'inner', geometry: ring([[37.0095, 127.00955], [37.0105, 127.00955], [37.0105, 127.00985], [37.0095, 127.00985], [37.0095, 127.00955]]) },
     ],
   }] };
   await context.route(/\/rivers\.geojson(?:\?|$)/, async (route) => {
@@ -489,22 +490,31 @@ test('wide reservoir access routes around land instead of crossing it', async ()
   await page.waitForFunction(() => typeof waterRoute === 'function');
   const result = await page.evaluate(async () => {
     const route = await waterRoute({ lat: 37.015, lng: 127.01 }, { lat: 37.0, lng: 127.0 });
-    function insideLand(p) { return p[0] > 36.998 && p[0] < 37.004 && p[1] > 127.003 && p[1] < 127.008; }
-    let crossesLand = false;
-    for (let i = 1; i < route.coords.length; i++) {
-      const a = route.coords[i - 1], b = route.coords[i];
-      for (let step = 0; step <= 30; step++) {
-        const t = step / 30;
-        if (insideLand([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t])) crossesLand = true;
+    const short = await waterRoute({ lat: 37.012, lng: 127.01 }, { lat: 37.01, lng: 127.0093 });
+    function crossesLand(coords, box) {
+      for (let i = 1; i < coords.length; i++) {
+        const a = coords[i - 1], b = coords[i];
+        for (let step = 0; step <= 30; step++) {
+          const t = step / 30, p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+          if (p[0] > box[0] && p[0] < box[2] && p[1] > box[1] && p[1] < box[3]) return true;
+        }
       }
+      return false;
     }
-    return { source: route.source, km: route.km, coords: route.coords, access: route.access, crossesLand };
+    return {
+      source: route.source, km: route.km, coords: route.coords, access: route.access,
+      crossesLand: crossesLand(route.coords, [36.998, 127.003, 37.004, 127.008]),
+      short: { coords: short.coords, access: short.access, crossesLand: crossesLand(short.coords, [37.0095, 127.00955, 37.0105, 127.00985]) },
+    };
   });
   expect(result.source).toBe('static-river-water');
   expect(result.access).toEqual([]);
   expect(result.crossesLand).toBe(false);
   expect(result.km).toBeGreaterThan(2.55);
   expect(result.coords.some((p) => p[0] > 37.004 || p[0] < 36.998)).toBe(true);
+  expect(result.short.access).toEqual([]);
+  expect(result.short.coords.length).toBeGreaterThan(3);
+  expect(result.short.crossesLand).toBe(false);
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();

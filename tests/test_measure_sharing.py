@@ -22,7 +22,7 @@ class MeasureSharingTests(unittest.TestCase):
             if (normalizeMeasureShare({path: 'not-a-polyline', km: 10})) throw new Error('invalid path accepted');
             if (normalizeMeasureShare({path, km: 0})) throw new Error('zero distance accepted');
             const fixed = normalizeMeasureShare(MEASURE_SHARE_CORRECTIONS.m2cceca43c44ad374740f);
-            if (!fixed || fixed.points < 60 || fixed.km !== 28.89) throw new Error('land-crossing correction invalid');
+            if (!fixed || fixed.points < 60 || fixed.km !== 28.91) throw new Error('land-crossing correction invalid');
             let index = 0, lat = 0, lng = 0, coords = [];
             function delta() { let result = 0, shift = 0, code; do { code = fixed.path.charCodeAt(index++) - 63; result |= (code & 31) << shift; shift += 5; } while (code >= 32); return (result & 1) ? ~(result >> 1) : (result >> 1); }
             while (index < fixed.path.length) { lat += delta(); lng += delta(); coords.push([lat / 1e5, lng / 1e5]); }

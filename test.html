@@ -3819,7 +3819,6 @@ async function overpassFetch(q){
 }
 async function waterRoute(p1,p2){
   const staticRoute=await staticWaterRoute(p1,p2);
-  if(staticRoute&&staticRoute.snap[0]<=80&&staticRoute.snap[1]<=80)return staticRoute;
   const pad=Math.max(0.035, Math.abs(p1.lat-p2.lat)*0.35, Math.abs(p1.lng-p2.lng)*0.35);  // 강 굽이 포함되게 충분히
   const r3=function(x){return Math.round(x*1000)/1000;};   // bbox 100m 라운딩(캐시 적중↑)
   const s=r3(Math.min(p1.lat,p2.lat)-pad), w=r3(Math.min(p1.lng,p2.lng)-pad), n=r3(Math.max(p1.lat,p2.lat)+pad), e=r3(Math.max(p1.lng,p2.lng)+pad);
@@ -3858,9 +3857,9 @@ async function waterRoute(p1,p2){
   function waterChord(a,b){const d=hav(a,b);if(d>450)return false;const steps=Math.max(2,Math.ceil(d/60));let plausible=0,dryRun=0,maxDry=0;for(let i=0;i<=steps;i++){const t=i/steps,p=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];if(plausibleWater(p)){plausible++;dryRun=0;}else{dryRun++;maxDry=Math.max(maxDry,dryRun);}}return plausible/(steps+1)>=.9&&maxDry*60<=120;}
   function shortcutWaterPath(raw){if(raw.length<3||!waterOuter.length)return raw;const out=[raw[0]];let i=0;while(i<raw.length-1){let good=i+1,bad=raw.length,step=2;while(i+step<raw.length){if(waterChord(raw[i],raw[i+step])){good=i+step;step*=2;}else{bad=i+step;break;}}if(bad===raw.length&&good<raw.length-1&&waterChord(raw[i],raw[raw.length-1]))good=raw.length-1;else{let lo=good+1,hi=Math.min(bad-1,raw.length-1);while(lo<=hi){const mid=(lo+hi)>>1;if(waterChord(raw[i],raw[mid])){good=mid;lo=mid+1;}else hi=mid-1;}}out.push(raw[good]);i=good;}return out;}
   function waterLineClear(a,b){
-    const d=hav(a,b),steps=Math.max(2,Math.ceil(d/25));let dry=0;
+    const d=hav(a,b),steps=Math.max(2,Math.ceil(d/8));let dry=0;
     for(let i=0;i<=steps;i++){const t=i/steps;if(!inWater([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]))dry++;}
-    return dry<=1;
+    return dry===0;
   }
   function waterSurfacePath(a,b){
     if(!inWater(a)||!inWater(b))return null;
@@ -3892,6 +3891,7 @@ async function waterRoute(p1,p2){
       const ur=Math.floor(u/cols),uc=u%cols;
       for(const dc of dirs){const r=ur+dc[0],c=uc+dc[1];if(r<0||r>=rows||c<0||c>=cols)continue;const v=r*cols+c;if(!wet(v))continue;
         if(dc[0]&&dc[1]&&(!wet(ur*cols+c)||!wet(r*cols+uc)))continue;
+        if(!waterLineClear(up,point(v)))continue;
         const nd=scores[u]+hav(up,point(v));if(nd<scores[v]){scores[v]=nd;prev[v]=u;heap.push(nd+hav(point(v),point(goal)),v);}}
     }
     const ids=[];for(let u=goal;u>=0;u=prev[u]){ids.push(u);if(u===start)break;if(prev[u]<0)return null;}ids.reverse();
@@ -3902,8 +3902,8 @@ async function waterRoute(p1,p2){
   let repairedStatic=null;
   if(staticRoute&&staticRoute._core&&staticRoute._core.length>1){
     const core=staticRoute._core.slice(),start=[p1.lat,p1.lng],end=[p2.lat,p2.lng],access=[];
-    let first=staticRoute.snap[0]<=80?[start,core[0]]:waterSurfacePath(start,core[0]);
-    let last=staticRoute.snap[1]<=80?[core[core.length-1],end]:waterSurfacePath(core[core.length-1],end);
+    function verifiedLeg(a,b){if(hav(a,b)<3)return [a,b];if(waterLineClear(a,b))return [a,b];return waterSurfacePath(a,b);}
+    let first=verifiedLeg(start,core[0]),last=verifiedLeg(core[core.length-1],end);
     let coords=core;
     if(first)coords=first.slice(0,-1).concat(coords);else access.push([start,core[0]]);
     if(last)coords=coords.concat(last.slice(1));else access.push([core[core.length-1],end]);

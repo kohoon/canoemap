@@ -3,8 +3,8 @@
 export const MEASURE_SHARE_CORRECTIONS = Object.freeze({
   m2cceca43c44ad374740f: {
     v: 1,
-    path: "g~tgFmixjWS_AfQaHjJo@zPf@x]sAp[uDpEIlG|Adg@dYln@pTzMrH`K|IdKlRr@pQyApRoE`UqHfScMdWm]nd@}d@hx@uDdTu@js@fDzXvJjY|QfPz}@zk@~k@bLj|@?nj@nAdkApg@zi@nm@~p@faAh_@la@~IjFtKnA|E}CvA_HZcI{HccA`@kZjGoJjOkFt[kCv\\dGdRnMrUt`@~Lrc@tJzn@vIp_@pF|FrUhBdWiBpRqHr@}@zYwWnF?~MzToAjHoUrNGbH",
-    km: 28.89,
+    path: "g~tgFmixjWS_AfQaHjJo@zPf@x]sAp[uDpEIlG|Adg@dYln@pTzMrH`K|IdKlRr@pQyApRoE`UqHfScMdWm]nd@}d@hx@uDdTu@js@fDzXvJjY|QfPz}@zk@~k@bLj|@?nj@nAdkApg@zi@nm@~p@faAh_@la@~IjFtKnA|E}CvA_HZcI{HccA`@kZjGoJjOkFt[kCv\\dGdRnMrUt`@~Lrc@tJzn@vIp_@pF|FrUhBdWiBpRqHr@}@zYwWnF?~MzToAjHoUnKGfK",
+    km: 28.91,
     reason: "춘천호 오월리 반도 육지 관통 교정",
   },
 });
