@@ -8,6 +8,8 @@ import {
   publicMemberSummary,
 } from "./member-security.mjs";
 import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
+import { coursePreviewKey, courseShareHtml, normalizeCourseShareId } from "./course-share.mjs";
+import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
 
 /**
  * Cloudflare Worker — 카카오 로그인 OAuth 콜백.
@@ -32,6 +34,51 @@ function _hav(a, b) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 function _trackKm(t, breaks) { const skip = new Set(Array.isArray(breaks) ? breaks.map(Number) : []); let d = 0; for (let i = 1; i < t.length; i++) if (!skip.has(i)) d += _hav(t[i - 1], t[i]); return d / 1000; }
+
+async function _courseShareRecord(env, id) {
+  const safeId = normalizeCourseShareId(id), KV = env.PLACES;
+  if (!safeId || !KV) return null;
+  if (safeId.startsWith("k")) {
+    let courses = [];
+    try { courses = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
+    const found = (Array.isArray(courses) ? courses : []).find((course) => String(course && course.id) === safeId.slice(1));
+    if (!found) return null;
+    return {
+      id: safeId,
+      name: String(found.name || "카누맵 코스").slice(0, 100),
+      km: Number(found.km) || 0,
+      owner: String(found.owner || ""),
+      updatedAt: Number(found.updatedAt || found.t) || 0,
+      static: false,
+    };
+  }
+  const base = STATIC_COURSE_SHARE[safeId];
+  if (!base) return null;
+  let hidden = [], over = {};
+  try { hidden = JSON.parse((await KV.get("course_hidden")) || "[]"); } catch (e) {}
+  if ((Array.isArray(hidden) ? hidden : []).some((value) => String(value) === safeId)) return null;
+  try { over = JSON.parse((await KV.get("course_over")) || "{}"); } catch (e) {}
+  const patch = (over && over[safeId]) || {};
+  return {
+    id: safeId,
+    name: String(patch.name || base.name || "카누맵 코스").slice(0, 100),
+    km: Number.isFinite(Number(patch.km)) ? Number(patch.km) : Number(base.km) || 0,
+    owner: "admin",
+    updatedAt: Number(patch.updatedAt) || 0,
+    static: true,
+  };
+}
+
+async function _coursePreviewRecord(KV, id) {
+  if (!KV) return null;
+  const key = coursePreviewKey(id);
+  if (!key) return null;
+  try {
+    const parsed = JSON.parse((await KV.get(key)) || "null");
+    if (!parsed || !/^[A-Za-z0-9+/=]+$/.test(String(parsed.b64 || ""))) return null;
+    return { b64: String(parsed.b64), v: String(parsed.v || "0").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32) || "0" };
+  } catch (e) { return null; }
+}
 
 // ---- 신원 서명 토큰(HMAC) — 클라이언트 자기신고 uid 스푸핑 방지 ----
 // 로그인 콜백에서 발급(#login=...&tok=...) → 쓰기 API가 검증. 비밀키는 ADMIN_KEY 재사용(서버 전용).
@@ -252,6 +299,63 @@ export default {
     // B: 쓰기성 POST는 우리 사이트 Origin에서만(타 사이트 브라우저 JS 차단). Origin 없으면 통과(이미지/툴).
     if (req.method === "POST" && !_allowedOrigin(req, env)) {
       return new Response("forbidden-origin", { status: 403, headers: { "Access-Control-Allow-Origin": req.headers.get("Origin") || "*" } });
+    }
+
+    // 코스 공유 전용 HTML. 크롤러에는 코스별 OG 메타데이터를 주고 실제 방문자는 지도 URL로 즉시 보낸다.
+    const courseShareMatch = url.pathname.match(/^\/c\/(k?[0-9]+)\/?$/);
+    if (courseShareMatch && req.method === "GET") {
+      const id = normalizeCourseShareId(courseShareMatch[1]);
+      const course = await _courseShareRecord(env, id);
+      if (!course) return new Response("course not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
+      const preview = await _coursePreviewRecord(env.PLACES, id);
+      const site = new URL(env.SITE_URL || "https://canoe.crowdbase.kr/");
+      site.searchParams.set("course", id);
+      const imageUrl = preview
+        ? url.origin + "/course-preview/" + encodeURIComponent(id) + ".jpg?v=" + encodeURIComponent(preview.v)
+        : new URL("og.png", env.SITE_URL || "https://canoe.crowdbase.kr/").toString();
+      const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl });
+      return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60" } });
+    }
+
+    // 코스 지도 미리보기 JPEG 공개 조회. 버전 쿼리가 바뀌므로 장기 캐시해도 수정본과 충돌하지 않는다.
+    const coursePreviewMatch = url.pathname.match(/^\/course-preview\/(k?[0-9]+)\.jpg$/);
+    if (coursePreviewMatch && req.method === "GET") {
+      const id = normalizeCourseShareId(coursePreviewMatch[1]);
+      const course = await _courseShareRecord(env, id);   // 삭제·숨김 코스는 식별자가 남아도 현재 코스로 보지 않는다.
+      if (!course) return new Response("not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
+      const preview = await _coursePreviewRecord(env.PLACES, id);
+      if (!preview) return Response.redirect(new URL("og.png", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
+      const bytes = Uint8Array.from(atob(preview.b64), (c) => c.charCodeAt(0));
+      return new Response(bytes, { headers: {
+        "Content-Type": "image/jpeg",
+        "Content-Length": String(bytes.byteLength),
+        "Cache-Control": url.searchParams.get("v") === preview.v ? "public, max-age=31536000, immutable" : "public, max-age=300",
+        "Access-Control-Allow-Origin": "*",
+      } });
+    }
+
+    // 코스 소유자/관리자가 브라우저에서 렌더한 1200×630 JPEG를 저장한다.
+    if (url.pathname === "/course-preview") {
+      const origin = req.headers.get("Origin") || "*";
+      const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+      const J = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+      if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+      if (req.method !== "POST") return J({ ok: false, error: "method" }, 405);
+      const ip = req.headers.get("CF-Connecting-IP") || "0";
+      if (await _rateLimited(env, "course_preview", ip, 12)) return J({ ok: false, error: "rate-limit" }, 429);
+      let body = {}; try { body = await req.json(); } catch (e) {}
+      const id = normalizeCourseShareId(body.id);
+      const course = await _courseShareRecord(env, id);
+      if (!course) return J({ ok: false, error: "not-found" }, 404);
+      const uid = String(body.uid || "").slice(0, 40);
+      const adminOk = !!env.ADMIN_KEY && _safeEqual(String(body.adminKey || ""), String(env.ADMIN_KEY));
+      const ownerOk = !course.static && uid && course.owner === uid && await _memberOk(env, uid, body.tok);
+      if (!adminOk && !ownerOk) return J({ ok: false, error: "forbidden" }, 403);
+      const match = String(body.img || "").match(/^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/);
+      if (!match || match[1].length < 100 || match[1].length > 950000 || !match[1].startsWith("/9j/")) return J({ ok: false, error: "bad-image" }, 400);
+      const version = Date.now().toString(36);
+      await env.PLACES.put(coursePreviewKey(id), JSON.stringify({ v: version, b64: match[1] }));
+      return J({ ok: true, v: version });
     }
 
     // 0) 비로그인 방문 로그 — 원본 IP는 저장하지 않고 날짜별 익명 식별자로만 전달
@@ -966,6 +1070,7 @@ export default {
             if (name) over[cid].name = name;
             if (Number.isFinite(km)) over[cid].km = km;
             if (color) over[cid].color = color;
+            over[cid].updatedAt = Date.now();
           }
           await KV.put("course_over", JSON.stringify(over));
           ctx.waitUntil(clearCourseCache());
@@ -991,6 +1096,7 @@ export default {
           it.name = String(b.name || it.name || "코스").slice(0, 80);
           if (b.km != null) it.km = Number(b.km) || 0;
           if (/^#[0-9a-f]{6}$/i.test(String(b.color || ""))) it.color = String(b.color).toLowerCase();
+          it.updatedAt = Date.now();
         } else if (b.action === "add" || b.action === "adduser" || !b.action) {
           const coords = Array.isArray(b.coords) ? b.coords.slice(0, 5000) : [];
           if (coords.length < 2) return new Response("bad", { status: 400, headers: cors });

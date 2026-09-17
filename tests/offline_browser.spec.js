@@ -620,6 +620,34 @@ test('course name suggestion omits province and starts at city or county', async
   await browser.close();
 });
 
+test('course share URL and preview image use the course-specific map card', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof _drawCoursePreview === 'function' && typeof courseShareUrl === 'function');
+  const preview = await page.evaluate(() => {
+    const course = {
+      name: '북한강 종주 #1 - 화천 평화의댐 오토캠핑장 ~ 화천 파로호유원지 선착장',
+      km: 22.86,
+      color: '#d500f9',
+      coords: [[38.20519, 127.850647], [38.158603, 127.862341], [38.102075, 127.865463], [38.096304, 127.776642]],
+    };
+    const image = _drawCoursePreview(course, []);
+    return { url: courseShareUrl('k1788763953491'), prefix: image.slice(0, 27), length: image.length };
+  });
+  expect(preview.url).toBe('https://mycanoe-map.kohoon0140.workers.dev/c/k1788763953491');
+  expect(preview.prefix).toBe('data:image/jpeg;base64,/9j/');
+  expect(preview.length).toBeGreaterThan(20000);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('short measure links load the stored path and legacy links still decode', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
