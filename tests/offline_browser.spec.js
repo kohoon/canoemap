@@ -544,12 +544,20 @@ test('historical imagery opens from the satellite legend row at the current map 
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const redPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEklEQVR4nGO8o6HBwMDAxAAGAA7uATD++YiCAAAAAElFTkSuQmCC', 'base64');
+  const bluePng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEklEQVR4nGPUCLjDwMDAxAAGAA9mAVi5O1urAAAAAElFTkSuQmCC', 'base64');
+  await context.route('https://server.arcgisonline.com/**', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'image/png', headers: { 'Access-Control-Allow-Origin': '*' }, body: redPng });
+  });
   await context.route('https://wayback.maptiles.arcgis.com/**', async (route) => {
     if (route.request().url().includes('GetCapabilities')) {
-      const xml = '<?xml version="1.0"?><Capabilities><Contents><Layer><Title>Wayback 2024-01-01</Title><ResourceURL template="https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/123/{TileMatrix}/{TileRow}/{TileCol}"/></Layer></Contents></Capabilities>';
+      const xml = '<?xml version="1.0"?><Capabilities><Contents>'
+        + '<Layer><Title>Wayback 2024-02-01</Title><ResourceURL template="https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/123/{TileMatrix}/{TileRow}/{TileCol}"/></Layer>'
+        + '<Layer><Title>Wayback 2023-01-01</Title><ResourceURL template="https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/456/{TileMatrix}/{TileRow}/{TileCol}"/></Layer>'
+        + '</Contents></Capabilities>';
       await route.fulfill({ status: 200, contentType: 'application/xml', headers: { 'Access-Control-Allow-Origin': '*' }, body: xml });
     } else {
-      const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+XwQYVwAAAABJRU5ErkJggg==', 'base64');
+      const png = route.request().url().includes('/tile/123/') ? redPng : bluePng;
       await route.fulfill({ status: 200, contentType: 'image/png', headers: { 'Access-Control-Allow-Origin': '*' }, body: png });
     }
   });
@@ -583,6 +591,31 @@ test('historical imagery opens from the satellite legend row at the current map 
   expect(opened.savedBase).toBe('위성지도');
   expect(opened.damStillHasButton).toBe(false);
   await expect(page.locator('#waybackDate')).toBeEnabled({ timeout: 5000 });
+  await expect(page.locator('#waybackDate')).toHaveValue('456');
+  await expect(page.locator('#waybackDate option')).toHaveText('2023-01-01 배포 · 변화 확인');
+  await expect(page.locator('#waybackNote')).toContainText('현재 화면 5개 지점');
+  await expect(page.locator('#waybackNote')).toContainText('촬영일이 아닌 ESRI 배포일');
+  const pixelThresholds = await page.evaluate(() => {
+    const pixels = (count, diff, changed) => {
+      const a = new Uint8ClampedArray(count * 4);
+      const b = new Uint8ClampedArray(count * 4);
+      for (let i = 0; i < count; i++) { a[i * 4 + 3] = 255; b[i * 4 + 3] = 255; }
+      for (let i = 0; i < changed; i++) b[i * 4] = diff;
+      return _wbPixelsMeaningful(a, b);
+    };
+    const snapshots = (changed) => {
+      const a = Array.from({ length: 5 }, () => new Uint8ClampedArray(4000));
+      const b = Array.from({ length: 5 }, () => new Uint8ClampedArray(4000));
+      for (let i = 0; i < changed; i++) b[0][i * 4] = 15;
+      return _wbSnapshotMeaningful(a, b);
+    };
+    return {
+      identical: pixels(1000, 0, 0), tiny: pixels(1000, 15, 2),
+      high: pixels(1000, 25, 5), medium: pixels(1000, 15, 100),
+      oneTileMinor: snapshots(50), oneTileClear: snapshots(500),
+    };
+  });
+  expect(pixelThresholds).toEqual({ identical: false, tiny: false, high: true, medium: true, oneTileMinor: false, oneTileClear: true });
 
   await page.locator('#waybackClose').click({ force: true });
   await page.waitForFunction(() => _wbTarget === null, null, { timeout: 5000 });

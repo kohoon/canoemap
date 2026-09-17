@@ -24,6 +24,13 @@ class WaybackLegendTests(unittest.TestCase):
         self.assertIn("if(map.hasLayer(offlineBase)) map.removeLayer(offlineBase)", self.source)
         self.assertIn("localStorage.setItem('mc_basemap','위성지도')", self.source)
 
+    def test_versions_compare_five_points_against_current_esri_pixels(self):
+        self.assertIn("function _wbSamplePoints(d)", self.source)
+        self.assertIn("function _wbPixelsMeaningful(a,b)", self.source)
+        self.assertIn("_wbSnapshot('current',points,z)", self.source)
+        self.assertIn("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery", self.source)
+        self.assertIn("현재 화면 5개 지점", self.source)
+
 
 if __name__ == "__main__":
     unittest.main()

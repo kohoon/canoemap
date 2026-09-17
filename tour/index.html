@@ -958,8 +958,10 @@ setSatSource(_satSrc);   // baseSat 초기 채움(토글 UI는 아직 없으니 
 
 // ESRI World Imagery Wayback: 선택한 호수 주변 타일만 과거 배포본으로 덮는다.
 const WAYBACK_CAP='https://wayback.maptiles.arcgis.com/arcgis/rest/services/world_imagery/wmts?request=GetCapabilities&service=WMTS&version=1.0.0';
+const WB_HIGH_DIFF_RATIO=.005, WB_MEDIUM_DIFF_RATIO=.10;
 let _wbVersions=null, _wbLayer=null, _wbTarget=null, _wbLoadSeq=0;
 const _wbLocalCache={};
+const _wbTileBytesCache=new Map(), _wbPixelCache=new Map();
 function _wbBounds(d){ return L.latLngBounds([d.lat-.09,d.lng-.12],[d.lat+.09,d.lng+.12]); }
 function _wbLoadVersions(){
   if(_wbVersions) return Promise.resolve(_wbVersions);
@@ -979,32 +981,115 @@ function _wbTileAt(d,z){
   const n=Math.pow(2,z), lat=Math.max(-85.0511,Math.min(85.0511,+d.lat||0)), lng=+d.lng||0;
   return {x:Math.floor((lng+180)/360*n),y:Math.floor((1-Math.asinh(Math.tan(lat*Math.PI/180))/Math.PI)/2*n)};
 }
+function _wbTileUrl(id,d,z){
+  const p=_wbTileAt(d,z);
+  if(id==='current') return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/'+z+'/'+p.y+'/'+p.x;
+  return 'https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/'+id+'/'+z+'/'+p.y+'/'+p.x;
+}
+function _wbFetchBytes(url){
+  if(_wbTileBytesCache.has(url)) return _wbTileBytesCache.get(url);
+  const task=fetch(url,{redirect:'follow'}).then(function(r){
+    if(!r.ok) throw new Error('Wayback tile '+r.status);
+    return r.arrayBuffer();
+  }).catch(function(err){ _wbTileBytesCache.delete(url); throw err; });
+  _wbTileBytesCache.set(url,task);
+  return task;
+}
+async function _wbDecodePixels(url){
+  if(_wbPixelCache.has(url)) return _wbPixelCache.get(url);
+  const task=_wbFetchBytes(url).then(async function(bytes){
+    const blob=new Blob([bytes]), canvas=document.createElement('canvas');
+    canvas.width=64; canvas.height=64;
+    let image;
+    if(typeof createImageBitmap==='function') image=await createImageBitmap(blob);
+    else image=await new Promise(function(resolve,reject){
+      const src=URL.createObjectURL(blob), img=new Image();
+      img.onload=function(){URL.revokeObjectURL(src);resolve(img);};
+      img.onerror=function(){URL.revokeObjectURL(src);reject(new Error('Wayback image decode failed'));};
+      img.src=src;
+    });
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(image,0,0,64,64);
+    if(image.close) image.close();
+    return ctx.getImageData(0,0,64,64).data;
+  }).catch(function(err){ _wbPixelCache.delete(url); throw err; });
+  _wbPixelCache.set(url,task);
+  return task;
+}
+function _wbSamplePoints(d){
+  return [d,{lat:d.lat+.06,lng:d.lng},{lat:d.lat-.06,lng:d.lng},{lat:d.lat,lng:d.lng+.08},{lat:d.lat,lng:d.lng-.08}];
+}
+function _wbPixelDiffCounts(a,b){
+  if(!a||!b||a.length!==b.length) return null;
+  let medium=0, high=0, total=0;
+  for(let i=0;i<a.length;i+=4){
+    const diff=Math.max(Math.abs(a[i]-b[i]),Math.abs(a[i+1]-b[i+1]),Math.abs(a[i+2]-b[i+2]));
+    if(diff>=10) medium++;
+    if(diff>=20) high++;
+    total++;
+  }
+  return {medium:medium,high:high,total:total};
+}
+function _wbPixelsMeaningful(a,b){
+  const diff=_wbPixelDiffCounts(a,b);
+  return !diff||!!diff.total&&(diff.high/diff.total>=WB_HIGH_DIFF_RATIO||diff.medium/diff.total>=WB_MEDIUM_DIFF_RATIO);
+}
+async function _wbSnapshot(id,points,z){
+  return Promise.all(points.map(function(point){return _wbDecodePixels(_wbTileUrl(id,point,z)).catch(function(){return null;});}));
+}
+function _wbSnapshotMeaningful(a,b){
+  let medium=0, high=0, total=0;
+  for(let i=0;i<Math.min(a.length,b.length);i++){
+    const diff=_wbPixelDiffCounts(a[i],b[i]);
+    if(!diff) continue;
+    medium+=diff.medium; high+=diff.high; total+=diff.total;
+  }
+  if(!total) return true;   // 비교 실패 때는 과거 영상을 숨기지 않는 안전한 폴백
+  return high/total>=WB_HIGH_DIFF_RATIO||medium/total>=WB_MEDIUM_DIFF_RATIO;
+}
+async function _wbMapLimit(items,limit,fn){
+  const out=new Array(items.length); let next=0;
+  async function worker(){while(next<items.length){const i=next++;out[i]=await fn(items[i],i);}}
+  await Promise.all(Array.from({length:Math.min(limit,items.length)},worker));
+  return out;
+}
 async function _wbLocalVersions(rows,d,onProgress){
   const key=String(d.cd||'')+'|'+Number(d.lat).toFixed(4)+'|'+Number(d.lng).toFixed(4);
   if(_wbLocalCache[key]) return _wbLocalCache[key];
-  const z=14, p=_wbTileAt(d,z), sigs=new Array(rows.length);
+  const z=14, sigs=new Array(rows.length);
   let next=0, done=0;
   async function worker(){
     while(next<rows.length){
       const i=next++, v=rows[i];
-      const u='https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/'+v.id+'/'+z+'/'+p.y+'/'+p.x;
       try{
-        const r=await fetch(u,{redirect:'follow'}), b=await r.arrayBuffer();
+        const b=await _wbFetchBytes(_wbTileUrl(v.id,d,z));
         const h=await crypto.subtle.digest('SHA-256',b);
         sigs[i]=Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0');}).join('');
       }catch(e){ sigs[i]=v.id; }
-      done++; if(onProgress) onProgress(done,rows.length);
+      done++; if(onProgress) onProgress(done,rows.length,'배포본 정리');
     }
   }
   await Promise.all(Array.from({length:8},worker));
-  const changed=[];
+  const candidates=[];
   for(let i=0;i<rows.length;){
     let j=i; while(j+1<rows.length&&sigs[j+1]===sigs[i]) j++;
-    changed.push(rows[j]);   // 같은 영상이 이어진 배포본 중 실제로 처음 등장한 날짜
+    candidates.push(rows[j]);   // 같은 영상이 이어진 배포본 중 실제로 처음 등장한 날짜
     i=j+1;
   }
-  _wbLocalCache[key]=changed;
-  return changed;
+  const points=_wbSamplePoints(d), current=await _wbSnapshot('current',points,z);
+  done=0;
+  const snapshots=await _wbMapLimit(candidates,2,async function(v){
+    const result=await _wbSnapshot(v.id,points,z);
+    done++; if(onProgress) onProgress(done,candidates.length,'화면 5지점 비교');
+    return result;
+  });
+  const changed=[]; let baseline=current;
+  candidates.forEach(function(v,i){
+    if(_wbSnapshotMeaningful(baseline,snapshots[i])){changed.push(v);baseline=snapshots[i];}
+  });
+  const result={rows:changed,excluded:rows.length-changed.length,total:rows.length};
+  _wbLocalCache[key]=result;
+  return result;
 }
 function _wbDraw(){
   if(!_wbTarget) return;
@@ -1017,7 +1102,7 @@ function _wbDraw(){
   _wbLayer.on('load tileload',_wbClip);
   requestAnimationFrame(_wbClip);
   const old=document.querySelector('#waybackCompare .wayback-old');
-  if(old) old.textContent='과거 · '+(sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text.replace(' 배포본',''):'선택 시점');
+  if(old) old.textContent='과거 · '+(sel.options[sel.selectedIndex]?(sel.options[sel.selectedIndex].dataset.date||sel.options[sel.selectedIndex].text):'선택 시점');
   const ui=document.getElementById('waybackCompare'); if(ui) ui.classList.add('on');
   try{ localStorage.setItem('mc_wayback_id',sel.value); }catch(e){}
 }
@@ -1050,7 +1135,7 @@ function _openWaybackAtMapCenter(){
   try{ localStorage.setItem('mc_basemap','위성지도'); }catch(e){}
   map.attributionControl.removeAttribution('간이 지도 &copy; OpenStreetMap 기여자');
   map.setMaxZoom(SAT_MAXZOOM_E); if(map.getZoom()<11) map.setView([d.lat,d.lng],11); else map.panTo([d.lat,d.lng]);
-  const p=document.getElementById('waybackCtl'), sel=document.getElementById('waybackDate'), nm=document.getElementById('waybackName');
+  const p=document.getElementById('waybackCtl'), sel=document.getElementById('waybackDate'), nm=document.getElementById('waybackName'), note=document.getElementById('waybackNote');
   if(!p||!sel) return;
   p.classList.add('on'); if(nm) nm.textContent=d.lake+' 주변';
   let ui=document.getElementById('waybackCompare');
@@ -1059,13 +1144,21 @@ function _openWaybackAtMapCenter(){
   const c=_layerControl&&_layerControl.getContainer(); if(c) c.style.width='232px';
   sel.disabled=true; sel.innerHTML='<option>과거 영상 목록 불러오는 중…</option>';
   _wbLoadVersions().then(function(rows){
-    if(loadSeq!==_wbLoadSeq) return [];
-    sel.innerHTML='<option>해당 위치 변경일 분석 중…</option>';
-    return _wbLocalVersions(rows,d,function(done,total){ if(loadSeq===_wbLoadSeq) sel.innerHTML='<option>해당 위치 변경일 분석 중… '+done+'/'+total+'</option>'; });
-  }).then(function(rows){
-    if(loadSeq!==_wbLoadSeq||!rows.length) return;
+    if(loadSeq!==_wbLoadSeq) return null;
+    sel.innerHTML='<option>배포본 분석 중…</option>';
+    return _wbLocalVersions(rows,d,function(done,total,stage){ if(loadSeq===_wbLoadSeq) sel.innerHTML='<option>'+stage+'… '+done+'/'+total+'</option>'; });
+  }).then(function(result){
+    if(loadSeq!==_wbLoadSeq||!result) return;
+    if(!result.rows.length){
+      if(_wbLayer){map.removeLayer(_wbLayer);_wbLayer=null;}
+      sel.innerHTML='<option>현재와 뚜렷하게 다른 영상 없음</option>'; sel.disabled=true;
+      if(note) note.textContent='현재 화면 5개 지점을 픽셀 비교했지만 현재와 뚜렷하게 다른 과거 영상을 찾지 못했습니다. 날짜는 촬영일이 아닌 ESRI 배포일입니다.';
+      return;
+    }
     let saved=''; try{ saved=localStorage.getItem('mc_wayback_id')||''; }catch(e){}
-    sel.innerHTML=rows.map(function(v){return '<option value="'+v.id+'"'+(v.id===saved?' selected':'')+'>'+v.date+' 배포본</option>';}).join('');
+    const hasSaved=result.rows.some(function(v){return v.id===saved;});
+    sel.innerHTML=result.rows.map(function(v){return '<option value="'+v.id+'" data-date="'+v.date+'"'+(hasSaved&&v.id===saved?' selected':'')+'>'+v.date+' 배포 · 변화 확인</option>';}).join('');
+    if(note) note.textContent='현재 화면 5개 지점을 픽셀 비교해 동일·미세 차이 배포본 '+result.excluded+'개를 제외했습니다. 날짜는 촬영일이 아닌 ESRI 배포일입니다.';
     sel.disabled=false; _wbDraw();
   }).catch(function(){ if(loadSeq===_wbLoadSeq) sel.innerHTML='<option>영상 목록을 불러오지 못했습니다</option>'; });
   _syncSatToggle(); gaEvent('wayback_open');
@@ -2979,7 +3072,7 @@ function _mountWaybackOpen(){
   const p=L.DomUtil.create('div','wayback-ctl'); p.id='waybackCtl';
   p.innerHTML='<div class="wayback-head"><span>과거 위성 · <span id="waybackName"></span></span><button id="waybackClose" type="button" title="과거 영상 닫기">×</button></div>'
     +'<select id="waybackDate" aria-label="과거 위성영상 배포일"></select>'
-    +'<small class="wayback-note">현재 지도 중심 위치의 영상이 실제로 바뀐 배포본만 표시합니다. 왼쪽은 현재, 오른쪽은 과거 영상이며 실제 촬영일은 지역별로 다를 수 있습니다.</small>';
+    +'<small class="wayback-note" id="waybackNote">현재 화면 5개 지점의 실제 픽셀 변화를 확인해 과거 영상을 선별합니다. 날짜는 촬영일이 아닌 ESRI 배포일입니다.</small>';
   const src=document.getElementById('satSrcToggle');
   if(src) src.insertAdjacentElement('afterend',p); else base.insertAdjacentElement('afterend',p);
   L.DomEvent.disableClickPropagation(p); L.DomEvent.disableScrollPropagation(p);
