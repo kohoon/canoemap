@@ -8,6 +8,7 @@ import {
   publicMemberSummary,
 } from "./member-security.mjs";
 import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
+import { MEASURE_SHARE_CORRECTIONS } from "./measure-share-corrections.mjs";
 import { coursePreviewKey, courseShareHtml, normalizeCourseShareId } from "./course-share.mjs";
 import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
 
@@ -974,7 +975,8 @@ export default {
       if (req.method === "GET") {
         const id = String(url.searchParams.get("id") || "");
         if (!/^m[0-9a-f]{20}$/.test(id)) return J({ ok: false, error: "bad-id" }, 400);
-        const stored = await KV.get("measure_share:" + id);
+        const fixed = MEASURE_SHARE_CORRECTIONS[id];
+        const stored = fixed ? JSON.stringify(fixed) : await KV.get("measure_share:" + id);
         if (!stored) return J({ ok: false, error: "not-found" }, 404);
         let record = null; try { record = JSON.parse(stored); } catch (e) {}
         const clean = normalizeMeasureShare(record);
