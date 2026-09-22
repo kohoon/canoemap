@@ -1,4 +1,4 @@
-# mycanoe-map — 프로젝트 행동규약
+# canoemap — 프로젝트 행동규약
 
 > 전역 규약(`~/.claude/CLAUDE.md`)을 따르되, 이 레포에만 해당하는 사항을 아래에 둔다.
 > **정본은 `기획문서.md`** — 사소하지 않은 작업 전에 해당 장(의도·동작·히스토리)을 읽고, 변경 시 같은 커밋에서 갱신한다.
@@ -6,7 +6,7 @@
 ## 정체성
 카누 런칭/랜딩·코스·상수원보호구역(진입금지)·장애물을 한 지도에 보여주는 한국형 카누 정적 웹앱.
 정적 HTML(Leaflet, 데이터 빌드시 임베드) + Cloudflare Worker(`workers/auth-worker.js`, KV·Kakao OAuth·Google Sheets).
-공개: https://canoe.crowdbase.kr/ (`https://kohoon.github.io/mycanoe-map/`는 호환 진입점)
+공개: https://canoe.crowdbase.kr/
 
 ## 구조 — 5단 아님
 이 레포는 전역 규약의 `ingest/parse/store/analyze/serve` 5단을 **따르지 않는다**.
