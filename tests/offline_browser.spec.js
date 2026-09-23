@@ -700,13 +700,15 @@ test('course name suggestion omits province and starts at city or county', async
     suwon: _shortCoursePlace('', '경기도 수원시 영통구 이의동 3'),
     seoul: _shortCoursePlace('', '서울특별시 강남구 청담동 4'),
     labelled: _shortCoursePlace('강원특별자치도 춘천시 - 신포리(신북읍)', ''),
+    labelledAddress: _shortCoursePlace('화천군 - 강원특별자치도 화천군 간동면 구만리 1395-1', ''),
   }));
   expect(names).toEqual({
-    chuncheon: '춘천시 신포리',
-    gokseong: '곡성군 공북리',
-    suwon: '수원시 영통구 이의동',
-    seoul: '서울특별시 강남구 청담동',
+    chuncheon: '춘천시 신북읍 신포리 1',
+    gokseong: '곡성군 석곡면 공북리 2',
+    suwon: '수원시 영통구 이의동 3',
+    seoul: '서울특별시 강남구 청담동 4',
     labelled: '춘천시 신포리(신북읍)',
+    labelledAddress: '화천군 간동면 구만리 1395-1',
   });
   expect(errors).toEqual([]);
   await context.close();

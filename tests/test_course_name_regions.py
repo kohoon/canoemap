@@ -1,4 +1,6 @@
 import pathlib
+import json
+import subprocess
 import unittest
 
 
@@ -11,12 +13,31 @@ class CourseNameRegionTests(unittest.TestCase):
     def setUpClass(cls):
         cls.source = BUILD_MAP.read_text(encoding="utf-8")
 
-    def test_province_is_excluded_but_local_suffix_is_preserved(self):
-        self.assertIn("!/(특별자치도|도)$/.test(x)", self.source)
-        self.assertNotIn("region=p.replace(/[시군구]$/,'')", self.source)
+    @classmethod
+    def short_place(cls, label, address=""):
+        start = cls.source.index("function _shortCoursePlace(label,addr){")
+        end = cls.source.index("\nasync function _coursePointName", start)
+        function_source = cls.source[start:end]
+        script = function_source + "\nprocess.stdout.write(JSON.stringify(_shortCoursePlace(" + json.dumps(label, ensure_ascii=False) + "," + json.dumps(address, ensure_ascii=False) + ")));"
+        return json.loads(subprocess.check_output(["node", "-e", script], text=True))
 
-    def test_city_district_can_be_preserved_together(self):
-        self.assertIn("if(/시$/.test(p[i])&&p[i+1]&&/구$/.test(p[i+1]))r.push(p[i+1]);", self.source)
+    def test_labeled_full_address_starts_at_county_without_duplication(self):
+        self.assertEqual(
+            self.short_place("화천군 - 강원특별자치도 화천군 간동면 구만리 1395-1"),
+            "화천군 간동면 구만리 1395-1",
+        )
+
+    def test_reverse_geocoded_address_starts_at_city(self):
+        self.assertEqual(
+            self.short_place("", "강원특별자치도 춘천시 서면 오월리 51-2"),
+            "춘천시 서면 오월리 51-2",
+        )
+
+    def test_city_district_and_remaining_address_are_preserved(self):
+        self.assertEqual(
+            self.short_place("", "서울특별시 송파구 잠실동 1-1"),
+            "서울특별시 송파구 잠실동 1-1",
+        )
 
 
 if __name__ == "__main__":
