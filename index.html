@@ -40,7 +40,7 @@
   .sr-head{margin-top:7px;font-size:10.5px;font-weight:700;color:#99a}
   .search-pin{font-size:30px;line-height:30px;text-align:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
   .course-share{color:#1565c0;cursor:pointer;text-decoration:none;font-weight:600}
-  .river-focus-bar{display:none;align-items:center;gap:8px;max-width:min(260px,65vw);box-sizing:border-box;background:#003b73;color:#fff;padding:8px 8px 8px 11px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.38);font:700 13px/1.2 sans-serif}
+  .river-focus-bar{display:none;align-items:center;gap:8px;max-width:min(260px,65vw);box-sizing:border-box;background:#087fa9;color:#fff;padding:8px 8px 8px 11px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.38);font:700 13px/1.2 sans-serif}
   .river-focus-bar.on{display:flex}
   .river-focus-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .river-focus-x{display:flex;align-items:center;justify-content:center;flex:none;width:25px;height:25px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font:700 18px/1 sans-serif;cursor:pointer}
@@ -53,6 +53,8 @@
   .leaflet-div-icon.course-dir-icon{background:transparent;border:0;pointer-events:none}
   .course-dir-arrow{display:block;width:18px;height:18px;transform-origin:50% 50%;filter:drop-shadow(0 1px 1px rgba(0,0,0,.55))}
   #map.course-directions-hidden .course-dir-icon{display:none!important}
+  .leaflet-div-icon.river-wave-icon{background:transparent;border:0;pointer-events:none}
+  .river-wave-mark{display:block;width:20px;height:12px;transform-origin:50% 50%;filter:drop-shadow(0 1px 1px rgba(10,111,149,.42))}
   #hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:1000;
         background:rgba(0,0,0,.62);color:#fff;padding:5px 12px;border-radius:14px;
         font:12px sans-serif;transition:opacity .6s;pointer-events:none}
@@ -2857,30 +2859,49 @@ map.on('overlayadd',function(e){
 const _riverAdminGroup=L.layerGroup();
 const _riverSearchFocus=L.layerGroup().addTo(map);
 const _riverSearchPane=map.createPane('riverSearchPane');_riverSearchPane.style.zIndex='480';_riverSearchPane.style.pointerEvents='none';
+const RIVER_SKY_COLOR='#bdeeff',_riverWaveMarks=L.layerGroup();_riverAdminGroup.addLayer(_riverWaveMarks);
 let _riverMain=null,_riverStream=null,_riverLoading=null,_riverControlAdded=false,_riverFeatures=[],_riverPopup=null,_riverPopupSeq=0,_riverFocusCtl=null;
+function _riverWaveMarker(ll,angle,pane){
+  const svg='<span class="river-wave-mark" style="transform:rotate('+(angle-90).toFixed(1)+'deg)"><svg viewBox="0 0 20 12" aria-hidden="true"><path d="M1 7Q5.5 2 10 7T19 7" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></span>';
+  return L.marker(ll,{pane:pane||'overlayPane',interactive:false,keyboard:false,icon:L.divIcon({className:'river-wave-icon',html:svg,iconSize:[20,12],iconAnchor:[10,6]})});
+}
+function riverWaveLayer(coords,pane,limit){
+  const out=L.layerGroup();if(!coords||coords.length<2)return out;
+  const seg=[],dist=[];let total=0;
+  for(let i=1;i<coords.length;i++){const d=map.distance(coords[i-1],coords[i]);if(!isFinite(d)||d<=0)continue;seg.push([coords[i-1],coords[i],d]);total+=d;dist.push(total);}
+  if(!seg.length||total<=0)return out;const count=Math.max(1,Math.min(limit||5,Math.round(total/9000)));
+  for(let n=1;n<=count;n++){const target=total*n/(count+1);let i=0;while(i<dist.length-1&&dist[i]<target)i++;const prev=i?dist[i-1]:0,s=seg[i],f=Math.max(0,Math.min(1,(target-prev)/s[2])),ll=[s[0][0]+(s[1][0]-s[0][0])*f,s[0][1]+(s[1][1]-s[0][1])*f];_riverWaveMarker(ll,_courseBearing(s[0],s[1]),pane).addTo(out);}
+  return out;
+}
+function _refreshRiverWaveMarks(){
+  _riverWaveMarks.clearLayers();if(!_riverFeatures.length||!map.hasLayer(_riverAdminGroup)||map.getZoom()<9)return;
+  const bounds=map.getBounds().pad(.08),seen={},limit=map.getZoom()>=11?120:70,ordered=_riverFeatures.filter(function(f){return (f.properties||{}).kind==='river';}).concat(map.getZoom()>=11?_riverFeatures.filter(function(f){return (f.properties||{}).kind==='stream';}):[]);let count=0;
+  for(let n=0;n<ordered.length&&count<limit;n++){const cs=(ordered[n].geometry||{}).coordinates||[];if(cs.length<2)continue;const tries=Math.min(3,Math.max(1,Math.floor(cs.length/18)));for(let j=1;j<=tries&&count<limit;j++){const i=Math.max(1,Math.min(cs.length-1,Math.round((cs.length-1)*j/(tries+1)))),a=cs[i-1],b=cs[i],ll=[b[1],b[0]];if(!bounds.contains(ll))continue;const p=map.latLngToContainerPoint(ll),key=Math.floor(p.x/34)+':'+Math.floor(p.y/26);if(seen[key])continue;seen[key]=1;_riverWaveMarker(ll,_courseBearing([a[1],a[0]],ll)).addTo(_riverWaveMarks);count++;}}
+}
 function _showRiverFocusBar(name){
   if(!_riverFocusCtl){
     const C=L.Control.extend({options:{position:'topleft'},onAdd:function(){const d=L.DomUtil.create('div','river-focus-bar');d.id='riverFocusBar';d.innerHTML='<span aria-hidden="true">🌊</span><span class="river-focus-name"></span><button class="river-focus-x" type="button" title="물줄기 표시 해제" aria-label="물줄기 표시 해제">×</button>';L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);d.querySelector('button').onclick=function(){clearRiverSearch();};return d;}});_riverFocusCtl=new C();map.addControl(_riverFocusCtl);
   }
   const d=document.getElementById('riverFocusBar');if(!d)return;d.querySelector('.river-focus-name').textContent=name||'선택한 물줄기';d.classList.add('on');
 }
-function _riverZoomGate(){ if(!_riverStream||!map.hasLayer(_riverAdminGroup)) return; const show=map.getZoom()>=11; if(show&&!_riverAdminGroup.hasLayer(_riverStream))_riverAdminGroup.addLayer(_riverStream); else if(!show&&_riverAdminGroup.hasLayer(_riverStream))_riverAdminGroup.removeLayer(_riverStream); }
+function _riverZoomGate(){ if(!_riverStream||!map.hasLayer(_riverAdminGroup)) return; const show=map.getZoom()>=11; if(show&&!_riverAdminGroup.hasLayer(_riverStream))_riverAdminGroup.addLayer(_riverStream); else if(!show&&_riverAdminGroup.hasLayer(_riverStream))_riverAdminGroup.removeLayer(_riverStream);_refreshRiverWaveMarks(); }
 function _loadAdminRivers(){
   if(_riverMain) return Promise.resolve(); if(_riverLoading)return _riverLoading;
   _riverLoading=fetch('rivers.geojson?v='+DATAVER.rivers).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(fc){
     _riverFeatures=fc.features||[];
-    const opts=function(kind){return {filter:function(f){return (f.properties||{}).kind===kind;},style:kind==='river'?{color:'#003b73',weight:2.8,opacity:.94}:{color:'#14528a',weight:1.5,opacity:.84},onEachFeature:function(f,l){const n=(f.properties||{}).name;if(n)l.bindTooltip(pmEsc(n),{sticky:true,direction:'top'});}};};
+    const opts=function(kind){return {filter:function(f){return (f.properties||{}).kind===kind;},style:kind==='river'?{color:RIVER_SKY_COLOR,weight:6.5,opacity:.96}:{color:RIVER_SKY_COLOR,weight:4.5,opacity:.88},onEachFeature:function(f,l){const n=(f.properties||{}).name;if(n)l.bindTooltip(pmEsc(n),{sticky:true,direction:'top'});}};};
     _riverMain=L.geoJSON(fc,opts('river')); _riverStream=L.geoJSON(fc,opts('stream')); _riverAdminGroup.addLayer(_riverMain); _riverZoomGate();
   }).catch(function(){alert('하천 데이터를 불러오지 못했습니다');}).finally(function(){_riverLoading=null;}); return _riverLoading;
 }
 function _syncAdminRiverLayer(on){
   if(!_layerControl)return;
-  if(on&&!_riverControlAdded){_layerControl.addOverlay(_riverAdminGroup,_sw('#003b73')+'주요 강·하천 <small>(관리자)</small>');_riverControlAdded=true;}
+  if(on&&!_riverControlAdded){_layerControl.addOverlay(_riverAdminGroup,_sw(RIVER_SKY_COLOR)+'주요 강·하천 <small>(관리자)</small>');_riverControlAdded=true;}
   else if(!on&&_riverControlAdded){if(map.hasLayer(_riverAdminGroup))map.removeLayer(_riverAdminGroup);_layerControl.removeLayer(_riverAdminGroup);_riverControlAdded=false;}
 }
 map.on('overlayadd',function(e){if(e.layer===_riverAdminGroup){map.attributionControl.addAttribution('하천 &copy; OpenStreetMap 기여자');_loadAdminRivers().then(_riverZoomGate);}});
 map.on('overlayremove',function(e){if(e.layer===_riverAdminGroup)map.attributionControl.removeAttribution('하천 &copy; OpenStreetMap 기여자');});
 map.on('zoomend',_riverZoomGate);
+map.on('moveend',_refreshRiverWaveMarks);
 if(isAdmin())_syncAdminRiverLayer(true);
 function _riverSearch(q){
   if(!isAdmin()||!_riverFeatures.length)return [];
@@ -2936,7 +2957,7 @@ function shareRiver(name,lat,lng){const u=riverShareUrl(name,lat,lng);gaEvent('r
 function shareRiverEncoded(name,lat,lng){try{shareRiver(decodeURIComponent(name),lat,lng);}catch(e){}}
 function focusRiverSearch(x,keepUrl){
   clearRiverSearch(!!keepUrl);_showRiverFocusBar(x.name);const seq=++_riverPopupSeq,bounds=L.latLngBounds([]);let anchor=null;
-  (x.features||[]).forEach(function(f){const ll=f.geometry.coordinates.map(function(c){return [c[1],c[0]];});if(ll.length<2)return;if(!anchor)anchor=ll[Math.floor(ll.length/2)];L.polyline(ll,{pane:'riverSearchPane',color:'#001a33',weight:8,opacity:.68,interactive:false}).addTo(_riverSearchFocus);L.polyline(ll,{pane:'riverSearchPane',color:'#003b73',weight:4.5,opacity:1,interactive:false}).addTo(_riverSearchFocus);bounds.extend(ll);});
+  (x.features||[]).forEach(function(f){const ll=f.geometry.coordinates.map(function(c){return [c[1],c[0]];});if(ll.length<2)return;if(!anchor)anchor=ll[Math.floor(ll.length/2)];L.polyline(ll,{pane:'riverSearchPane',color:'#55c9ef',weight:10,opacity:.82,interactive:false}).addTo(_riverSearchFocus);L.polyline(ll,{pane:'riverSearchPane',color:RIVER_SKY_COLOR,weight:7.5,opacity:1,interactive:false}).addTo(_riverSearchFocus);riverWaveLayer(ll,'riverSearchPane',5).addTo(_riverSearchFocus);bounds.extend(ll);});
   if(bounds.isValid()&&anchor){map.fitBounds(bounds.pad(.06),{maxZoom:13,animate:false});const c=L.latLng(anchor),enc=encodeURIComponent(x.name);_riverPopup=L.popup({minWidth:190,autoPan:true,closeButton:true}).setLatLng(c).setContent('<b>🌊 '+pmEsc(x.name)+'</b><br><small>'+pmEsc(_riverRegionLabel(c.lat,c.lng))+' · 전체 물줄기 강조 표시</small><br><button class="addplace-btn" onclick="shareRiverEncoded(\''+enc+'\','+c.lat+','+c.lng+')">공유</button> <button class="addplace-btn" onclick="clearRiverSearch()">강조 해제</button>');setTimeout(function(){if(seq===_riverPopupSeq&&_riverPopup)_riverPopup.openOn(map);},80);}gaEvent('river_search',{name:x.name});
 }
 function focusRiverFromUrl(){
@@ -3155,7 +3176,7 @@ function _drawCoursePreview(course,context){
   const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=630;const ctx=canvas.getContext('2d');if(!ctx)return '';
   ctx.fillStyle='#edf2e6';ctx.fillRect(0,0,1200,630);ctx.save();ctx.strokeStyle='#e1ead8';ctx.lineWidth=1;ctx.globalAlpha=.75;for(let x=-600;x<1400;x+=42){ctx.beginPath();ctx.moveTo(x,630);ctx.lineTo(x+364,0);ctx.stroke();}ctx.restore();
   const frame={x:500,y:38,w:658,h:554},project=_cpProjection(coords,frame);ctx.save();ctx.beginPath();ctx.rect(frame.x,frame.y,frame.w,frame.h);ctx.clip();
-  (context||[]).forEach(function(line,i){const ps=line.coords.map(project);if(ps.length<2)return;ctx.beginPath();ps.forEach(function(p,j){if(j)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1]);});ctx.strokeStyle='#9cc7d1';ctx.globalAlpha=line.kind==='river'?.7:.43;ctx.lineWidth=line.kind==='river'?6:2.5;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();});
+  (context||[]).forEach(function(line,i){const ps=line.coords.map(project);if(ps.length<2)return;ctx.beginPath();ps.forEach(function(p,j){if(j)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1]);});ctx.strokeStyle=RIVER_SKY_COLOR;ctx.globalAlpha=line.kind==='river'?.84:.58;ctx.lineWidth=line.kind==='river'?6:2.5;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();});
   const route=coords.map(project);function stroke(color,width){ctx.beginPath();route.forEach(function(p,i){if(i)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1]);});ctx.strokeStyle=color;ctx.globalAlpha=1;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();}
   stroke('#ffffff',14);stroke(validCourseColor(course.color)||'#d500f9',8);ctx.restore();
   function marker(p,color,label,side){ctx.save();ctx.shadowColor='rgba(21,45,37,.22)';ctx.shadowBlur=10;ctx.shadowOffsetY=3;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p[0],p[1],17,0,Math.PI*2);ctx.fill();ctx.shadowColor='transparent';ctx.fillStyle=color;ctx.beginPath();ctx.arc(p[0],p[1],11,0,Math.PI*2);ctx.fill();ctx.font='800 19px Apple SD Gothic Neo, Pretendard, sans-serif';ctx.textAlign=side==='right'?'left':'right';ctx.lineWidth=5;ctx.strokeStyle='#fff';ctx.strokeText(label,p[0]+(side==='right'?25:-25),p[1]+6);ctx.fillStyle='#14231e';ctx.fillText(label,p[0]+(side==='right'?25:-25),p[1]+6);ctx.restore();}
@@ -4100,7 +4121,7 @@ async function saveOfflinePack(){
 function _renderOfflinePack(pack){
   offlineBase.clearLayers();if(!pack)return;const sat=pack.satellite;if(sat&&sat.tiles)L.tileLayer(OFFLINE_ESRI_TEMPLATE,{bounds:[[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],minNativeZoom:sat.minZoom,maxNativeZoom:sat.maxZoom,maxZoom:19,crossOrigin:true,attribution:'Imagery &copy; Esri'}).addTo(offlineBase);L.rectangle([[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],{pane:'offlineBasePane',stroke:!!sat,color:'#00a2b8',weight:2,dashArray:'6 5',fill:true,fillColor:'#f4f2eb',fillOpacity:sat?0:1,interactive:false}).addTo(offlineBase);
   L.geoJSON(pack.roads,{pane:'offlineBasePane',interactive:false,style:function(f){const k=(f.properties||{}).kind;return{color:k==='expressway'?'#8d8277':(k==='national'?'#aaa096':'#c2bab2'),weight:k==='expressway'?3:(k==='national'?2:1.2),opacity:.9};}}).addTo(offlineBase);
-  L.geoJSON(pack.rivers,{pane:'offlineBasePane',interactive:false,style:function(f){return{color:(f.properties||{}).kind==='river'?'#2386b8':'#69afd0',weight:(f.properties||{}).kind==='river'?3:1.5,opacity:.95};}}).addTo(offlineBase);
+  L.geoJSON(pack.rivers,{pane:'offlineBasePane',interactive:false,style:function(f){return{color:RIVER_SKY_COLOR,weight:(f.properties||{}).kind==='river'?5:3,opacity:(f.properties||{}).kind==='river'?.96:.86};}}).addTo(offlineBase);
 }
 function _restoreOfflinePrivate(pack){
   const u=getUser()||{};if(pack.uid&&String(pack.uid)===String(u.uid||''))(pack.places||[]).forEach(function(x){if(!_placeMarkerById[String(x.id)])_upsertSecurePlace(x);});

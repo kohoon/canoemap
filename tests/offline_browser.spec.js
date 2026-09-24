@@ -232,10 +232,12 @@ test('Yangyang Namdaecheon shared view uses one connected river', async () => {
       components: _riverComponents(features, '양양남대천').length,
       coords: features[0].geometry.coordinates.length,
       highlightLayers: _riverSearchFocus.getLayers().length,
+      waveMarks: document.querySelectorAll('.river-wave-icon').length,
       label: document.querySelector('#riverFocusBar .river-focus-name').textContent,
     };
   });
-  expect(state).toEqual({ features: 1, components: 1, coords: 213, highlightLayers: 2, label: '양양남대천' });
+  expect(state).toMatchObject({ features: 1, components: 1, coords: 213, highlightLayers: 3, label: '양양남대천' });
+  expect(state.waveMarks).toBeGreaterThan(0);
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();
@@ -272,7 +274,7 @@ test('Illicheon shared view reaches the Seomgang confluence', async () => {
     coords: 83,
     last: [127.898118, 37.421672],
     seomgangSharesConfluence: true,
-    highlightLayers: 2,
+    highlightLayers: 3,
     label: '일리천',
   });
   expect(errors).toEqual([]);
@@ -313,7 +315,7 @@ test('North-connected shared rivers include their North Korea sections', async (
     expect(state.components).toBe(1);
     expect(state.coords).toBe(item.coords);
     expect(state.maxLat).toBeGreaterThan(item.maxLat);
-    expect(state.highlightLayers).toBe(2);
+    expect(state.highlightLayers).toBe(3);
   }
   expect(errors).toEqual([]);
   await context.close();
