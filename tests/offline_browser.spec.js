@@ -528,6 +528,7 @@ test('campsites are visible only while administrator mode is active', async () =
   await context.addInitScript(() => localStorage.setItem('mc_admin', 'test-admin-key'));
   const campsite = { id: 'camp-test', lat: 36.3, lng: 127.8, type: '캠핑사이트', name: '관리자 캠프', note: '관리자 전용', t: 1 };
   const publicFood = { id: 'food-test', lat: 36.301, lng: 127.801, type: '식당/카페', name: '공개 식당', note: '', t: 1 };
+  let savedCampsite = null;
   await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith('/admincheck')) {
@@ -536,6 +537,9 @@ test('campsites are visible only while administrator mode is active', async () =
       const body = route.request().method() === 'POST' ? route.request().postDataJSON() : null;
       expect(body === null || body.action === 'list-admin').toBe(true);
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([publicFood, campsite]) });
+    } else if (url.pathname.endsWith('/obstacle') && route.request().method() === 'POST') {
+      savedCampsite = route.request().postDataJSON();
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, obstacle: { id: 'camp-new', lat: 36.3, lng: 127.8, type: savedCampsite.type, name: savedCampsite.name, note: savedCampsite.note, t: 2 } }) });
     } else if (url.pathname.endsWith('/launch-sites')) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], truncated: false }) });
     } else if (url.pathname.endsWith('/admin-sheet-link')) {
@@ -550,7 +554,8 @@ test('campsites are visible only while administrator mode is active', async () =
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => isAdmin() && !!_obstacles['camp-test']);
   await expect(page.locator('.obs-camp')).toHaveCount(1);
-  expect(await page.evaluate(() => _localSearch('관리자 캠프').some((item) => item.o?.id === 'camp-test'))).toBe(true);
+  await expect(page.locator('.obs-camp')).toHaveText('🏕️');
+  expect(await page.evaluate(() => _localSearch('관리자 캠프').some((item) => item.o?.id === 'camp-test'))).toBe(false);
 
   await page.evaluate(() => openObsModal('add', { lat: 36.3, lng: 127.8 }));
   const campsiteButton = page.locator('#obBody .seg-b[data-ty="캠핑사이트"]');
@@ -558,8 +563,12 @@ test('campsites are visible only while administrator mode is active', async () =
   expect(await campsiteButton.evaluate((node) => getComputedStyle(node).gridColumnStart)).toBe('2');
   await campsiteButton.click();
   await expect(campsiteButton).toHaveClass(/on/);
-  await expect(page.locator('#obNameRow')).toBeVisible();
-  await page.evaluate(() => closeObsModal());
+  await expect(page.locator('#obNameRow')).toBeHidden();
+  await page.locator('#obSave').click();
+  await expect(page.locator('#obsModal')).not.toHaveClass(/open/);
+  expect(savedCampsite.type).toBe('캠핑사이트');
+  expect(savedCampsite.name).toBe('');
+  await expect(page.locator('.obs-camp')).toHaveCount(2);
 
   await page.evaluate(() => _setAdmin(false));
   await page.waitForFunction(() => !_obstacles['camp-test']);

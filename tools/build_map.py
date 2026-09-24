@@ -2156,7 +2156,7 @@ function _zoomPaneGate(){ const on=map.getZoom()>=13?'':'none';
   map.getPane('obsPane').style.display=map.getZoom()>=13?'':'none'; }
 map.on('zoomend', _zoomPaneGate);
 const OBS_TYPES={'보':{c:'obs-bo',e:'🚧',label:'보'},'징검다리':{c:'obs-jing',e:'🪨',label:'징검다리'},'잠수교':{c:'obs-lowbridge',e:'🌉',label:'잠수교'},'용치':{c:'obs-dragons',e:'🔺',label:'용치'},'낮은바닥':{c:'obs-shal',e:'〰️',label:'얕음'},'여울':{c:'obs-yeoul',e:'🌊',label:'여울'},'유명지':{c:'obs-spot',e:'⭐',label:'유명지'},'강풍지대':{c:'obs-wind',e:'💨',label:'강풍지대'},'식당/카페':{c:'obs-food',e:'🍽️',label:'식당/카페'},'캠핑사이트':{c:'obs-camp',e:'🏕️',label:'캠핑사이트'}};
-function _obHasName(ty){ return ty==='여울'||ty==='유명지'||ty==='식당/카페'||ty==='캠핑사이트'; }
+function _obHasName(ty){ return ty==='여울'||ty==='유명지'||ty==='식당/카페'; }
 function _obHasKakao(ty){ return ty==='식당/카페'; }
 function _obAdminOnly(o){ return !!o&&o.type==='캠핑사이트'; }
 function _obKakaoUrl(v){
@@ -2174,8 +2174,8 @@ function _obKakaoLink(o){
 const obstacleLayer=L.layerGroup();
 const _obstacles={};
 function staticWeirId(w){ return 'weir:'+encodeURIComponent(String(w.nm||'보'))+'|'+Number(w.lat).toFixed(5)+'|'+Number(w.lng).toFixed(5); }
-function obsIcon(type,name){ const t=OBS_TYPES[type]||OBS_TYPES['보']; const disp=(name&&String(name).trim())?pmEsc(String(name).trim()):t.label; return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+'">'+t.e+' '+disp+'</span>',iconSize:null}); }
-function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; const t=OBS_TYPES[o.type]||OBS_TYPES['보']; const nm=(o.name&&String(o.name).trim())?pmEsc(String(o.name).trim()):'';
+function obsIcon(type,name){ const t=OBS_TYPES[type]||OBS_TYPES['보']; if(type==='캠핑사이트')return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+'" aria-label="캠핑사이트">'+t.e+'</span>',iconSize:null}); const disp=(name&&String(name).trim())?pmEsc(String(name).trim()):t.label; return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+'">'+t.e+' '+disp+'</span>',iconSize:null}); }
+function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; const t=OBS_TYPES[o.type]||OBS_TYPES['보']; const nm=o.type==='캠핑사이트'?'':((o.name&&String(o.name).trim())?pmEsc(String(o.name).trim()):'');
   const kakao=o.type==='식당/카페'?'<div style="margin:8px 0 4px"><a href="'+_obKakaoLink(o)+'" target="_blank" rel="noopener" style="color:#1565c0;font-weight:700">🟡 카카오맵 장소 상세</a></div>':'';
   const matched=o.kakaoPlaceName?'<div style="margin:6px 0 0;color:#60747c;font-size:11.5px">카카오맵 자동 연결: '+pmEsc(o.kakaoPlaceName)+(isFinite(Number(o.kakaoMatchDistance))?' · '+Math.round(Number(o.kakaoMatchDistance))+'m':'')+'</div>':'';
   return '<span class="obs-ic '+t.c+'">'+t.e+' '+(nm||t.label)+'</span>'+(nm?'<small style="color:#99a;margin-left:6px">'+t.label+'</small>':'')+matched+(o.note?'<div style="margin:7px 0 4px;color:#445;font-size:13px">'+linkify(o.note)+'</div>':'<br>')+kakao
@@ -2247,7 +2247,6 @@ async function doSaveObs(){ if(!isAdmin()||!_obLL) return;
   const msg=document.getElementById('obMsg'); msg.style.color='#888'; msg.textContent='저장 중…';
   const kuEl=document.getElementById('obKakaoUrl'), kuRaw=(_obHasKakao(type)&&kuEl)?(kuEl.value||'').trim():'', kakaoUrl=_obKakaoUrl(kuRaw);
   if(type==='식당/카페'&&!name){ msg.style.color='#c0392b'; msg.textContent='식당/카페 이름을 입력하세요'; return; }
-  if(type==='캠핑사이트'&&!name){ msg.style.color='#c0392b'; msg.textContent='캠핑사이트 이름을 입력하세요'; return; }
   if(kuRaw&&!kakaoUrl){ msg.style.color='#c0392b'; msg.textContent='카카오맵 장소 링크를 확인하세요'; return; }
   const base=WORKER_URL.replace(/\/+$/,'')+'/obstacle';
   try{ let body;
@@ -3490,7 +3489,7 @@ function _localSearch(q){
     if(!_visiblePlaceCat(pl.cat)) return;
     if(nm.replace(/\s/g,'').toLowerCase().indexOf(nq)>=0)
       out.push({kind:'kvplace', label:(pl.cat==='명소'?'📍 ':'🛶 ')+nm, lat:pl.lat, lng:pl.lng, pl:pl}); });
-  Object.keys(_obstacles||{}).forEach(function(k){ const o=_obstacles[k]; const nm=o.name||'';
+  Object.keys(_obstacles||{}).forEach(function(k){ const o=_obstacles[k]; const nm=o.type==='캠핑사이트'?'':(o.name||'');
     if(_obAdminOnly(o)&&!isAdmin())return;
     if(nm && nm.replace(/\s/g,'').toLowerCase().indexOf(nq)>=0){ const t=OBS_TYPES[o.type]||OBS_TYPES['보'];
       out.push({kind:'obs', label:t.e+' '+nm, lat:o.lat, lng:o.lng, o:o}); } });

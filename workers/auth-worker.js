@@ -1273,7 +1273,7 @@ export default {
         const hasKakaoUrlInput = b.kakaoUrl != null;
         const rawKakaoUrl = String(b.kakaoUrl || "").trim(), kakaoUrl = cleanKakaoUrl(rawKakaoUrl);
         if (rawKakaoUrl && !kakaoUrl) return new Response("bad-kakao-url", { status: 400, headers: cors });
-        if ((b.action === "add" || b.action === "edit") && (b.type === "식당/카페" || b.type === "캠핑사이트") && !String(b.name || "").trim()) {
+        if ((b.action === "add" || b.action === "edit") && b.type === "식당/카페" && !String(b.name || "").trim()) {
           return new Response("name-required", { status: 400, headers: cors });
         }
         let arr = []; try { arr = JSON.parse((await KV.get("obstacles")) || "[]"); } catch (e) {}
@@ -1316,7 +1316,7 @@ export default {
           if (b.note != null) it.note = String(b.note).slice(0, 200);
           if (b.name != null) it.name = String(b.name).slice(0, 40);
           if (b.lat != null && b.lng != null) { it.lat = Number(b.lat); it.lng = Number(b.lng); }
-          if ((it.type === "식당/카페" || it.type === "캠핑사이트") && !String(it.name || "").trim()) return new Response("name-required", { status: 400, headers: cors });
+          if (it.type === "식당/카페" && !String(it.name || "").trim()) return new Response("name-required", { status: 400, headers: cors });
           await syncKakaoPlace(it, previousKakaoUrl);
           created = it;
         } else if (b.action === "add" && String(b.obsId || "").trim()) {
@@ -1330,7 +1330,7 @@ export default {
             it.note = String(b.note || "").slice(0, 200);
             it.name = String(b.name || "").slice(0, 40);
             it.lat = lat; it.lng = lng;
-            if ((it.type === "식당/카페" || it.type === "캠핑사이트") && !it.name.trim()) return new Response("name-required", { status: 400, headers: cors });
+            if (it.type === "식당/카페" && !it.name.trim()) return new Response("name-required", { status: 400, headers: cors });
             await syncKakaoPlace(it, "");
             created = it;
           } else {
