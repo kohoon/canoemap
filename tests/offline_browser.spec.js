@@ -522,6 +522,42 @@ test('wide reservoir access routes around land instead of crossing it', async ()
   await browser.close();
 });
 
+test('Chuncheonho route does not cross the Owol road and forest embankment', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const rivers = { type: 'FeatureCollection', features: [{
+    type: 'Feature', properties: { name: '북한강', kind: 'river' },
+    geometry: { type: 'LineString', coordinates: [[127.654, 37.978], [127.654, 37.987]] },
+  }] };
+  const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
+  const overpass = { elements: [{
+    type: 'relation', id: 1, tags: { natural: 'water' }, members: [
+      { role: 'outer', geometry: ring([[37.979, 127.643], [37.987, 127.643], [37.987, 127.655], [37.979, 127.655], [37.979, 127.643]]) },
+    ],
+  }] };
+  await context.route(/\/rivers\.geojson(?:\?|$)/, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rivers) });
+  });
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(overpass) });
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof waterRoute === 'function');
+  const result = await page.evaluate(() => waterRoute({ lat: 37.986, lng: 127.654 }, { lat: 37.983002, lng: 127.644284 }));
+  expect(result.source).toBe('static-river-water');
+  expect(result.access).toHaveLength(1);
+  expect(result.coords[result.coords.length - 1][1]).toBeGreaterThan(127.653);
+  expect(result.access[0][1]).toEqual([37.983002, 127.644284]);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('water route enters the nearest edge projection without an endpoint backtrack', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

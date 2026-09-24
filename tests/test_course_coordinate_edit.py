@@ -32,10 +32,17 @@ class CourseCoordinateEditTest(unittest.TestCase):
             };
             const fixed = applyCourseCorrection(original);
             const twice = applyCourseCorrection(fixed);
+            const chuncheon = applyCourseCorrection({
+              id: 1790240949172, km: 25.42,
+              coords: [[38.1,127.7],[38.0,127.66],[37.979605,127.651905],[37.980214,127.647506],[37.983002,127.644284]],
+              segments: [{name:'출발~경유1',km:18.27,mode:'water'},{name:'경유1~도착',km:7.15,mode:'water'}]
+            });
             console.log(JSON.stringify({
-              fixed, twice,
+              fixed, twice, chuncheon,
               oldPreview: coursePreviewVersionIsCurrent('k1789008958889', (Date.UTC(2026,8,24,8,0)).toString(36)),
-              newPreview: coursePreviewVersionIsCurrent('k1789008958889', (Date.UTC(2026,8,24,9,0)).toString(36))
+              newPreview: coursePreviewVersionIsCurrent('k1789008958889', (Date.UTC(2026,8,24,9,0)).toString(36)),
+              oldChuncheonPreview: coursePreviewVersionIsCurrent('k1790240949172', (Date.UTC(2026,8,24,9,0)).toString(36)),
+              newChuncheonPreview: coursePreviewVersionIsCurrent('k1790240949172', (Date.UTC(2026,8,24,9,30)).toString(36))
             }));
             """
         )
@@ -51,6 +58,12 @@ class CourseCoordinateEditTest(unittest.TestCase):
         self.assertEqual(result["twice"]["coords"], fixed["coords"])
         self.assertFalse(result["oldPreview"])
         self.assertTrue(result["newPreview"])
+        chuncheon = result["chuncheon"]
+        self.assertEqual(chuncheon["km"], 24.61)
+        self.assertEqual(chuncheon["segments"][-1]["km"], 6.34)
+        self.assertEqual(chuncheon["coords"][-1], [37.979605, 127.651905])
+        self.assertFalse(result["oldChuncheonPreview"])
+        self.assertTrue(result["newChuncheonPreview"])
 
 
 if __name__ == "__main__":
