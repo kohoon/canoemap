@@ -67,6 +67,7 @@
   .measbtn .mx{margin-left:8px;background:rgba(255,255,255,.35);border-radius:8px;padding:1px 7px;cursor:pointer}
   .obsbtn.on{background:#e53935;color:#fff}
   .obs-ic{display:inline-flex;align-items:center;gap:3px;padding:3px 8px 3px 6px;border-radius:12px;font:700 12px sans-serif;color:#fff;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.35);border:2px solid #fff}
+  .obs-ic.obs-icon-only{justify-content:center;width:26px;height:26px;box-sizing:border-box;padding:0;border-radius:50%;font-size:14px;line-height:1}
   .obs-bo{background:#e53935}
   .obs-jing{background:#fb8c00}
   .obs-shal{background:#fdd835;color:#5a4500}
@@ -887,7 +888,7 @@ window.map = map;
 map.on('moveend',function(){if(_mapUrlOwnsView())return;try{const c=map.getCenter();localStorage.setItem('mc_map_view_v1',JSON.stringify({lat:+c.lat.toFixed(6),lng:+c.lng.toFixed(6),zoom:map.getZoom()}));}catch(e){}});
 map.attributionControl.setPrefix(false);   // 🇺🇦 깃발 + "Leaflet" 접두사 제거(© OpenStreetMap 만 유지)
 let measureMode = false;   // 물길 거리측정 모드
-const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;   // 모바일/터치 여부
+const isTouch = navigator.maxTouchPoints > 0 || (window.matchMedia&&window.matchMedia('(pointer: coarse)').matches);   // 모바일/터치 여부
 L.control.zoom({position:'bottomleft'}).addTo(map);
 map.addControl(new AuthCtl());   // 카카오 로그인 박스(우상단)
 const OfflineCtl=L.Control.extend({options:{position:'bottomleft'},onAdd:function(){const b=L.DomUtil.create('button','offline-btn');b.id='offlineCtl';b.type='button';b.textContent='📥 오프라인';b.title='오프라인 지도 저장 및 사용법';L.DomEvent.disableClickPropagation(b);L.DomEvent.on(b,'click',function(e){L.DomEvent.stop(e);openOfflineModal();});return b;}});
@@ -2026,7 +2027,8 @@ function _obKakaoLink(o){
 const obstacleLayer=L.layerGroup();
 const _obstacles={};
 function staticWeirId(w){ return 'weir:'+encodeURIComponent(String(w.nm||'보'))+'|'+Number(w.lat).toFixed(5)+'|'+Number(w.lng).toFixed(5); }
-function obsIcon(type,name){ const t=OBS_TYPES[type]||OBS_TYPES['보']; if(type==='캠핑사이트')return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+'" aria-label="캠핑사이트">'+t.e+'</span>',iconSize:null}); const disp=(name&&String(name).trim())?pmEsc(String(name).trim()):t.label; return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+'">'+t.e+' '+disp+'</span>',iconSize:null}); }
+function _obDisplayName(o){const t=OBS_TYPES[o&&o.type]||OBS_TYPES['보'];if(o&&o.type==='캠핑사이트')return t.label;return (o&&o.name&&String(o.name).trim())?String(o.name).trim():t.label;}
+function obsIcon(type,name){const t=OBS_TYPES[type]||OBS_TYPES['보'],showName=type==='유명지',raw=(name&&String(name).trim())?String(name).trim():t.label,disp=pmEsc(raw);return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+(showName?'':' obs-icon-only')+'" aria-label="'+pmEsc(showName?raw:t.label)+'">'+t.e+(showName?' '+disp:'')+'</span>',iconSize:null});}
 function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; const t=OBS_TYPES[o.type]||OBS_TYPES['보']; const nm=o.type==='캠핑사이트'?'':((o.name&&String(o.name).trim())?pmEsc(String(o.name).trim()):'');
   const kakao=o.type==='식당/카페'?'<div style="margin:8px 0 4px"><a href="'+_obKakaoLink(o)+'" target="_blank" rel="noopener" style="color:#1565c0;font-weight:700">🟡 카카오맵 장소 상세</a></div>':'';
   const matched=o.kakaoPlaceName?'<div style="margin:6px 0 0;color:#60747c;font-size:11.5px">카카오맵 자동 연결: '+pmEsc(o.kakaoPlaceName)+(isFinite(Number(o.kakaoMatchDistance))?' · '+Math.round(Number(o.kakaoMatchDistance))+'m':'')+'</div>':'';
@@ -2034,6 +2036,7 @@ function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; const t=OBS_TYPE
     +(isAdmin()?'<a onclick="editObstacle(\''+o.id+'\')" style="color:#1565c0;cursor:pointer;margin-right:10px">✏️ 수정</a><a onclick="moveObstacle(\''+o.id+'\')" style="color:#2e9e5b;cursor:pointer;margin-right:10px">📍 이동</a><a onclick="deleteObstacle(\''+o.id+'\')" style="color:#c62828;cursor:pointer">삭제</a>':''); }
 function renderObstacle(o){ if(!o||o.lat==null||o.del||(_obAdminOnly(o)&&!isAdmin())) return; _obstacles[o.id]=o;
   const m=L.marker([o.lat,o.lng],{icon:obsIcon(o.type,o.name),pane:'obsPane'});
+  if(!isTouch&&o.type!=='유명지')m.bindTooltip(pmEsc(_obDisplayName(o)),{direction:'top',opacity:.95});
   if(isAdmin()||o.type==='식당/카페') m.bindPopup(obsPopup(o));   // 식당/카페 상세는 일반 사용자에게도 공개
   m.addTo(obstacleLayer); o._m=m; }
 function renderStaticWeir(w){ if(!w||w.lat==null) return; renderObstacle({id:staticWeirId(w),lat:w.lat,lng:w.lng,type:'보',note:'',name:w.nm}); }

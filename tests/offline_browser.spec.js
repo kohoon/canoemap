@@ -650,6 +650,46 @@ test('campsites are visible only while administrator mode is active', async () =
   await browser.close();
 });
 
+test('obstacles use icon-only markers with hover names except famous places', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 1200, height: 800 } });
+  const obstacles = [
+    { id: 'food-icon', lat: 36.3, lng: 127.8, type: '식당/카페', name: '강변 식당', note: '' },
+    { id: 'rapid-icon', lat: 36.31, lng: 127.81, type: '여울', name: '돌개 여울', note: '' },
+    { id: 'spot-label', lat: 36.32, lng: 127.82, type: '유명지', name: '절벽 전망대', note: '' },
+  ];
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/obstacles')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(obstacles) });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    }
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => !!_obstacles['food-icon'] && !!_obstacles['spot-label']);
+  await page.evaluate(() => { document.querySelector('#gate').style.display = 'none'; });
+  await page.evaluate(() => map.setView([36.31, 127.81], 14, { animate: false }));
+  await expect(page.locator('.obs-food')).toHaveText('🍽️');
+  await expect(page.locator('.obs-yeoul')).toHaveText('🌊');
+  await expect(page.locator('.obs-food')).toHaveClass(/obs-icon-only/);
+  await expect(page.locator('.obs-yeoul')).toHaveClass(/obs-icon-only/);
+  await expect(page.locator('.obs-spot')).toHaveText('⭐ 절벽 전망대');
+  await expect(page.locator('.obs-spot')).not.toHaveClass(/obs-icon-only/);
+  await page.locator('.obs-food').hover({ timeout: 3000 });
+  await expect(page.getByRole('tooltip', { name: '강변 식당' })).toBeVisible({ timeout: 3000 });
+  await page.locator('.obs-yeoul').hover({ timeout: 3000 });
+  await expect(page.getByRole('tooltip', { name: '돌개 여울' })).toBeVisible({ timeout: 3000 });
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('plain refresh restores map center and zoom while share URLs take priority', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

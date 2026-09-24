@@ -13,8 +13,8 @@ class AdminCampsiteTests(unittest.TestCase):
 
     def test_campsite_is_an_icon_only_admin_type(self):
         self.assertIn("'캠핑사이트':{c:'obs-camp',e:'🏕️',label:'캠핑사이트'}", self.client)
-        self.assertIn("if(type==='캠핑사이트')return L.divIcon", self.client)
-        self.assertIn('aria-label="캠핑사이트">\'+t.e+\'</span>', self.client)
+        self.assertIn("showName=type==='유명지'", self.client)
+        self.assertIn("o&&o.type==='캠핑사이트')return t.label", self.client)
         self.assertIn("const nm=o.type==='캠핑사이트'?'':", self.client)
         self.assertIn("function _obAdminOnly(o){ return !!o&&o.type==='캠핑사이트'; }", self.client)
         self.assertIn("if(!adminMode)_removeAdminOnlyObstacles()", self.client)
