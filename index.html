@@ -3828,7 +3828,7 @@ async function waterRoute(p1,p2){
   const j=cached?cached.j:await overpassFetch(q);
   if(!j) return {err:'overpass'};
   if(!cached){_opAreaCache.push({s:s,w:w,n:n,e:e,j:j});if(_opAreaCache.length>8)_opAreaCache.shift();}
-  const nodes={}, adj={}, nodeNames={}, toR=Math.PI/180;
+  const nodes={}, adj={}, nodeNames={}, graphEdges=[], toR=Math.PI/180;
   function key(la,ln){ const k=la.toFixed(4)+','+ln.toFixed(4); if(!(k in nodes)) nodes[k]=[la,ln]; return k; }  // 11m 병합(합류부 연결)
   function hav(a,b){ const R=6371000, dla=(b[0]-a[0])*toR, dlo=(b[1]-a[1])*toR, la1=a[0]*toR, la2=b[0]*toR;
     const h=Math.sin(dla/2)*Math.sin(dla/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dlo/2)*Math.sin(dlo/2); return 2*R*Math.asin(Math.sqrt(h)); }
@@ -3847,7 +3847,7 @@ async function waterRoute(p1,p2){
     if(el.type==='way'&&el.tags&&el.geometry&&(el.tags.bridge||/^(weir|dam|lock_gate)$/.test(el.tags.waterway||'')||el.tags.man_made==='dam')) addPass(el.geometry.map(function(p){return [p.lat,p.lon];}));
     if(el.type!=='way'||!el.tags||!/^(river|stream|canal)$/.test(el.tags.waterway||'')||!el.geometry) continue; let prev=null;const wayName=String(el.tags.name||'');
     for(const p of el.geometry){ const k=key(p.lat,p.lon); if(wayName)(nodeNames[k]||(nodeNames[k]={}))[wayName]=((nodeNames[k]||{})[wayName]||0)+1;if(prev&&prev!==k){ const d=hav(nodes[prev],nodes[k]);
-      (adj[prev]=adj[prev]||[]).push([k,d]); (adj[k]=adj[k]||[]).push([prev,d]); } prev=k; } }
+      (adj[prev]=adj[prev]||[]).push([k,d]); (adj[k]=adj[k]||[]).push([prev,d]); graphEdges.push([prev,k]); } prev=k; } }
   function inPoly(pt,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a[0]>pt[0])!==(b[0]>pt[0]))&&(pt[1]<(b[1]-a[1])*(pt[0]-a[0])/((b[0]-a[0])||1e-12)+a[1]))inside=!inside;}return inside;}
   function inWater(pt){let ok=false;for(const x of waterOuter){const b=x.b;if(pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3]&&inPoly(pt,x.p)){ok=true;break;}}if(!ok)return false;for(const x of waterInner){const b=x.b;if(pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3]&&inPoly(pt,x.p))return false;}return true;}
   function edgeDist(pt,x){const b=x.b,pad=.0022;if(pt[0]<b[0]-pad||pt[0]>b[2]+pad||pt[1]<b[1]-pad||pt[1]>b[3]+pad)return 1e18;const poly=x.p;let best=1e18,latR=pt[0]*toR,c=Math.cos(latR);for(let i=1;i<poly.length;i++){const a=poly[i-1],b2=poly[i],ax=(a[1]-pt[1])*111320*c,ay=(a[0]-pt[0])*110540,bx=(b2[1]-pt[1])*111320*c,by=(b2[0]-pt[0])*110540,dx=bx-ax,dy=by-ay,t=Math.max(0,Math.min(1,-(ax*dx+ay*dy)/((dx*dx+dy*dy)||1))),px=ax+t*dx,py=ay+t*dy;best=Math.min(best,Math.sqrt(px*px+py*py));}return best;}
@@ -3913,7 +3913,30 @@ async function waterRoute(p1,p2){
     if(!access.length)return repairedStatic;
   }
   function nearest(pt){ let best=null,bd=1e18; for(const k in nodes){ const d=hav(nodes[k],[pt.lat,pt.lng]); if(d<bd){bd=d;best=k;} } return {key:best,dist:bd,wet:false}; }
+  function edgeProjection(origin,edge){
+    const a=nodes[edge[0]],b=nodes[edge[1]],c=Math.cos(origin[0]*toR),ax=(a[1]-origin[1])*111320*c,ay=(a[0]-origin[0])*110540,bx=(b[1]-origin[1])*111320*c,by=(b[0]-origin[0])*110540,dx=bx-ax,dy=by-ay;
+    const t=Math.max(0,Math.min(1,-(ax*dx+ay*dy)/((dx*dx+dy*dy)||1))),p=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+    return {edge:edge,t:t,p:p,dist:hav(origin,p),edgeId:edge[0]<edge[1]?edge[0]+'|'+edge[1]:edge[1]+'|'+edge[0]};
+  }
+  function attachProjected(pt,tag){
+    const origin=[pt.lat,pt.lng],candidates=graphEdges.map(function(edge){return edgeProjection(origin,edge);});
+    candidates.sort(function(a,b){return a.dist-b.dist;});
+    const limit=Math.min(candidates.length,240),nearest=candidates[0];
+    for(let i=0;i<limit;i++){
+      const c=candidates[i];if(c.dist>Math.max(2500,(nearest?nearest.dist:0)+2500))break;
+      if(!waterChord(origin,c.p))continue;
+      if(c.t<.00001)return {key:c.edge[0],dist:c.dist,wet:true,edgeId:c.edgeId,projection:c};
+      if(c.t>.99999)return {key:c.edge[1],dist:c.dist,wet:true,edgeId:c.edgeId,projection:c};
+      nodes[tag]=c.p;adj[tag]=[];
+      const da=hav(c.p,nodes[c.edge[0]]),db=hav(c.p,nodes[c.edge[1]]);
+      adj[tag].push([c.edge[0],da],[c.edge[1],db]);
+      (adj[c.edge[0]]=adj[c.edge[0]]||[]).push([tag,da]);(adj[c.edge[1]]=adj[c.edge[1]]||[]).push([tag,db]);
+      return {key:tag,dist:c.dist,wet:true,edgeId:c.edgeId,projection:c};
+    }
+    return null;
+  }
   function nearestWet(pt){
+    const projected=attachProjected(pt,pt===p1?'@route-start':'@route-end');if(projected)return projected;
     const origin=[pt.lat,pt.lng], candidates=[];
     for(const k in nodes)candidates.push({key:k,dist:hav(nodes[k],origin)});
     candidates.sort(function(a,b){return a.dist-b.dist;});
@@ -3926,6 +3949,7 @@ async function waterRoute(p1,p2){
     return {key:nearest.key,dist:nearest.dist,wet:false};
   }
   const near1=nearestWet(p1),near2=nearestWet(p2),s1=near1.key,s2=near2.key;
+  if(near1.projection&&near2.projection&&near1.edgeId===near2.edgeId&&s1!==s2){const d=hav(nodes[s1],nodes[s2]);(adj[s1]=adj[s1]||[]).push([s2,d]);(adj[s2]=adj[s2]||[]).push([s1,d]);}
   if(!s1||!s2||near1.dist>1500||near2.dist>1500) return repairedStatic||{err:'farwater'};
   // 물길 모드에서는 연결 실패를 직선으로 숨기지 않는다. 직선은 사용자가 직선 모드를 고른 경우에만 사용한다.
   const dist={}, prev={}; dist[s1]=0; const heap=new MinHeap(); heap.push(0,s1);

@@ -522,6 +522,39 @@ test('wide reservoir access routes around land instead of crossing it', async ()
   await browser.close();
 });
 
+test('water route enters the nearest edge projection without an endpoint backtrack', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
+  const overpass = { elements: [
+    { type: 'relation', id: 1, tags: { natural: 'water' }, members: [
+      { role: 'outer', geometry: ring([[36.997, 126.975], [37.003, 126.975], [37.003, 127.025], [36.997, 127.025], [36.997, 126.975]]) },
+    ] },
+    { type: 'way', id: 2, tags: { waterway: 'river', name: '투영강' }, geometry: ring([[37.0, 127.02], [37.0, 127.0], [37.0, 126.98]]) },
+  ] };
+  await context.route(/\/rivers\.geojson(?:\?|$)/, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ type: 'FeatureCollection', features: [] }) });
+  });
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(overpass) });
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof waterRoute === 'function');
+  const result = await page.evaluate(() => waterRoute({ lat: 36.999, lng: 127.014 }, { lat: 37.0, lng: 126.98 }));
+  expect(result.access).toEqual([]);
+  expect(result.coords.length).toBeGreaterThanOrEqual(3);
+  expect(result.coords[1][1]).toBeCloseTo(127.014, 3);
+  expect(Math.max(...result.coords.slice(1).map((p) => p[1]))).toBeLessThan(127.015);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('campsites are visible only while administrator mode is active', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

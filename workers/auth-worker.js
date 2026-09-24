@@ -1098,7 +1098,18 @@ export default {
           it.name = String(b.name || it.name || "코스").slice(0, 80);
           if (b.km != null) it.km = Number(b.km) || 0;
           if (/^#[0-9a-f]{6}$/i.test(String(b.color || ""))) it.color = String(b.color).toLowerCase();
+          if (b.coords != null) {
+            const coords = Array.isArray(b.coords) ? b.coords.slice(0, 5000).map((p) => [Number(p && p[0]), Number(p && p[1])]) : [];
+            if (coords.length < 2 || coords.some((p) => !Number.isFinite(p[0]) || !Number.isFinite(p[1]) || Math.abs(p[0]) > 90 || Math.abs(p[1]) > 180)) return new Response("bad", { status: 400, headers: cors });
+            it.coords = coords;
+          }
+          if (b.segments != null) it.segments = Array.isArray(b.segments) ? b.segments.slice(0, 40).map((s) => ({
+            name: String((s && s.name) || "구간").slice(0, 30),
+            km: Number(s && s.km) || 0,
+            mode: String((s && s.mode) || "").slice(0, 12),
+          })) : [];
           it.updatedAt = Date.now();
+          savedCourse = it;
         } else if (b.action === "add" || b.action === "adduser" || !b.action) {
           const coords = Array.isArray(b.coords) ? b.coords.slice(0, 5000) : [];
           if (coords.length < 2) return new Response("bad", { status: 400, headers: cors });
