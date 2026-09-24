@@ -199,6 +199,7 @@ __GTAG__
   .course-focus-off:hover,.course-focus-off:focus{background:rgba(255,255,255,.34);outline:none}
   .leaflet-div-icon.course-dir-icon{background:transparent;border:0;pointer-events:none}
   .course-dir-arrow{display:block;width:18px;height:18px;transform-origin:50% 50%;filter:drop-shadow(0 1px 1px rgba(0,0,0,.55))}
+  #map.course-directions-hidden .course-dir-icon{display:none!important}
   #hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:1000;
         background:rgba(0,0,0,.62);color:#fff;padding:5px 12px;border-radius:14px;
         font:12px sans-serif;transition:opacity .6s;pointer-events:none}
@@ -1809,6 +1810,9 @@ function courseDirectionLayer(coords){
   }
   return out;
 }
+const COURSE_DIRECTION_MIN_ZOOM=11;
+function _syncCourseDirectionVisibility(){map.getContainer().classList.toggle('course-directions-hidden',map.getZoom()<COURSE_DIRECTION_MIN_ZOOM);}
+map.on('zoomend',_syncCourseDirectionVisibility);_syncCourseDirectionVisibility();
 const courseLayers={};    // 서브카테고리 -> layerGroup(전체 코스 그룹에 포함)
 const _staticCidLayers={};   // 정적 코스 cid -> [{grp,l}] (삭제/숨김용)
 const _hiddenStaticCids=new Set();

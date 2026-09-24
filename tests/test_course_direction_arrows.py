@@ -22,6 +22,12 @@ class CourseDirectionArrowTests(unittest.TestCase):
         self.assertIn('d="M2 15L9 4 16 15"', source)
         self.assertIn('stroke="#fff" stroke-width="4" stroke-linecap="round"', source)
 
+    def test_arrows_only_show_when_zoomed_in(self):
+        source = (ROOT / "tools" / "build_map.py").read_text(encoding="utf-8")
+        self.assertIn("const COURSE_DIRECTION_MIN_ZOOM=11", source)
+        self.assertIn("map.on('zoomend',_syncCourseDirectionVisibility)", source)
+        self.assertIn("#map.course-directions-hidden .course-dir-icon{display:none!important}", source)
+
 
 if __name__ == "__main__":
     unittest.main()
