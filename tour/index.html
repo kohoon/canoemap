@@ -3722,9 +3722,9 @@ function cmPickCat(el){ const bs=document.querySelectorAll('#cmBody .seg-b'); fo
 function cmPreview(){ const p=document.getElementById('cmPrev'); if(!p) return; p.textContent=_joinCourse(_cmCat(),_cmNo(),(document.getElementById('cmName').value||''))||'—'; }
 function _shortCoursePlace(label,addr){
   label=(label||'').trim();
-  function localAddress(value){const p=(value||'').trim().split(/\s+/).filter(Boolean);let i=p.findIndex(function(x){return /(특별시|광역시|특별자치시|시|군|구)$/.test(x)&&!/(특별자치도|도)$/.test(x);});return (i>=0?p.slice(i):p.filter(function(x){return !/(특별자치도|도)$/.test(x);})).join(' ');}
+  function localAddress(value){let p=(value||'').trim().split(/\s+/).filter(Boolean),province=-1;for(let j=0;j<p.length;j++)if(/(특별자치도|도)$/.test(p[j]))province=j;if(province>=0)p=p.slice(province+1);else{const i=p.findIndex(function(x){return /(특별시|광역시|특별자치시|시|군|구)$/.test(x);});if(i>=0)p=p.slice(i);}p=p.filter(function(x,i){return !i||x!==p[i-1];});return p.join(' ');}
   function regionText(value){const p=localAddress(value).split(/\s+/).filter(Boolean);if(!p.length)return '';const r=[p[0]];if(/시$/.test(p[0])&&p[1]&&/구$/.test(p[1]))r.push(p[1]);return r.join(' ');}
-  if(label){const halves=label.split(/\s+-\s+/),raw=(halves[0]||'').replace(/\([^)]*\)/g,'').trim(),region=regionText(raw),place=(halves.length>1?halves.slice(1).join(' - '):label).replace(/^(춘천|양구|곡성|구례|연천|홍천|인제|화천)\s*[()]/,'').trim();if(halves.length>1&&/(?:특별자치도|도|특별시|광역시|특별자치시|\S+[시군구])\s/.test(place))return localAddress(place);return (region&&place.indexOf(region)!==0?region+' ':'')+place;}
+  if(label){const halves=label.split(/\s+-\s+/),raw=(halves[0]||'').replace(/\([^)]*\)/g,'').trim(),region=regionText(raw),place=(halves.length>1?halves.slice(1).join(' - '):label).replace(/^(춘천|양구|곡성|구례|연천|홍천|인제|화천)\s*[()]/,'').trim();if(/(?:특별자치도|도|특별시|광역시|특별자치시|\S+[시군구])\s/.test(place))return localAddress(place);return (region&&place.indexOf(region)!==0?region+' ':'')+place;}
   return localAddress(addr);
 }
 async function _coursePointName(x){

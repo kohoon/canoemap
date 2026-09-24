@@ -27,6 +27,15 @@ class CourseNameRegionTests(unittest.TestCase):
             "화천군 간동면 구만리 1395-1",
         )
 
+    def test_full_address_prefixed_without_separator_is_deduplicated(self):
+        self.assertEqual(
+            self.short_place("화천군 강원특별자치도 화천군 간동면 구만리 1393"),
+            "화천군 간동면 구만리 1393",
+        )
+
+    def test_short_named_place_is_preserved(self):
+        self.assertEqual(self.short_place("춘천 오월리"), "춘천 오월리")
+
     def test_reverse_geocoded_address_starts_at_city(self):
         self.assertEqual(
             self.short_place("", "강원특별자치도 춘천시 서면 오월리 51-2"),
