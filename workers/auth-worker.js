@@ -10,6 +10,7 @@ import {
 import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
 import { MEASURE_SHARE_CORRECTIONS } from "./measure-share-corrections.mjs";
 import { coursePreviewKey, courseShareHtml, normalizeCourseShareId } from "./course-share.mjs";
+import { applyCourseCorrection, coursePreviewVersionIsCurrent } from "./course-corrections.mjs";
 import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
 
 /**
@@ -42,7 +43,8 @@ async function _courseShareRecord(env, id) {
   if (safeId.startsWith("k")) {
     let courses = [];
     try { courses = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
-    const found = (Array.isArray(courses) ? courses : []).find((course) => String(course && course.id) === safeId.slice(1));
+    const foundRaw = (Array.isArray(courses) ? courses : []).find((course) => String(course && course.id) === safeId.slice(1));
+    const found = applyCourseCorrection(foundRaw);
     if (!found) return null;
     return {
       id: safeId,
@@ -77,6 +79,7 @@ async function _coursePreviewRecord(KV, id) {
   try {
     const parsed = JSON.parse((await KV.get(key)) || "null");
     if (!parsed || !/^[A-Za-z0-9+/=]+$/.test(String(parsed.b64 || ""))) return null;
+    if (!coursePreviewVersionIsCurrent(id, parsed.v)) return null;
     return { b64: String(parsed.b64), v: String(parsed.v || "0").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32) || "0" };
   } catch (e) { return null; }
 }
@@ -1012,6 +1015,7 @@ export default {
         if (url.searchParams.get("over")) { const o = KV ? await KV.get("course_over") : null; return new Response(o || "{}", { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=60" } }); }   // 정적 코스 이름/분류/거리 오버라이드
         const d = KV ? await KV.get("courses") : null;
         let arr = []; try { arr = JSON.parse(d || "[]"); } catch (e) {}
+        arr = (Array.isArray(arr) ? arr : []).map(applyCourseCorrection);
         const sharedId = String(url.searchParams.get("shared") || "").replace(/^k/, "").slice(0, 24);
         if (sharedId) {
           const shared = arr.find((x) => String(x.id) === sharedId);
@@ -1079,6 +1083,7 @@ export default {
           return J(JSON.stringify({ ok: true }));
         }
         let arr = []; try { arr = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
+        arr = (Array.isArray(arr) ? arr : []).map(applyCourseCorrection);
         let savedCourse = null;
         if (b.action === "listmine") {
           if (!adminOk) return new Response("forbidden", { status: 403, headers: cors });
