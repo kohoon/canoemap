@@ -197,6 +197,8 @@ __GTAG__
   .course-focus-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .course-focus-off{flex:none;padding:6px 7px;border:0;border-radius:5px;background:rgba(255,255,255,.2);color:#fff;font:700 12px/1 sans-serif;cursor:pointer}
   .course-focus-off:hover,.course-focus-off:focus{background:rgba(255,255,255,.34);outline:none}
+  .leaflet-div-icon.course-dir-icon{background:transparent;border:0;pointer-events:none}
+  .course-dir-arrow{display:block;width:18px;height:18px;transform-origin:50% 50%;filter:drop-shadow(0 1px 1px rgba(0,0,0,.55))}
   #hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:1000;
         background:rgba(0,0,0,.62);color:#fff;padding:5px 12px;border-radius:14px;
         font:12px sans-serif;transition:opacity .6s;pointer-events:none}
@@ -1787,6 +1789,26 @@ function courseLineColor(sc, seed){
   const l = 42 + (_hashStr(seed+'l') % 10);
   return 'hsl('+h+' '+s+'% '+l+'%)';
 }
+function _courseBearing(a,b){
+  const d=Math.PI/180, p1=a[0]*d, p2=b[0]*d, dl=(b[1]-a[1])*d;
+  return (Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl))/d+360)%360;
+}
+function courseDirectionLayer(coords){
+  const out=L.layerGroup();
+  if(!coords||coords.length<2)return out;
+  const seg=[], dist=[];let total=0;
+  for(let i=1;i<coords.length;i++){const d=map.distance(coords[i-1],coords[i]);if(!isFinite(d)||d<=0)continue;seg.push([coords[i-1],coords[i],d]);total+=d;dist.push(total);}
+  if(!seg.length||total<=0)return out;
+  const count=Math.max(1,Math.min(6,Math.round(total/3500)));
+  for(let n=1;n<=count;n++){
+    const target=total*n/(count+1);let i=0;while(i<dist.length-1&&dist[i]<target)i++;
+    const prev=i?dist[i-1]:0, s=seg[i], f=Math.max(0,Math.min(1,(target-prev)/s[2]));
+    const ll=[s[0][0]+(s[1][0]-s[0][0])*f,s[0][1]+(s[1][1]-s[0][1])*f], angle=_courseBearing(s[0],s[1]);
+    const svg='<span class="course-dir-arrow" style="transform:rotate('+angle.toFixed(1)+'deg)"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 15L9 4 16 15" fill="none" stroke="#32134f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".88"/><path d="M2 15L9 4 16 15" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+    L.marker(ll,{pane:'overlayPane',interactive:false,keyboard:false,icon:L.divIcon({className:'course-dir-icon',html:svg,iconSize:[18,18],iconAnchor:[9,9]})}).addTo(out);
+  }
+  return out;
+}
 const courseLayers={};    // 서브카테고리 -> layerGroup(전체 코스 그룹에 포함)
 const _staticCidLayers={};   // 정적 코스 cid -> [{grp,l}] (삭제/숨김용)
 const _hiddenStaticCids=new Set();
@@ -1874,6 +1896,12 @@ function _renderStaticCourses(){
       onEachFeature:function(f,l){ reg(f,l,null); }});
     const line=L.geoJSON(fc,{style:function(f){ const p=f.properties||{}; return {color:validCourseColor(p.color)||courseLineColor(sc, p.cid!=null?p.cid:p.name), weight:5, opacity:0.95}; },interactive:false,
       onEachFeature:function(f,l){ reg(f,l,null); }});
+    const directions=L.layerGroup();
+    fc.features.forEach(function(f){
+      const p=f.properties||{}, raw=(f.geometry&&f.geometry.coordinates)||[], coords=raw.map(function(c){return [c[1],c[0]];});
+      const dir=courseDirectionLayer(coords);directions.addLayer(dir);
+      if(p.cid!=null){_favReg('course_c'+p.cid,dir,directions);(_staticCidLayers[p.cid]=_staticCidLayers[p.cid]||[]).push({grp:directions,l:dir});}
+    });
     // 투명 넓은 탭 영역(어디를 탭/클릭해도 정보)
     const hit=L.geoJSON(fc,{style:function(f){ const p=f.properties||{}; return {color:validCourseColor(p.color)||courseLineColor(sc, p.cid!=null?p.cid:p.name), weight:22, opacity:0}; },
       onEachFeature:(f,l)=>{ const p=f.properties||{};
@@ -1885,7 +1913,7 @@ function _renderStaticCourses(){
     Object.keys(_favLayerIdx).forEach(function(t){ _favLayerIdx[t].forEach(function(e){ if(!e.parent){ e.parent=(casing.hasLayer(e.l)?casing:(line.hasLayer(e.l)?line:hit)); } }); });
     // cid별 레이어 등록(정적 코스 삭제용)
     [casing,line,hit].forEach(function(grp){ grp.eachLayer(function(l){ const cid=((l.feature&&l.feature.properties)||{}).cid; if(cid!=null) (_staticCidLayers[cid]=_staticCidLayers[cid]||[]).push({grp:grp,l:l}); }); });
-    courseLayers[sc]=L.layerGroup([casing,line,hit]); allCoursesGroup.addLayer(courseLayers[sc]);
+    courseLayers[sc]=L.layerGroup([casing,line,directions,hit]); allCoursesGroup.addLayer(courseLayers[sc]);
   });
   _courseStaticReady=true;
   _hiddenStaticCids.forEach(function(cid){ _hideStaticCourse(cid); });
@@ -3261,12 +3289,14 @@ function renderKVCourse(c){
   const lineCol=validCourseColor(c.color)||courseLineColor(sc, c.id);
   const casing=L.polyline(coords,{color:'#2a0a4a',weight:8,opacity:.55,interactive:false});
   const line=L.polyline(coords,{color:lineCol,weight:5,opacity:.95,interactive:false});
+  const directions=courseDirectionLayer(coords);
   const hit=L.polyline(coords,{color:lineCol,weight:22,opacity:0}); hit.on('click',function(){ courseCmt('k', c.id); }); if(!isTouch) hit.bindTooltip('<b>'+pmEsc(c.name||'코스')+'</b>'+(c.km?' '+c.km+'km':''),{sticky:true,direction:'top'});
   let grp=courseLayers[sc];
   if(!grp){ grp=L.layerGroup(); courseLayers[sc]=grp; allCoursesGroup.addLayer(grp); }
-  casing.addTo(grp); line.addTo(grp); hit.addTo(grp);
-  _kvCourseLayers[c.id]={grp:grp,ls:[casing,line,hit]};
+  casing.addTo(grp); line.addTo(grp); directions.addTo(grp); hit.addTo(grp);
+  _kvCourseLayers[c.id]={grp:grp,ls:[casing,line,directions,hit]};
   _favReg('course_k'+c.id,casing,grp); _favReg('course_k'+c.id,line,grp); _favReg('course_k'+c.id,hit,grp);
+  _favReg('course_k'+c.id,directions,grp);
   if(_favOnly) applyFavFilter();
   _applyCourseFocus();
   _maybeSyncAdminCourseFavs();
