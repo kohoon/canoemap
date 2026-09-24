@@ -14,8 +14,9 @@ class AdminCampsiteTests(unittest.TestCase):
     def test_campsite_is_an_icon_only_admin_type(self):
         self.assertIn("'캠핑사이트':{c:'obs-camp',e:'🏕️',label:'캠핑사이트'}", self.client)
         self.assertIn("showName=type==='유명지'", self.client)
-        self.assertIn("o&&o.type==='캠핑사이트')return t.label", self.client)
-        self.assertIn("const nm=o.type==='캠핑사이트'?'':", self.client)
+        self.assertIn("function _obHasName(ty){ return !!OBS_TYPES[ty]; }", self.client)
+        self.assertIn("<div class=\"sg-label\">제목 (선택)</div>", self.client)
+        self.assertIn("const nm=(o.name&&String(o.name).trim())", self.client)
         self.assertIn("function _obAdminOnly(o){ return !!o&&o.type==='캠핑사이트'; }", self.client)
         self.assertIn("if(!adminMode)_removeAdminOnlyObstacles()", self.client)
         self.assertIn("if(_obAdminOnly(o)&&!isAdmin())return;", self.client)
@@ -27,10 +28,10 @@ class AdminCampsiteTests(unittest.TestCase):
         self.assertIn('String(b.adminKey) !== String(env.ADMIN_KEY)', self.worker)
         self.assertIn('"Cache-Control": "no-store"', self.worker)
 
-    def test_campsite_name_is_optional(self):
+    def test_every_obstacle_name_is_optional(self):
         self.assertNotIn("if(type==='캠핑사이트'&&!name)", self.client)
-        self.assertNotIn('(b.type === "식당/카페" || b.type === "캠핑사이트")', self.worker)
-        self.assertIn('b.type === "식당/카페" && !String(b.name || "").trim()', self.worker)
+        self.assertNotIn("if(type==='식당/카페'&&!name)", self.client)
+        self.assertNotIn("name-required", self.worker)
 
 
 if __name__ == "__main__":

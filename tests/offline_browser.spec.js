@@ -595,7 +595,7 @@ test('campsites are visible only while administrator mode is active', async () =
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const context = await browser.newContext({ viewport: { width: 1200, height: 800 } });
   await context.addInitScript(() => localStorage.setItem('mc_admin', 'test-admin-key'));
   const campsite = { id: 'camp-test', lat: 36.3, lng: 127.8, type: '캠핑사이트', name: '관리자 캠프', note: '관리자 전용', t: 1 };
   const publicFood = { id: 'food-test', lat: 36.301, lng: 127.801, type: '식당/카페', name: '공개 식당', note: '', t: 1 };
@@ -624,21 +624,33 @@ test('campsites are visible only while administrator mode is active', async () =
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => isAdmin() && !!_obstacles['camp-test']);
+  await page.evaluate(() => { document.querySelector('#gate').style.display = 'none'; });
+  await page.evaluate(() => map.setView([36.3, 127.8], 14, { animate: false }));
   await expect(page.locator('.obs-camp')).toHaveCount(1);
   await expect(page.locator('.obs-camp')).toHaveText('🏕️');
-  expect(await page.evaluate(() => _localSearch('관리자 캠프').some((item) => item.o?.id === 'camp-test'))).toBe(false);
+  await page.locator('.obs-camp').hover({ timeout: 3000 });
+  await expect(page.getByRole('tooltip', { name: '관리자 캠프' })).toBeVisible({ timeout: 3000 });
+  expect(await page.evaluate(() => _localSearch('관리자 캠프').some((item) => item.o?.id === 'camp-test'))).toBe(true);
 
   await page.evaluate(() => openObsModal('add', { lat: 36.3, lng: 127.8 }));
+  const typeButtons = page.locator('#obBody .seg-b[data-ty]');
+  await expect(typeButtons).toHaveCount(10);
+  for (let i = 0; i < await typeButtons.count(); i++) {
+    await typeButtons.nth(i).click({ timeout: 3000 });
+    await expect(page.locator('#obNameRow')).toBeVisible({ timeout: 3000 });
+  }
   const campsiteButton = page.locator('#obBody .seg-b[data-ty="캠핑사이트"]');
   await expect(campsiteButton).toBeVisible();
   expect(await campsiteButton.evaluate((node) => getComputedStyle(node).gridColumnStart)).toBe('2');
   await campsiteButton.click();
   await expect(campsiteButton).toHaveClass(/on/);
-  await expect(page.locator('#obNameRow')).toBeHidden();
+  await expect(page.locator('#obNameRow')).toBeVisible();
+  await expect(page.locator('#obNameRow .sg-label')).toHaveText('제목 (선택)');
+  await page.locator('#obName').fill('새 캠핑사이트');
   await page.locator('#obSave').click();
   await expect(page.locator('#obsModal')).not.toHaveClass(/open/);
   expect(savedCampsite.type).toBe('캠핑사이트');
-  expect(savedCampsite.name).toBe('');
+  expect(savedCampsite.name).toBe('새 캠핑사이트');
   await expect(page.locator('.obs-camp')).toHaveCount(2);
 
   await page.evaluate(() => _setAdmin(false));

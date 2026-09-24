@@ -18,7 +18,7 @@ class ObstacleIconLabelTests(unittest.TestCase):
     def test_other_obstacles_show_their_name_on_desktop_hover(self):
         self.assertIn("if(!isTouch&&o.type!=='유명지')", self.source)
         self.assertIn("m.bindTooltip(pmEsc(_obDisplayName(o))", self.source)
-        self.assertIn("o&&o.type==='캠핑사이트')return t.label", self.source)
+        self.assertIn("(o&&o.name&&String(o.name).trim())?String(o.name).trim():t.label", self.source)
 
 
 if __name__ == "__main__":
