@@ -998,6 +998,32 @@ test('duplicate geocoder place names show reverse-geocoded region hints', async 
   await browser.close();
 });
 
+test('major Korean lakes and regional aliases are available in local search', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const found = await page.evaluate(() => {
+    const names = ['파로호', '소양호', '충주호', '제천호', '담양호'];
+    return Object.fromEntries(names.map((name) => {
+      const row = _localSearch(name).find((item) => item.kind === 'lake');
+      return [name, row && { label: row.label, sub: row.sub, bounds: row.lake.bounds }];
+    }));
+  });
+  expect(found['파로호'].label).toBe('🏞️ 파로호');
+  expect(found['소양호'].sub).toContain('춘천시·인제군·양구군');
+  expect(found['충주호'].sub).toContain('충주시·제천시·단양군');
+  expect(found['제천호'].label).toBe('🏞️ 청풍호');
+  expect(found['제천호'].sub).toContain('제천호로도 검색됨');
+  expect(found['담양호'].sub).toContain('전라남도 담양군');
+  expect(found['파로호'].bounds).toHaveLength(2);
+  expect(errors).toEqual([]);
+  await browser.close();
+});
+
 test('course share URL and preview image use the course-specific map card', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

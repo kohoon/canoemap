@@ -862,6 +862,12 @@ const WLSTN = __WLSTN__;   // 수위관측소(HRFCO, 카누 장소 근처 선별
 const CCTVS = __CCTVS__;   // 수위관측 CCTV 지점(홍수정보시스템, 영상은 공식 팝업)
 const WEIRS = __WEIRS__;   // 전국 보 위치(해수부 어도 현황 기반, 근처 선별)
 const DAMS = [{"lake":"소양호","cd":"1012110","nm":"소양강댐","lat":37.946111,"lng":127.812222,"pfh":"198","fld":"190.3"},{"lake":"파로호","cd":"1010310","nm":"화천댐","lat":38.117778,"lng":127.778889,"pfh":"183","fld":"175"},{"lake":"춘천호","cd":"1010320","nm":"춘천댐","lat":37.966667,"lng":127.670833,"pfh":"104.9","fld":"102"},{"lake":"의암호","cd":"1013310","nm":"의암댐","lat":37.836667,"lng":127.675833,"pfh":"73.36","fld":"70.5"},{"lake":"청평호","cd":"1015310","nm":"청평댐","lat":37.725278,"lng":127.421111,"pfh":"52","fld":"50"},{"lake":"팔당호","cd":"1017310","nm":"팔당댐","lat":37.525,"lng":127.284722,"pfh":"27","fld":""},{"lake":"충주호","cd":"1003110","nm":"충주댐","lat":37.003611,"lng":127.995556,"pfh":"145","fld":"138"},{"lake":"괴산호","cd":"1004310","nm":"괴산댐","lat":36.7625,"lng":127.845,"pfh":"136.93","fld":"134"},{"lake":"횡성호","cd":"1006110","nm":"횡성댐","lat":37.545,"lng":128.0325,"pfh":"180","fld":"178.2"},{"lake":"군남홍수조절지","cd":"1021701","nm":"군남댐","lat":38.105,"lng":127.015833,"pfh":"40","fld":""},{"lake":"한탄강댐 저수지","cd":"1022701","nm":"한탄강댐","lat":38.063889,"lng":127.133333,"pfh":"114.4","fld":""},{"lake":"안동호","cd":"2001110","nm":"안동댐","lat":36.585,"lng":128.773889,"pfh":"161.7","fld":"160"},{"lake":"임하호","cd":"2002110","nm":"임하댐","lat":36.537778,"lng":128.883333,"pfh":"164.7","fld":"161.7"},{"lake":"합천호","cd":"2015110","nm":"합천댐","lat":35.533889,"lng":128.031667,"pfh":"179","fld":"176"},{"lake":"진양호","cd":"2018110","nm":"남강댐","lat":35.164722,"lng":128.036944,"pfh":"46","fld":"41"},{"lake":"밀양호","cd":"2021110","nm":"밀양댐","lat":35.482778,"lng":128.931944,"pfh":"210.2","fld":"207.2"},{"lake":"용담호","cd":"3001110","nm":"용담댐","lat":35.941667,"lng":127.528889,"pfh":"265.5","fld":"261.5"},{"lake":"대청호","cd":"3008110","nm":"대청댐","lat":36.478611,"lng":127.480556,"pfh":"80","fld":"76.5"},{"lake":"보령호","cd":"3203310","nm":"보령댐","lat":36.249722,"lng":126.648611,"pfh":"75.5","fld":"74"},{"lake":"옥정호","cd":"4001110","nm":"섬진강댐","lat":35.539444,"lng":127.113611,"pfh":"197.7","fld":"194"},{"lake":"주암호","cd":"4007110","nm":"주암댐","lat":35.059167,"lng":127.239167,"pfh":"110.5","fld":"108.5"},{"lake":"장흥호","cd":"5101110","nm":"장흥댐","lat":34.750556,"lng":126.885278,"pfh":"82.8","fld":"79"}];   // 주요 호수의 댐 저수위 관측 지점
+const LAKE_AREAS = {"소양호":"강원특별자치도 춘천시·인제군·양구군","파로호":"강원특별자치도 화천군·양구군","춘천호":"강원특별자치도 춘천시·화천군","의암호":"강원특별자치도 춘천시","청평호":"경기도 가평군·남양주시","팔당호":"경기도 남양주시·광주시·양평군·하남시","충주호":"충청북도 충주시·제천시·단양군","괴산호":"충청북도 괴산군","횡성호":"강원특별자치도 횡성군","군남홍수조절지":"경기도 연천군","한탄강댐 저수지":"강원특별자치도 철원군·경기도 연천군","안동호":"경상북도 안동시","임하호":"경상북도 안동시·청송군","합천호":"경상남도 합천군·거창군","진양호":"경상남도 진주시·사천시","밀양호":"경상남도 밀양시·양산시","용담호":"전북특별자치도 진안군","대청호":"대전광역시·충청북도 청주시·옥천군·보은군","보령호":"충청남도 보령시","옥정호":"전북특별자치도 임실군·정읍시·순창군","주암호":"전라남도 순천시·화순군·보성군","장흥호":"전라남도 장흥군"};
+const LAKE_BOUNDS = {"소양호":[[37.91,127.76],[38.31,128.25]],"파로호":[[38.08,127.74],[38.30,127.99]],"충주호":[[36.84,127.94],[37.24,128.36]]};
+const LAKES = DAMS.map(function(d){ return {name:d.lake,aliases:[d.nm],lat:d.lat,lng:d.lng,area:LAKE_AREAS[d.lake]||d.nm+' 인근',bounds:LAKE_BOUNDS[d.lake]||null}; }).concat([
+  {name:'청풍호',aliases:['제천호'],lat:37.055,lng:128.185,area:'충청북도 제천시 · 충주호 제천권역',bounds:[[36.94,128.08],[37.20,128.34]]},
+  {name:'담양호',aliases:['담양댐'],lat:35.399,lng:127.019,area:'전라남도 담양군',bounds:[[35.35,126.98],[35.45,127.07]]}
+]);   // 통합검색용 주요 호수·저수지 이름과 관용 별칭
 const HRFCO_KEY = "__HRFCO_KEY__";   // 수위 API(도메인잠금 없음 — 남용 시 재발급)
 const COURSES = __COURSES__;
 const VKEY = "__VKEY__";   // V-World 키(도메인잠금). 브라우저가 직접 호출. 비면 Nominatim
@@ -3605,6 +3611,13 @@ setTimeout(function(){
 // 우리 데이터(장소·코스) 이름 검색 — 외부 지오코더보다 먼저
 function _localSearch(q){
   const nq=q.replace(/\s/g,'').toLowerCase(); const out=[];
+  LAKES.forEach(function(l){
+    const names=[l.name].concat(l.aliases||[]), matched=names.find(function(n){ return n.replace(/\s/g,'').toLowerCase().indexOf(nq)>=0; });
+    if(matched){
+      const alias=matched!==l.name?' · '+matched+'로도 검색됨':'';
+      out.push({kind:'lake',label:'🏞️ '+l.name,sub:l.area+' · 호수/저수지'+alias,lat:l.lat,lng:l.lng,lake:l});
+    }
+  });
   POINTS.features.forEach(function(f){ const p=f.properties||{}; const o=_placeOver[p.id]||{}; if(o.del) return; const pl=featPlace(f); if(!_visiblePlaceCat(pl.cat)) return; const nm=pl.name||'';
     if(nm.replace(/\s/g,'').toLowerCase().indexOf(nq)>=0){ const c=f.geometry.coordinates;
       out.push({kind:'place', label:(isSpot(nm)?'📍 ':'🛶 ')+nm, lat:c[1], lng:c[0], feat:f}); } });
@@ -3661,7 +3674,8 @@ document.getElementById('srchForm').addEventListener('submit', async (ev)=>{
     clearRiverSearch();
     _roadSearchFocus.clearLayers();
     const pin=showSearchPin(x.lat,x.lng,(x.disp||x.label||q).replace(/^[^가-힣A-Za-z0-9]+/,''));
-    if(x.kind==='place'){ map.setView([x.lat,x.lng],15); openPlaceModal(featPlace(x.feat)); }
+    if(x.kind==='lake'){ if(x.lake.bounds) map.fitBounds(x.lake.bounds,{padding:[24,24],maxZoom:12}); else map.setView([x.lat,x.lng],11); pin.setPopupContent('<b>'+pmEsc(x.lake.name)+'</b><br><small>'+pmEsc(x.lake.area)+'</small>').openPopup(); }
+    else if(x.kind==='place'){ map.setView([x.lat,x.lng],15); openPlaceModal(featPlace(x.feat)); }
     else if(x.kind==='course'){ const cs=x.feat.geometry.coordinates.map(function(c){return [c[1],c[0]];}); _fitAndPop(cs, x.feat.properties.name, x.feat.properties.km); }
     else if(x.kind==='kvplace'){ map.setView([x.lat,x.lng],15); openPlaceModal(x.pl); }
     else if(x.kind==='obs'){ map.setView([x.lat,x.lng],16); L.popup().setLatLng([x.lat,x.lng]).setContent(obsPopup(x.o)).openOn(map); }
