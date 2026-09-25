@@ -1024,6 +1024,25 @@ test('major Korean lakes and regional aliases are available in local search', as
   await browser.close();
 });
 
+test('entered places and courses stay above public map indexes in search preview', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const order = await page.evaluate(() => {
+    const previous = _kvPlaces;
+    _kvPlaces = [{ id: 'priority-test', name: '파로호 선착장', cat: '런칭', lat: 38.1, lng: 127.8 }];
+    const rows = _orderedLocalSearch('파로호',
+      [{ kind: 'river', label: '🌊 파로호 유입하천' }],
+      [{ kind: 'road', label: '🛣️ 파로호길' }]);
+    _kvPlaces = previous;
+    return rows.map((row) => row.kind);
+  });
+  expect(order).toEqual(['kvplace', 'lake', 'river', 'road']);
+  await browser.close();
+});
+
 test('course share URL and preview image use the course-specific map card', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
