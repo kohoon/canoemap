@@ -3949,7 +3949,8 @@ async function waterRoute(p1,p2){
   function key(la,ln){ const k=la.toFixed(4)+','+ln.toFixed(4); if(!(k in nodes)) nodes[k]=[la,ln]; return k; }  // 11m 병합(합류부 연결)
   function hav(a,b){ const R=6371000, dla=(b[0]-a[0])*toR, dlo=(b[1]-a[1])*toR, la1=a[0]*toR, la2=b[0]*toR;
     const h=Math.sin(dla/2)*Math.sin(dla/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dlo/2)*Math.sin(dlo/2); return 2*R*Math.asin(Math.sqrt(h)); }
-  // 춘천호 오월1교 서쪽 수면은 도로·산림 둑으로 본류와 분리되어 카누로 통과할 수 없다.
+  // 춘천호 오월1교 일대의 넓은 수면 폴리곤이 둑을 물로 오인하므로 임의 직선 단축만 막는다.
+  // OSM waterway 중심선은 오월교 아래 실제 수로를 따르므로 그래프 간선에는 이 경계를 적용하지 않는다.
   const navigationBarriers=[[[37.9875,127.6468],[37.9785,127.6535]]];
   function _orient(a,b,c){return (b[1]-a[1])*(c[0]-a[0])-(b[0]-a[0])*(c[1]-a[1]);}
   function _segCross(a,b,c,d){const ab1=_orient(a,b,c),ab2=_orient(a,b,d),cd1=_orient(c,d,a),cd2=_orient(c,d,b);return ((ab1<=0&&ab2>=0)||(ab1>=0&&ab2<=0))&&((cd1<=0&&cd2>=0)||(cd1>=0&&cd2<=0));}
@@ -3968,7 +3969,7 @@ async function waterRoute(p1,p2){
     if(el.type==='relation'&&el.tags&&el.tags.natural==='water'){addRelationRings(el,'outer',waterOuter);addRelationRings(el,'inner',waterInner);}
     if(el.type==='way'&&el.tags&&el.geometry&&(el.tags.bridge||/^(weir|dam|lock_gate)$/.test(el.tags.waterway||'')||el.tags.man_made==='dam')) addPass(el.geometry.map(function(p){return [p.lat,p.lon];}));
     if(el.type!=='way'||!el.tags||!/^(river|stream|canal)$/.test(el.tags.waterway||'')||!el.geometry) continue; let prev=null;const wayName=String(el.tags.name||'');
-    for(const p of el.geometry){ const k=key(p.lat,p.lon); if(wayName)(nodeNames[k]||(nodeNames[k]={}))[wayName]=((nodeNames[k]||{})[wayName]||0)+1;if(prev&&prev!==k&&!crossesNavigationBarrier(nodes[prev],nodes[k])){ const d=hav(nodes[prev],nodes[k]);
+    for(const p of el.geometry){ const k=key(p.lat,p.lon); if(wayName)(nodeNames[k]||(nodeNames[k]={}))[wayName]=((nodeNames[k]||{})[wayName]||0)+1;if(prev&&prev!==k){ const d=hav(nodes[prev],nodes[k]);
       (adj[prev]=adj[prev]||[]).push([k,d]); (adj[k]=adj[k]||[]).push([prev,d]); graphEdges.push([prev,k]); } prev=k; } }
   function inPoly(pt,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a[0]>pt[0])!==(b[0]>pt[0]))&&(pt[1]<(b[1]-a[1])*(pt[0]-a[0])/((b[0]-a[0])||1e-12)+a[1]))inside=!inside;}return inside;}
   function inWater(pt){let ok=false;for(const x of waterOuter){const b=x.b;if(pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3]&&inPoly(pt,x.p)){ok=true;break;}}if(!ok)return false;for(const x of waterInner){const b=x.b;if(pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3]&&inPoly(pt,x.p))return false;}return true;}

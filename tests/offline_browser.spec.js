@@ -522,7 +522,7 @@ test('wide reservoir access routes around land instead of crossing it', async ()
   await browser.close();
 });
 
-test('Chuncheonho route does not cross the Owol road and forest embankment', async () => {
+test('Chuncheonho route follows the mapped waterway into Owol-ri without a land shortcut', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -532,11 +532,24 @@ test('Chuncheonho route does not cross the Owol road and forest embankment', asy
     geometry: { type: 'LineString', coordinates: [[127.654, 37.978], [127.654, 37.987]] },
   }] };
   const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
-  const overpass = { elements: [{
-    type: 'relation', id: 1, tags: { natural: 'water' }, members: [
+  const overpass = { elements: [
+    {
+      type: 'relation', id: 1, tags: { natural: 'water' }, members: [
       { role: 'outer', geometry: ring([[37.979, 127.643], [37.987, 127.643], [37.987, 127.655], [37.979, 127.655], [37.979, 127.643]]) },
-    ],
-  }] };
+      ],
+    },
+    {
+      type: 'way', id: 2, tags: { waterway: 'river', name: '북한강' },
+      geometry: ring([[37.986, 127.654], [37.9833, 127.6568]]),
+    },
+    {
+      type: 'way', id: 3, tags: { waterway: 'river', name: '북한강' },
+      geometry: ring([
+        [37.9833, 127.6568], [37.9796, 127.6519], [37.9788, 127.6491],
+        [37.9802, 127.6475], [37.98337, 127.64599], [37.983002, 127.644284],
+      ]),
+    },
+  ] };
   await context.route(/\/rivers\.geojson(?:\?|$)/, async (route) => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rivers) });
   });
@@ -549,10 +562,10 @@ test('Chuncheonho route does not cross the Owol road and forest embankment', asy
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof waterRoute === 'function');
   const result = await page.evaluate(() => waterRoute({ lat: 37.986, lng: 127.654 }, { lat: 37.983002, lng: 127.644284 }));
-  expect(result.source).toBe('static-river-water');
-  expect(result.access).toHaveLength(1);
-  expect(result.coords[result.coords.length - 1][1]).toBeGreaterThan(127.653);
-  expect(result.access[0][1]).toEqual([37.983002, 127.644284]);
+  expect(result.access).toEqual([]);
+  expect(result.coords[result.coords.length - 1]).toEqual([37.983002, 127.644284]);
+  expect(result.coords.some((p) => p[0] < 37.98 && p[1] < 127.652)).toBe(true);
+  expect(result.coords.some((p) => p[1] > 127.656)).toBe(true);
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();
