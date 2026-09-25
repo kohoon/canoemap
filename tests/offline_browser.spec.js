@@ -571,6 +571,52 @@ test('Chuncheonho route follows the mapped waterway into Owol-ri without a land 
   await browser.close();
 });
 
+test('water route reaches a cove endpoint by following the water surface around land', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
+  const land = [37.006, 127.003, 37.017, 127.008];
+  const overpass = { elements: [
+    { type: 'relation', id: 1, tags: { natural: 'water' }, members: [
+      { role: 'outer', geometry: ring([[36.995, 126.995], [37.02, 126.995], [37.02, 127.015], [36.995, 127.015], [36.995, 126.995]]) },
+      { role: 'inner', geometry: ring([[land[0], land[1]], [land[2], land[1]], [land[2], land[3]], [land[0], land[3]], [land[0], land[1]]]) },
+    ] },
+    { type: 'way', id: 2, tags: { waterway: 'river', name: '테스트강' }, geometry: ring([[36.998, 127.01], [37.018, 127.01]]) },
+  ] };
+  await context.route(/\/rivers\.geojson(?:\?|$)/, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ type: 'FeatureCollection', features: [] }) });
+  });
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(overpass) });
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof waterRoute === 'function');
+  const result = await page.evaluate(async ({ land }) => {
+    const route = await waterRoute({ lat: 37.015, lng: 127.01 }, { lat: 37.012, lng: 127.0 });
+    let crossesLand = false;
+    for (let i = 1; i < route.coords.length; i++) {
+      const a = route.coords[i - 1], b = route.coords[i];
+      for (let step = 0; step <= 40; step++) {
+        const t = step / 40, p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+        if (p[0] > land[0] && p[0] < land[2] && p[1] > land[1] && p[1] < land[3]) crossesLand = true;
+      }
+    }
+    return { route, crossesLand };
+  }, { land });
+  expect(result.route.access).toEqual([]);
+  expect(result.route.coords[result.route.coords.length - 1]).toEqual([37.012, 127.0]);
+  expect(result.route.coords.some((p) => p[0] < land[0] || p[0] > land[2])).toBe(true);
+  expect(result.crossesLand).toBe(false);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('water route enters the nearest edge projection without an endpoint backtrack', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

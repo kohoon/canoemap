@@ -4196,16 +4196,26 @@ async function waterRoute(p1,p2){
     const origin=[pt.lat,pt.lng],candidates=graphEdges.map(function(edge){return edgeProjection(origin,edge);});
     candidates.sort(function(a,b){return a.dist-b.dist;});
     const limit=Math.min(candidates.length,240),nearest=candidates[0];
-    for(let i=0;i<limit;i++){
-      const c=candidates[i];if(c.dist>Math.max(2500,(nearest?nearest.dist:0)+2500))break;
-      if(!waterChord(origin,c.p))continue;
-      if(c.t<.00001)return {key:c.edge[0],dist:c.dist,wet:true,edgeId:c.edgeId,projection:c};
-      if(c.t>.99999)return {key:c.edge[1],dist:c.dist,wet:true,edgeId:c.edgeId,projection:c};
+    function attach(c,connector){
+      if(c.t<.00001)return {key:c.edge[0],dist:c.dist,wet:true,edgeId:c.edgeId,projection:c,connector:connector};
+      if(c.t>.99999)return {key:c.edge[1],dist:c.dist,wet:true,edgeId:c.edgeId,projection:c,connector:connector};
       nodes[tag]=c.p;adj[tag]=[];
       const da=hav(c.p,nodes[c.edge[0]]),db=hav(c.p,nodes[c.edge[1]]);
       adj[tag].push([c.edge[0],da],[c.edge[1],db]);
       (adj[c.edge[0]]=adj[c.edge[0]]||[]).push([tag,da]);(adj[c.edge[1]]=adj[c.edge[1]]||[]).push([tag,db]);
-      return {key:tag,dist:c.dist,wet:true,edgeId:c.edgeId,projection:c};
+      return {key:tag,dist:c.dist,wet:true,edgeId:c.edgeId,projection:c,connector:connector};
+    }
+    for(let i=0;i<limit;i++){
+      const c=candidates[i];if(c.dist>Math.max(2500,(nearest?nearest.dist:0)+2500))break;
+      if(!waterChord(origin,c.p))continue;
+      return attach(c,[origin,c.p]);
+    }
+    // 만입부·반도 뒤의 지점은 중심선까지 직선으로 닿지 않아도 같은 수면 안에서 우회 연결한다.
+    const tried={};let surfaceTries=0;
+    for(let i=0;i<limit&&surfaceTries<6;i++){
+      const c=candidates[i];if(c.dist>2200)break;
+      const pk=c.p[0].toFixed(4)+','+c.p[1].toFixed(4);if(tried[pk])continue;tried[pk]=true;surfaceTries++;
+      const connector=waterSurfacePath(origin,c.p);if(connector)return attach(c,connector);
     }
     return null;
   }
@@ -4218,7 +4228,7 @@ async function waterRoute(p1,p2){
     // 호수의 가장 가까운 중심선이 반도 너머에 있을 수 있으므로 수면으로 직접 연결되는 후보를 고른다.
     const limit=Math.min(candidates.length,160), maxDist=Math.max(2500,nearest.dist+2500);
     for(let i=0;i<limit&&candidates[i].dist<=maxDist;i++){
-      const c=candidates[i]; if(waterChord(origin,nodes[c.key]))return {key:c.key,dist:c.dist,wet:true};
+      const c=candidates[i]; if(waterChord(origin,nodes[c.key]))return {key:c.key,dist:c.dist,wet:true,connector:[origin,nodes[c.key]]};
     }
     return {key:nearest.key,dist:nearest.dist,wet:false};
   }
@@ -4237,8 +4247,8 @@ async function waterRoute(p1,p2){
   const directM=hav([p1.lat,p1.lng],[p2.lat,p2.lng]);
   if(directM>=10000 && routeM>directM*3) return {err:'detour'};
   let raw=path.map(k=>nodes[k]);
-  if(near1.wet)raw.unshift([p1.lat,p1.lng]);
-  if(near2.wet)raw.push([p2.lat,p2.lng]);
+  if(near1.wet){const c=near1.connector||[[p1.lat,p1.lng],nodes[s1]];raw=c.slice(0,-1).concat(raw);}
+  if(near2.wet){const c=near2.connector||[[p2.lat,p2.lng],nodes[s2]];raw=raw.concat(c.slice().reverse().slice(1));}
   const coords=shortcutWaterPath(raw);
   let waterM=0;for(let i=1;i<coords.length;i++)waterM+=hav(coords[i-1],coords[i]);
   const access=[];
