@@ -228,9 +228,10 @@
   .addplace-btn.sugg{background:#1565c0}
   .addplace-btn.landcheck{background:#455a64}
   .addplace-btn.landcheck:disabled{opacity:.62;cursor:wait}
-  .addr-drag-handle{display:flex;align-items:center;justify-content:center;gap:6px;margin:-5px 22px 8px -2px;padding:5px 8px;border-radius:7px;background:#eef3f5;color:#60747d;font:700 10.5px/1 sans-serif;letter-spacing:-.1px;cursor:grab;user-select:none;touch-action:none}
-  .addr-drag-handle:active{cursor:grabbing;background:#e2ebef;color:#36515e}
-  .addr-drag-grip{font-size:13px;letter-spacing:-3px;transform:rotate(90deg)}
+  .addr-drag-handle{display:flex;align-items:center;justify-content:center;height:18px;margin:-8px 26px 3px 0;cursor:grab;user-select:none;touch-action:none}
+  .addr-drag-handle:active{cursor:grabbing}
+  .addr-drag-grip{display:block;width:34px;height:4px;border-radius:999px;background:#c9d3d8;transition:width .12s ease,background .12s ease}
+  .addr-drag-handle:hover .addr-drag-grip,.addr-drag-handle:active .addr-drag-grip{width:42px;background:#8ea1aa}
   .leaflet-popup.addr-popup{will-change:margin-left,margin-bottom}
   .addr-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:9px}
   .addr-actions .addplace-btn{margin-top:0;min-height:32px;border-radius:8px;padding:7px 10px;line-height:1.1}
@@ -1434,7 +1435,7 @@ function enableAddressPopupDrag(pop){
 }
 async function showAddress(lat,lng){
   const now=Date.now(); if(now-_lastAddr<800) return; _lastAddr=now;   // 중복 호출 방지
-  const grip='<div class="addr-drag-handle" role="button" aria-label="주소 카드 이동"><span class="addr-drag-grip">•••</span>끌어서 이동</div>';
+  const grip='<div class="addr-drag-handle" role="button" aria-label="주소 카드 이동"><span class="addr-drag-grip" aria-hidden="true"></span></div>';
   const pop=L.popup({offset:L.point(0,-52),keepInView:false,autoPanPadding:[18,18]}).setLatLng([lat,lng]).setContent(grip+'주소 조회 중…').openOn(map);enableAddressPopupDrag(pop);
   let r=await vworldReverse(lat,lng);
   let main='', sub='';

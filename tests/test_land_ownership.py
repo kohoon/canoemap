@@ -16,6 +16,8 @@ class LandOwnershipTest(unittest.TestCase):
         self.assertIn("map.on('popupclose',function(e){clearLandOwnership()", source)
         self.assertIn("function enableAddressPopupDrag(pop)", source)
         self.assertIn('class="addr-drag-handle"', source)
+        self.assertIn('class="addr-drag-grip" aria-hidden="true"', source)
+        self.assertNotIn('>끌어서 이동</div>', source)
         self.assertNotIn("ownerName", source)
 
 
