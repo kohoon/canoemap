@@ -4019,7 +4019,7 @@ async function waterRoute(p1,p2){
     const h=Math.sin(dla/2)*Math.sin(dla/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dlo/2)*Math.sin(dlo/2); return 2*R*Math.asin(Math.sqrt(h)); }
   // 춘천호 오월1교 일대의 넓은 수면 폴리곤이 둑을 물로 오인하므로 임의 직선 단축만 막는다.
   // OSM waterway 중심선은 오월교 아래 실제 수로를 따르므로 그래프 간선에는 이 경계를 적용하지 않는다.
-  const navigationBarriers=[[[37.9875,127.6468],[37.9785,127.6535]]];
+  const navigationBarriers=[[[37.9905,127.6428],[37.9765,127.6575]]];
   function _orient(a,b,c){return (b[1]-a[1])*(c[0]-a[0])-(b[0]-a[0])*(c[1]-a[1]);}
   function _segCross(a,b,c,d){const ab1=_orient(a,b,c),ab2=_orient(a,b,d),cd1=_orient(c,d,a),cd2=_orient(c,d,b);return ((ab1<=0&&ab2>=0)||(ab1>=0&&ab2<=0))&&((cd1<=0&&cd2>=0)||(cd1>=0&&cd2<=0));}
   function crossesNavigationBarrier(a,b){return navigationBarriers.some(function(line){for(let i=1;i<line.length;i++)if(_segCross(a,b,line[i-1],line[i]))return true;return false;});}
@@ -4045,9 +4045,9 @@ async function waterRoute(p1,p2){
   function lineDist(pt,item){const bb=item.b,pad=.0012;if(pt[0]<bb[0]-pad||pt[0]>bb[2]+pad||pt[1]<bb[1]-pad||pt[1]>bb[3]+pad)return 1e18;const line=item.p;let best=1e18,latR=pt[0]*toR,c=Math.cos(latR);for(let i=1;i<line.length;i++){const a=line[i-1],b=line[i],ax=(a[1]-pt[1])*111320*c,ay=(a[0]-pt[0])*110540,bx=(b[1]-pt[1])*111320*c,by=(b[0]-pt[0])*110540,dx=bx-ax,dy=by-ay,t=Math.max(0,Math.min(1,-(ax*dx+ay*dy)/((dx*dx+dy*dy)||1))),x=ax+t*dx,y=ay+t*dy;best=Math.min(best,Math.sqrt(x*x+y*y));}return best;}
   function passableStructure(pt){for(const line of passLines){if(lineDist(pt,line)<=90)return true;}return false;}
   const wetMemo={};
-  function plausibleWater(pt){const mk=pt[0].toFixed(4)+','+pt[1].toFixed(4);if(mk in wetMemo)return wetMemo[mk];if(inWater(pt)||passableStructure(pt))return wetMemo[mk]=true;let d=1e18;for(const x of waterOuter)d=Math.min(d,edgeDist(pt,x));for(const x of waterInner)d=Math.min(d,edgeDist(pt,x));return wetMemo[mk]=d<=180;}
+  function plausibleWater(pt){const mk=pt[0].toFixed(4)+','+pt[1].toFixed(4);if(mk in wetMemo)return wetMemo[mk];if(inWater(pt)||passableStructure(pt))return wetMemo[mk]=true;let d=1e18;for(const x of waterOuter)d=Math.min(d,edgeDist(pt,x));for(const x of waterInner)d=Math.min(d,edgeDist(pt,x));return wetMemo[mk]=d<=35;}
   function waterChord(a,b){const d=hav(a,b);if(d>450||crossesNavigationBarrier(a,b))return false;const steps=Math.max(2,Math.ceil(d/60));let plausible=0,dryRun=0,maxDry=0;for(let i=0;i<=steps;i++){const t=i/steps,p=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];if(plausibleWater(p)){plausible++;dryRun=0;}else{dryRun++;maxDry=Math.max(maxDry,dryRun);}}return plausible/(steps+1)>=.9&&maxDry*60<=120;}
-  function shortcutWaterPath(raw){if(raw.length<3||!waterOuter.length)return raw;const out=[raw[0]];let i=0;while(i<raw.length-1){let good=i+1,bad=raw.length,step=2;while(i+step<raw.length){if(waterChord(raw[i],raw[i+step])){good=i+step;step*=2;}else{bad=i+step;break;}}if(bad===raw.length&&good<raw.length-1&&waterChord(raw[i],raw[raw.length-1]))good=raw.length-1;else{let lo=good+1,hi=Math.min(bad-1,raw.length-1);while(lo<=hi){const mid=(lo+hi)>>1;if(waterChord(raw[i],raw[mid])){good=mid;lo=mid+1;}else hi=mid-1;}}out.push(raw[good]);i=good;}return out;}
+  function shortcutWaterPath(raw){if(raw.length<3||!waterOuter.length)return raw;const out=[raw[0]];let i=0;while(i<raw.length-1){let good=i+1,bad=raw.length,step=2;while(i+step<raw.length){if(waterLineClear(raw[i],raw[i+step])){good=i+step;step*=2;}else{bad=i+step;break;}}if(bad===raw.length&&good<raw.length-1&&waterLineClear(raw[i],raw[raw.length-1]))good=raw.length-1;else{let lo=good+1,hi=Math.min(bad-1,raw.length-1);while(lo<=hi){const mid=(lo+hi)>>1;if(waterLineClear(raw[i],raw[mid])){good=mid;lo=mid+1;}else hi=mid-1;}}out.push(raw[good]);i=good;}return out;}
   function waterLineClear(a,b){
     if(crossesNavigationBarrier(a,b))return false;
     const d=hav(a,b),steps=Math.max(2,Math.ceil(d/8));let dry=0;
