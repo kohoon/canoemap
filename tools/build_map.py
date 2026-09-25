@@ -375,14 +375,17 @@ __GTAG__
   .addplace-btn.sugg{background:#1565c0}
   .addplace-btn.landcheck{background:#455a64}
   .addplace-btn.landcheck:disabled{opacity:.62;cursor:wait}
-  .land-own-result{margin-top:8px;max-width:270px}
-  .land-own-card{padding:9px 10px;border-radius:8px;background:#f5f7f8;color:#263238;font-size:12px;line-height:1.5}
-  .land-own-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
-  .land-own-head b{font-size:13px}
-  .land-own-badge{display:inline-block;padding:2px 7px;border-radius:10px;color:#fff;font-size:11px;font-weight:700;white-space:nowrap}
+  .addr-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .addr-actions .addplace-btn{margin-top:0;min-height:32px;border-radius:8px;padding:7px 10px;line-height:1.1}
+  .land-own-result{margin-top:9px;max-width:280px}
+  .land-own-card{padding:11px 12px;border:1px solid #e4e9eb;border-radius:10px;background:#f7f9fa;color:#263238;font-size:12px;line-height:1.4;box-shadow:0 1px 2px rgba(38,50,56,.04)}
+  .land-own-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+  .land-own-head b{font-size:13px;letter-spacing:-.2px}
+  .land-own-badge{display:inline-flex;align-items:center;min-height:22px;padding:1px 8px;border-radius:12px;color:#fff;font-size:11px;font-weight:700;white-space:nowrap}
   .land-own-badge.private{background:#ef6c00}.land-own-badge.national{background:#1565c0}.land-own-badge.public{background:#00897b}.land-own-badge.unknown{background:#757575}
-  .land-own-grid{display:grid;grid-template-columns:64px 1fr;gap:2px 7px}.land-own-grid span:nth-child(odd){color:#748087}
-  .land-own-warn{margin-top:6px;padding-top:6px;border-top:1px solid #dce3e5;color:#795548;font-size:11px}
+  .land-own-grid{display:grid;grid-template-columns:58px minmax(0,1fr);gap:5px 8px}.land-own-grid span:nth-child(odd){color:#748087}.land-own-grid b{font-weight:700;color:#263238}
+  .land-own-warn{margin-top:9px;padding:8px 0 0 15px;border-top:1px solid #dce3e5;color:#795548;font-size:10.5px;line-height:1.45;position:relative}.land-own-warn:before{content:'※';position:absolute;left:0;top:8px}
+  .land-own-link{display:flex;align-items:center;justify-content:center;margin-top:9px;padding:7px 9px;border:1px solid #b7cbd5;border-radius:7px;background:#fff;color:#1565c0!important;text-decoration:none!important;font:700 11px/1.2 sans-serif}
   .addform .ap-name{font:700 14px sans-serif;color:#1f3a34;margin:6px 0 4px}
   .addform .ap-meta{font:600 12px sans-serif;color:#778;margin:4px 0 4px}
   .addform #apName{width:100%;box-sizing:border-box;padding:8px 9px;margin:0 0 8px;border:1px solid #bbb;border-radius:5px;font-size:14px}
@@ -1588,16 +1591,16 @@ async function checkLandOwnership(){
     const rawArea=Number(row.lndpclAr||row.ndpclAr),d={ok:true,category:category,label:label,ownerType:ownerType.slice(0,40),landCategory:String(row.lndcgrCodeNm||'').slice(0,40),area:isFinite(rawArea)&&rawArea>=0?rawArea:null,updatedAt:String(row.lastUpdtDt||'').slice(0,20),geometry:feature.geometry,pnu:pnu};
     const cat=['private','national','public'].indexOf(d.category)>=0?d.category:'unknown';
     const area=d.area==null?'—':Number(d.area).toLocaleString('ko-KR')+'㎡';
-    box.innerHTML='<div class="land-own-card"><div class="land-own-head"><b>토지소유 확인</b><span class="land-own-badge '+cat+'">'+pmEsc(d.label||'확인 불가')+'</span></div>'
+    box.innerHTML='<div class="land-own-card"><div class="land-own-head"><b>토지 정보</b><span class="land-own-badge '+cat+'">'+pmEsc(d.label||'확인 불가')+'</span></div>'
       +'<div class="land-own-grid"><span>소유구분</span><b>'+pmEsc(d.ownerType||'미분류')+'</b><span>지목</span><b>'+pmEsc(d.landCategory||'—')+'</b><span>면적</span><b>'+area+'</b><span>기준일</span><b>'+pmEsc(d.updatedAt||'—')+'</b></div>'
-      +'<div class="land-own-warn">소유 구분은 출입·진수·캠핑 허가를 의미하지 않습니다.</div><a class="addplace-btn" target="_blank" rel="noopener" href="https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?isNoScr=script&mode=search&pnu='+encodeURIComponent(pnu)+'">공식 토지이용계획 보기 ↗</a></div>';
+      +'<div class="land-own-warn">소유 구분은 출입·진수·캠핑 허가를 의미하지 않습니다.</div><a class="land-own-link" target="_blank" rel="noopener" href="https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?isNoScr=script&mode=search&pnu='+encodeURIComponent(pnu)+'">토지이음 상세보기&nbsp;↗</a></div>';
     if(d.geometry){_landOwnershipLayer=L.geoJSON({type:'Feature',geometry:d.geometry,properties:{}},{style:{color:_landOwnerColor(cat),weight:3,fillColor:_landOwnerColor(cat),fillOpacity:.2,dashArray:cat==='private'?'7 5':null}}).addTo(map);}
     gaEvent('land_ownership_check',{result:cat});
   }catch(e){
     const code=String(e&&e.message||'');
     const msg=code==='not-configured'?'소유정보 연동 준비 중입니다.':(code==='not-found'?'이 위치의 필지 정보를 찾지 못했습니다.':(code==='rate-limit'?'잠시 후 다시 확인해 주세요.':'소유정보를 불러오지 못했습니다.'));
     box.innerHTML='<div class="land-own-card"><span class="land-own-badge unknown">확인 불가</span><br><small>'+msg+'</small></div>';
-  }finally{btn.disabled=false;btn.textContent='🏷 토지소유 다시 확인';}
+  }finally{btn.disabled=false;btn.textContent='🏷 다시 조회';}
 }
 function copyAddress(){
   const a=window._curAddr; if(!a) return;
@@ -1617,8 +1620,8 @@ async function showAddress(lat,lng){
   if(sub) h+='<br><small>'+sub+'</small>';
   h+='<br><small>'+lat.toFixed(5)+', '+lng.toFixed(5)+'</small>'+extLinks(lat,lng,main||'위치');
   window._curAddr={lat:lat, lng:lng, name:main||''};
-  h+='<br><button class="addplace-btn" onclick="copyAddress()">주소복사</button>';
-  h+=' <button id="landOwnBtn" class="addplace-btn landcheck" onclick="checkLandOwnership()">🏷 토지소유 확인</button><div id="landOwnResult" class="land-own-result"></div>';
+  h+='<div class="addr-actions"><button class="addplace-btn" onclick="copyAddress()">주소복사</button>';
+  h+='<button id="landOwnBtn" class="addplace-btn landcheck" onclick="checkLandOwnership()">🏷 토지소유</button></div><div id="landOwnResult" class="land-own-result"></div>';
   if(isAdmin()) h+='<br><button class="addplace-btn" onclick="addPlace()">📌 장소 등록</button>';
   else if(getUser()&&getUser().uid) h+='<br><button class="addplace-btn sugg" onclick="suggestPlace()">💡 장소 제안</button>';
   pop.setContent(h);
