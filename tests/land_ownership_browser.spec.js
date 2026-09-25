@@ -1,0 +1,61 @@
+const { test, expect, chromium } = require('@playwright/test');
+const fs = require('fs');
+const http = require('http');
+const path = require('path');
+
+const root = path.resolve(__dirname, '..');
+let server;
+let baseURL;
+
+test.beforeAll(async () => {
+  server = http.createServer((request, response) => {
+    const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+    const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+    const file = path.resolve(root, relative);
+    if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+      response.writeHead(404).end('not found');
+      return;
+    }
+    const types = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript', '.geojson': 'application/geo+json', '.png': 'image/png' };
+    response.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' });
+    fs.createReadStream(file).pipe(response);
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  baseURL = `http://127.0.0.1:${server.address().port}`;
+});
+
+test.afterAll(async () => {
+  if (server) await new Promise((resolve) => server.close(resolve));
+});
+
+test('address popup checks and clears one parcel on demand', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/land-ownership**', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      ok: true, category: 'private', label: '사유지', ownerType: '개인', landCategory: '전', area: 1284,
+      updatedAt: '2026-08-31', geometry: { type: 'Polygon', coordinates: [[[127.71, 37.94], [127.72, 37.94], [127.72, 37.95], [127.71, 37.94]]] },
+    }) });
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(async () => {
+    document.querySelector('#gate').style.display = 'none';
+    vworldReverse = async () => ({ parcel: '강원특별자치도 춘천시 서면 오월리 51-2', road: '' });
+    await showAddress(37.945, 127.715);
+  });
+  await expect(page.locator('#landOwnBtn')).toBeVisible();
+  await page.locator('#landOwnBtn').click();
+  await expect(page.locator('#landOwnResult')).toContainText('사유지');
+  await expect(page.locator('#landOwnResult')).toContainText('1,284㎡');
+  expect(await page.evaluate(() => !!_landOwnershipLayer && map.hasLayer(_landOwnershipLayer))).toBe(true);
+  await page.evaluate(() => map.closePopup());
+  expect(await page.evaluate(() => _landOwnershipLayer === null)).toBe(true);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});

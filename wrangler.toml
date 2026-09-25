@@ -9,6 +9,7 @@ compatibility_date = "2024-09-01"
 SITE_URL = "https://canoe.crowdbase.kr/"
 TOUR_URL = "https://tour.crowdbase.kr/"
 KAKAO_REST_KEY = "75762a42634f319b1187427cc00e2b37"
+VWORLD_KEY = "9EC86A7C-7341-3FE5-BA0D-FDB52EC8E3EE"
 # 관리자 키(ADMIN_KEY)는 공개 레포에 두지 않음 — Cloudflare 대시보드 Secret 으로 추가
 
 # 등록 장소/코멘트 저장용 KV

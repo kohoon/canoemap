@@ -226,6 +226,16 @@
   .loc-dot{filter:drop-shadow(0 0 3px rgba(25,118,210,.6))}
   .addplace-btn{margin-top:7px;background:#00b894;color:#fff;border:0;border-radius:6px;padding:6px 11px;font:600 12px sans-serif;cursor:pointer}
   .addplace-btn.sugg{background:#1565c0}
+  .addplace-btn.landcheck{background:#455a64}
+  .addplace-btn.landcheck:disabled{opacity:.62;cursor:wait}
+  .land-own-result{margin-top:8px;max-width:270px}
+  .land-own-card{padding:9px 10px;border-radius:8px;background:#f5f7f8;color:#263238;font-size:12px;line-height:1.5}
+  .land-own-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+  .land-own-head b{font-size:13px}
+  .land-own-badge{display:inline-block;padding:2px 7px;border-radius:10px;color:#fff;font-size:11px;font-weight:700;white-space:nowrap}
+  .land-own-badge.private{background:#ef6c00}.land-own-badge.national{background:#1565c0}.land-own-badge.public{background:#00897b}.land-own-badge.unknown{background:#757575}
+  .land-own-grid{display:grid;grid-template-columns:64px 1fr;gap:2px 7px}.land-own-grid span:nth-child(odd){color:#748087}
+  .land-own-warn{margin-top:6px;padding-top:6px;border-top:1px solid #dce3e5;color:#795548;font-size:11px}
   .addform .ap-name{font:700 14px sans-serif;color:#1f3a34;margin:6px 0 4px}
   .addform .ap-meta{font:600 12px sans-serif;color:#778;margin:4px 0 4px}
   .addform #apName{width:100%;box-sizing:border-box;padding:8px 9px;margin:0 0 8px;border:1px solid #bbb;border-radius:5px;font-size:14px}
@@ -1390,6 +1400,32 @@ async function nominatimReverse(lat,lng){
   }catch(e){ return ''; }
 }
 let _lastAddr=0;
+let _landOwnershipLayer=null;
+function clearLandOwnership(){
+  if(_landOwnershipLayer){try{map.removeLayer(_landOwnershipLayer);}catch(e){}_landOwnershipLayer=null;}
+}
+function _landOwnerColor(category){return category==='private'?'#ef6c00':(category==='national'?'#1565c0':(category==='public'?'#00897b':'#757575'));}
+async function checkLandOwnership(){
+  const a=window._curAddr,btn=document.getElementById('landOwnBtn'),box=document.getElementById('landOwnResult');
+  if(!a||!btn||!box)return;
+  btn.disabled=true;btn.textContent='확인 중…';box.innerHTML='<small>선택 지점의 필지를 찾고 있습니다.</small>';clearLandOwnership();
+  try{
+    const r=await fetch(fapi('/land-ownership')+'?lat='+encodeURIComponent(a.lat)+'&lng='+encodeURIComponent(a.lng));
+    let d={};try{d=await r.json();}catch(e){}
+    if(!r.ok||!d.ok)throw new Error(d.error||('http-'+r.status));
+    const cat=['private','national','public'].indexOf(d.category)>=0?d.category:'unknown';
+    const area=d.area==null?'—':Number(d.area).toLocaleString('ko-KR')+'㎡';
+    box.innerHTML='<div class="land-own-card"><div class="land-own-head"><b>토지소유 확인</b><span class="land-own-badge '+cat+'">'+pmEsc(d.label||'확인 불가')+'</span></div>'
+      +'<div class="land-own-grid"><span>소유구분</span><b>'+pmEsc(d.ownerType||'미분류')+'</b><span>지목</span><b>'+pmEsc(d.landCategory||'—')+'</b><span>면적</span><b>'+area+'</b><span>기준일</span><b>'+pmEsc(d.updatedAt||'—')+'</b></div>'
+      +'<div class="land-own-warn">소유 구분은 출입·진수·캠핑 허가를 의미하지 않습니다.</div></div>';
+    if(d.geometry){_landOwnershipLayer=L.geoJSON({type:'Feature',geometry:d.geometry,properties:{}},{style:{color:_landOwnerColor(cat),weight:3,fillColor:_landOwnerColor(cat),fillOpacity:.2,dashArray:cat==='private'?'7 5':null}}).addTo(map);}
+    gaEvent('land_ownership_check',{result:cat});
+  }catch(e){
+    const code=String(e&&e.message||'');
+    const msg=code==='not-configured'?'소유정보 연동 준비 중입니다.':(code==='not-found'?'이 위치의 필지 정보를 찾지 못했습니다.':(code==='rate-limit'?'잠시 후 다시 확인해 주세요.':'소유정보를 불러오지 못했습니다.'));
+    box.innerHTML='<div class="land-own-card"><span class="land-own-badge unknown">확인 불가</span><br><small>'+msg+'</small></div>';
+  }finally{btn.disabled=false;btn.textContent='🏷 토지소유 다시 확인';}
+}
 function copyAddress(){
   const a=window._curAddr; if(!a) return;
   const txt=[a.name||'', (a.lat&&a.lng)?(a.lat.toFixed(5)+', '+a.lng.toFixed(5)):''].filter(Boolean).join('\\n');
@@ -1409,10 +1445,12 @@ async function showAddress(lat,lng){
   h+='<br><small>'+lat.toFixed(5)+', '+lng.toFixed(5)+'</small>'+extLinks(lat,lng,main||'위치');
   window._curAddr={lat:lat, lng:lng, name:main||''};
   h+='<br><button class="addplace-btn" onclick="copyAddress()">주소복사</button>';
+  h+=' <button id="landOwnBtn" class="addplace-btn landcheck" onclick="checkLandOwnership()">🏷 토지소유 확인</button><div id="landOwnResult" class="land-own-result"></div>';
   if(isAdmin()) h+='<br><button class="addplace-btn" onclick="addPlace()">📌 장소 등록</button>';
   else if(getUser()&&getUser().uid) h+='<br><button class="addplace-btn sugg" onclick="suggestPlace()">💡 장소 제안</button>';
   pop.setContent(h);
 }
+map.on('popupclose',clearLandOwnership);
 // ---- 어드민: 장소 등록 ----
 // 일반 사용자: 장소 제안(런칭지/랜딩지/기타 + 코멘트) → 시트
 function closeSg(){ document.getElementById('sgmodal').classList.remove('open'); }

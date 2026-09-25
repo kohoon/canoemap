@@ -12,6 +12,7 @@ import { MEASURE_SHARE_CORRECTIONS } from "./measure-share-corrections.mjs";
 import { coursePreviewKey, courseShareHtml, normalizeCourseShareId } from "./course-share.mjs";
 import { applyCourseCorrection, coursePreviewVersionIsCurrent } from "./course-corrections.mjs";
 import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
+import { lookupLandOwnership, validLandOwnershipPoint } from "./land-ownership.mjs";
 
 /**
  * Cloudflare Worker — 카카오 로그인 OAuth 콜백.
@@ -336,6 +337,32 @@ export default {
         "Cache-Control": url.searchParams.get("v") === preview.v ? "public, max-age=31536000, immutable" : "public, max-age=300",
         "Access-Control-Allow-Origin": "*",
       } });
+    }
+
+    // 선택 지점 1필지의 소유구분만 조회한다. 전국 소유 레이어를 상시 노출하지 않는다.
+    if (url.pathname === "/land-ownership") {
+      const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+      const J = (body, status = 200, cache = "no-store") => new Response(JSON.stringify(body), {
+        status, headers: { ...cors, "Content-Type": "application/json; charset=utf-8", "Cache-Control": cache },
+      });
+      if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+      if (req.method !== "GET") return J({ ok: false, error: "method" }, 405);
+      if (!_allowedOrigin(req, env)) return J({ ok: false, error: "forbidden-origin" }, 403);
+      const lat = Number(url.searchParams.get("lat")), lng = Number(url.searchParams.get("lng"));
+      if (!validLandOwnershipPoint(lat, lng)) return J({ ok: false, error: "bad-point" }, 400);
+      if (!env.VWORLD_KEY) return J({ ok: false, error: "not-configured" }, 503);
+      const ip = req.headers.get("CF-Connecting-IP") || "0";
+      if (await _rateLimited(env, "land_ownership", ip, 30)) return J({ ok: false, error: "rate-limit" }, 429);
+      const cacheKey = url.origin + "/land-ownership?lat=" + lat.toFixed(5) + "&lng=" + lng.toFixed(5);
+      return _cacheJson(ctx, cacheKey, async () => {
+        try {
+          const result = await lookupLandOwnership(env, lat, lng);
+          return result ? J(result, 200, "public, max-age=86400") : J({ ok: false, error: "not-found" }, 404);
+        } catch (e) {
+          const kind = String(e && e.message || "upstream");
+          return J({ ok: false, error: kind === "missing-key" ? "not-configured" : "upstream" }, kind === "missing-key" ? 503 : 502);
+        }
+      }, 86400);
     }
 
     // 코스 소유자/관리자가 브라우저에서 렌더한 1200×630 JPEG를 저장한다.
