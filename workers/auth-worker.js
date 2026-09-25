@@ -360,7 +360,7 @@ export default {
           return result ? J(result, 200, "public, max-age=86400") : J({ ok: false, error: "not-found" }, 404);
         } catch (e) {
           const kind = String(e && e.message || "upstream");
-          return J({ ok: false, error: kind === "missing-key" ? "not-configured" : "upstream" }, kind === "missing-key" ? 503 : 502);
+          return J({ ok: false, error: kind === "missing-key" ? "not-configured" : "upstream", detail: kind.slice(0, 80) }, kind === "missing-key" ? 503 : 502);
         }
       }, 86400);
     }

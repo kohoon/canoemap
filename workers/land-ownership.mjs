@@ -63,7 +63,7 @@ export function normalizeLandOwnership(parcelData, ledgerData) {
 }
 
 async function fetchJson(url, fetchImpl) {
-  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 6500);
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 12000);
   try {
     const response = await fetchImpl(url, { signal: ctl.signal });
     if (!response.ok) throw new Error("upstream-" + response.status);
@@ -85,13 +85,17 @@ export async function lookupLandOwnership(env, lat, lng, fetchImpl = fetch) {
     data: "LP_PA_CBND_BUBUN", geomfilter: `POINT(${Number(lng)} ${Number(lat)})`, key, domain,
   };
   Object.entries(parcelParams).forEach(([name, value]) => parcelUrl.searchParams.set(name, value));
-  const parcelData = await fetchJson(parcelUrl.toString(), fetchImpl);
+  let parcelData;
+  try { parcelData = await fetchJson(parcelUrl.toString(), fetchImpl); }
+  catch (e) { throw new Error("parcel-" + String(e && e.message || "upstream")); }
   const feature = firstFeature(parcelData), pnu = String(feature && feature.properties && feature.properties.pnu || "");
   if (!/^[0-9]{19}$/.test(pnu)) return null;
 
   const ledgerUrl = new URL("https://api.vworld.kr/ned/data/ladfrlList");
   Object.entries({ format: "json", numOfRows: "10", pageNo: "1", key, domain, pnu })
     .forEach(([name, value]) => ledgerUrl.searchParams.set(name, value));
-  const ledgerData = await fetchJson(ledgerUrl.toString(), fetchImpl);
+  let ledgerData;
+  try { ledgerData = await fetchJson(ledgerUrl.toString(), fetchImpl); }
+  catch (e) { throw new Error("ledger-" + String(e && e.message || "upstream")); }
   return normalizeLandOwnership(parcelData, ledgerData);
 }
