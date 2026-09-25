@@ -905,7 +905,8 @@ test('historical imagery opens from the satellite legend row at the current map 
 
   const button = page.locator('.sat-base-row .wayback-open');
   await expect(button).toHaveText('🕘 과거');
-  await button.click({ force: true, timeout: 5000 });
+  // Leaflet의 모바일 레이어 컨트롤은 접힌 상태에서 합성 클릭을 삼킬 수 있어 DOM 클릭으로 실제 핸들러를 검증한다.
+  await page.evaluate(() => document.querySelector('.sat-base-row .wayback-open').click());
   await page.waitForFunction(() => !!_wbTarget && document.getElementById('waybackCtl').classList.contains('on'), null, { timeout: 5000 });
   const opened = await page.evaluate(() => ({
     lat: _wbTarget.lat,
@@ -926,6 +927,37 @@ test('historical imagery opens from the satellite legend row at the current map 
   await expect(page.locator('#waybackDate option')).toHaveText('2023-01-01 배포 · 변화 확인');
   await expect(page.locator('#waybackNote')).toContainText('현재 화면 5개 지점');
   await expect(page.locator('#waybackNote')).toContainText('촬영일이 아닌 ESRI 배포일');
+  const fullMode = await page.evaluate(() => ({
+    mode: _wbMode,
+    bounded: !!_wbLayer.options.bounds,
+    clip: _wbLayer.getContainer().style.clip,
+    compareSplit: document.getElementById('waybackCompare').classList.contains('split'),
+  }));
+  expect(fullMode).toEqual({ mode: 'full', bounded: false, clip: '', compareSplit: false });
+
+  // 과거 영상을 연 지점에서 멀리 이동해도 같은 배포본 레이어가 계속 유지되어야 한다.
+  await page.evaluate(() => { map.setView([35.18, 129.08], 12, { animate: false }); });
+  await page.waitForTimeout(100);
+  const afterMove = await page.evaluate(() => ({
+    center: map.getCenter(),
+    active: map.hasLayer(_wbLayer),
+    version: _wbLayer._url.includes('/tile/456/'),
+    bounded: !!_wbLayer.options.bounds,
+  }));
+  expect(afterMove.active).toBe(true);
+  expect(afterMove.version).toBe(true);
+  expect(afterMove.bounded).toBe(false);
+  expect(Math.abs(afterMove.center.lat - 35.18)).toBeLessThan(0.01);
+
+  await page.evaluate(() => document.querySelector('#waybackMode [data-mode="split"]').click());
+  const splitMode = await page.evaluate(() => ({
+    mode: _wbMode,
+    clip: _wbLayer.getContainer().style.clip,
+    compareSplit: document.getElementById('waybackCompare').classList.contains('split'),
+  }));
+  expect(splitMode.mode).toBe('split');
+  expect(splitMode.clip).toContain('rect(');
+  expect(splitMode.compareSplit).toBe(true);
   const pixelThresholds = await page.evaluate(() => {
     const pixels = (count, diff, changed) => {
       const a = new Uint8ClampedArray(count * 4);
@@ -948,7 +980,7 @@ test('historical imagery opens from the satellite legend row at the current map 
   });
   expect(pixelThresholds).toEqual({ identical: false, tiny: false, high: true, medium: true, oneTileMinor: false, oneTileClear: true });
 
-  await page.locator('#waybackClose').click({ force: true });
+  await page.evaluate(() => document.getElementById('waybackClose').click());
   await page.waitForFunction(() => _wbTarget === null, null, { timeout: 5000 });
   expect(errors).toEqual([]);
   await context.close();

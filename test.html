@@ -113,6 +113,10 @@
   .wayback-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px;font-size:12px;font-weight:700}
   .wayback-head button{border:0;background:transparent;color:#607d8b;font-size:18px;line-height:1;cursor:pointer;padding:0 2px}
   .wayback-ctl select{display:block;width:100%;box-sizing:border-box;border:1px solid #afc2d4;border-radius:5px;background:#fff;padding:6px;font:12px sans-serif;color:#263746}
+  .wayback-mode{display:flex;margin-top:6px;border:1px solid #afc2d4;border-radius:6px;overflow:hidden;background:#fff}
+  .wayback-mode button{flex:1;border:0;border-left:1px solid #d3def0;background:#fff;color:#41566b;padding:6px 4px;font:700 11px/1.1 sans-serif;cursor:pointer}
+  .wayback-mode button:first-child{border-left:0}
+  .wayback-mode button.on{background:#185fa5;color:#fff}
   .wayback-note{display:block;margin-top:5px;color:#718292;font-size:10.5px;line-height:1.35}
   .wayback-compare{display:none;position:absolute;inset:0;z-index:650;pointer-events:none}
   .wayback-compare.on{display:block}
@@ -120,6 +124,8 @@
   .wayback-side{position:absolute;top:12px;transform:translateX(-50%);padding:6px 10px;border-radius:6px;background:rgba(20,31,42,.84);color:#fff;font:700 12px/1.2 sans-serif;box-shadow:0 2px 7px rgba(0,0,0,.28);white-space:nowrap}
   .wayback-now{left:25%}
   .wayback-old{left:75%}
+  .wayback-compare:not(.split) .wayback-now,.wayback-compare:not(.split) .wayback-divider{display:none}
+  .wayback-compare:not(.split) .wayback-old{left:50%}
   .sw-course{background:linear-gradient(90deg,#7c4dff 0 33%,#d500f9 33% 66%,#00897b 66% 100%)!important}
   .rv-sw{display:inline-block;width:14px;margin-right:6px;text-align:center;font-size:12px;flex:none}
   .leaflet-div-icon.rv-div{background:transparent;border:0;width:auto!important;height:auto!important}
@@ -1014,13 +1020,12 @@ function setSatSource(src){
 }
 setSatSource(_satSrc);   // baseSat 초기 채움(토글 UI는 아직 없으니 _syncSatToggle 은 no-op)
 
-// ESRI World Imagery Wayback: 선택한 호수 주변 타일만 과거 배포본으로 덮는다.
+// ESRI World Imagery Wayback: 선택한 배포본은 지도 이동 중에도 전 영역에 유지한다.
 const WAYBACK_CAP='https://wayback.maptiles.arcgis.com/arcgis/rest/services/world_imagery/wmts?request=GetCapabilities&service=WMTS&version=1.0.0';
 const WB_HIGH_DIFF_RATIO=.005, WB_MEDIUM_DIFF_RATIO=.10;
-let _wbVersions=null, _wbLayer=null, _wbTarget=null, _wbLoadSeq=0;
+let _wbVersions=null, _wbLayer=null, _wbTarget=null, _wbLoadSeq=0, _wbMode='full';
 const _wbLocalCache={};
 const _wbTileBytesCache=new Map(), _wbPixelCache=new Map();
-function _wbBounds(d){ return L.latLngBounds([d.lat-.09,d.lng-.12],[d.lat+.09,d.lng+.12]); }
 function _wbLoadVersions(){
   if(_wbVersions) return Promise.resolve(_wbVersions);
   return fetch(WAYBACK_CAP).then(function(r){ if(!r.ok) throw new Error('Wayback '+r.status); return r.text(); }).then(function(txt){
@@ -1155,7 +1160,7 @@ function _wbDraw(){
   if(!sel||!sel.value) return;
   if(_wbLayer) map.removeLayer(_wbLayer);
   const url='https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/'+sel.value+'/{z}/{y}/{x}';
-  _wbLayer=L.tileLayer(url,{bounds:_wbBounds(_wbTarget),maxNativeZoom:18,maxZoom:19,opacity:1,attribution:'Historical imagery © Esri Wayback'}).addTo(map);
+  _wbLayer=L.tileLayer(url,{maxNativeZoom:18,maxZoom:19,opacity:1,attribution:'Historical imagery © Esri Wayback'}).addTo(map);
   _wbLayer.bringToFront(); if(map.hasLayer(satLabels)) satLabels.bringToFront();
   _wbLayer.on('load tileload',_wbClip);
   requestAnimationFrame(_wbClip);
@@ -1167,9 +1172,16 @@ function _wbDraw(){
 function _wbClip(){
   if(!_wbLayer) return;
   const c=_wbLayer.getContainer(); if(!c) return;
+  if(_wbMode!=='split'){ c.style.clip=''; return; }
   const sz=map.getSize(), nw=map.containerPointToLayerPoint([0,0]), se=map.containerPointToLayerPoint([sz.x,sz.y]);
   const mid=map.containerPointToLayerPoint([Math.round(sz.x/2),0]).x;
   c.style.clip='rect('+nw.y+'px '+se.x+'px '+se.y+'px '+mid+'px)';
+}
+function _wbSetMode(mode){
+  _wbMode=mode==='split'?'split':'full';
+  document.querySelectorAll('#waybackMode [data-mode]').forEach(function(b){b.classList.toggle('on',b.dataset.mode===_wbMode);});
+  const ui=document.getElementById('waybackCompare'); if(ui) ui.classList.toggle('split',_wbMode==='split');
+  _wbClip();
 }
 function _closeWayback(){
   _wbLoadSeq++;
@@ -1199,6 +1211,7 @@ function _openWaybackAtMapCenter(){
   let ui=document.getElementById('waybackCompare');
   if(!ui){ ui=L.DomUtil.create('div','wayback-compare',map.getContainer()); ui.id='waybackCompare';
     ui.innerHTML='<div class="wayback-side wayback-now">현재 · '+(_satSrc==='vworld'?'VWorld':'Esri')+'</div><div class="wayback-divider"></div><div class="wayback-side wayback-old">과거 위성영상</div>'; }
+  _wbSetMode('full');
   const c=_layerControl&&_layerControl.getContainer(); if(c) c.style.width='232px';
   sel.disabled=true; sel.innerHTML='<option>과거 영상 목록 불러오는 중…</option>';
   _wbLoadVersions().then(function(rows){
@@ -3267,12 +3280,14 @@ function _mountWaybackOpen(){
   const p=L.DomUtil.create('div','wayback-ctl'); p.id='waybackCtl';
   p.innerHTML='<div class="wayback-head"><span>과거 위성 · <span id="waybackName"></span></span><button id="waybackClose" type="button" title="과거 영상 닫기">×</button></div>'
     +'<select id="waybackDate" aria-label="과거 위성영상 배포일"></select>'
+    +'<div class="wayback-mode" id="waybackMode" aria-label="과거 위성영상 표시 방식"><button type="button" data-mode="full" class="on">과거 전체</button><button type="button" data-mode="split">현재와 비교</button></div>'
     +'<small class="wayback-note" id="waybackNote">현재 화면 5개 지점의 실제 픽셀 변화를 확인해 과거 영상을 선별합니다. 날짜는 촬영일이 아닌 ESRI 배포일입니다.</small>';
   const src=document.getElementById('satSrcToggle');
   if(src) src.insertAdjacentElement('afterend',p); else base.insertAdjacentElement('afterend',p);
   L.DomEvent.disableClickPropagation(p); L.DomEvent.disableScrollPropagation(p);
   const sel=document.getElementById('waybackDate');
   L.DomEvent.on(sel,'change',function(){ _wbDraw(); gaEvent('wayback_date'); });
+  p.querySelectorAll('#waybackMode [data-mode]').forEach(function(b){L.DomEvent.on(b,'click',function(e){L.DomEvent.stop(e);_wbSetMode(b.dataset.mode);gaEvent('wayback_mode_'+b.dataset.mode);});});
   L.DomEvent.on(document.getElementById('waybackClose'),'click',function(e){ L.DomEvent.stop(e); _closeWayback(); });
 })();
 // 위성지도 최대 줌(출처별) + 선택 저장 + 서브토글 동기화
