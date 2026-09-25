@@ -619,30 +619,39 @@ __GTAG__
   .authbox .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2ecc71;margin-right:6px;vertical-align:middle}
   .openchat-btn{display:flex;align-items:center;justify-content:center;gap:5px;background:#FEE500;color:#191600!important;border:0;border-radius:18px;padding:9px 12px;text-decoration:none!important;font:700 12.5px/1 sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.28);transition:transform .12s,box-shadow .12s}
   .openchat-btn:hover,.openchat-btn:focus{transform:translateY(-1px);box-shadow:0 4px 11px rgba(0,0,0,.32);outline:none}
-  #gate{position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;overflow:hidden;
-    background:radial-gradient(125% 90% at 50% 0%,#bfe3ff 0%,#dff1e6 55%,#eef7f0 100%)}
-  #gate::before,#gate::after{content:"";position:absolute;border-radius:50%;filter:blur(10px);opacity:.45;pointer-events:none}
-  #gate::before{width:260px;height:260px;background:#9ad0ff;top:-70px;left:-60px}
-  #gate::after{width:300px;height:300px;background:#bfe6c4;bottom:-90px;right:-70px}
-  .gate-card{position:relative;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border-radius:22px;
-    padding:34px 26px 28px;max-width:352px;width:86%;text-align:center;box-shadow:0 18px 50px rgba(20,60,90,.22);animation:gateIn .5s ease}
+  #gate{position:fixed;inset:0;z-index:3000;display:flex;align-items:flex-end;justify-content:flex-end;overflow:hidden;box-sizing:border-box;padding:24px;
+    background:linear-gradient(90deg,rgba(5,27,23,.56) 0%,rgba(5,27,23,.12) 48%,rgba(5,27,23,.3) 100%)}
+  #gate::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(5,27,23,.16),transparent 38%,rgba(5,27,23,.22))}
+  #gate::after{content:none}
+  body.gate-open .leaflet-top,body.gate-open .leaflet-control-layers,body.gate-open #hint{opacity:0;visibility:hidden;pointer-events:none}
+  .gate-brand{position:absolute;z-index:2;top:26px;left:28px;display:flex;align-items:center;gap:11px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.55)}
+  .gate-brand-name{font:800 23px/1 sans-serif;letter-spacing:-.5px}
+  .gate-brand .beta-tag{vertical-align:2px}
+  .gate-hero-copy{position:absolute;z-index:2;left:30px;bottom:52px;max-width:470px;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.7)}
+  .gate-map-badge{display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;padding:7px 10px;border-radius:9px;background:rgba(7,45,37,.78);font:700 11px sans-serif;backdrop-filter:blur(5px)}
+  .gate-hero-copy h1{margin:0;font:800 34px/1.24 sans-serif;letter-spacing:-1.2px}
+  .gate-hero-copy p{margin:10px 0 0;font:500 14px/1.45 sans-serif;opacity:.92}
+  .gate-card{position:relative;z-index:3;background:rgba(255,255,255,.96);backdrop-filter:blur(9px);border-radius:24px;
+    padding:22px 22px 20px;max-width:410px;width:calc(100% - 48px);text-align:center;box-shadow:0 20px 58px rgba(5,31,25,.38);animation:gateIn .5s ease}
   @keyframes gateIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-  .gate-logo{width:74px;height:74px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  .gate-logo{width:54px;height:54px;border-radius:17px;display:flex;align-items:center;justify-content:center;
     background:linear-gradient(150deg,#2196f3,#00b894);box-shadow:0 8px 20px rgba(0,150,180,.35);animation:floaty 3s ease-in-out infinite}
-  .canoe-ico{width:52px;height:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18))}
+  .canoe-ico{width:40px;height:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18))}
   @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-  .gate-card h1{margin:16px 0 4px;font:800 23px sans-serif;color:#13312a;letter-spacing:-.3px}
-  .gate-sub{color:#5a6b62;font:14px sans-serif;margin:0 0 18px}
-  .gate-feats{list-style:none;margin:0 0 22px;padding:0;text-align:left;display:inline-block}
-  .gate-feats li{display:flex;align-items:center;gap:10px;margin:9px 0;font:13.5px sans-serif;color:#33473e}
-  .gate-feats li span:first-child{width:26px;height:26px;flex:none;border-radius:8px;background:#eef5f1;display:flex;align-items:center;justify-content:center;font-size:15px}
+  .gate-feats{list-style:none;margin:0 0 14px;padding:0;text-align:left}
+  .gate-feats li{display:flex;align-items:center;gap:11px;margin:0 0 9px;font:700 13px/1.35 sans-serif;color:#263c35}
+  .gate-feats li span:first-child{width:35px;height:35px;flex:none;border-radius:11px;background:#eef5f1;display:flex;align-items:center;justify-content:center;font-size:17px}
+  .gate-feats small{display:block;margin-top:2px;color:#788b84;font:500 10.5px/1.35 sans-serif}
+  .gate-openchat{display:flex;align-items:center;gap:10px;margin:4px 0 12px;padding:11px 12px;border:1px solid #ead474;border-radius:14px;background:#fffbea;color:#26352f;text-align:left;text-decoration:none}
+  .gate-openchat>span:first-child{display:flex;align-items:center;justify-content:center;width:36px;height:36px;flex:none;border-radius:12px;background:#fee500;font-size:17px}
+  .gate-openchat b{display:block;font:700 12.5px/1.25 sans-serif}.gate-openchat small{display:block;margin-top:3px;color:#74817d;font:10.5px/1.35 sans-serif}.gate-openchat .go-arr{margin-left:auto;color:#66736f;font-size:16px}
   .kakao-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#FEE500;color:#191600;border:0;
     border-radius:12px;padding:14px 18px;font:700 15.5px sans-serif;cursor:pointer;box-shadow:0 6px 16px rgba(254,229,0,.5);transition:transform .08s}
   .kakao-btn:active{transform:translateY(1px)}
   .kakao-ico{width:20px;height:20px;fill:#191600}
-  .gate-card small{display:block;margin-top:14px;color:#9aa6a0;font-size:11.5px}
+  .gate-card>small{display:block;margin-top:11px;color:#8c9a95;font-size:11px}
   .beta-tag{display:inline-block;background:#ff7043;color:#fff;font:700 10px sans-serif;padding:2px 7px;border-radius:8px;vertical-align:middle;margin-left:7px}
-  .gate-warn{display:flex;gap:8px;text-align:left;background:#fff8e1;border:1px solid #ffe082;border-left:4px solid #ffb300;border-radius:9px;padding:9px 11px;margin:0 0 16px;font:12px/1.5 sans-serif;color:#6d4c00}
+  .gate-warn{display:flex;gap:8px;text-align:left;background:#fff8e1;border-radius:10px;padding:8px 10px;margin:0 0 12px;font:11px/1.45 sans-serif;color:#6d4c00}
   .gate-warn span:first-child{flex:none}
   .admin-badge{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:3100;display:flex;align-items:center;gap:8px;white-space:nowrap;background:#263238;color:#fff;padding:7px 13px;border-radius:22px;font:700 12.5px sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.3)}
   .admin-badge .ab-dot{width:8px;height:8px;border-radius:50%;background:#69f0ae;box-shadow:0 0 6px #69f0ae}
@@ -699,6 +708,10 @@ __GTAG__
     #tripbar{bottom:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px))}.trip-live{padding:9px 7px;gap:3px}.trip-live b{font-size:13px}.trip-live small{font-size:9.5px}.tb-start{padding:12px 15px;font-size:14px}.tb-pause,.tb-refresh{padding:11px 10px;font-size:12px}
     #rvModal .rv-pmodal{width:100%;max-width:none;max-height:92vh}
     #rvView{height:68vh;max-height:none;min-height:320px}
+    #gate{justify-content:center;padding:14px;background:linear-gradient(180deg,rgba(5,27,23,.24) 0%,rgba(5,27,23,.05) 33%,rgba(5,27,23,.5) 100%)}
+    .gate-brand{top:20px;left:18px}.gate-brand .gate-logo{width:48px;height:48px}.gate-brand .canoe-ico{width:36px}.gate-brand-name{font-size:20px}
+    .gate-hero-copy{left:19px;right:19px;bottom:auto;top:112px;max-width:none}.gate-map-badge{margin-bottom:9px}.gate-hero-copy h1{font-size:27px;line-height:1.23}.gate-hero-copy p{font-size:12px;margin-top:7px}
+    .gate-card{width:100%;max-width:420px;padding:19px 17px 16px;border-radius:22px}.gate-feats li{margin-bottom:7px}.gate-feats li span:first-child{width:32px;height:32px}.gate-openchat{margin-bottom:10px}.gate-warn{margin-bottom:10px}
   }
 </style>
 </head>
@@ -707,24 +720,30 @@ __GTAG__
 <div id="hint"></div>
 <button id="offlineBanner" class="offline-banner" type="button" onclick="openOfflineModal()"></button>
 <div id="gate">
-  <div class="gate-card">
+  <div class="gate-brand">
     <div class="gate-logo"><svg class="canoe-ico" viewBox="0 0 64 40" aria-hidden="true">
       <path d="M2 20C2 13 16 10 32 10C48 10 62 13 62 20C62 27 48 30 32 30C16 30 2 27 2 20Z" fill="#fff"/>
       <path d="M9.5 20C9.5 15.7 19.5 13.8 32 13.8C44.5 13.8 54.5 15.7 54.5 20C54.5 24.3 44.5 26.2 32 26.2C19.5 26.2 9.5 24.3 9.5 20Z" fill="#dfeefb"/>
       <path d="M23 15.2V24.8M41 15.2V24.8" stroke="#bcd6ea" stroke-width="1.5" stroke-linecap="round"/>
     </svg></div>
+    <div class="gate-brand-name">카누맵<span class="beta-tag">BETA</span></div>
+  </div>
+  <div class="gate-hero-copy">
+    <span class="gate-map-badge">🛰️ 실제 카누맵 지도</span>
+    <h1>물길 위의 다음 여정을<br>지도에서 시작하세요</h1>
+    <p>전국 카누 명소 · 코스 · 수위 · 안전정보</p>
+  </div>
+  <div class="gate-card">
     <!-- GATEBODY -->
-    <h1>카누맵<span class="beta-tag">BETA</span></h1>
-    <p class="gate-sub">전국 카누 명소를 한눈에</p>
     <ul class="gate-feats">
-      <li><span>💧</span><span>상수원보호구역 안내</span></li>
-      <li><span>📍</span><span>카누 런칭·랜딩 장소</span></li>
-      <li><span>🛶</span><span>카누잉 추천 코스</span></li>
-      <li><span>📏</span><span>물길 거리 측정</span></li>
+      <li><span>📍</span><span>어디서 타고 내릴지 확인<small>런칭·랜딩 장소와 이용자 등록 지점</small></span></li>
+      <li><span>🛶</span><span>물길을 따라 코스 계획<small>거리측정·추천 코스·수위와 CCTV</small></span></li>
+      <li><span>🛟</span><span>출발 전 규제와 위험 확인<small>상수원보호구역·금지구역·지형지물</small></span></li>
     </ul>
-    <div class="gate-warn"><span>⚠️</span><span>베타 서비스입니다. 접속·속도가 불안정할 수 있고, 남긴 코멘트가 사라질 수 있어요.</span></div>
+    <a id="gateOpenChat" class="gate-openchat" href="https://open.kakao.com/o/gcURegPi" target="_blank" rel="noopener"><span aria-hidden="true">💬</span><span><b>카누맵 이용자 그룹 오픈채팅</b><small>운영자와 이용자가 현장 정보를 함께 나눕니다</small></span><span class="go-arr" aria-hidden="true">↗</span></a>
+    <div class="gate-warn"><span>⚠️</span><span>현장 안전과 최신 규정은 출발 전에 다시 확인해 주세요.</span></div>
     <button id="gateLogin" class="kakao-btn"><svg class="kakao-ico" viewBox="0 0 24 24"><path d="M12 3.4C6.7 3.4 2.4 6.9 2.4 11.1c0 2.7 1.8 5.1 4.5 6.5-.2.7-.7 2.5-.8 2.9-.1.5.2.5.4.4.2-.1 2.5-1.7 3.5-2.4.5.1 1 .2 1.5.2 5.3 0 9.6-3.4 9.6-7.6S17.3 3.4 12 3.4z"/></svg>카카오로 시작하기</button>
-    <small>카카오 로그인 후 회원가입 동의를 거쳐 이용합니다</small>
+    <small>로그인 후 장소·코스 저장과 등록 기능을 이용할 수 있어요</small>
     <!-- /GATEBODY -->
   </div>
 </div>
@@ -1024,12 +1043,14 @@ function showMyPageTour(profile){
   }
 })();
 // 로그인 관문: 미로그인 시 지도 차단(로그인 화면 표시)
-function showGate(){ const g=document.getElementById('gate'); if(g) g.style.display='flex'; }
-function hideGate(){ const g=document.getElementById('gate'); if(g) g.style.display='none'; }
+function showGate(){ const g=document.getElementById('gate'); document.body.classList.add('gate-open'); if(g) g.style.display='flex'; }
+function hideGate(){ const g=document.getElementById('gate'); document.body.classList.remove('gate-open'); if(g) g.style.display='none'; }
 let _notices=[];   // 공지 목록(로드 시 채움)
 (function(){
   const gb=document.getElementById('gateLogin');
   if(gb) gb.onclick=function(){ gaEvent('login_start'); location.href=loginWorkerUrl(); };
+  const gc=document.getElementById('gateOpenChat');
+  if(gc) gc.onclick=function(){ gaEvent('openchat_click',{placement:'landing'}); };
   const u=getUser(); if(u&&u.uid){ hideGate(); ensureAppProfile().then(function(ok){ if(ok&&!TOUR_MODE) fetchNotices().then(updateNoticeBadge); }); } else showGate();
 })();
 function renderAuth(){
