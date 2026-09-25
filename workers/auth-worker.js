@@ -7,13 +7,11 @@ import {
   memberProfile,
   publicMemberSummary,
 } from "./member-security.mjs";
-import { connect } from "cloudflare:sockets";
 import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
 import { MEASURE_SHARE_CORRECTIONS } from "./measure-share-corrections.mjs";
 import { coursePreviewKey, courseShareHtml, normalizeCourseShareId } from "./course-share.mjs";
 import { applyCourseCorrection, coursePreviewVersionIsCurrent } from "./course-corrections.mjs";
 import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
-import { lookupLandOwnership, validLandOwnershipPoint } from "./land-ownership.mjs";
 
 /**
  * Cloudflare Worker — 카카오 로그인 OAuth 콜백.
@@ -191,43 +189,6 @@ async function _cacheJson(ctx, key, build, ttl = 60) {
   return resp;
 }
 
-// VWorld의 구형 HTTP 응답(예: `HTTP/1.1 200 200`)은 Workers fetch가 520으로
-// 처리할 수 있어, 이 호스트만 TLS 소켓의 HTTP/1.1 응답을 직접 읽는다.
-async function _vworldHttp11(url, options = {}) {
-  const u = new URL(url);
-  if (u.protocol !== "http:" || u.hostname !== "api.vworld.kr") throw new Error("blocked-host");
-  const socket = connect({ hostname: u.hostname, port: 80 }, { secureTransport: "off", allowHalfOpen: false });
-  const abort = () => { try { socket.close(); } catch (e) {} };
-  if (options.signal) {
-    if (options.signal.aborted) abort();
-    else options.signal.addEventListener("abort", abort, { once: true });
-  }
-  try {
-    const writer = socket.writable.getWriter();
-    await writer.write(new TextEncoder().encode(
-      `GET ${u.pathname}${u.search} HTTP/1.1\r\nHost: ${u.hostname}\r\nAccept: application/json\r\nAccept-Encoding: identity\r\nConnection: close\r\n\r\n`
-    ));
-    writer.releaseLock();
-    const bytes = new Uint8Array(await new Response(socket.readable).arrayBuffer());
-    let split = -1;
-    for (let i = 0; i + 3 < bytes.length; i++) {
-      if (bytes[i] === 13 && bytes[i + 1] === 10 && bytes[i + 2] === 13 && bytes[i + 3] === 10) { split = i; break; }
-    }
-    if (split < 0) throw new Error("bad-http");
-    const head = new TextDecoder().decode(bytes.subarray(0, split));
-    const status = Number((head.match(/^HTTP\/\d(?:\.\d)?\s+(\d{3})/i) || [])[1] || 502);
-    const body = bytes.subarray(split + 4);
-    return {
-      ok: status >= 200 && status < 300,
-      status,
-      async json() { return JSON.parse(new TextDecoder().decode(body)); },
-    };
-  } finally {
-    if (options.signal) options.signal.removeEventListener("abort", abort);
-    try { socket.close(); } catch (e) {}
-  }
-}
-
 function _launchCat(v, name) {
   if (v === "spot" || v === "명소") return "spot";
   if (v === "candidate" || v === "런칭/랜딩 후보지") return "candidate";
@@ -375,32 +336,6 @@ export default {
         "Cache-Control": url.searchParams.get("v") === preview.v ? "public, max-age=31536000, immutable" : "public, max-age=300",
         "Access-Control-Allow-Origin": "*",
       } });
-    }
-
-    // 선택 지점 1필지의 소유구분만 조회한다. 전국 소유 레이어를 상시 노출하지 않는다.
-    if (url.pathname === "/land-ownership") {
-      const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
-      const J = (body, status = 200, cache = "no-store") => new Response(JSON.stringify(body), {
-        status, headers: { ...cors, "Content-Type": "application/json; charset=utf-8", "Cache-Control": cache },
-      });
-      if (req.method === "OPTIONS") return new Response(null, { headers: cors });
-      if (req.method !== "GET") return J({ ok: false, error: "method" }, 405);
-      if (!_allowedOrigin(req, env)) return J({ ok: false, error: "forbidden-origin" }, 403);
-      const lat = Number(url.searchParams.get("lat")), lng = Number(url.searchParams.get("lng"));
-      if (!validLandOwnershipPoint(lat, lng)) return J({ ok: false, error: "bad-point" }, 400);
-      if (!env.VWORLD_KEY) return J({ ok: false, error: "not-configured" }, 503);
-      const ip = req.headers.get("CF-Connecting-IP") || "0";
-      if (await _rateLimited(env, "land_ownership", ip, 30)) return J({ ok: false, error: "rate-limit" }, 429);
-      const cacheKey = url.origin + "/land-ownership?lat=" + lat.toFixed(5) + "&lng=" + lng.toFixed(5);
-      return _cacheJson(ctx, cacheKey, async () => {
-        try {
-          const result = await lookupLandOwnership(env, lat, lng, _vworldHttp11);
-          return result ? J(result, 200, "public, max-age=86400") : J({ ok: false, error: "not-found" }, 404);
-        } catch (e) {
-          const kind = String(e && e.message || "upstream");
-          return J({ ok: false, error: kind === "missing-key" ? "not-configured" : "upstream", detail: kind.slice(0, 80) }, kind === "missing-key" ? 503 : 502);
-        }
-      }, 86400);
     }
 
     // 코스 소유자/관리자가 브라우저에서 렌더한 1200×630 JPEG를 저장한다.

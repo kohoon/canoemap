@@ -33,11 +33,19 @@ test('address popup checks and clears one parcel on demand', async () => {
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-  await context.route('https://mycanoe-map.kohoon0140.workers.dev/land-ownership**', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-      ok: true, category: 'private', label: '사유지', ownerType: '개인', landCategory: '전', area: 1284,
-      updatedAt: '2026-08-31', geometry: { type: 'Polygon', coordinates: [[[127.71, 37.94], [127.72, 37.94], [127.72, 37.95], [127.71, 37.94]]] },
-    }) });
+  await context.route('https://api.vworld.kr/**', async (route) => {
+    const url = new URL(route.request().url());
+    const callback = url.searchParams.get('callback');
+    const data = url.pathname === '/req/data'
+      ? { response: { result: { featureCollection: { features: [{
+        properties: { pnu: '5111025027200670000' },
+        geometry: { type: 'Polygon', coordinates: [[[127.71, 37.94], [127.72, 37.94], [127.72, 37.95], [127.71, 37.94]]] },
+      }] } } } }
+      : { ladfrlVOList: { ladfrlVOList: [{
+        pnu: '5111025027200670000', posesnSeCode: '01', posesnSeCodeNm: '개인',
+        lndcgrCodeNm: '전', lndpclAr: '1284', lastUpdtDt: '2026-08-31', ownerName: '노출 금지',
+      }] } };
+    await route.fulfill({ status: 200, contentType: 'application/javascript', body: `${callback}(${JSON.stringify(data)})` });
   });
   const page = await context.newPage();
   const errors = [];

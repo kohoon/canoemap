@@ -1492,6 +1492,19 @@ function vworldReverse(lat,lng){
     document.body.appendChild(s);
   });
 }
+function vworldJsonp(path,params,timeoutMs){
+  return new Promise(function(resolve,reject){
+    if(!VKEY){reject(new Error('not-configured'));return;}
+    const name='__vwj'+(_jpId++),s=document.createElement('script');let done=false;
+    function cleanup(){try{delete window[name];}catch(e){}if(s.parentNode)s.parentNode.removeChild(s);}
+    const timer=setTimeout(function(){if(!done){done=true;cleanup();reject(new Error('upstream'));}},timeoutMs||10000);
+    window[name]=function(d){if(done)return;done=true;clearTimeout(timer);cleanup();resolve(d);};
+    s.onerror=function(){if(!done){done=true;clearTimeout(timer);cleanup();reject(new Error('upstream'));}};
+    const q=Object.keys(params||{}).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+    s.src='https://api.vworld.kr'+path+'?'+q+'&key='+encodeURIComponent(VKEY)+'&domain='+encodeURIComponent(location.origin)+'&callback='+name;
+    document.body.appendChild(s);
+  });
+}
 // ---- 전방 검색: V-World 검색 API(JSONP) — 도로명/지번 주소·장소 ----
 function vworldSearch(q, type, category){
   return new Promise(function(resolve){
@@ -1560,14 +1573,24 @@ async function checkLandOwnership(){
   if(!a||!btn||!box)return;
   btn.disabled=true;btn.textContent='확인 중…';box.innerHTML='<small>선택 지점의 필지를 찾고 있습니다.</small>';clearLandOwnership();
   try{
-    const r=await fetch(fapi('/land-ownership')+'?lat='+encodeURIComponent(a.lat)+'&lng='+encodeURIComponent(a.lng));
-    let d={};try{d=await r.json();}catch(e){}
-    if(!r.ok||!d.ok)throw new Error(d.error||('http-'+r.status));
+    const parcel=await vworldJsonp('/req/data',{service:'data',version:'2.0',request:'getfeature',format:'json',size:'1',page:'1',geometry:'true',attribute:'true',crs:'EPSG:4326',data:'LP_PA_CBND_BUBUN',geomfilter:'POINT('+Number(a.lng)+' '+Number(a.lat)+')'},12000);
+    const fc=parcel&&parcel.response&&parcel.response.result&&parcel.response.result.featureCollection;
+    const feature=fc&&Array.isArray(fc.features)&&fc.features[0],pnu=String(feature&&feature.properties&&feature.properties.pnu||'');
+    if(!feature||!/^\d{19}$/.test(pnu))throw new Error('not-found');
+    const ledger=await vworldJsonp('/ned/data/ladfrlList',{format:'json',numOfRows:'10',pageNo:'1',pnu:pnu},12000);
+    const lb=ledger&&ledger.ladfrlVOList,rows=lb&&lb.ladfrlVOList,row=Array.isArray(rows)?rows[0]:rows;
+    if(!row)throw new Error('not-found');
+    const code=String(row.posesnSeCode||'').padStart(2,'0'),ownerType=String(row.posesnSeCodeNm||'미분류');
+    let category='unknown',label='확인 불가';
+    if(code==='02'||ownerType==='국유지'){category='national';label='국유지';}
+    else if(code==='04'||code==='05'||/시[,. ]*도유지|군유지|공유지/.test(ownerType)){category='public';label='지자체 소유';}
+    else if(['00','01','03','06','07','08','09'].indexOf(code)>=0||/^(개인|법인|종중|종교단체|기타단체|외국인)/.test(ownerType)){category='private';label='사유지';}
+    const rawArea=Number(row.lndpclAr||row.ndpclAr),d={ok:true,category:category,label:label,ownerType:ownerType.slice(0,40),landCategory:String(row.lndcgrCodeNm||'').slice(0,40),area:isFinite(rawArea)&&rawArea>=0?rawArea:null,updatedAt:String(row.lastUpdtDt||'').slice(0,20),geometry:feature.geometry,pnu:pnu};
     const cat=['private','national','public'].indexOf(d.category)>=0?d.category:'unknown';
     const area=d.area==null?'—':Number(d.area).toLocaleString('ko-KR')+'㎡';
     box.innerHTML='<div class="land-own-card"><div class="land-own-head"><b>토지소유 확인</b><span class="land-own-badge '+cat+'">'+pmEsc(d.label||'확인 불가')+'</span></div>'
       +'<div class="land-own-grid"><span>소유구분</span><b>'+pmEsc(d.ownerType||'미분류')+'</b><span>지목</span><b>'+pmEsc(d.landCategory||'—')+'</b><span>면적</span><b>'+area+'</b><span>기준일</span><b>'+pmEsc(d.updatedAt||'—')+'</b></div>'
-      +'<div class="land-own-warn">소유 구분은 출입·진수·캠핑 허가를 의미하지 않습니다.</div></div>';
+      +'<div class="land-own-warn">소유 구분은 출입·진수·캠핑 허가를 의미하지 않습니다.</div><a class="addplace-btn" target="_blank" rel="noopener" href="https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?isNoScr=script&mode=search&pnu='+encodeURIComponent(pnu)+'">공식 토지이용계획 보기 ↗</a></div>';
     if(d.geometry){_landOwnershipLayer=L.geoJSON({type:'Feature',geometry:d.geometry,properties:{}},{style:{color:_landOwnerColor(cat),weight:3,fillColor:_landOwnerColor(cat),fillOpacity:.2,dashArray:cat==='private'?'7 5':null}}).addTo(map);}
     gaEvent('land_ownership_check',{result:cat});
   }catch(e){
