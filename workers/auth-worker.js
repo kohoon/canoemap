@@ -195,8 +195,8 @@ async function _cacheJson(ctx, key, build, ttl = 60) {
 // 처리할 수 있어, 이 호스트만 TLS 소켓의 HTTP/1.1 응답을 직접 읽는다.
 async function _vworldHttp11(url, options = {}) {
   const u = new URL(url);
-  if (u.protocol !== "https:" || u.hostname !== "api.vworld.kr") throw new Error("blocked-host");
-  const socket = connect({ hostname: u.hostname, port: 443 }, { secureTransport: "on", allowHalfOpen: false });
+  if (u.protocol !== "http:" || u.hostname !== "api.vworld.kr") throw new Error("blocked-host");
+  const socket = connect({ hostname: u.hostname, port: 80 }, { secureTransport: "off", allowHalfOpen: false });
   const abort = () => { try { socket.close(); } catch (e) {} };
   if (options.signal) {
     if (options.signal.aborted) abort();
