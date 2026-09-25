@@ -228,6 +228,10 @@
   .addplace-btn.sugg{background:#1565c0}
   .addplace-btn.landcheck{background:#455a64}
   .addplace-btn.landcheck:disabled{opacity:.62;cursor:wait}
+  .addr-drag-handle{display:flex;align-items:center;justify-content:center;gap:6px;margin:-5px 22px 8px -2px;padding:5px 8px;border-radius:7px;background:#eef3f5;color:#60747d;font:700 10.5px/1 sans-serif;letter-spacing:-.1px;cursor:grab;user-select:none;touch-action:none}
+  .addr-drag-handle:active{cursor:grabbing;background:#e2ebef;color:#36515e}
+  .addr-drag-grip{font-size:13px;letter-spacing:-3px;transform:rotate(90deg)}
+  .leaflet-popup.addr-popup{will-change:margin-left,margin-bottom}
   .addr-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:9px}
   .addr-actions .addplace-btn{margin-top:0;min-height:32px;border-radius:8px;padding:7px 10px;line-height:1.1}
   .land-own-result{margin-top:9px;max-width:280px}
@@ -1458,14 +1462,37 @@ function copyAddress(){
     navigator.clipboard.writeText(txt).then(function(){ alert('주소를 복사했어요'); }).catch(function(){ prompt('주소 복사', txt); });
   } else prompt('주소 복사', txt);
 }
+function enableAddressPopupDrag(pop){
+  const root=pop&&pop.getElement&&pop.getElement(),handle=root&&root.querySelector('.addr-drag-handle');if(!root||!handle)return;
+  if(pop._addrDragAbort)pop._addrDragAbort.abort();const aborter=new AbortController(),signal=aborter.signal;pop._addrDragAbort=aborter;
+  root.classList.add('addr-popup');
+  let drag=null;
+  function start(x,y,id){
+    const rect=root.getBoundingClientRect(),style=getComputedStyle(root);
+    drag={id:id,x:x,y:y,ml:parseFloat(style.marginLeft)||0,mb:parseFloat(style.marginBottom)||0,rect:rect};
+  }
+  function move(x,y){
+    if(!drag)return;const pad=10,dx=Math.max(pad-drag.rect.left,Math.min(innerWidth-pad-drag.rect.right,x-drag.x));
+    const dy=Math.max(pad-drag.rect.top,Math.min(innerHeight-pad-drag.rect.bottom,y-drag.y));
+    root.style.marginLeft=(drag.ml+dx)+'px';root.style.marginBottom=(drag.mb-dy)+'px';
+  }
+  handle.addEventListener('mousedown',function(e){if(e.button!==0)return;e.preventDefault();e.stopPropagation();start(e.clientX,e.clientY,'mouse');},{signal:signal});
+  document.addEventListener('mousemove',function(e){if(!drag||drag.id!=='mouse')return;e.preventDefault();move(e.clientX,e.clientY);},{signal:signal});
+  document.addEventListener('mouseup',function(){if(drag&&drag.id==='mouse')drag=null;},{signal:signal});
+  handle.addEventListener('touchstart',function(e){const t=e.changedTouches&&e.changedTouches[0];if(!t)return;e.preventDefault();e.stopPropagation();start(t.clientX,t.clientY,t.identifier);},{passive:false,signal:signal});
+  document.addEventListener('touchmove',function(e){if(!drag||drag.id==='mouse')return;const ts=Array.from(e.changedTouches||[]),t=ts.find(function(x){return x.identifier===drag.id;});if(!t)return;e.preventDefault();move(t.clientX,t.clientY);},{passive:false,signal:signal});
+  document.addEventListener('touchend',function(e){if(!drag||drag.id==='mouse')return;const ts=Array.from(e.changedTouches||[]);if(ts.some(function(x){return x.identifier===drag.id;}))drag=null;},{signal:signal});
+  document.addEventListener('touchcancel',function(){if(drag&&drag.id!=='mouse')drag=null;},{signal:signal});
+}
 async function showAddress(lat,lng){
   const now=Date.now(); if(now-_lastAddr<800) return; _lastAddr=now;   // 중복 호출 방지
-  const pop=L.popup({offset:L.point(0,-52),keepInView:true,autoPanPadding:[18,18]}).setLatLng([lat,lng]).setContent('주소 조회 중…').openOn(map);
+  const grip='<div class="addr-drag-handle" role="button" aria-label="주소 카드 이동"><span class="addr-drag-grip">•••</span>끌어서 이동</div>';
+  const pop=L.popup({offset:L.point(0,-52),keepInView:true,autoPanPadding:[18,18]}).setLatLng([lat,lng]).setContent(grip+'주소 조회 중…').openOn(map);enableAddressPopupDrag(pop);
   let r=await vworldReverse(lat,lng);
   let main='', sub='';
   if(r&&(r.parcel||r.road)){ main=r.parcel||r.road; if(r.road&&r.parcel) sub='도로명: '+r.road; }
   else { main=await nominatimReverse(lat,lng); }
-  let h='<b>'+(main||'주소를 찾지 못함')+'</b>';
+  let h=grip+'<b>'+(main||'주소를 찾지 못함')+'</b>';
   if(sub) h+='<br><small>'+sub+'</small>';
   h+='<br><small>'+lat.toFixed(5)+', '+lng.toFixed(5)+'</small>'+extLinks(lat,lng,main||'위치');
   window._curAddr={lat:lat, lng:lng, name:main||''};
@@ -1473,9 +1500,9 @@ async function showAddress(lat,lng){
   h+='<button id="landOwnBtn" class="addplace-btn landcheck" onclick="checkLandOwnership()">🏷 토지소유</button></div><div id="landOwnResult" class="land-own-result"></div>';
   if(isAdmin()) h+='<br><button class="addplace-btn" onclick="addPlace()">📌 장소 등록</button>';
   else if(getUser()&&getUser().uid) h+='<br><button class="addplace-btn sugg" onclick="suggestPlace()">💡 장소 제안</button>';
-  pop.setContent(h);
+  pop.setContent(h);enableAddressPopupDrag(pop);
 }
-map.on('popupclose',clearLandOwnership);
+map.on('popupclose',function(e){clearLandOwnership();if(e.popup&&e.popup._addrDragAbort){e.popup._addrDragAbort.abort();e.popup._addrDragAbort=null;}});
 // ---- 어드민: 장소 등록 ----
 // 일반 사용자: 장소 제안(런칭지/랜딩지/기타 + 코멘트) → 시트
 function closeSg(){ document.getElementById('sgmodal').classList.remove('open'); }

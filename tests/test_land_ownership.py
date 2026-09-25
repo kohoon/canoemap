@@ -13,7 +13,9 @@ class LandOwnershipTest(unittest.TestCase):
         self.assertIn("function vworldJsonp(", source)
         self.assertIn("'/ned/data/ladfrlList'", source)
         self.assertIn("'/req/data'", source)
-        self.assertIn("map.on('popupclose',clearLandOwnership)", source)
+        self.assertIn("map.on('popupclose',function(e){clearLandOwnership()", source)
+        self.assertIn("function enableAddressPopupDrag(pop)", source)
+        self.assertIn('class="addr-drag-handle"', source)
         self.assertNotIn("ownerName", source)
 
 

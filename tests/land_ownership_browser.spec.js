@@ -57,6 +57,27 @@ test('address popup checks and clears one parcel on demand', async () => {
     await showAddress(37.945, 127.715);
   });
   await expect(page.locator('#landOwnBtn')).toBeVisible();
+  const popupBefore = await page.locator('.leaflet-popup.addr-popup').boundingBox();
+  const handle = await page.locator('.addr-drag-handle').boundingBox();
+  const dragY = 844 - (popupBefore.y + popupBefore.height) > 80 ? 65 : -65;
+  const start = { x: handle.x + handle.width / 2, y: handle.y + handle.height / 2 };
+  await page.locator('.addr-drag-handle').dispatchEvent('mousedown', { button: 0, clientX: start.x, clientY: start.y });
+  await page.evaluate(({ start, dragY }) => {
+    document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, cancelable: true, clientX: start.x + 20, clientY: start.y + dragY }));
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, clientX: start.x + 20, clientY: start.y + dragY }));
+  }, { start, dragY });
+  const popupAfter = await page.locator('.leaflet-popup.addr-popup').boundingBox();
+  expect(Math.hypot(popupAfter.x - popupBefore.x, popupAfter.y - popupBefore.y)).toBeGreaterThan(25);
+  await page.evaluate(() => {
+    const handle = document.querySelector('.addr-drag-handle'),r = handle.getBoundingClientRect();
+    const make = (x, y) => new Touch({ identifier: 7, target: handle, clientX: x, clientY: y });
+    const x = r.left + r.width / 2, y = r.top + r.height / 2, startTouch = make(x, y), moveTouch = make(x - 15, y - 45);
+    handle.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, cancelable: true, touches: [startTouch], changedTouches: [startTouch] }));
+    document.dispatchEvent(new TouchEvent('touchmove', { bubbles: true, cancelable: true, touches: [moveTouch], changedTouches: [moveTouch] }));
+    document.dispatchEvent(new TouchEvent('touchend', { bubbles: true, cancelable: true, touches: [], changedTouches: [moveTouch] }));
+  });
+  const popupAfterTouch = await page.locator('.leaflet-popup.addr-popup').boundingBox();
+  expect(Math.hypot(popupAfterTouch.x - popupAfter.x, popupAfterTouch.y - popupAfter.y)).toBeGreaterThan(25);
   await page.locator('#landOwnBtn').click();
   await expect(page.locator('#landOwnResult')).toContainText('사유지');
   await expect(page.locator('#landOwnResult')).toContainText('1,284㎡');
