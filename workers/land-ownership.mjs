@@ -78,9 +78,7 @@ export async function lookupLandOwnership(env, lat, lng, fetchImpl = fetch) {
   let domain = "https://canoe.crowdbase.kr";
   try { domain = new URL(env.SITE_URL || domain).origin; } catch (e) {}
 
-  // VWorld의 TLS 응답은 Cloudflare Workers 경유 시 간헐적으로 520이 발생한다.
-  // 브라우저가 아닌 Worker→공공 API 구간에서 HTTP/1.1 엔드포인트를 사용한다.
-  const parcelUrl = new URL("http://api.vworld.kr/req/data");
+  const parcelUrl = new URL("https://api.vworld.kr/req/data");
   const parcelParams = {
     service: "data", version: "2.0", request: "getfeature", format: "json",
     size: "1", page: "1", geometry: "true", attribute: "true", crs: "EPSG:4326",
@@ -93,7 +91,7 @@ export async function lookupLandOwnership(env, lat, lng, fetchImpl = fetch) {
   const feature = firstFeature(parcelData), pnu = String(feature && feature.properties && feature.properties.pnu || "");
   if (!/^[0-9]{19}$/.test(pnu)) return null;
 
-  const ledgerUrl = new URL("http://api.vworld.kr/ned/data/ladfrlList");
+  const ledgerUrl = new URL("https://api.vworld.kr/ned/data/ladfrlList");
   Object.entries({ format: "json", numOfRows: "10", pageNo: "1", key, domain, pnu })
     .forEach(([name, value]) => ledgerUrl.searchParams.set(name, value));
   let ledgerData;
