@@ -57,6 +57,15 @@ test('address popup checks and clears one parcel on demand', async () => {
     await showAddress(37.945, 127.715);
   });
   await expect(page.locator('#landOwnBtn')).toBeVisible();
+  const freePan = await page.evaluate(() => {
+    const before = map.getCenter(), zoom = map.getZoom();
+    map.panBy([600, 0], { animate: false });
+    const after = map.getCenter(), movedPx = map.project(before, zoom).distanceTo(map.project(after, zoom));
+    map.setView(before, zoom, { animate: false });
+    return { movedPx, keepInView: map._popup.options.keepInView };
+  });
+  expect(freePan.keepInView).toBe(false);
+  expect(freePan.movedPx).toBeGreaterThan(500);
   const popupBefore = await page.locator('.leaflet-popup.addr-popup').boundingBox();
   const handle = await page.locator('.addr-drag-handle').boundingBox();
   const dragY = 844 - (popupBefore.y + popupBefore.height) > 80 ? 65 : -65;

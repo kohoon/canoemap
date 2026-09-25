@@ -1487,7 +1487,7 @@ function enableAddressPopupDrag(pop){
 async function showAddress(lat,lng){
   const now=Date.now(); if(now-_lastAddr<800) return; _lastAddr=now;   // 중복 호출 방지
   const grip='<div class="addr-drag-handle" role="button" aria-label="주소 카드 이동"><span class="addr-drag-grip">•••</span>끌어서 이동</div>';
-  const pop=L.popup({offset:L.point(0,-52),keepInView:true,autoPanPadding:[18,18]}).setLatLng([lat,lng]).setContent(grip+'주소 조회 중…').openOn(map);enableAddressPopupDrag(pop);
+  const pop=L.popup({offset:L.point(0,-52),keepInView:false,autoPanPadding:[18,18]}).setLatLng([lat,lng]).setContent(grip+'주소 조회 중…').openOn(map);enableAddressPopupDrag(pop);
   let r=await vworldReverse(lat,lng);
   let main='', sub='';
   if(r&&(r.parcel||r.road)){ main=r.parcel||r.road; if(r.road&&r.parcel) sub='도로명: '+r.road; }
