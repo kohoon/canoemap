@@ -1043,6 +1043,22 @@ test('entered places and courses stay above public map indexes in search preview
   await browser.close();
 });
 
+test('open chat entry stays visible below the top-right account control', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const chat = page.locator('#openChatCtl');
+  await expect(chat).toBeVisible();
+  await expect(chat).toHaveText(/이용자 오픈채팅/);
+  await expect(chat).toHaveAttribute('href', 'https://open.kakao.com/o/gcURegPi');
+  await expect(chat).toHaveAttribute('target', '_blank');
+  const order = await page.locator('.leaflet-top.leaflet-right > .leaflet-control').evaluateAll((nodes) => nodes.map((node) => node.id));
+  expect(order.indexOf('authbox')).toBeLessThan(order.indexOf('openChatCtl'));
+  await browser.close();
+});
+
 test('course share URL and preview image use the course-specific map card', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
