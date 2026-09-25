@@ -237,7 +237,6 @@
   .land-own-badge{display:inline-flex;align-items:center;min-height:22px;padding:1px 8px;border-radius:12px;color:#fff;font-size:11px;font-weight:700;white-space:nowrap}
   .land-own-badge.private{background:#ef6c00}.land-own-badge.national{background:#1565c0}.land-own-badge.public{background:#00897b}.land-own-badge.unknown{background:#757575}
   .land-own-grid{display:grid;grid-template-columns:58px minmax(0,1fr);gap:5px 8px}.land-own-grid span:nth-child(odd){color:#748087}.land-own-grid b{font-weight:700;color:#263238}
-  .land-own-warn{margin-top:9px;padding:8px 0 0 15px;border-top:1px solid #dce3e5;color:#795548;font-size:10.5px;line-height:1.45;position:relative}.land-own-warn:before{content:'※';position:absolute;left:0;top:8px}
   .land-own-link{display:flex;align-items:center;justify-content:center;margin-top:9px;padding:7px 9px;border:1px solid #b7cbd5;border-radius:7px;background:#fff;color:#1565c0!important;text-decoration:none!important;font:700 11px/1.2 sans-serif}
   .addform .ap-name{font:700 14px sans-serif;color:#1f3a34;margin:6px 0 4px}
   .addform .ap-meta{font:600 12px sans-serif;color:#778;margin:4px 0 4px}
@@ -1391,7 +1390,7 @@ async function checkLandOwnership(){
     const area=d.area==null?'—':Number(d.area).toLocaleString('ko-KR')+'㎡';
     box.innerHTML='<div class="land-own-card"><div class="land-own-head"><b>토지 정보</b><span class="land-own-badge '+cat+'">'+pmEsc(d.label||'확인 불가')+'</span></div>'
       +'<div class="land-own-grid"><span>소유구분</span><b>'+pmEsc(d.ownerType||'미분류')+'</b><span>지목</span><b>'+pmEsc(d.landCategory||'—')+'</b><span>면적</span><b>'+area+'</b><span>기준일</span><b>'+pmEsc(d.updatedAt||'—')+'</b></div>'
-      +'<div class="land-own-warn">소유 구분은 출입·진수·캠핑 허가를 의미하지 않습니다.</div><a class="land-own-link" target="_blank" rel="noopener" href="https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?isNoScr=script&mode=search&pnu='+encodeURIComponent(pnu)+'">토지이음 상세보기&nbsp;↗</a></div>';
+      +'<a class="land-own-link" target="_blank" rel="noopener" href="https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?isNoScr=script&mode=search&pnu='+encodeURIComponent(pnu)+'">토지이음 상세보기&nbsp;↗</a></div>';
     if(d.geometry){_landOwnershipLayer=L.geoJSON({type:'Feature',geometry:d.geometry,properties:{}},{style:{color:_landOwnerColor(cat),weight:3,fillColor:_landOwnerColor(cat),fillOpacity:.2,dashArray:cat==='private'?'7 5':null}}).addTo(map);}
     gaEvent('land_ownership_check',{result:cat});
   }catch(e){
