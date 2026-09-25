@@ -650,6 +650,46 @@ test('water route enters the nearest edge projection without an endpoint backtra
   await browser.close();
 });
 
+test('water route extends to a selected landing beyond the mapped water boundary', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
+  const rivers = { type: 'FeatureCollection', features: [{
+    type: 'Feature', properties: { name: '테스트강', kind: 'river' },
+    geometry: { type: 'LineString', coordinates: [[127.0, 37.01], [127.0, 36.99]] },
+  }] };
+  const overpass = { elements: [
+    { type: 'relation', id: 1, tags: { natural: 'water' }, members: [
+      { role: 'outer', geometry: ring([[36.988, 126.998], [37.012, 126.998], [37.012, 127.001], [36.988, 127.001], [36.988, 126.998]]) },
+    ] },
+    { type: 'way', id: 2, tags: { waterway: 'river', name: '테스트강' }, geometry: ring([[37.01, 127.0], [36.99, 127.0]]) },
+  ] };
+  await context.route(/\/rivers\.geojson(?:\?|$)/, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rivers) });
+  });
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(overpass) });
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof waterRoute === 'function');
+  const result = await page.evaluate(() => waterRoute(
+    { lat: 37.008, lng: 127.0 },
+    { lat: 36.992, lng: 127.0045 },
+  ));
+  expect(result.access).toEqual([]);
+  expect(result.coords[0]).toEqual([37.008, 127.0]);
+  expect(result.coords[result.coords.length - 1]).toEqual([36.992, 127.0045]);
+  expect(result.km).toBeGreaterThan(1.8);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('campsites are visible only while administrator mode is active', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

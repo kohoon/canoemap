@@ -4203,15 +4203,15 @@ async function waterRoute(p1,p2){
   }
   let repairedStatic=null;
   if(staticRoute&&staticRoute._core&&staticRoute._core.length>1){
-    const core=staticRoute._core.slice(),start=[p1.lat,p1.lng],end=[p2.lat,p2.lng],access=[];
+    const core=staticRoute._core.slice(),start=[p1.lat,p1.lng],end=[p2.lat,p2.lng];let endpointExtension=false;
     function verifiedLeg(a,b){if(hav(a,b)<3)return [a,b];if(waterLineClear(a,b))return [a,b];return waterSurfacePath(a,b);}
     let first=verifiedLeg(start,core[0]),last=verifiedLeg(core[core.length-1],end);
     let coords=core;
-    if(first)coords=first.slice(0,-1).concat(coords);else access.push([start,core[0]]);
-    if(last)coords=coords.concat(last.slice(1));else access.push([core[core.length-1],end]);
+    if(first)coords=first.slice(0,-1).concat(coords);else{coords=[start].concat(coords);endpointExtension=true;}
+    if(last)coords=coords.concat(last.slice(1));else{coords=coords.concat([end]);endpointExtension=true;}
     let meters=0;for(let i=1;i<coords.length;i++)meters+=hav(coords[i-1],coords[i]);
-    repairedStatic={coords:coords,km:meters/1000,access:access,snap:staticRoute.snap,source:'static-river-water',riverName:staticRoute.riverName};
-    if(!access.length)return repairedStatic;
+    repairedStatic={coords:coords,km:meters/1000,access:[],snap:staticRoute.snap,source:'static-river-water',riverName:staticRoute.riverName};
+    if(!endpointExtension)return repairedStatic;
   }
   function nearest(pt){ let best=null,bd=1e18; for(const k in nodes){ const d=hav(nodes[k],[pt.lat,pt.lng]); if(d<bd){bd=d;best=k;} } return {key:best,dist:bd,wet:false}; }
   function edgeProjection(origin,edge){
@@ -4276,12 +4276,13 @@ async function waterRoute(p1,p2){
   let raw=path.map(k=>nodes[k]);
   if(near1.wet){const c=near1.connector||[[p1.lat,p1.lng],nodes[s1]];raw=c.slice(0,-1).concat(raw);}
   if(near2.wet){const c=near2.connector||[[p2.lat,p2.lng],nodes[s2]];raw=raw.concat(c.slice().reverse().slice(1));}
-  const coords=shortcutWaterPath(raw);
+  const coords=shortcutWaterPath(raw),start=[p1.lat,p1.lng],end=[p2.lat,p2.lng];
+  // 지도 수면 경계는 수위·촬영 시점에 따라 달라진다. 가까운 물길까지의 연결이
+  // 수면으로 검증되지 않아도 사용자가 선택한 런칭·랜딩 좌표까지 코스와 거리를 잇는다.
+  if(!near1.wet&&hav(start,coords[0])>=3)coords.unshift(start);
+  if(!near2.wet&&hav(coords[coords.length-1],end)>=3)coords.push(end);
   let waterM=0;for(let i=1;i<coords.length;i++)waterM+=hav(coords[i-1],coords[i]);
-  const access=[];
-  if(!near1.wet)access.push([[p1.lat,p1.lng],nodes[s1]]);
-  if(!near2.wet)access.push([nodes[s2],[p2.lat,p2.lng]]);
-  return {coords:coords, km:waterM/1000, access:access, snap:[near1.dist,near2.dist], riverName:riverName};
+  return {coords:coords, km:waterM/1000, access:[], snap:[near1.dist,near2.dist], riverName:riverName};
 }
 function MinHeap(){ this.a=[]; }
 MinHeap.prototype.size=function(){ return this.a.length; };

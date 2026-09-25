@@ -40,7 +40,7 @@
   .sr-head{margin-top:7px;font-size:10.5px;font-weight:700;color:#99a}
   .search-pin{font-size:30px;line-height:30px;text-align:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
   .course-share{color:#1565c0;cursor:pointer;text-decoration:none;font-weight:600}
-  .river-focus-bar{display:none;align-items:center;gap:8px;max-width:min(260px,65vw);box-sizing:border-box;background:#003b73;color:#fff;padding:8px 8px 8px 11px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.38);font:700 13px/1.2 sans-serif}
+  .river-focus-bar{display:none;align-items:center;gap:8px;max-width:min(260px,65vw);box-sizing:border-box;background:#087fa9;color:#fff;padding:8px 8px 8px 11px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.38);font:700 13px/1.2 sans-serif}
   .river-focus-bar.on{display:flex}
   .river-focus-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .river-focus-x{display:flex;align-items:center;justify-content:center;flex:none;width:25px;height:25px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font:700 18px/1 sans-serif;cursor:pointer}
@@ -50,6 +50,11 @@
   .course-focus-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .course-focus-off{flex:none;padding:6px 7px;border:0;border-radius:5px;background:rgba(255,255,255,.2);color:#fff;font:700 12px/1 sans-serif;cursor:pointer}
   .course-focus-off:hover,.course-focus-off:focus{background:rgba(255,255,255,.34);outline:none}
+  .leaflet-div-icon.course-dir-icon{background:transparent;border:0;pointer-events:none}
+  .course-dir-arrow{display:block;width:18px;height:18px;transform-origin:50% 50%;filter:drop-shadow(0 1px 1px rgba(0,0,0,.55))}
+  #map.course-directions-hidden .course-dir-icon{display:none!important}
+  .leaflet-div-icon.river-wave-icon{background:transparent;border:0;pointer-events:none}
+  .river-wave-mark{display:block;width:20px;height:12px;transform-origin:50% 50%;filter:drop-shadow(0 1px 1px rgba(10,111,149,.42))}
   #hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:1000;
         background:rgba(0,0,0,.62);color:#fff;padding:5px 12px;border-radius:14px;
         font:12px sans-serif;transition:opacity .6s;pointer-events:none}
@@ -62,6 +67,7 @@
   .measbtn .mx{margin-left:8px;background:rgba(255,255,255,.35);border-radius:8px;padding:1px 7px;cursor:pointer}
   .obsbtn.on{background:#e53935;color:#fff}
   .obs-ic{display:inline-flex;align-items:center;gap:3px;padding:3px 8px 3px 6px;border-radius:12px;font:700 12px sans-serif;color:#fff;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.35);border:2px solid #fff}
+  .obs-ic.obs-icon-only{justify-content:center;width:26px;height:26px;box-sizing:border-box;padding:0;border-radius:50%;font-size:14px;line-height:1}
   .obs-bo{background:#e53935}
   .obs-jing{background:#fb8c00}
   .obs-shal{background:#fdd835;color:#5a4500}
@@ -220,6 +226,22 @@
   .loc-dot{filter:drop-shadow(0 0 3px rgba(25,118,210,.6))}
   .addplace-btn{margin-top:7px;background:#00b894;color:#fff;border:0;border-radius:6px;padding:6px 11px;font:600 12px sans-serif;cursor:pointer}
   .addplace-btn.sugg{background:#1565c0}
+  .addplace-btn.landcheck{background:#455a64}
+  .addplace-btn.landcheck:disabled{opacity:.62;cursor:wait}
+  .addr-drag-handle{display:flex;align-items:center;justify-content:center;gap:6px;margin:-5px 22px 8px -2px;padding:5px 8px;border-radius:7px;background:#eef3f5;color:#60747d;font:700 10.5px/1 sans-serif;letter-spacing:-.1px;cursor:grab;user-select:none;touch-action:none}
+  .addr-drag-handle:active{cursor:grabbing;background:#e2ebef;color:#36515e}
+  .addr-drag-grip{font-size:13px;letter-spacing:-3px;transform:rotate(90deg)}
+  .leaflet-popup.addr-popup{will-change:margin-left,margin-bottom}
+  .addr-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .addr-actions .addplace-btn{margin-top:0;min-height:32px;border-radius:8px;padding:7px 10px;line-height:1.1}
+  .land-own-result{margin-top:9px;max-width:280px}
+  .land-own-card{padding:11px 12px;border:1px solid #e4e9eb;border-radius:10px;background:#f7f9fa;color:#263238;font-size:12px;line-height:1.4;box-shadow:0 1px 2px rgba(38,50,56,.04)}
+  .land-own-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+  .land-own-head b{font-size:13px;letter-spacing:-.2px}
+  .land-own-badge{display:inline-flex;align-items:center;min-height:22px;padding:1px 8px;border-radius:12px;color:#fff;font-size:11px;font-weight:700;white-space:nowrap}
+  .land-own-badge.private{background:#ef6c00}.land-own-badge.national{background:#1565c0}.land-own-badge.public{background:#00897b}.land-own-badge.unknown{background:#757575}
+  .land-own-grid{display:grid;grid-template-columns:58px minmax(0,1fr);gap:5px 8px}.land-own-grid span:nth-child(odd){color:#748087}.land-own-grid b{font-weight:700;color:#263238}
+  .land-own-link{display:flex;align-items:center;justify-content:center;margin-top:9px;padding:7px 9px;border:1px solid #b7cbd5;border-radius:7px;background:#fff;color:#1565c0!important;text-decoration:none!important;font:700 11px/1.2 sans-serif}
   .addform .ap-name{font:700 14px sans-serif;color:#1f3a34;margin:6px 0 4px}
   .addform .ap-meta{font:600 12px sans-serif;color:#778;margin:4px 0 4px}
   .addform #apName{width:100%;box-sizing:border-box;padding:8px 9px;margin:0 0 8px;border:1px solid #bbb;border-radius:5px;font-size:14px}
@@ -882,7 +904,7 @@ window.map = map;
 map.on('moveend',function(){if(_mapUrlOwnsView())return;try{const c=map.getCenter();localStorage.setItem('mc_map_view_v1',JSON.stringify({lat:+c.lat.toFixed(6),lng:+c.lng.toFixed(6),zoom:map.getZoom()}));}catch(e){}});
 map.attributionControl.setPrefix(false);   // 🇺🇦 깃발 + "Leaflet" 접두사 제거(© OpenStreetMap 만 유지)
 let measureMode = false;   // 물길 거리측정 모드
-const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;   // 모바일/터치 여부
+const isTouch = navigator.maxTouchPoints > 0 || (window.matchMedia&&window.matchMedia('(pointer: coarse)').matches);   // 모바일/터치 여부
 L.control.zoom({position:'bottomleft'}).addTo(map);
 map.addControl(new AuthCtl());   // 카카오 로그인 박스(우상단)
 const OfflineCtl=L.Control.extend({options:{position:'bottomleft'},onAdd:function(){const b=L.DomUtil.create('button','offline-btn');b.id='offlineCtl';b.type='button';b.textContent='📥 오프라인';b.title='오프라인 지도 저장 및 사용법';L.DomEvent.disableClickPropagation(b);L.DomEvent.on(b,'click',function(e){L.DomEvent.stop(e);openOfflineModal();});return b;}});
@@ -1326,6 +1348,19 @@ function vworldReverse(lat,lng){
     document.body.appendChild(s);
   });
 }
+function vworldJsonp(path,params,timeoutMs){
+  return new Promise(function(resolve,reject){
+    if(!VKEY){reject(new Error('not-configured'));return;}
+    const name='__vwj'+(_jpId++),s=document.createElement('script');let done=false;
+    function cleanup(){try{delete window[name];}catch(e){}if(s.parentNode)s.parentNode.removeChild(s);}
+    const timer=setTimeout(function(){if(!done){done=true;cleanup();reject(new Error('upstream'));}},timeoutMs||10000);
+    window[name]=function(d){if(done)return;done=true;clearTimeout(timer);cleanup();resolve(d);};
+    s.onerror=function(){if(!done){done=true;clearTimeout(timer);cleanup();reject(new Error('upstream'));}};
+    const q=Object.keys(params||{}).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+    s.src='https://api.vworld.kr'+path+'?'+q+'&key='+encodeURIComponent(VKEY)+'&domain='+encodeURIComponent(location.origin)+'&callback='+name;
+    document.body.appendChild(s);
+  });
+}
 // ---- 전방 검색: V-World 검색 API(JSONP) — 도로명/지번 주소·장소 ----
 function vworldSearch(q, type, category){
   return new Promise(function(resolve){
@@ -1384,6 +1419,42 @@ async function nominatimReverse(lat,lng){
   }catch(e){ return ''; }
 }
 let _lastAddr=0;
+let _landOwnershipLayer=null;
+function clearLandOwnership(){
+  if(_landOwnershipLayer){try{map.removeLayer(_landOwnershipLayer);}catch(e){}_landOwnershipLayer=null;}
+}
+function _landOwnerColor(category){return category==='private'?'#ef6c00':(category==='national'?'#1565c0':(category==='public'?'#00897b':'#757575'));}
+async function checkLandOwnership(){
+  const a=window._curAddr,btn=document.getElementById('landOwnBtn'),box=document.getElementById('landOwnResult');
+  if(!a||!btn||!box)return;
+  btn.disabled=true;btn.textContent='확인 중…';box.innerHTML='<small>선택 지점의 필지를 찾고 있습니다.</small>';clearLandOwnership();
+  try{
+    const parcel=await vworldJsonp('/req/data',{service:'data',version:'2.0',request:'getfeature',format:'json',size:'1',page:'1',geometry:'true',attribute:'true',crs:'EPSG:4326',data:'LP_PA_CBND_BUBUN',geomfilter:'POINT('+Number(a.lng)+' '+Number(a.lat)+')'},12000);
+    const fc=parcel&&parcel.response&&parcel.response.result&&parcel.response.result.featureCollection;
+    const feature=fc&&Array.isArray(fc.features)&&fc.features[0],pnu=String(feature&&feature.properties&&feature.properties.pnu||'');
+    if(!feature||!/^\d{19}$/.test(pnu))throw new Error('not-found');
+    const ledger=await vworldJsonp('/ned/data/ladfrlList',{format:'json',numOfRows:'10',pageNo:'1',pnu:pnu},12000);
+    const lb=ledger&&ledger.ladfrlVOList,rows=lb&&lb.ladfrlVOList,row=Array.isArray(rows)?rows[0]:rows;
+    if(!row)throw new Error('not-found');
+    const code=String(row.posesnSeCode||'').padStart(2,'0'),ownerType=String(row.posesnSeCodeNm||'미분류');
+    let category='unknown',label='확인 불가';
+    if(code==='02'||ownerType==='국유지'){category='national';label='국유지';}
+    else if(code==='04'||code==='05'||/시[,. ]*도유지|군유지|공유지/.test(ownerType)){category='public';label='지자체 소유';}
+    else if(['00','01','03','06','07','08','09'].indexOf(code)>=0||/^(개인|법인|종중|종교단체|기타단체|외국인)/.test(ownerType)){category='private';label='사유지';}
+    const rawArea=Number(row.lndpclAr||row.ndpclAr),d={ok:true,category:category,label:label,ownerType:ownerType.slice(0,40),landCategory:String(row.lndcgrCodeNm||'').slice(0,40),area:isFinite(rawArea)&&rawArea>=0?rawArea:null,updatedAt:String(row.lastUpdtDt||'').slice(0,20),geometry:feature.geometry,pnu:pnu};
+    const cat=['private','national','public'].indexOf(d.category)>=0?d.category:'unknown';
+    const area=d.area==null?'—':Number(d.area).toLocaleString('ko-KR')+'㎡';
+    box.innerHTML='<div class="land-own-card"><div class="land-own-head"><b>토지 정보</b><span class="land-own-badge '+cat+'">'+pmEsc(d.label||'확인 불가')+'</span></div>'
+      +'<div class="land-own-grid"><span>소유구분</span><b>'+pmEsc(d.ownerType||'미분류')+'</b><span>지목</span><b>'+pmEsc(d.landCategory||'—')+'</b><span>면적</span><b>'+area+'</b><span>기준일</span><b>'+pmEsc(d.updatedAt||'—')+'</b></div>'
+      +'<a class="land-own-link" target="_blank" rel="noopener" href="https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?isNoScr=script&mode=search&pnu='+encodeURIComponent(pnu)+'">토지이음 상세보기&nbsp;↗</a></div>';
+    if(d.geometry){_landOwnershipLayer=L.geoJSON({type:'Feature',geometry:d.geometry,properties:{}},{style:{color:_landOwnerColor(cat),weight:3,fillColor:_landOwnerColor(cat),fillOpacity:.2,dashArray:cat==='private'?'7 5':null}}).addTo(map);}
+    gaEvent('land_ownership_check',{result:cat});
+  }catch(e){
+    const code=String(e&&e.message||'');
+    const msg=code==='not-configured'?'소유정보 연동 준비 중입니다.':(code==='not-found'?'이 위치의 필지 정보를 찾지 못했습니다.':(code==='rate-limit'?'잠시 후 다시 확인해 주세요.':'소유정보를 불러오지 못했습니다.'));
+    box.innerHTML='<div class="land-own-card"><span class="land-own-badge unknown">확인 불가</span><br><small>'+msg+'</small></div>';
+  }finally{btn.disabled=false;btn.textContent='🏷 다시 조회';}
+}
 function copyAddress(){
   const a=window._curAddr; if(!a) return;
   const txt=[a.name||'', (a.lat&&a.lng)?(a.lat.toFixed(5)+', '+a.lng.toFixed(5)):''].filter(Boolean).join('\\n');
@@ -1391,22 +1462,47 @@ function copyAddress(){
     navigator.clipboard.writeText(txt).then(function(){ alert('주소를 복사했어요'); }).catch(function(){ prompt('주소 복사', txt); });
   } else prompt('주소 복사', txt);
 }
+function enableAddressPopupDrag(pop){
+  const root=pop&&pop.getElement&&pop.getElement(),handle=root&&root.querySelector('.addr-drag-handle');if(!root||!handle)return;
+  if(pop._addrDragAbort)pop._addrDragAbort.abort();const aborter=new AbortController(),signal=aborter.signal;pop._addrDragAbort=aborter;
+  root.classList.add('addr-popup');
+  let drag=null;
+  function start(x,y,id){
+    const rect=root.getBoundingClientRect(),style=getComputedStyle(root);
+    drag={id:id,x:x,y:y,ml:parseFloat(style.marginLeft)||0,mb:parseFloat(style.marginBottom)||0,rect:rect};
+  }
+  function move(x,y){
+    if(!drag)return;const pad=10,dx=Math.max(pad-drag.rect.left,Math.min(innerWidth-pad-drag.rect.right,x-drag.x));
+    const dy=Math.max(pad-drag.rect.top,Math.min(innerHeight-pad-drag.rect.bottom,y-drag.y));
+    root.style.marginLeft=(drag.ml+dx)+'px';root.style.marginBottom=(drag.mb-dy)+'px';
+  }
+  handle.addEventListener('mousedown',function(e){if(e.button!==0)return;e.preventDefault();e.stopPropagation();start(e.clientX,e.clientY,'mouse');},{signal:signal});
+  document.addEventListener('mousemove',function(e){if(!drag||drag.id!=='mouse')return;e.preventDefault();move(e.clientX,e.clientY);},{signal:signal});
+  document.addEventListener('mouseup',function(){if(drag&&drag.id==='mouse')drag=null;},{signal:signal});
+  handle.addEventListener('touchstart',function(e){const t=e.changedTouches&&e.changedTouches[0];if(!t)return;e.preventDefault();e.stopPropagation();start(t.clientX,t.clientY,t.identifier);},{passive:false,signal:signal});
+  document.addEventListener('touchmove',function(e){if(!drag||drag.id==='mouse')return;const ts=Array.from(e.changedTouches||[]),t=ts.find(function(x){return x.identifier===drag.id;});if(!t)return;e.preventDefault();move(t.clientX,t.clientY);},{passive:false,signal:signal});
+  document.addEventListener('touchend',function(e){if(!drag||drag.id==='mouse')return;const ts=Array.from(e.changedTouches||[]);if(ts.some(function(x){return x.identifier===drag.id;}))drag=null;},{signal:signal});
+  document.addEventListener('touchcancel',function(){if(drag&&drag.id!=='mouse')drag=null;},{signal:signal});
+}
 async function showAddress(lat,lng){
   const now=Date.now(); if(now-_lastAddr<800) return; _lastAddr=now;   // 중복 호출 방지
-  const pop=L.popup().setLatLng([lat,lng]).setContent('주소 조회 중…').openOn(map);
+  const grip='<div class="addr-drag-handle" role="button" aria-label="주소 카드 이동"><span class="addr-drag-grip">•••</span>끌어서 이동</div>';
+  const pop=L.popup({offset:L.point(0,-52),keepInView:false,autoPanPadding:[18,18]}).setLatLng([lat,lng]).setContent(grip+'주소 조회 중…').openOn(map);enableAddressPopupDrag(pop);
   let r=await vworldReverse(lat,lng);
   let main='', sub='';
   if(r&&(r.parcel||r.road)){ main=r.parcel||r.road; if(r.road&&r.parcel) sub='도로명: '+r.road; }
   else { main=await nominatimReverse(lat,lng); }
-  let h='<b>'+(main||'주소를 찾지 못함')+'</b>';
+  let h=grip+'<b>'+(main||'주소를 찾지 못함')+'</b>';
   if(sub) h+='<br><small>'+sub+'</small>';
   h+='<br><small>'+lat.toFixed(5)+', '+lng.toFixed(5)+'</small>'+extLinks(lat,lng,main||'위치');
   window._curAddr={lat:lat, lng:lng, name:main||''};
-  h+='<br><button class="addplace-btn" onclick="copyAddress()">주소복사</button>';
+  h+='<div class="addr-actions"><button class="addplace-btn" onclick="copyAddress()">주소복사</button>';
+  h+='<button id="landOwnBtn" class="addplace-btn landcheck" onclick="checkLandOwnership()">🏷 토지소유</button></div><div id="landOwnResult" class="land-own-result"></div>';
   if(isAdmin()) h+='<br><button class="addplace-btn" onclick="addPlace()">📌 장소 등록</button>';
   else if(getUser()&&getUser().uid) h+='<br><button class="addplace-btn sugg" onclick="suggestPlace()">💡 장소 제안</button>';
-  pop.setContent(h);
+  pop.setContent(h);enableAddressPopupDrag(pop);
 }
+map.on('popupclose',function(e){clearLandOwnership();if(e.popup&&e.popup._addrDragAbort){e.popup._addrDragAbort.abort();e.popup._addrDragAbort=null;}});
 // ---- 어드민: 장소 등록 ----
 // 일반 사용자: 장소 제안(런칭지/랜딩지/기타 + 코멘트) → 시트
 function closeSg(){ document.getElementById('sgmodal').classList.remove('open'); }
@@ -1637,6 +1733,29 @@ function courseLineColor(sc, seed){
   const l = 42 + (_hashStr(seed+'l') % 10);
   return 'hsl('+h+' '+s+'% '+l+'%)';
 }
+function _courseBearing(a,b){
+  const d=Math.PI/180, p1=a[0]*d, p2=b[0]*d, dl=(b[1]-a[1])*d;
+  return (Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl))/d+360)%360;
+}
+function courseDirectionLayer(coords){
+  const out=L.layerGroup();
+  if(!coords||coords.length<2)return out;
+  const seg=[], dist=[];let total=0;
+  for(let i=1;i<coords.length;i++){const d=map.distance(coords[i-1],coords[i]);if(!isFinite(d)||d<=0)continue;seg.push([coords[i-1],coords[i],d]);total+=d;dist.push(total);}
+  if(!seg.length||total<=0)return out;
+  const count=Math.max(1,Math.min(6,Math.round(total/3500)));
+  for(let n=1;n<=count;n++){
+    const target=total*n/(count+1);let i=0;while(i<dist.length-1&&dist[i]<target)i++;
+    const prev=i?dist[i-1]:0, s=seg[i], f=Math.max(0,Math.min(1,(target-prev)/s[2]));
+    const ll=[s[0][0]+(s[1][0]-s[0][0])*f,s[0][1]+(s[1][1]-s[0][1])*f], angle=_courseBearing(s[0],s[1]);
+    const svg='<span class="course-dir-arrow" style="transform:rotate('+angle.toFixed(1)+'deg)"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 15L9 4 16 15" fill="none" stroke="#32134f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".88"/><path d="M2 15L9 4 16 15" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+    L.marker(ll,{pane:'overlayPane',interactive:false,keyboard:false,icon:L.divIcon({className:'course-dir-icon',html:svg,iconSize:[18,18],iconAnchor:[9,9]})}).addTo(out);
+  }
+  return out;
+}
+const COURSE_DIRECTION_MIN_ZOOM=11;
+function _syncCourseDirectionVisibility(){map.getContainer().classList.toggle('course-directions-hidden',map.getZoom()<COURSE_DIRECTION_MIN_ZOOM);}
+map.on('zoomend',_syncCourseDirectionVisibility);_syncCourseDirectionVisibility();
 const courseLayers={};    // 서브카테고리 -> layerGroup(전체 코스 그룹에 포함)
 const _staticCidLayers={};   // 정적 코스 cid -> [{grp,l}] (삭제/숨김용)
 const _hiddenStaticCids=new Set();
@@ -1724,6 +1843,12 @@ function _renderStaticCourses(){
       onEachFeature:function(f,l){ reg(f,l,null); }});
     const line=L.geoJSON(fc,{style:function(f){ const p=f.properties||{}; return {color:validCourseColor(p.color)||courseLineColor(sc, p.cid!=null?p.cid:p.name), weight:5, opacity:0.95}; },interactive:false,
       onEachFeature:function(f,l){ reg(f,l,null); }});
+    const directions=L.layerGroup();
+    fc.features.forEach(function(f){
+      const p=f.properties||{}, raw=(f.geometry&&f.geometry.coordinates)||[], coords=raw.map(function(c){return [c[1],c[0]];});
+      const dir=courseDirectionLayer(coords);directions.addLayer(dir);
+      if(p.cid!=null){_favReg('course_c'+p.cid,dir,directions);(_staticCidLayers[p.cid]=_staticCidLayers[p.cid]||[]).push({grp:directions,l:dir});}
+    });
     // 투명 넓은 탭 영역(어디를 탭/클릭해도 정보)
     const hit=L.geoJSON(fc,{style:function(f){ const p=f.properties||{}; return {color:validCourseColor(p.color)||courseLineColor(sc, p.cid!=null?p.cid:p.name), weight:22, opacity:0}; },
       onEachFeature:(f,l)=>{ const p=f.properties||{};
@@ -1735,7 +1860,7 @@ function _renderStaticCourses(){
     Object.keys(_favLayerIdx).forEach(function(t){ _favLayerIdx[t].forEach(function(e){ if(!e.parent){ e.parent=(casing.hasLayer(e.l)?casing:(line.hasLayer(e.l)?line:hit)); } }); });
     // cid별 레이어 등록(정적 코스 삭제용)
     [casing,line,hit].forEach(function(grp){ grp.eachLayer(function(l){ const cid=((l.feature&&l.feature.properties)||{}).cid; if(cid!=null) (_staticCidLayers[cid]=_staticCidLayers[cid]||[]).push({grp:grp,l:l}); }); });
-    courseLayers[sc]=L.layerGroup([casing,line,hit]); allCoursesGroup.addLayer(courseLayers[sc]);
+    courseLayers[sc]=L.layerGroup([casing,line,directions,hit]); allCoursesGroup.addLayer(courseLayers[sc]);
   });
   _courseStaticReady=true;
   _hiddenStaticCids.forEach(function(cid){ _hideStaticCourse(cid); });
@@ -1974,7 +2099,7 @@ function _zoomPaneGate(){ const on=map.getZoom()>=13?'':'none';
   map.getPane('obsPane').style.display=map.getZoom()>=13?'':'none'; }
 map.on('zoomend', _zoomPaneGate);
 const OBS_TYPES={'보':{c:'obs-bo',e:'🚧',label:'보'},'징검다리':{c:'obs-jing',e:'🪨',label:'징검다리'},'잠수교':{c:'obs-lowbridge',e:'🌉',label:'잠수교'},'용치':{c:'obs-dragons',e:'🔺',label:'용치'},'낮은바닥':{c:'obs-shal',e:'〰️',label:'얕음'},'여울':{c:'obs-yeoul',e:'🌊',label:'여울'},'유명지':{c:'obs-spot',e:'⭐',label:'유명지'},'강풍지대':{c:'obs-wind',e:'💨',label:'강풍지대'},'식당/카페':{c:'obs-food',e:'🍽️',label:'식당/카페'},'캠핑사이트':{c:'obs-camp',e:'🏕️',label:'캠핑사이트'}};
-function _obHasName(ty){ return ty==='여울'||ty==='유명지'||ty==='식당/카페'||ty==='캠핑사이트'; }
+function _obHasName(ty){ return !!OBS_TYPES[ty]; }
 function _obHasKakao(ty){ return ty==='식당/카페'; }
 function _obAdminOnly(o){ return !!o&&o.type==='캠핑사이트'; }
 function _obKakaoUrl(v){
@@ -1992,7 +2117,8 @@ function _obKakaoLink(o){
 const obstacleLayer=L.layerGroup();
 const _obstacles={};
 function staticWeirId(w){ return 'weir:'+encodeURIComponent(String(w.nm||'보'))+'|'+Number(w.lat).toFixed(5)+'|'+Number(w.lng).toFixed(5); }
-function obsIcon(type,name){ const t=OBS_TYPES[type]||OBS_TYPES['보']; const disp=(name&&String(name).trim())?pmEsc(String(name).trim()):t.label; return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+'">'+t.e+' '+disp+'</span>',iconSize:null}); }
+function _obDisplayName(o){const t=OBS_TYPES[o&&o.type]||OBS_TYPES['보'];return (o&&o.name&&String(o.name).trim())?String(o.name).trim():t.label;}
+function obsIcon(type,name){const t=OBS_TYPES[type]||OBS_TYPES['보'],showName=type==='유명지',raw=(name&&String(name).trim())?String(name).trim():t.label,disp=pmEsc(raw);return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+(showName?'':' obs-icon-only')+'" aria-label="'+pmEsc(raw)+'">'+t.e+(showName?' '+disp:'')+'</span>',iconSize:null});}
 function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; const t=OBS_TYPES[o.type]||OBS_TYPES['보']; const nm=(o.name&&String(o.name).trim())?pmEsc(String(o.name).trim()):'';
   const kakao=o.type==='식당/카페'?'<div style="margin:8px 0 4px"><a href="'+_obKakaoLink(o)+'" target="_blank" rel="noopener" style="color:#1565c0;font-weight:700">🟡 카카오맵 장소 상세</a></div>':'';
   const matched=o.kakaoPlaceName?'<div style="margin:6px 0 0;color:#60747c;font-size:11.5px">카카오맵 자동 연결: '+pmEsc(o.kakaoPlaceName)+(isFinite(Number(o.kakaoMatchDistance))?' · '+Math.round(Number(o.kakaoMatchDistance))+'m':'')+'</div>':'';
@@ -2000,6 +2126,7 @@ function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; const t=OBS_TYPE
     +(isAdmin()?'<a onclick="editObstacle(\''+o.id+'\')" style="color:#1565c0;cursor:pointer;margin-right:10px">✏️ 수정</a><a onclick="moveObstacle(\''+o.id+'\')" style="color:#2e9e5b;cursor:pointer;margin-right:10px">📍 이동</a><a onclick="deleteObstacle(\''+o.id+'\')" style="color:#c62828;cursor:pointer">삭제</a>':''); }
 function renderObstacle(o){ if(!o||o.lat==null||o.del||(_obAdminOnly(o)&&!isAdmin())) return; _obstacles[o.id]=o;
   const m=L.marker([o.lat,o.lng],{icon:obsIcon(o.type,o.name),pane:'obsPane'});
+  if(!isTouch&&o.type!=='유명지')m.bindTooltip(pmEsc(_obDisplayName(o)),{direction:'top',opacity:.95});
   if(isAdmin()||o.type==='식당/카페') m.bindPopup(obsPopup(o));   // 식당/카페 상세는 일반 사용자에게도 공개
   m.addTo(obstacleLayer); o._m=m; }
 function renderStaticWeir(w){ if(!w||w.lat==null) return; renderObstacle({id:staticWeirId(w),lat:w.lat,lng:w.lng,type:'보',note:'',name:w.nm}); }
@@ -2049,8 +2176,8 @@ function openObsModal(mode,data){ if(!isAdmin()) return;
   document.getElementById('obBody').innerHTML=
     '<h3>'+(mode==='edit'?'✏️ 지형지물 수정':'🗺️ 지형지물 추가')+'</h3>'
     +'<div class="sg-label">유형</div><div class="seg">'+seg+'</div>'
-    +'<div id="obNameRow" style="display:'+(_obHasName(ty)?'block':'none')+'"><div class="sg-label">이름</div>'
-    +'<input id="obName" maxlength="40" placeholder="예: 도담삼봉 / 한강 여울 / 강변카페 / 강변 캠핑사이트" value="'+pmEsc(name)+'"></div>'
+    +'<div id="obNameRow" style="display:'+(_obHasName(ty)?'block':'none')+'"><div class="sg-label">제목 (선택)</div>'
+    +'<input id="obName" maxlength="40" placeholder="예: 도담삼봉 / 한강 여울 / 강변 캠핑사이트" value="'+pmEsc(name)+'"></div>'
     +'<div id="obKakaoRow" style="display:'+(_obHasKakao(ty)?'block':'none')+'"><div class="sg-label">카카오맵 장소 URL (직접 지정할 때만)</div>'
     +'<input id="obKakaoUrl" maxlength="500" placeholder="비워두면 이름과 좌표로 자동 연결" value="'+pmEsc(kakaoUrl)+'">'
     +(kakaoAuto?'<div style="margin:-5px 0 10px;color:#60747c;font-size:11.5px">'+kakaoAuto+'</div>':'')+'</div>'
@@ -2064,8 +2191,6 @@ async function doSaveObs(){ if(!isAdmin()||!_obLL) return;
   const nmEl=document.getElementById('obName'); const name=(_obHasName(type)&&nmEl)?(nmEl.value||'').trim().slice(0,40):'';
   const msg=document.getElementById('obMsg'); msg.style.color='#888'; msg.textContent='저장 중…';
   const kuEl=document.getElementById('obKakaoUrl'), kuRaw=(_obHasKakao(type)&&kuEl)?(kuEl.value||'').trim():'', kakaoUrl=_obKakaoUrl(kuRaw);
-  if(type==='식당/카페'&&!name){ msg.style.color='#c0392b'; msg.textContent='식당/카페 이름을 입력하세요'; return; }
-  if(type==='캠핑사이트'&&!name){ msg.style.color='#c0392b'; msg.textContent='캠핑사이트 이름을 입력하세요'; return; }
   if(kuRaw&&!kakaoUrl){ msg.style.color='#c0392b'; msg.textContent='카카오맵 장소 링크를 확인하세요'; return; }
   const base=WORKER_URL.replace(/\/+$/,'')+'/obstacle';
   try{ let body;
@@ -2878,30 +3003,49 @@ map.on('overlayadd',function(e){
 const _riverAdminGroup=L.layerGroup();
 const _riverSearchFocus=L.layerGroup().addTo(map);
 const _riverSearchPane=map.createPane('riverSearchPane');_riverSearchPane.style.zIndex='480';_riverSearchPane.style.pointerEvents='none';
+const RIVER_SKY_COLOR='#bdeeff',_riverWaveMarks=L.layerGroup();_riverAdminGroup.addLayer(_riverWaveMarks);
 let _riverMain=null,_riverStream=null,_riverLoading=null,_riverControlAdded=false,_riverFeatures=[],_riverPopup=null,_riverPopupSeq=0,_riverFocusCtl=null;
+function _riverWaveMarker(ll,angle,pane){
+  const svg='<span class="river-wave-mark" style="transform:rotate('+(angle-90).toFixed(1)+'deg)"><svg viewBox="0 0 20 12" aria-hidden="true"><path d="M1 7Q5.5 2 10 7T19 7" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></span>';
+  return L.marker(ll,{pane:pane||'overlayPane',interactive:false,keyboard:false,icon:L.divIcon({className:'river-wave-icon',html:svg,iconSize:[20,12],iconAnchor:[10,6]})});
+}
+function riverWaveLayer(coords,pane,limit){
+  const out=L.layerGroup();if(!coords||coords.length<2)return out;
+  const seg=[],dist=[];let total=0;
+  for(let i=1;i<coords.length;i++){const d=map.distance(coords[i-1],coords[i]);if(!isFinite(d)||d<=0)continue;seg.push([coords[i-1],coords[i],d]);total+=d;dist.push(total);}
+  if(!seg.length||total<=0)return out;const count=Math.max(1,Math.min(limit||5,Math.round(total/9000)));
+  for(let n=1;n<=count;n++){const target=total*n/(count+1);let i=0;while(i<dist.length-1&&dist[i]<target)i++;const prev=i?dist[i-1]:0,s=seg[i],f=Math.max(0,Math.min(1,(target-prev)/s[2])),ll=[s[0][0]+(s[1][0]-s[0][0])*f,s[0][1]+(s[1][1]-s[0][1])*f];_riverWaveMarker(ll,_courseBearing(s[0],s[1]),pane).addTo(out);}
+  return out;
+}
+function _refreshRiverWaveMarks(){
+  _riverWaveMarks.clearLayers();if(!_riverFeatures.length||!map.hasLayer(_riverAdminGroup)||map.getZoom()<9)return;
+  const bounds=map.getBounds().pad(.08),seen={},limit=map.getZoom()>=11?120:70,ordered=_riverFeatures.filter(function(f){return (f.properties||{}).kind==='river';}).concat(map.getZoom()>=11?_riverFeatures.filter(function(f){return (f.properties||{}).kind==='stream';}):[]);let count=0;
+  for(let n=0;n<ordered.length&&count<limit;n++){const cs=(ordered[n].geometry||{}).coordinates||[];if(cs.length<2)continue;const tries=Math.min(3,Math.max(1,Math.floor(cs.length/18)));for(let j=1;j<=tries&&count<limit;j++){const i=Math.max(1,Math.min(cs.length-1,Math.round((cs.length-1)*j/(tries+1)))),a=cs[i-1],b=cs[i],ll=[b[1],b[0]];if(!bounds.contains(ll))continue;const p=map.latLngToContainerPoint(ll),key=Math.floor(p.x/34)+':'+Math.floor(p.y/26);if(seen[key])continue;seen[key]=1;_riverWaveMarker(ll,_courseBearing([a[1],a[0]],ll)).addTo(_riverWaveMarks);count++;}}
+}
 function _showRiverFocusBar(name){
   if(!_riverFocusCtl){
     const C=L.Control.extend({options:{position:'topleft'},onAdd:function(){const d=L.DomUtil.create('div','river-focus-bar');d.id='riverFocusBar';d.innerHTML='<span aria-hidden="true">🌊</span><span class="river-focus-name"></span><button class="river-focus-x" type="button" title="물줄기 표시 해제" aria-label="물줄기 표시 해제">×</button>';L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);d.querySelector('button').onclick=function(){clearRiverSearch();};return d;}});_riverFocusCtl=new C();map.addControl(_riverFocusCtl);
   }
   const d=document.getElementById('riverFocusBar');if(!d)return;d.querySelector('.river-focus-name').textContent=name||'선택한 물줄기';d.classList.add('on');
 }
-function _riverZoomGate(){ if(!_riverStream||!map.hasLayer(_riverAdminGroup)) return; const show=map.getZoom()>=11; if(show&&!_riverAdminGroup.hasLayer(_riverStream))_riverAdminGroup.addLayer(_riverStream); else if(!show&&_riverAdminGroup.hasLayer(_riverStream))_riverAdminGroup.removeLayer(_riverStream); }
+function _riverZoomGate(){ if(!_riverStream||!map.hasLayer(_riverAdminGroup)) return; const show=map.getZoom()>=11; if(show&&!_riverAdminGroup.hasLayer(_riverStream))_riverAdminGroup.addLayer(_riverStream); else if(!show&&_riverAdminGroup.hasLayer(_riverStream))_riverAdminGroup.removeLayer(_riverStream);_refreshRiverWaveMarks(); }
 function _loadAdminRivers(){
   if(_riverMain) return Promise.resolve(); if(_riverLoading)return _riverLoading;
   _riverLoading=fetch('rivers.geojson?v='+DATAVER.rivers).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(fc){
     _riverFeatures=fc.features||[];
-    const opts=function(kind){return {filter:function(f){return (f.properties||{}).kind===kind;},style:kind==='river'?{color:'#003b73',weight:2.8,opacity:.94}:{color:'#14528a',weight:1.5,opacity:.84},onEachFeature:function(f,l){const n=(f.properties||{}).name;if(n)l.bindTooltip(pmEsc(n),{sticky:true,direction:'top'});}};};
+    const opts=function(kind){return {filter:function(f){return (f.properties||{}).kind===kind;},style:kind==='river'?{color:RIVER_SKY_COLOR,weight:6.5,opacity:.96}:{color:RIVER_SKY_COLOR,weight:4.5,opacity:.88},onEachFeature:function(f,l){const n=(f.properties||{}).name;if(n)l.bindTooltip(pmEsc(n),{sticky:true,direction:'top'});}};};
     _riverMain=L.geoJSON(fc,opts('river')); _riverStream=L.geoJSON(fc,opts('stream')); _riverAdminGroup.addLayer(_riverMain); _riverZoomGate();
   }).catch(function(){alert('하천 데이터를 불러오지 못했습니다');}).finally(function(){_riverLoading=null;}); return _riverLoading;
 }
 function _syncAdminRiverLayer(on){
   if(!_layerControl)return;
-  if(on&&!_riverControlAdded){_layerControl.addOverlay(_riverAdminGroup,_sw('#003b73')+'주요 강·하천 <small>(관리자)</small>');_riverControlAdded=true;}
+  if(on&&!_riverControlAdded){_layerControl.addOverlay(_riverAdminGroup,_sw(RIVER_SKY_COLOR)+'주요 강·하천 <small>(관리자)</small>');_riverControlAdded=true;}
   else if(!on&&_riverControlAdded){if(map.hasLayer(_riverAdminGroup))map.removeLayer(_riverAdminGroup);_layerControl.removeLayer(_riverAdminGroup);_riverControlAdded=false;}
 }
 map.on('overlayadd',function(e){if(e.layer===_riverAdminGroup){map.attributionControl.addAttribution('하천 &copy; OpenStreetMap 기여자');_loadAdminRivers().then(_riverZoomGate);}});
 map.on('overlayremove',function(e){if(e.layer===_riverAdminGroup)map.attributionControl.removeAttribution('하천 &copy; OpenStreetMap 기여자');});
 map.on('zoomend',_riverZoomGate);
+map.on('moveend',_refreshRiverWaveMarks);
 if(isAdmin())_syncAdminRiverLayer(true);
 function _riverSearch(q){
   if(!isAdmin()||!_riverFeatures.length)return [];
@@ -2957,7 +3101,7 @@ function shareRiver(name,lat,lng){const u=riverShareUrl(name,lat,lng);gaEvent('r
 function shareRiverEncoded(name,lat,lng){try{shareRiver(decodeURIComponent(name),lat,lng);}catch(e){}}
 function focusRiverSearch(x,keepUrl){
   clearRiverSearch(!!keepUrl);_showRiverFocusBar(x.name);const seq=++_riverPopupSeq,bounds=L.latLngBounds([]);let anchor=null;
-  (x.features||[]).forEach(function(f){const ll=f.geometry.coordinates.map(function(c){return [c[1],c[0]];});if(ll.length<2)return;if(!anchor)anchor=ll[Math.floor(ll.length/2)];L.polyline(ll,{pane:'riverSearchPane',color:'#001a33',weight:8,opacity:.68,interactive:false}).addTo(_riverSearchFocus);L.polyline(ll,{pane:'riverSearchPane',color:'#003b73',weight:4.5,opacity:1,interactive:false}).addTo(_riverSearchFocus);bounds.extend(ll);});
+  (x.features||[]).forEach(function(f){const ll=f.geometry.coordinates.map(function(c){return [c[1],c[0]];});if(ll.length<2)return;if(!anchor)anchor=ll[Math.floor(ll.length/2)];L.polyline(ll,{pane:'riverSearchPane',color:'#55c9ef',weight:10,opacity:.82,interactive:false}).addTo(_riverSearchFocus);L.polyline(ll,{pane:'riverSearchPane',color:RIVER_SKY_COLOR,weight:7.5,opacity:1,interactive:false}).addTo(_riverSearchFocus);riverWaveLayer(ll,'riverSearchPane',5).addTo(_riverSearchFocus);bounds.extend(ll);});
   if(bounds.isValid()&&anchor){map.fitBounds(bounds.pad(.06),{maxZoom:13,animate:false});const c=L.latLng(anchor),enc=encodeURIComponent(x.name);_riverPopup=L.popup({minWidth:190,autoPan:true,closeButton:true}).setLatLng(c).setContent('<b>🌊 '+pmEsc(x.name)+'</b><br><small>'+pmEsc(_riverRegionLabel(c.lat,c.lng))+' · 전체 물줄기 강조 표시</small><br><button class="addplace-btn" onclick="shareRiverEncoded(\''+enc+'\','+c.lat+','+c.lng+')">공유</button> <button class="addplace-btn" onclick="clearRiverSearch()">강조 해제</button>');setTimeout(function(){if(seq===_riverPopupSeq&&_riverPopup)_riverPopup.openOn(map);},80);}gaEvent('river_search',{name:x.name});
 }
 function focusRiverFromUrl(){
@@ -3111,12 +3255,14 @@ function renderKVCourse(c){
   const lineCol=validCourseColor(c.color)||courseLineColor(sc, c.id);
   const casing=L.polyline(coords,{color:'#2a0a4a',weight:8,opacity:.55,interactive:false});
   const line=L.polyline(coords,{color:lineCol,weight:5,opacity:.95,interactive:false});
+  const directions=courseDirectionLayer(coords);
   const hit=L.polyline(coords,{color:lineCol,weight:22,opacity:0}); hit.on('click',function(){ courseCmt('k', c.id); }); if(!isTouch) hit.bindTooltip('<b>'+pmEsc(c.name||'코스')+'</b>'+(c.km?' '+c.km+'km':''),{sticky:true,direction:'top'});
   let grp=courseLayers[sc];
   if(!grp){ grp=L.layerGroup(); courseLayers[sc]=grp; allCoursesGroup.addLayer(grp); }
-  casing.addTo(grp); line.addTo(grp); hit.addTo(grp);
-  _kvCourseLayers[c.id]={grp:grp,ls:[casing,line,hit]};
+  casing.addTo(grp); line.addTo(grp); directions.addTo(grp); hit.addTo(grp);
+  _kvCourseLayers[c.id]={grp:grp,ls:[casing,line,directions,hit]};
   _favReg('course_k'+c.id,casing,grp); _favReg('course_k'+c.id,line,grp); _favReg('course_k'+c.id,hit,grp);
+  _favReg('course_k'+c.id,directions,grp);
   if(_favOnly) applyFavFilter();
   _applyCourseFocus();
   _maybeSyncAdminCourseFavs();
@@ -3174,7 +3320,7 @@ function _drawCoursePreview(course,context){
   const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=630;const ctx=canvas.getContext('2d');if(!ctx)return '';
   ctx.fillStyle='#edf2e6';ctx.fillRect(0,0,1200,630);ctx.save();ctx.strokeStyle='#e1ead8';ctx.lineWidth=1;ctx.globalAlpha=.75;for(let x=-600;x<1400;x+=42){ctx.beginPath();ctx.moveTo(x,630);ctx.lineTo(x+364,0);ctx.stroke();}ctx.restore();
   const frame={x:500,y:38,w:658,h:554},project=_cpProjection(coords,frame);ctx.save();ctx.beginPath();ctx.rect(frame.x,frame.y,frame.w,frame.h);ctx.clip();
-  (context||[]).forEach(function(line,i){const ps=line.coords.map(project);if(ps.length<2)return;ctx.beginPath();ps.forEach(function(p,j){if(j)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1]);});ctx.strokeStyle='#9cc7d1';ctx.globalAlpha=line.kind==='river'?.7:.43;ctx.lineWidth=line.kind==='river'?6:2.5;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();});
+  (context||[]).forEach(function(line,i){const ps=line.coords.map(project);if(ps.length<2)return;ctx.beginPath();ps.forEach(function(p,j){if(j)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1]);});ctx.strokeStyle=RIVER_SKY_COLOR;ctx.globalAlpha=line.kind==='river'?.84:.58;ctx.lineWidth=line.kind==='river'?6:2.5;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();});
   const route=coords.map(project);function stroke(color,width){ctx.beginPath();route.forEach(function(p,i){if(i)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1]);});ctx.strokeStyle=color;ctx.globalAlpha=1;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();}
   stroke('#ffffff',14);stroke(validCourseColor(course.color)||'#d500f9',8);ctx.restore();
   function marker(p,color,label,side){ctx.save();ctx.shadowColor='rgba(21,45,37,.22)';ctx.shadowBlur=10;ctx.shadowOffsetY=3;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p[0],p[1],17,0,Math.PI*2);ctx.fill();ctx.shadowColor='transparent';ctx.fillStyle=color;ctx.beginPath();ctx.arc(p[0],p[1],11,0,Math.PI*2);ctx.fill();ctx.font='800 19px Apple SD Gothic Neo, Pretendard, sans-serif';ctx.textAlign=side==='right'?'left':'right';ctx.lineWidth=5;ctx.strokeStyle='#fff';ctx.strokeText(label,p[0]+(side==='right'?25:-25),p[1]+6);ctx.fillStyle='#14231e';ctx.fillText(label,p[0]+(side==='right'?25:-25),p[1]+6);ctx.restore();}
@@ -3668,9 +3814,9 @@ function cmPickCat(el){ const bs=document.querySelectorAll('#cmBody .seg-b'); fo
 function cmPreview(){ const p=document.getElementById('cmPrev'); if(!p) return; p.textContent=_joinCourse(_cmCat(),_cmNo(),(document.getElementById('cmName').value||''))||'—'; }
 function _shortCoursePlace(label,addr){
   label=(label||'').trim();
-  function localAddress(value){const p=(value||'').trim().split(/\s+/).filter(Boolean);let i=p.findIndex(function(x){return /(특별시|광역시|특별자치시|시|군|구)$/.test(x)&&!/(특별자치도|도)$/.test(x);});return (i>=0?p.slice(i):p.filter(function(x){return !/(특별자치도|도)$/.test(x);})).join(' ');}
+  function localAddress(value){let p=(value||'').trim().split(/\s+/).filter(Boolean),province=-1;for(let j=0;j<p.length;j++)if(/(특별자치도|도)$/.test(p[j]))province=j;if(province>=0)p=p.slice(province+1);else{const i=p.findIndex(function(x){return /(특별시|광역시|특별자치시|시|군|구)$/.test(x);});if(i>=0)p=p.slice(i);}p=p.filter(function(x,i){return !i||x!==p[i-1];});return p.join(' ');}
   function regionText(value){const p=localAddress(value).split(/\s+/).filter(Boolean);if(!p.length)return '';const r=[p[0]];if(/시$/.test(p[0])&&p[1]&&/구$/.test(p[1]))r.push(p[1]);return r.join(' ');}
-  if(label){const halves=label.split(/\s+-\s+/),raw=(halves[0]||'').replace(/\([^)]*\)/g,'').trim(),region=regionText(raw),place=(halves.length>1?halves.slice(1).join(' - '):label).replace(/^(춘천|양구|곡성|구례|연천|홍천|인제|화천)\s*[()]/,'').trim();if(halves.length>1&&/(?:특별자치도|도|특별시|광역시|특별자치시|\S+[시군구])\s/.test(place))return localAddress(place);return (region&&place.indexOf(region)!==0?region+' ':'')+place;}
+  if(label){const halves=label.split(/\s+-\s+/),raw=(halves[0]||'').replace(/\([^)]*\)/g,'').trim(),region=regionText(raw),place=(halves.length>1?halves.slice(1).join(' - '):label).replace(/^(춘천|양구|곡성|구례|연천|홍천|인제|화천)\s*[()]/,'').trim();if(/(?:특별자치도|도|특별시|광역시|특별자치시|\S+[시군구])\s/.test(place))return localAddress(place);return (region&&place.indexOf(region)!==0?region+' ':'')+place;}
   return localAddress(addr);
 }
 async function _coursePointName(x){
@@ -3826,10 +3972,16 @@ async function waterRoute(p1,p2){
   const j=cached?cached.j:await overpassFetch(q);
   if(!j) return {err:'overpass'};
   if(!cached){_opAreaCache.push({s:s,w:w,n:n,e:e,j:j});if(_opAreaCache.length>8)_opAreaCache.shift();}
-  const nodes={}, adj={}, nodeNames={}, toR=Math.PI/180;
+  const nodes={}, adj={}, nodeNames={}, graphEdges=[], toR=Math.PI/180;
   function key(la,ln){ const k=la.toFixed(4)+','+ln.toFixed(4); if(!(k in nodes)) nodes[k]=[la,ln]; return k; }  // 11m 병합(합류부 연결)
   function hav(a,b){ const R=6371000, dla=(b[0]-a[0])*toR, dlo=(b[1]-a[1])*toR, la1=a[0]*toR, la2=b[0]*toR;
     const h=Math.sin(dla/2)*Math.sin(dla/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dlo/2)*Math.sin(dlo/2); return 2*R*Math.asin(Math.sqrt(h)); }
+  // 춘천호 오월1교 일대의 넓은 수면 폴리곤이 둑을 물로 오인하므로 임의 직선 단축만 막는다.
+  // OSM waterway 중심선은 오월교 아래 실제 수로를 따르므로 그래프 간선에는 이 경계를 적용하지 않는다.
+  const navigationBarriers=[[[37.9875,127.6468],[37.9785,127.6535]]];
+  function _orient(a,b,c){return (b[1]-a[1])*(c[0]-a[0])-(b[0]-a[0])*(c[1]-a[1]);}
+  function _segCross(a,b,c,d){const ab1=_orient(a,b,c),ab2=_orient(a,b,d),cd1=_orient(c,d,a),cd2=_orient(c,d,b);return ((ab1<=0&&ab2>=0)||(ab1>=0&&ab2<=0))&&((cd1<=0&&cd2>=0)||(cd1>=0&&cd2<=0));}
+  function crossesNavigationBarrier(a,b){return navigationBarriers.some(function(line){for(let i=1;i<line.length;i++)if(_segCross(a,b,line[i-1],line[i]))return true;return false;});}
   const waterOuter=[],waterInner=[],passLines=[];
   function addWater(list,pts){let s=90,w=180,n=-90,e=-180;pts.forEach(function(p){s=Math.min(s,p[0]);w=Math.min(w,p[1]);n=Math.max(n,p[0]);e=Math.max(e,p[1]);});list.push({p:pts,b:[s,w,n,e]});}
   function addPass(pts){addWater(passLines,pts);}
@@ -3845,7 +3997,7 @@ async function waterRoute(p1,p2){
     if(el.type==='way'&&el.tags&&el.geometry&&(el.tags.bridge||/^(weir|dam|lock_gate)$/.test(el.tags.waterway||'')||el.tags.man_made==='dam')) addPass(el.geometry.map(function(p){return [p.lat,p.lon];}));
     if(el.type!=='way'||!el.tags||!/^(river|stream|canal)$/.test(el.tags.waterway||'')||!el.geometry) continue; let prev=null;const wayName=String(el.tags.name||'');
     for(const p of el.geometry){ const k=key(p.lat,p.lon); if(wayName)(nodeNames[k]||(nodeNames[k]={}))[wayName]=((nodeNames[k]||{})[wayName]||0)+1;if(prev&&prev!==k){ const d=hav(nodes[prev],nodes[k]);
-      (adj[prev]=adj[prev]||[]).push([k,d]); (adj[k]=adj[k]||[]).push([prev,d]); } prev=k; } }
+      (adj[prev]=adj[prev]||[]).push([k,d]); (adj[k]=adj[k]||[]).push([prev,d]); graphEdges.push([prev,k]); } prev=k; } }
   function inPoly(pt,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a[0]>pt[0])!==(b[0]>pt[0]))&&(pt[1]<(b[1]-a[1])*(pt[0]-a[0])/((b[0]-a[0])||1e-12)+a[1]))inside=!inside;}return inside;}
   function inWater(pt){let ok=false;for(const x of waterOuter){const b=x.b;if(pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3]&&inPoly(pt,x.p)){ok=true;break;}}if(!ok)return false;for(const x of waterInner){const b=x.b;if(pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3]&&inPoly(pt,x.p))return false;}return true;}
   function edgeDist(pt,x){const b=x.b,pad=.0022;if(pt[0]<b[0]-pad||pt[0]>b[2]+pad||pt[1]<b[1]-pad||pt[1]>b[3]+pad)return 1e18;const poly=x.p;let best=1e18,latR=pt[0]*toR,c=Math.cos(latR);for(let i=1;i<poly.length;i++){const a=poly[i-1],b2=poly[i],ax=(a[1]-pt[1])*111320*c,ay=(a[0]-pt[0])*110540,bx=(b2[1]-pt[1])*111320*c,by=(b2[0]-pt[0])*110540,dx=bx-ax,dy=by-ay,t=Math.max(0,Math.min(1,-(ax*dx+ay*dy)/((dx*dx+dy*dy)||1))),px=ax+t*dx,py=ay+t*dy;best=Math.min(best,Math.sqrt(px*px+py*py));}return best;}
@@ -3853,9 +4005,10 @@ async function waterRoute(p1,p2){
   function passableStructure(pt){for(const line of passLines){if(lineDist(pt,line)<=90)return true;}return false;}
   const wetMemo={};
   function plausibleWater(pt){const mk=pt[0].toFixed(4)+','+pt[1].toFixed(4);if(mk in wetMemo)return wetMemo[mk];if(inWater(pt)||passableStructure(pt))return wetMemo[mk]=true;let d=1e18;for(const x of waterOuter)d=Math.min(d,edgeDist(pt,x));for(const x of waterInner)d=Math.min(d,edgeDist(pt,x));return wetMemo[mk]=d<=180;}
-  function waterChord(a,b){const d=hav(a,b);if(d>450)return false;const steps=Math.max(2,Math.ceil(d/60));let plausible=0,dryRun=0,maxDry=0;for(let i=0;i<=steps;i++){const t=i/steps,p=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];if(plausibleWater(p)){plausible++;dryRun=0;}else{dryRun++;maxDry=Math.max(maxDry,dryRun);}}return plausible/(steps+1)>=.9&&maxDry*60<=120;}
+  function waterChord(a,b){const d=hav(a,b);if(d>450||crossesNavigationBarrier(a,b))return false;const steps=Math.max(2,Math.ceil(d/60));let plausible=0,dryRun=0,maxDry=0;for(let i=0;i<=steps;i++){const t=i/steps,p=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];if(plausibleWater(p)){plausible++;dryRun=0;}else{dryRun++;maxDry=Math.max(maxDry,dryRun);}}return plausible/(steps+1)>=.9&&maxDry*60<=120;}
   function shortcutWaterPath(raw){if(raw.length<3||!waterOuter.length)return raw;const out=[raw[0]];let i=0;while(i<raw.length-1){let good=i+1,bad=raw.length,step=2;while(i+step<raw.length){if(waterChord(raw[i],raw[i+step])){good=i+step;step*=2;}else{bad=i+step;break;}}if(bad===raw.length&&good<raw.length-1&&waterChord(raw[i],raw[raw.length-1]))good=raw.length-1;else{let lo=good+1,hi=Math.min(bad-1,raw.length-1);while(lo<=hi){const mid=(lo+hi)>>1;if(waterChord(raw[i],raw[mid])){good=mid;lo=mid+1;}else hi=mid-1;}}out.push(raw[good]);i=good;}return out;}
   function waterLineClear(a,b){
+    if(crossesNavigationBarrier(a,b))return false;
     const d=hav(a,b),steps=Math.max(2,Math.ceil(d/8));let dry=0;
     for(let i=0;i<=steps;i++){const t=i/steps;if(!inWater([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]))dry++;}
     return dry===0;
@@ -3900,18 +4053,51 @@ async function waterRoute(p1,p2){
   }
   let repairedStatic=null;
   if(staticRoute&&staticRoute._core&&staticRoute._core.length>1){
-    const core=staticRoute._core.slice(),start=[p1.lat,p1.lng],end=[p2.lat,p2.lng],access=[];
+    const core=staticRoute._core.slice(),start=[p1.lat,p1.lng],end=[p2.lat,p2.lng];let endpointExtension=false;
     function verifiedLeg(a,b){if(hav(a,b)<3)return [a,b];if(waterLineClear(a,b))return [a,b];return waterSurfacePath(a,b);}
     let first=verifiedLeg(start,core[0]),last=verifiedLeg(core[core.length-1],end);
     let coords=core;
-    if(first)coords=first.slice(0,-1).concat(coords);else access.push([start,core[0]]);
-    if(last)coords=coords.concat(last.slice(1));else access.push([core[core.length-1],end]);
+    if(first)coords=first.slice(0,-1).concat(coords);else{coords=[start].concat(coords);endpointExtension=true;}
+    if(last)coords=coords.concat(last.slice(1));else{coords=coords.concat([end]);endpointExtension=true;}
     let meters=0;for(let i=1;i<coords.length;i++)meters+=hav(coords[i-1],coords[i]);
-    repairedStatic={coords:coords,km:meters/1000,access:access,snap:staticRoute.snap,source:'static-river-water',riverName:staticRoute.riverName};
-    if(!access.length)return repairedStatic;
+    repairedStatic={coords:coords,km:meters/1000,access:[],snap:staticRoute.snap,source:'static-river-water',riverName:staticRoute.riverName};
+    if(!endpointExtension)return repairedStatic;
   }
   function nearest(pt){ let best=null,bd=1e18; for(const k in nodes){ const d=hav(nodes[k],[pt.lat,pt.lng]); if(d<bd){bd=d;best=k;} } return {key:best,dist:bd,wet:false}; }
+  function edgeProjection(origin,edge){
+    const a=nodes[edge[0]],b=nodes[edge[1]],c=Math.cos(origin[0]*toR),ax=(a[1]-origin[1])*111320*c,ay=(a[0]-origin[0])*110540,bx=(b[1]-origin[1])*111320*c,by=(b[0]-origin[0])*110540,dx=bx-ax,dy=by-ay;
+    const t=Math.max(0,Math.min(1,-(ax*dx+ay*dy)/((dx*dx+dy*dy)||1))),p=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+    return {edge:edge,t:t,p:p,dist:hav(origin,p),edgeId:edge[0]<edge[1]?edge[0]+'|'+edge[1]:edge[1]+'|'+edge[0]};
+  }
+  function attachProjected(pt,tag){
+    const origin=[pt.lat,pt.lng],candidates=graphEdges.map(function(edge){return edgeProjection(origin,edge);});
+    candidates.sort(function(a,b){return a.dist-b.dist;});
+    const limit=Math.min(candidates.length,240),nearest=candidates[0];
+    function attach(c,connector){
+      if(c.t<.00001)return {key:c.edge[0],dist:c.dist,wet:true,edgeId:c.edgeId,projection:c,connector:connector};
+      if(c.t>.99999)return {key:c.edge[1],dist:c.dist,wet:true,edgeId:c.edgeId,projection:c,connector:connector};
+      nodes[tag]=c.p;adj[tag]=[];
+      const da=hav(c.p,nodes[c.edge[0]]),db=hav(c.p,nodes[c.edge[1]]);
+      adj[tag].push([c.edge[0],da],[c.edge[1],db]);
+      (adj[c.edge[0]]=adj[c.edge[0]]||[]).push([tag,da]);(adj[c.edge[1]]=adj[c.edge[1]]||[]).push([tag,db]);
+      return {key:tag,dist:c.dist,wet:true,edgeId:c.edgeId,projection:c,connector:connector};
+    }
+    for(let i=0;i<limit;i++){
+      const c=candidates[i];if(c.dist>Math.max(2500,(nearest?nearest.dist:0)+2500))break;
+      if(!waterChord(origin,c.p))continue;
+      return attach(c,[origin,c.p]);
+    }
+    // 만입부·반도 뒤의 지점은 중심선까지 직선으로 닿지 않아도 같은 수면 안에서 우회 연결한다.
+    const tried={};let surfaceTries=0;
+    for(let i=0;i<limit&&surfaceTries<6;i++){
+      const c=candidates[i];if(c.dist>2200)break;
+      const pk=c.p[0].toFixed(4)+','+c.p[1].toFixed(4);if(tried[pk])continue;tried[pk]=true;surfaceTries++;
+      const connector=waterSurfacePath(origin,c.p);if(connector)return attach(c,connector);
+    }
+    return null;
+  }
   function nearestWet(pt){
+    const projected=attachProjected(pt,pt===p1?'@route-start':'@route-end');if(projected)return projected;
     const origin=[pt.lat,pt.lng], candidates=[];
     for(const k in nodes)candidates.push({key:k,dist:hav(nodes[k],origin)});
     candidates.sort(function(a,b){return a.dist-b.dist;});
@@ -3919,11 +4105,12 @@ async function waterRoute(p1,p2){
     // 호수의 가장 가까운 중심선이 반도 너머에 있을 수 있으므로 수면으로 직접 연결되는 후보를 고른다.
     const limit=Math.min(candidates.length,160), maxDist=Math.max(2500,nearest.dist+2500);
     for(let i=0;i<limit&&candidates[i].dist<=maxDist;i++){
-      const c=candidates[i]; if(waterChord(origin,nodes[c.key]))return {key:c.key,dist:c.dist,wet:true};
+      const c=candidates[i]; if(waterChord(origin,nodes[c.key]))return {key:c.key,dist:c.dist,wet:true,connector:[origin,nodes[c.key]]};
     }
     return {key:nearest.key,dist:nearest.dist,wet:false};
   }
   const near1=nearestWet(p1),near2=nearestWet(p2),s1=near1.key,s2=near2.key;
+  if(near1.projection&&near2.projection&&near1.edgeId===near2.edgeId&&s1!==s2){const d=hav(nodes[s1],nodes[s2]);(adj[s1]=adj[s1]||[]).push([s2,d]);(adj[s2]=adj[s2]||[]).push([s1,d]);}
   if(!s1||!s2||near1.dist>1500||near2.dist>1500) return repairedStatic||{err:'farwater'};
   // 물길 모드에서는 연결 실패를 직선으로 숨기지 않는다. 직선은 사용자가 직선 모드를 고른 경우에만 사용한다.
   const dist={}, prev={}; dist[s1]=0; const heap=new MinHeap(); heap.push(0,s1);
@@ -3937,14 +4124,15 @@ async function waterRoute(p1,p2){
   const directM=hav([p1.lat,p1.lng],[p2.lat,p2.lng]);
   if(directM>=10000 && routeM>directM*3) return {err:'detour'};
   let raw=path.map(k=>nodes[k]);
-  if(near1.wet)raw.unshift([p1.lat,p1.lng]);
-  if(near2.wet)raw.push([p2.lat,p2.lng]);
-  const coords=shortcutWaterPath(raw);
+  if(near1.wet){const c=near1.connector||[[p1.lat,p1.lng],nodes[s1]];raw=c.slice(0,-1).concat(raw);}
+  if(near2.wet){const c=near2.connector||[[p2.lat,p2.lng],nodes[s2]];raw=raw.concat(c.slice().reverse().slice(1));}
+  const coords=shortcutWaterPath(raw),start=[p1.lat,p1.lng],end=[p2.lat,p2.lng];
+  // 지도 수면 경계는 수위·촬영 시점에 따라 달라진다. 가까운 물길까지의 연결이
+  // 수면으로 검증되지 않아도 사용자가 선택한 런칭·랜딩 좌표까지 코스와 거리를 잇는다.
+  if(!near1.wet&&hav(start,coords[0])>=3)coords.unshift(start);
+  if(!near2.wet&&hav(coords[coords.length-1],end)>=3)coords.push(end);
   let waterM=0;for(let i=1;i<coords.length;i++)waterM+=hav(coords[i-1],coords[i]);
-  const access=[];
-  if(!near1.wet)access.push([[p1.lat,p1.lng],nodes[s1]]);
-  if(!near2.wet)access.push([nodes[s2],[p2.lat,p2.lng]]);
-  return {coords:coords, km:waterM/1000, access:access, snap:[near1.dist,near2.dist], riverName:riverName};
+  return {coords:coords, km:waterM/1000, access:[], snap:[near1.dist,near2.dist], riverName:riverName};
 }
 function MinHeap(){ this.a=[]; }
 MinHeap.prototype.size=function(){ return this.a.length; };
@@ -4301,7 +4489,7 @@ async function saveOfflinePack(){
 function _renderOfflinePack(pack){
   offlineBase.clearLayers();if(!pack)return;const sat=pack.satellite;if(sat&&sat.tiles)L.tileLayer(OFFLINE_ESRI_TEMPLATE,{bounds:[[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],minNativeZoom:sat.minZoom,maxNativeZoom:sat.maxZoom,maxZoom:19,crossOrigin:true,attribution:'Imagery &copy; Esri'}).addTo(offlineBase);L.rectangle([[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],{pane:'offlineBasePane',stroke:!!sat,color:'#00a2b8',weight:2,dashArray:'6 5',fill:true,fillColor:'#f4f2eb',fillOpacity:sat?0:1,interactive:false}).addTo(offlineBase);
   L.geoJSON(pack.roads,{pane:'offlineBasePane',interactive:false,style:function(f){const k=(f.properties||{}).kind;return{color:k==='expressway'?'#8d8277':(k==='national'?'#aaa096':'#c2bab2'),weight:k==='expressway'?3:(k==='national'?2:1.2),opacity:.9};}}).addTo(offlineBase);
-  L.geoJSON(pack.rivers,{pane:'offlineBasePane',interactive:false,style:function(f){return{color:(f.properties||{}).kind==='river'?'#2386b8':'#69afd0',weight:(f.properties||{}).kind==='river'?3:1.5,opacity:.95};}}).addTo(offlineBase);
+  L.geoJSON(pack.rivers,{pane:'offlineBasePane',interactive:false,style:function(f){return{color:RIVER_SKY_COLOR,weight:(f.properties||{}).kind==='river'?5:3,opacity:(f.properties||{}).kind==='river'?.96:.86};}}).addTo(offlineBase);
 }
 function _restoreOfflinePrivate(pack){
   const u=getUser()||{};if(pack.uid&&String(pack.uid)===String(u.uid||''))(pack.places||[]).forEach(function(x){if(!_placeMarkerById[String(x.id)])_upsertSecurePlace(x);});
