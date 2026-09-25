@@ -1460,7 +1460,7 @@ function copyAddress(){
 }
 async function showAddress(lat,lng){
   const now=Date.now(); if(now-_lastAddr<800) return; _lastAddr=now;   // 중복 호출 방지
-  const pop=L.popup().setLatLng([lat,lng]).setContent('주소 조회 중…').openOn(map);
+  const pop=L.popup({offset:L.point(0,-52),keepInView:true,autoPanPadding:[18,18]}).setLatLng([lat,lng]).setContent('주소 조회 중…').openOn(map);
   let r=await vworldReverse(lat,lng);
   let main='', sub='';
   if(r&&(r.parcel||r.road)){ main=r.parcel||r.road; if(r.road&&r.parcel) sub='도로명: '+r.road; }
