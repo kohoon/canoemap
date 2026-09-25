@@ -1528,7 +1528,7 @@ function vworldSearch(q, type, category){
             const title=_cleanSearchText(it.title||'');
             const addr=(category==='road'?a.road:category==='parcel'?a.parcel:'')||a.road||a.parcel||'';
             const disp=addr||title||'';
-            return {lat:+(it.point&&it.point.y), lng:+(it.point&&it.point.x), title:title||disp, addr:addr, region:_regionText(addr||disp), disp:disp};
+            return {lat:+(it.point&&it.point.y), lng:+(it.point&&it.point.x), title:title||disp, addr:addr, region:_regionText(addr), disp:disp};
           }).filter(function(x){ return isFinite(x.lat)&&isFinite(x.lng); }));
         } else resolve([]);
       }catch(e){ resolve([]); } cleanup();
@@ -1547,6 +1547,21 @@ function _regionText(s){
   const parts=s.split(/\s+/).filter(Boolean);
   if(parts.length<=3) return s;
   return parts.slice(0,4).join(' ');
+}
+const _geoRegionCache={};
+async function _enrichGeoRegions(rows){
+  await Promise.all((rows||[]).map(async function(x){
+    if(_cleanSearchText(x.region||x.addr||''))return;
+    const key=(+x.lat).toFixed(5)+','+(+x.lng).toFixed(5);let addr=_geoRegionCache[key];
+    if(addr===undefined){
+      let r=null;try{r=await vworldReverse(x.lat,x.lng);}catch(e){}
+      addr=_cleanSearchText(r&&((r.parcel||r.road))||'');
+      if(!addr)try{addr=_cleanSearchText(await nominatimReverse(x.lat,x.lng));}catch(e){}
+      _geoRegionCache[key]=addr||'';
+    }
+    x.addr=addr||x.addr||'';x.region=_regionText(addr)||_coordText(x.lat,x.lng);
+  }));
+  return rows;
 }
 function _coordText(lat,lng){ return '지도 위치 '+(+lat).toFixed(4)+', '+(+lng).toFixed(4); }
 function _srHtml(x,i){
@@ -3631,6 +3646,7 @@ document.getElementById('srchForm').addEventListener('submit', async (ev)=>{
     const seen={}; geo=[].concat(rs[0],rs[1],rs[2]).filter(function(x){ const k=x.lat.toFixed(5)+','+x.lng.toFixed(5); if(seen[k])return false; seen[k]=true; return true; }).slice(0,8);
   }
   if(!geo.length){ try{ const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=kr&accept-language=ko&limit=6&q='+encodeURIComponent(q)); const nj=await r.json(); geo=nj.map(function(x){ const disp=x.display_name||''; return {lat:+x.lat, lng:+x.lon, title:(x.name||disp.split(',')[0]||disp), addr:disp, region:_regionText(disp), disp:disp}; }); }catch(e){} }
+  await _enrichGeoRegions(geo);
   if(seq!==_searchSeq) return;
   _res=local.concat(geo.map(function(x){ return {kind:'geo', label:'🔎 '+_cleanSearchText(x.title||x.disp||'검색 결과'), sub:x.region||x.addr||'', lat:x.lat, lng:x.lng, disp:x.disp||x.addr||x.title}; }));
   if(!_res.length){ box.textContent='결과 없음'; setTimeout(function(){ if(seq===_searchSeq) closeSearchPreview(false); }, 1400); return; }

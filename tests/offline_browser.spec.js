@@ -950,6 +950,54 @@ test('course name suggestion omits province and starts at city or county', async
   await browser.close();
 });
 
+test('duplicate geocoder place names show reverse-geocoded region hints', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const places = [
+    { point: { x: '126.70000', y: '37.80000' }, title: '<b>와룡산</b>', address: {} },
+    { point: { x: '128.10000', y: '35.10000' }, title: '<b>와룡산</b>', address: {} },
+    { point: { x: '128.70000', y: '35.20000' }, title: '<b>와룡산</b>', address: {} },
+  ];
+  const addressByPoint = {
+    '126.7,37.8': '경기도 고양시 덕양구 용두동',
+    '128.1,35.1': '경상남도 사천시 백천동 60-1',
+    '128.7,35.2': '경상남도 창원시 진해구 자은동',
+  };
+  await context.route('https://api.vworld.kr/**', async (route) => {
+    const url = new URL(route.request().url()), callback = url.searchParams.get('callback');
+    let data;
+    if (url.pathname === '/req/search') {
+      data = url.searchParams.get('type') === 'place'
+        ? { response: { status: 'OK', result: { items: places } } }
+        : { response: { status: 'NOT_FOUND' } };
+    } else {
+      const address = addressByPoint[url.searchParams.get('point')] || '';
+      data = { response: { status: 'OK', result: address ? [{ type: 'parcel', text: address }] : [] } };
+    }
+    await route.fulfill({ status: 200, contentType: 'application/javascript', body: `${callback}(${JSON.stringify(data)})` });
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => { document.querySelector('#gate').style.display = 'none'; });
+  await page.locator('#srchQ').fill('와룡산');
+  await page.locator('#srchForm button').click();
+  await expect(page.locator('.sr-item')).toHaveCount(3);
+  await expect(page.locator('.sr-sub')).toHaveCount(3);
+  const hints = await page.locator('.sr-sub').allTextContents();
+  expect(hints).toEqual([
+    '경기도 고양시 덕양구 용두동',
+    '경상남도 사천시 백천동 60-1',
+    '경상남도 창원시 진해구 자은동',
+  ]);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('course share URL and preview image use the course-specific map card', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
