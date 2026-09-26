@@ -21,6 +21,7 @@
 | `data/synced_seqs.json` | 카누 즐겨찾기 점 데이터 |
 | `tools/build_polygons.py` | V-World API로 상수원보호구역 폴리곤 수집·단순화 |
 | `tools/build_map.py` | 데이터 → `map.html` 생성 |
+| `tools/build_daiso.py` | 공식 매장검색 → 전국 다이소 지점 GeoJSON 생성 |
 | `tools/protect_endpoints.py` / `tools/protect_zones.py` | 구역 군집화·대표점 계산 |
 | `tools/kakao_naver_sync.py` | 카카오맵 즐겨찾기 → 네이버맵 동기화 |
 | `tools/kakao_add_favorites.py` | 카카오 폴더에 상수원보호구역 마커 일괄 추가 |
@@ -32,6 +33,13 @@
 
 ```bash
 python3 tools/build_waterplay.py
+python3 tools/build_map.py
+```
+
+전국 다이소 지점은 ㈜아성다이소 공식 매장검색을 지역별로 조회해 갱신합니다. 공식 검색의 10건 제한을 피하기 위해 시·군·구 및 필요한 읍·면·동 단위로 세분화하며, 아직 개점일이 되지 않은 예정 매장은 제외합니다.
+
+```bash
+python3 tools/build_daiso.py
 python3 tools/build_map.py
 ```
 ```bash

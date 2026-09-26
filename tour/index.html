@@ -292,6 +292,10 @@
   .dot-candidate{background:#ff9800}
   .dot-spot{background:#ec407a}
   .dot-wreck{background:#c62828}
+  .daiso-pin{display:flex;align-items:center;justify-content:center;width:34px;height:34px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.48))}
+  .daiso-pin svg{display:block;width:34px;height:34px;overflow:visible}
+  .daiso-cluster{display:flex;align-items:center;justify-content:center;width:38px;height:38px;box-sizing:border-box;border:3px solid #fff;border-radius:50%;background:#e31b3d;color:#fff;box-shadow:0 2px 5px rgba(0,0,0,.45);font:800 12px/1 sans-serif}
+  .daiso-key{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-right:5px;border:2px solid #e31b3d;border-radius:50%;box-sizing:border-box;background:#fff;color:#e31b3d;font:900 9px/1 sans-serif;vertical-align:middle}
   .locbtn svg{width:22px;height:22px;display:block;margin:auto}
   .pmodal-wrap{position:fixed;inset:0;z-index:3500;display:none;align-items:flex-end;justify-content:center}
   .pmodal-wrap.open{display:flex}
@@ -737,7 +741,7 @@
 // 런칭·랜딩 좌표는 정적 HTML에 넣지 않는다. 로그인 후 현재 화면 범위만 보호 API에서 조회한다.
 const POINTS = {type:'FeatureCollection',features:[]};
 // 상수원보호·수상레저금지 면은 임베드하지 않고 줌인(≥11) 시 외부 .geojson 을 fetch(아래 줌게이트).
-const DATAVER = {protect:"d87f5782", wlz:"b675389f", rivers:"94105460", roads:"793584ec", waterplay:"4f7748dc"};   // 콘텐츠 해시 캐시버스팅
+const DATAVER = {protect:"d87f5782", wlz:"b675389f", rivers:"94105460", roads:"793584ec", waterplay:"4f7748dc", daiso:"eb9217ec"};   // 콘텐츠 해시 캐시버스팅
 let protectLayer = null, wlzLayer = null, waterplayLayer = null;          // 첫 줌인 때 생성
 let _protectLoading = null, _wlzLoading = null, _waterplayLoading = null; // in-flight fetch(중복 방지)
 let _protectWanted = true, _wlzWanted = true, _waterplayWanted = false;
@@ -3052,6 +3056,37 @@ function loadCctv(){
 }
 map.on('overlayadd', function(e){ if(e&&e.layer===cctvLayer) loadCctv(); });
 
+// ---- 전국 다이소 지점(공식 매장검색 스냅샷, 기본 ON·줌≥10 지연 로드) ----
+const DAISO_MARKER_SVG='<svg viewBox="0 0 52 52" aria-label="다이소"><circle cx="26" cy="26" r="23" fill="#fff" stroke="#e31b3d" stroke-width="4"/><circle cx="39" cy="12" r="7" fill="#e31b3d" stroke="#fff" stroke-width="2"/><path d="M18 17h14v5H23v9h9v5H18ZM35 15h5v7h5v5h-5v11h-5Z" fill="#e31b3d"/></svg>';
+const daisoLayer=L.layerGroup().addTo(map);
+let _daisoFeatures=null,_daisoMeta={},_daisoLoading=null,_daisoAttributed=false;
+const Z_DAISO=10,Z_DAISO_INDIVIDUAL=14;
+function _daisoIcon(){return L.divIcon({className:'daiso-div',html:'<span class="daiso-pin">'+DAISO_MARKER_SVG+'</span>',iconSize:[34,34],iconAnchor:[17,17]});}
+function _daisoClusterIcon(n){return L.divIcon({className:'daiso-div',html:'<span class="daiso-cluster">'+n+'</span>',iconSize:[38,38],iconAnchor:[19,19]});}
+function _daisoPopup(f){
+  const p=f.properties||{},c=f.geometry.coordinates,n='다이소 '+(p.name||'매장'),phone=p.phone?'<br><a href="tel:'+String(p.phone).replace(/[^0-9+]/g,'')+'">'+pmEsc(p.phone)+'</a>':'',hours=p.hours?'<br><small>영업시간 '+pmEsc(p.hours)+'</small>':'',asof=_daisoMeta.asOf?'<br><small style="color:#889">공식 매장검색 · '+pmEsc(_daisoMeta.asOf)+' 기준</small>':'';
+  return '<b>'+pmEsc(n)+'</b><br>'+pmEsc(p.address||'')+phone+hours+asof+extLinks(c[1],c[0],n,false)+'<br><a href="https://www.daiso.co.kr/cs/shop" target="_blank" rel="noopener">공식 매장정보 확인</a>';
+}
+function _addDaisoMarker(f){
+  const c=f.geometry.coordinates,p=f.properties||{},m=L.marker([c[1],c[0]],{icon:_daisoIcon(),pane:'markerPane'}).bindTooltip(pmEsc('다이소 '+(p.name||'매장')),{direction:'top',offset:[0,-16]});
+  m.bindPopup(_daisoPopup(f),{minWidth:220,maxWidth:310}).addTo(daisoLayer);
+}
+function _renderDaiso(){
+  daisoLayer.clearLayers();if(!_daisoFeatures||!map.hasLayer(daisoLayer)||map.getZoom()<Z_DAISO)return;
+  const bounds=map.getBounds().pad(.08),visible=_daisoFeatures.filter(function(f){const c=f.geometry.coordinates;return bounds.contains([c[1],c[0]]);});
+  if(map.getZoom()>=Z_DAISO_INDIVIDUAL){visible.forEach(_addDaisoMarker);return;}
+  const cells={};visible.forEach(function(f){const c=f.geometry.coordinates,p=map.latLngToContainerPoint([c[1],c[0]]),key=Math.floor(p.x/140)+':'+Math.floor(p.y/140);(cells[key]||(cells[key]=[])).push(f);});
+  Object.keys(cells).forEach(function(key){const fs=cells[key];if(fs.length===1){_addDaisoMarker(fs[0]);return;}const ll=fs.map(function(f){const c=f.geometry.coordinates;return[c[1],c[0]];}),center=L.latLngBounds(ll).getCenter(),m=L.marker(center,{icon:_daisoClusterIcon(fs.length),pane:'markerPane'}).bindTooltip('다이소 '+fs.length+'곳',{direction:'top'});m.on('click',function(){const b=L.latLngBounds(ll);if(b.getNorthEast().equals(b.getSouthWest()))map.setView(center,Math.min(15,map.getZoom()+2));else map.fitBounds(b.pad(.2),{maxZoom:14});});m.addTo(daisoLayer);});
+}
+function _loadDaiso(){
+  if(_daisoFeatures)return Promise.resolve(_daisoFeatures);if(_daisoLoading)return _daisoLoading;
+  _daisoLoading=fetch('./daiso_stores.geojson?v='+DATAVER.daiso).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();}).then(function(fc){_daisoFeatures=fc.features||[];_daisoMeta=fc.metadata||{};if(!_daisoAttributed){map.attributionControl.addAttribution('다이소 지점 &copy; ㈜아성다이소 공식 매장검색');_daisoAttributed=true;}return _daisoFeatures;}).finally(function(){_daisoLoading=null;});return _daisoLoading;
+}
+function _daisoZoomGate(){if(!map.hasLayer(daisoLayer)||map.getZoom()<Z_DAISO){daisoLayer.clearLayers();return;}_loadDaiso().then(_renderDaiso).catch(function(){_offToast('다이소 지점 데이터를 불러오지 못했습니다');});}
+map.on('overlayadd',function(e){if(e&&e.layer===daisoLayer)_daisoZoomGate();});
+map.on('overlayremove',function(e){if(e&&e.layer===daisoLayer)daisoLayer.clearLayers();});
+map.on('zoomend moveend',_daisoZoomGate);
+
 // ---- 레이어 + 범례 통합 패널 ----
 function _sw(c){ return '<span class="sw" style="background:'+c+'"></span>'; }
 const _ov = {};
@@ -3068,6 +3103,7 @@ _ov['<span class="rv-sw">🛣️</span>로드뷰 구간'] = roadviewLayer;   // 
 _ov['<span class="rv-sw">💧</span>수위'] = waterLevelLayer;        // 기본 OFF, 줌≥12 표시
 _ov['<span class="rv-sw">🏞️</span>호수·댐 수위'] = damLevelLayer;  // 기본 OFF, 줌≥10 표시
 _ov['<span class="rv-sw">📹</span>수위관측 CCTV'] = cctvLayer;   // 기본 OFF, 줌≥12 표시
+_ov['<span class="daiso-key">다</span>다이소'] = daisoLayer;       // 기본 ON, 줌≥10 표시·저줌 클러스터
 const _layerControl=L.control.layers({'일반지도':baseOSM, '위성지도':baseSat, '오프라인 지도':offlineBase}, _ov, {collapsed:false, position:'bottomright'}).addTo(map);
 map.on('overlayadd',function(e){
   if(!e||e.layer!==roadviewLayer)return;_offToast('🛣️ 로드뷰 가능 장소를 불러오는 중…');
