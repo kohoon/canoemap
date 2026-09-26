@@ -22,6 +22,7 @@
 | `tools/build_polygons.py` | V-World API로 상수원보호구역 폴리곤 수집·단순화 |
 | `tools/build_map.py` | 데이터 → `map.html` 생성 |
 | `tools/build_daiso.py` | 공식 매장검색 → 전국 다이소 지점 GeoJSON 생성 |
+| `tools/build_hanaro.py` | 공식 전국마트찾기 → 전국 하나로마트 지점 GeoJSON 생성 |
 | `tools/protect_endpoints.py` / `tools/protect_zones.py` | 구역 군집화·대표점 계산 |
 | `tools/kakao_naver_sync.py` | 카카오맵 즐겨찾기 → 네이버맵 동기화 |
 | `tools/kakao_add_favorites.py` | 카카오 폴더에 상수원보호구역 마커 일괄 추가 |
@@ -40,6 +41,13 @@ python3 tools/build_map.py
 
 ```bash
 python3 tools/build_daiso.py
+python3 tools/build_map.py
+```
+
+전국 하나로마트 지점은 농협경제지주 공식 전국마트찾기의 지점 목록과 상세 좌표를 수집해 갱신합니다.
+
+```bash
+python3 tools/build_hanaro.py
 python3 tools/build_map.py
 ```
 ```bash

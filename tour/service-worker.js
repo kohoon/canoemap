@@ -1,4 +1,4 @@
-const APP_CACHE = 'mycanoe-app-v9';
+const APP_CACHE = 'mycanoe-app-v10';
 const LEGACY_PACK_CACHE = 'mycanoe-offline-pack-v1';
 const PACK_CACHE_PREFIX = 'mycanoe-offline-pack-v2-';
 const ESRI_IMAGERY_HOST = 'server.arcgisonline.com';
@@ -91,7 +91,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(request, { cache: 'no-store' }));
     return;
   }
-  if (url.origin === self.location.origin && /\/(protect_polygons|wlz|waterplay|rivers|roads|daiso_stores)\.geojson$/.test(url.pathname)) {
+  if (url.origin === self.location.origin && /\/(protect_polygons|wlz|waterplay|rivers|roads|daiso_stores|hanaro_stores)\.geojson$/.test(url.pathname)) {
     event.respondWith(cachedData(request));
     return;
   }

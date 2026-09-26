@@ -14,5 +14,5 @@ cd "$ROOT_DIR"
 python3 tools/build_map.py
 cp tour/index.html "$STAGE_DIR/index.html"
 cp tour/service-worker.js tour/manifest.webmanifest tour/pwa-icon.svg "$STAGE_DIR/"
-cp protect_polygons.geojson wlz.geojson waterplay.geojson rivers.geojson roads.geojson daiso_stores.geojson og.png "$STAGE_DIR/"
+cp protect_polygons.geojson wlz.geojson waterplay.geojson rivers.geojson roads.geojson daiso_stores.geojson hanaro_stores.geojson og.png "$STAGE_DIR/"
 npx --yes wrangler pages deploy "$STAGE_DIR" --project-name mycanoe-tour --branch main --commit-dirty=true

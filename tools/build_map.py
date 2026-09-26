@@ -135,6 +135,7 @@ RIVERS_VER = _datahash("rivers.geojson")
 ROADS_VER = _datahash("roads.geojson")
 WATERPLAY_VER = _datahash("waterplay.geojson")
 DAISO_VER = _datahash("daiso_stores.geojson")
+HANARO_VER = _datahash("hanaro_stores.geojson")
 _cf = DATA / "courses.geojson"
 courses = json.loads(_cf.read_text(encoding="utf-8")) if _cf.exists() else {"type": "FeatureCollection", "features": []}
 # 코스에도 ID 부여(코스명 기준 고정)
@@ -444,6 +445,10 @@ __GTAG__
   .daiso-pin svg{display:block;width:34px;height:34px;overflow:visible}
   .daiso-cluster{display:flex;align-items:center;justify-content:center;width:38px;height:38px;box-sizing:border-box;border:3px solid #fff;border-radius:50%;background:#e31b3d;color:#fff;box-shadow:0 2px 5px rgba(0,0,0,.45);font:800 12px/1 sans-serif}
   .daiso-key{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-right:5px;border:2px solid #e31b3d;border-radius:50%;box-sizing:border-box;background:#fff;color:#e31b3d;font:900 9px/1 sans-serif;vertical-align:middle}
+  .hanaro-pin{display:flex;align-items:center;justify-content:center;width:34px;height:34px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.48))}
+  .hanaro-pin svg{display:block;width:34px;height:34px;overflow:visible}
+  .hanaro-cluster{display:flex;align-items:center;justify-content:center;width:38px;height:38px;box-sizing:border-box;border:3px solid #fff;border-radius:50%;background:#168447;color:#fff;box-shadow:0 2px 5px rgba(0,0,0,.45);font:800 12px/1 sans-serif}
+  .hanaro-key{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-right:5px;border:2px solid #168447;border-radius:50%;box-sizing:border-box;background:#168447;color:#fff;font:900 9px/1 sans-serif;vertical-align:middle}
   .locbtn svg{width:22px;height:22px;display:block;margin:auto}
   .pmodal-wrap{position:fixed;inset:0;z-index:3500;display:none;align-items:flex-end;justify-content:center}
   .pmodal-wrap.open{display:flex}
@@ -890,7 +895,7 @@ __GTAG__
 // 런칭·랜딩 좌표는 정적 HTML에 넣지 않는다. 로그인 후 현재 화면 범위만 보호 API에서 조회한다.
 const POINTS = {type:'FeatureCollection',features:[]};
 // 상수원보호·수상레저금지 면은 임베드하지 않고 줌인(≥11) 시 외부 .geojson 을 fetch(아래 줌게이트).
-const DATAVER = {protect:"__PROTECT_VER__", wlz:"__WLZ_VER__", rivers:"__RIVERS_VER__", roads:"__ROADS_VER__", waterplay:"__WATERPLAY_VER__", daiso:"__DAISO_VER__"};   // 콘텐츠 해시 캐시버스팅
+const DATAVER = {protect:"__PROTECT_VER__", wlz:"__WLZ_VER__", rivers:"__RIVERS_VER__", roads:"__ROADS_VER__", waterplay:"__WATERPLAY_VER__", daiso:"__DAISO_VER__", hanaro:"__HANARO_VER__"};   // 콘텐츠 해시 캐시버스팅
 let protectLayer = null, wlzLayer = null, waterplayLayer = null;          // 첫 줌인 때 생성
 let _protectLoading = null, _wlzLoading = null, _waterplayLoading = null; // in-flight fetch(중복 방지)
 let _protectWanted = true, _wlzWanted = true, _waterplayWanted = false;
@@ -3236,6 +3241,31 @@ map.on('overlayadd',function(e){if(e&&e.layer===daisoLayer)_daisoZoomGate();});
 map.on('overlayremove',function(e){if(e&&e.layer===daisoLayer)daisoLayer.clearLayers();});
 map.on('zoomend moveend',_daisoZoomGate);
 
+// ---- 전국 농협하나로마트(공식 전국마트찾기 스냅샷, A안·기본 ON·줌≥10 지연 로드) ----
+const HANARO_MARKER_SVG='<svg viewBox="0 0 52 52" aria-label="농협하나로마트"><circle cx="26" cy="26" r="23" fill="#168447" stroke="#fff" stroke-width="3"/><path d="M15 25h22l-3 15H18Z" fill="#fff"/><path d="M20 26c0-7 12-7 12 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="22" cy="24" r="4" fill="#ffd54f"/><circle cx="30" cy="23" r="4" fill="#8bc34a"/><path d="M30 18q4-5 8-2-3 4-8 4Z" fill="#d7f3dc"/></svg>';
+const hanaroLayer=L.layerGroup().addTo(map);
+let _hanaroFeatures=null,_hanaroMeta={},_hanaroLoading=null,_hanaroAttributed=false;
+const Z_HANARO=10,Z_HANARO_INDIVIDUAL=14;
+function _hanaroIcon(){return L.divIcon({className:'hanaro-div',html:'<span class="hanaro-pin">'+HANARO_MARKER_SVG+'</span>',iconSize:[34,34],iconAnchor:[17,17]});}
+function _hanaroClusterIcon(n){return L.divIcon({className:'hanaro-div',html:'<span class="hanaro-cluster">'+n+'</span>',iconSize:[38,38],iconAnchor:[19,19]});}
+function _hanaroPopup(f){
+  const p=f.properties||{},c=f.geometry.coordinates,n=p.name||'하나로마트',address=p.address||[p.region,p.district].filter(Boolean).join(' '),phone=p.phone?'<br><a href="tel:'+String(p.phone).replace(/[^0-9+]/g,'')+'">'+pmEsc(p.phone)+'</a>':'',hours=p.hours?'<br><small>영업시간 '+pmEsc(p.hours)+'</small>':'',asof=_hanaroMeta.asOf?'<br><small style="color:#889">공식 전국마트찾기 · '+pmEsc(_hanaroMeta.asOf)+' 기준</small>':'';
+  return '<b>'+pmEsc(n)+'</b><br>'+pmEsc(address)+phone+hours+asof+extLinks(c[1],c[0],n,false)+'<br><a href="https://www.nhhanaro.co.kr/nahh_70005.do?id=nahh001_010100000000" target="_blank" rel="noopener">공식 매장정보 확인</a>';
+}
+function _addHanaroMarker(f){const c=f.geometry.coordinates,p=f.properties||{},m=L.marker([c[1],c[0]],{icon:_hanaroIcon(),pane:'markerPane'}).bindTooltip(pmEsc(p.name||'하나로마트'),{direction:'top',offset:[0,-16]});m.bindPopup(_hanaroPopup(f),{minWidth:220,maxWidth:310}).addTo(hanaroLayer);}
+function _renderHanaro(){
+  hanaroLayer.clearLayers();if(!_hanaroFeatures||!map.hasLayer(hanaroLayer)||map.getZoom()<Z_HANARO)return;
+  const bounds=map.getBounds().pad(.08),visible=_hanaroFeatures.filter(function(f){const c=f.geometry.coordinates;return bounds.contains([c[1],c[0]]);});
+  if(map.getZoom()>=Z_HANARO_INDIVIDUAL){visible.forEach(_addHanaroMarker);return;}
+  const cells={};visible.forEach(function(f){const c=f.geometry.coordinates,p=map.latLngToContainerPoint([c[1],c[0]]),key=Math.floor(p.x/140)+':'+Math.floor(p.y/140);(cells[key]||(cells[key]=[])).push(f);});
+  Object.keys(cells).forEach(function(key){const fs=cells[key];if(fs.length===1){_addHanaroMarker(fs[0]);return;}const ll=fs.map(function(f){const c=f.geometry.coordinates;return[c[1],c[0]];}),center=L.latLngBounds(ll).getCenter(),m=L.marker(center,{icon:_hanaroClusterIcon(fs.length),pane:'markerPane'}).bindTooltip('하나로마트 '+fs.length+'곳',{direction:'top'});m.on('click',function(){const b=L.latLngBounds(ll);if(b.getNorthEast().equals(b.getSouthWest()))map.setView(center,Math.min(15,map.getZoom()+2));else map.fitBounds(b.pad(.2),{maxZoom:14});});m.addTo(hanaroLayer);});
+}
+function _loadHanaro(){if(_hanaroFeatures)return Promise.resolve(_hanaroFeatures);if(_hanaroLoading)return _hanaroLoading;_hanaroLoading=fetch('./hanaro_stores.geojson?v='+DATAVER.hanaro).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();}).then(function(fc){_hanaroFeatures=fc.features||[];_hanaroMeta=fc.metadata||{};if(!_hanaroAttributed){map.attributionControl.addAttribution('하나로마트 &copy; 농협경제지주 공식 전국마트찾기');_hanaroAttributed=true;}return _hanaroFeatures;}).finally(function(){_hanaroLoading=null;});return _hanaroLoading;}
+function _hanaroZoomGate(){if(!map.hasLayer(hanaroLayer)||map.getZoom()<Z_HANARO){hanaroLayer.clearLayers();return;}_loadHanaro().then(_renderHanaro).catch(function(){_offToast('하나로마트 지점 데이터를 불러오지 못했습니다');});}
+map.on('overlayadd',function(e){if(e&&e.layer===hanaroLayer)_hanaroZoomGate();});
+map.on('overlayremove',function(e){if(e&&e.layer===hanaroLayer)hanaroLayer.clearLayers();});
+map.on('zoomend moveend',_hanaroZoomGate);
+
 // ---- 레이어 + 범례 통합 패널 ----
 function _sw(c){ return '<span class="sw" style="background:'+c+'"></span>'; }
 const _ov = {};
@@ -3253,6 +3283,7 @@ _ov['<span class="rv-sw">💧</span>수위'] = waterLevelLayer;        // 기본
 _ov['<span class="rv-sw">🏞️</span>호수·댐 수위'] = damLevelLayer;  // 기본 OFF, 줌≥10 표시
 _ov['<span class="rv-sw">📹</span>수위관측 CCTV'] = cctvLayer;   // 기본 OFF, 줌≥12 표시
 _ov['<span class="daiso-key">다</span>다이소'] = daisoLayer;       // 기본 ON, 줌≥10 표시·저줌 클러스터
+_ov['<span class="hanaro-key">장</span>하나로마트'] = hanaroLayer; // 기본 ON, 줌≥10 표시·저줌 클러스터
 const _layerControl=L.control.layers({'일반지도':baseOSM, '위성지도':baseSat, '오프라인 지도':offlineBase}, _ov, {collapsed:false, position:'bottomright'}).addTo(map);
 map.on('overlayadd',function(e){
   if(!e||e.layer!==roadviewLayer)return;_offToast('🛣️ 로드뷰 가능 장소를 불러오는 중…');
@@ -4866,6 +4897,7 @@ html = (HTML
         .replace("__ROADS_VER__", ROADS_VER)
         .replace("__WATERPLAY_VER__", WATERPLAY_VER)
         .replace("__DAISO_VER__", DAISO_VER)
+        .replace("__HANARO_VER__", HANARO_VER)
         .replace("__WLSTN__", json.dumps(wlstn, ensure_ascii=False, separators=(",", ":")))
         .replace("__CCTVS__", json.dumps(cctvs, ensure_ascii=False, separators=(",", ":")))
         .replace("__JAPAN_LAKES__", json.dumps(japan_lakes, ensure_ascii=False, separators=(",", ":")))
