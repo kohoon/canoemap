@@ -269,9 +269,10 @@
   .canoe-pin-in{width:26px;height:26px;border-radius:50%;background:#2196f3;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
   .canoe-pin-in.candidate{background:#ff9800}
   .canoe-pin-in svg{width:17px;height:auto}
-  .loc-canoe-in{display:flex;align-items:center;justify-content:center;width:40px;height:40px;
-    filter:drop-shadow(0 2px 4px rgba(13,71,161,.65));animation:locbob 2.4s ease-in-out infinite}
-  .loc-canoe-in svg{width:38px;height:auto}
+  .loc-transport-in{display:flex;align-items:center;justify-content:center;width:46px;height:42px;filter:drop-shadow(0 2px 4px rgba(13,71,161,.65))}
+  .loc-transport-in svg{width:44px;max-height:40px;height:auto;overflow:visible}
+  .loc-transport-in.canoe{animation:locbob 2.4s ease-in-out infinite}
+  .loc-transport-in.person svg{width:30px}
   @keyframes locbob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
   .admin-actions{display:none;align-items:stretch;gap:6px}
   .admin-sheet-card,.admin-members-card{align-items:center;gap:8px;box-sizing:border-box;background:#fff;padding:7px 12px 7px 7px;border:0;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.2);text-decoration:none;cursor:pointer}
@@ -2299,6 +2300,8 @@ function ptPopup(f){ const p=f.properties, c=f.geometry.coordinates;
   let h='<b>'+(p.name||'(이름없음)')+'</b>'; if(p.memo) h+='<br>'+p.memo;
   h+=extLinks(c[1],c[0],p.name,!!p.rv); return h; }
 const CANOE_SVG='<svg viewBox="0 0 64 40"><path d="M2 20C2 13 16 10 32 10C48 10 62 13 62 20C62 27 48 30 32 30C16 30 2 27 2 20Z" fill="#fff"/><path d="M9.5 20C9.5 15.7 19.5 13.8 32 13.8C44.5 13.8 54.5 15.7 54.5 20C54.5 24.3 44.5 26.2 32 26.2C19.5 26.2 9.5 24.3 9.5 20Z" fill="#cfe3f5"/><path d="M23 15.5V24.5M41 15.5V24.5" stroke="#5a9bd4" stroke-width="2.2" stroke-linecap="round"/></svg>';
+const MODEL_Y_SVG='<svg viewBox="0 0 72 44" aria-label="Tesla Model Y"><path d="M18 5Q36-1 54 5L61 12Q66 16 67 23L66 35Q65 40 60 41H12Q7 40 6 35L5 23Q6 16 11 12Z" fill="#f8fafc" stroke="#1f3444" stroke-width="2"/><path d="M22 7Q36 3 50 7L55 15H17Z" fill="#263f52"/><path d="M17 17H55L59 31H13Z" fill="#dbe8ef"/><path d="M30 18H42V31H30Z" fill="#21394b" opacity=".9"/><path d="M7 22H13M59 22H65" stroke="#90caf9" stroke-width="3" stroke-linecap="round"/><path d="M12 35H60" stroke="#8aa0ad" stroke-width="2"/><rect x="7" y="15" width="5" height="10" rx="2" fill="#263238"/><rect x="60" y="15" width="5" height="10" rx="2" fill="#263238"/></svg>';
+const PERSON_SVG='<svg viewBox="0 0 40 48" aria-label="보행자"><circle cx="20" cy="8" r="6" fill="#fff" stroke="#314b5b" stroke-width="2"/><path d="M20 15L18 29L10 42M18 29L28 41M19 19L9 28M20 20L30 26" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 15L18 29L10 42M18 29L28 41M19 19L9 28M20 20L30 26" fill="none" stroke="#314b5b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CANDIDATE_SVG='<svg viewBox="0 0 64 40"><path d="M2 20C2 13 16 10 32 10C48 10 62 13 62 20C62 27 48 30 32 30C16 30 2 27 2 20Z" fill="#fff"/><path d="M9.5 20C9.5 15.7 19.5 13.8 32 13.8C44.5 13.8 54.5 15.7 54.5 20C54.5 24.3 44.5 26.2 32 26.2C19.5 26.2 9.5 24.3 9.5 20Z" fill="#fff3e0"/><path d="M23 15.5V24.5M41 15.5V24.5" stroke="#ef6c00" stroke-width="2.2" stroke-linecap="round"/></svg>';
 function canoeSvg(kind){ return kind==='candidate'?CANDIDATE_SVG:CANOE_SVG; }
 function canoeIcon(kind){ kind=kind||'canoe'; return L.divIcon({className:'canoe-pin'+(kind==='candidate'?' candidate':''),html:'<span class="canoe-pin-in'+(kind==='candidate'?' candidate':'')+'">'+canoeSvg(kind)+'</span>',iconSize:[26,26],iconAnchor:[13,13]}); }
@@ -4175,7 +4178,52 @@ MinHeap.prototype.pop=function(){ const a=this.a, top=a[0], last=a.pop();
   return top; };
 
 // ---- 내 위치 ----
-let _locMarker=null, _locCircle=null, _locWatching=false, _locHasFix=false;
+let _locMarker=null,_locCircle=null,_locWatching=false,_locHasFix=false,_locMode='person',_locModePending='',_locModeHits=0,_locLastEvent=null;
+let _locSurfaceData=null,_locSurfaceLoading=null,_locSurfaceWindow=null;
+const _locModeLabel={car:'테슬라 모델 Y',canoe:'마이카누',person:'사람'};
+function _locIcon(mode){
+  const svg=mode==='car'?MODEL_Y_SVG:(mode==='canoe'?CANOE_SVG:PERSON_SVG);
+  return L.divIcon({className:'loc-transport',html:'<span class="loc-transport-in '+mode+'">'+svg+'</span>',iconSize:[46,42],iconAnchor:[23,21]});
+}
+function _locPointSegmentM(p,s){
+  const cos=Math.cos(p.lat*Math.PI/180),ax=(s[1]-p.lng)*111320*cos,ay=(s[0]-p.lat)*110540,bx=(s[3]-p.lng)*111320*cos,by=(s[2]-p.lat)*110540,dx=bx-ax,dy=by-ay,t=Math.max(0,Math.min(1,-(ax*dx+ay*dy)/((dx*dx+dy*dy)||1))),x=ax+t*dx,y=ay+t*dy;return Math.sqrt(x*x+y*y);
+}
+function _locNearbySegments(fc,c,pad){
+  const out=[],s=c.lat-pad,n=c.lat+pad,w=c.lng-pad,e=c.lng+pad;
+  (fc&&fc.features||[]).forEach(function(f){const g=f.geometry||{},lines=g.type==='LineString'?[g.coordinates]:(g.type==='MultiLineString'?g.coordinates:[]);lines.forEach(function(line){for(let i=1;i<line.length;i++){const a=line[i-1],b=line[i];if(Math.max(a[1],b[1])<s||Math.min(a[1],b[1])>n||Math.max(a[0],b[0])<w||Math.min(a[0],b[0])>e)continue;out.push([a[1],a[0],b[1],b[0]]);}});});
+  return out;
+}
+function _buildLocSurfaceWindow(c){
+  if(!_locSurfaceData)return null;
+  _locSurfaceWindow={center:L.latLng(c),roads:_locNearbySegments(_locSurfaceData.roads,c,.045),water:_locNearbySegments(_locSurfaceData.water,c,.045)};return _locSurfaceWindow;
+}
+function _ensureLocSurfaceData(c){
+  if(_locSurfaceData){_buildLocSurfaceWindow(c);return Promise.resolve(_locSurfaceData);}
+  if(_locSurfaceLoading)return _locSurfaceLoading;
+  _locSurfaceLoading=Promise.all([
+    fetch('roads.geojson?v='+DATAVER.roads).then(function(r){return r.ok?r.json():{features:[]};}),
+    fetch('rivers.geojson?v='+DATAVER.rivers).then(function(r){return r.ok?r.json():{features:[]};})
+  ]).then(function(rows){_locSurfaceData={roads:rows[0],water:rows[1]};_buildLocSurfaceWindow(c);return _locSurfaceData;}).catch(function(){_locSurfaceData={roads:{features:[]},water:{features:[]}};return _locSurfaceData;}).finally(function(){_locSurfaceLoading=null;});
+  return _locSurfaceLoading;
+}
+function _locationSurfaceDistances(c){
+  if(!_locSurfaceData)return {road:Infinity,water:Infinity};
+  if(!_locSurfaceWindow||map.distance(c,_locSurfaceWindow.center)>2500)_buildLocSurfaceWindow(c);
+  function nearest(rows){let d=Infinity;for(let i=0;i<rows.length;i++){d=Math.min(d,_locPointSegmentM(c,rows[i]));if(d<3)break;}return d;}
+  return {road:nearest(_locSurfaceWindow.roads),water:nearest(_locSurfaceWindow.water)};
+}
+function _locModeFromEvidence(roadM,waterM,accuracy,speed){
+  accuracy=Math.max(0,Number(accuracy)||0);speed=Number(speed);if(!isFinite(speed)||speed<0)speed=0;
+  const roadLimit=Math.min(45,Math.max(16,accuracy*.7+10)),waterLimit=Math.min(160,Math.max(45,accuracy+25));
+  if(speed>=6||roadM<=roadLimit)return 'car';
+  if(waterM<=waterLimit)return 'canoe';
+  return 'person';
+}
+function _classifyLocationMode(e){const d=_locationSurfaceDistances(e.latlng);return _locModeFromEvidence(d.road,d.water,e.accuracy,e.speed);}
+function _setLocationMode(mode,force){
+  if(mode!==_locMode&&!force){if(_locModePending===mode)_locModeHits++;else{_locModePending=mode;_locModeHits=1;}if(_locModeHits<2)return;}else{_locModePending='';_locModeHits=0;}
+  if(mode===_locMode&&!force)return;_locMode=mode;_locModePending='';_locModeHits=0;if(_locMarker)_locMarker.setIcon(_locIcon(mode));_setLocateState(_locWatching,false);
+}
 const LocateCtl=L.Control.extend({ options:{position:'bottomleft'},
   onAdd:function(){ const d=L.DomUtil.create('div','locbtn'); d.id='locBtn'; d.title='내 위치';
     d.setAttribute('role','button'); d.setAttribute('aria-label','실시간 현재 위치 보기'); d.setAttribute('aria-pressed','false');
@@ -4189,7 +4237,7 @@ function _setLocateState(active,loading){
   const b=document.getElementById('locBtn'); if(!b)return;
   b.classList.toggle('active',!!active); b.classList.toggle('loading',!!loading);
   b.setAttribute('aria-pressed',active?'true':'false');
-  b.title=active?'실시간 위치 추적 중 · 지도를 끌면 종료':'내 위치';
+  b.title=active?'실시간 위치 추적 중 · '+_locModeLabel[_locMode]+' · 지도를 끌면 종료':'내 위치';
 }
 function stopLocateFollow(){
   if(!_locWatching)return;
@@ -4207,13 +4255,14 @@ function locateMe(){
 }
 map.on('locationfound', function(e){
   if(!_locWatching)return;
+  _locLastEvent=e;_setLocationMode(_classifyLocationMode(e),!_locMarker);
   _setLocateState(true,false);
   const radius=Math.min(e.accuracy||0,2000);
   if(_locCircle)_locCircle.setLatLng(e.latlng).setRadius(radius);
   else _locCircle=L.circle(e.latlng,{radius:radius,color:'#1976d2',weight:1,fillColor:'#42a5f5',fillOpacity:.15}).addTo(map);
-  // 내 위치 = 마이카누 듀오2 한 대(파란점 대신)
   if(_locMarker)_locMarker.setLatLng(e.latlng);
-  else _locMarker=L.marker(e.latlng,{icon:L.divIcon({className:'loc-canoe',html:'<span class="loc-canoe-in">'+CANOE_SVG+'</span>',iconSize:[40,40],iconAnchor:[20,20]}),zIndexOffset:1000,interactive:false}).addTo(map);
+  else _locMarker=L.marker(e.latlng,{icon:_locIcon(_locMode),zIndexOffset:1000,interactive:false}).addTo(map);
+  _ensureLocSurfaceData(e.latlng).then(function(){if(_locWatching&&_locLastEvent===e)_setLocationMode(_classifyLocationMode(e),true);});
   if(!_locHasFix){_locHasFix=true;map.setView(e.latlng,Math.max(map.getZoom(),16));}
   else map.panTo(e.latlng,{animate:true,duration:.35,noMoveStart:true});
 });

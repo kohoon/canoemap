@@ -28,7 +28,21 @@ class LiveLocationFollowTests(unittest.TestCase):
     def test_tracking_state_is_visible_and_accessible(self):
         self.assertIn(".locbtn.active", self.source)
         self.assertIn("aria-pressed", self.source)
-        self.assertIn("실시간 위치 추적 중 · 지도를 끌면 종료", self.source)
+        self.assertIn("실시간 위치 추적 중 · '+_locModeLabel[_locMode]+' · 지도를 끌면 종료", self.source)
+
+    def test_location_icon_uses_road_water_and_neutral_modes(self):
+        self.assertIn("const MODEL_Y_SVG", self.source)
+        self.assertIn("const PERSON_SVG", self.source)
+        self.assertIn("function _locModeFromEvidence", self.source)
+        self.assertIn("if(speed>=6||roadM<=roadLimit)return 'car'", self.source)
+        self.assertIn("if(waterM<=waterLimit)return 'canoe'", self.source)
+        self.assertIn("return 'person'", self.source)
+
+    def test_surface_classification_reuses_static_map_data_near_the_user(self):
+        self.assertIn("fetch('roads.geojson?v='+DATAVER.roads)", self.source)
+        self.assertIn("fetch('rivers.geojson?v='+DATAVER.rivers)", self.source)
+        self.assertIn("_locNearbySegments", self.source)
+        self.assertIn("map.distance(c,_locSurfaceWindow.center)>2500", self.source)
 
 
 if __name__ == "__main__":

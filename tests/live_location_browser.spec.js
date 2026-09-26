@@ -67,10 +67,18 @@ test('current-location mode follows live movement until the user drags the map',
 
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => { document.querySelector('#gate').style.display = 'none'; });
+  expect(await page.evaluate(() => ({
+    road: _locModeFromEvidence(8, 120, 10, 0),
+    water: _locModeFromEvidence(120, 8, 10, 0),
+    walking: _locModeFromEvidence(120, 220, 10, 1.2),
+    fast: _locModeFromEvidence(Infinity, Infinity, 10, 8),
+  }))).toEqual({ road: 'car', water: 'canoe', walking: 'person', fast: 'car' });
   await page.locator('#locBtn').click();
   await expect(page.locator('#locBtn')).toHaveClass(/active/);
   await page.evaluate(() => window.__pushGeo(37.9000, 127.7300, 12));
   await expect.poll(() => page.evaluate(() => _locMarker && _locMarker.getLatLng().lat)).toBeCloseTo(37.9, 4);
+  await expect.poll(() => page.evaluate(() => !!_locSurfaceData), { timeout: 15000 }).toBe(true);
+  expect(await page.evaluate(() => _locSurfaceWindow.roads.length + _locSurfaceWindow.water.length)).toBeGreaterThan(0);
 
   await page.evaluate(() => window.__pushGeo(37.9015, 127.7330, 8));
   await expect.poll(() => page.evaluate(() => _locMarker && _locMarker.getLatLng().lat)).toBeCloseTo(37.9015, 4);
