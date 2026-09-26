@@ -28,6 +28,13 @@ class CourseDirectionArrowTests(unittest.TestCase):
         self.assertIn("map.on('zoomend',_syncCourseDirectionVisibility)", source)
         self.assertIn("#map.course-directions-hidden .course-dir-icon{display:none!important}", source)
 
+    def test_arrows_stay_above_course_lines(self):
+        source = (ROOT / "tools" / "build_map.py").read_text(encoding="utf-8")
+        self.assertIn("map.createPane('courseDirectionPane')", source)
+        self.assertIn("_courseDirectionPane.style.zIndex='520'", source)
+        self.assertIn("_courseDirectionPane.style.pointerEvents='none'", source)
+        self.assertIn("pane:'courseDirectionPane'", source)
+
 
 if __name__ == "__main__":
     unittest.main()

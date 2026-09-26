@@ -1923,6 +1923,10 @@ function _lazyLoadWaterplay(){
 }
 
 // ---- 카누잉코스 (물길 따라, 에메랄드 단일색 + 외곽선) ----
+// 방향 꺾쇠는 모든 코스선·수계 오버레이보다 위, 장소 마커보다 아래에 고정한다.
+const _courseDirectionPane=map.createPane('courseDirectionPane');
+_courseDirectionPane.style.zIndex='520';
+_courseDirectionPane.style.pointerEvents='none';
 // 서브카테고리별 색상(보라 계열, 서로 구분)
 const COURSE_COLORS={'엑스페디션':'#7c4dff','초심자코스':'#d500f9','기타':'#00897b'};
 const COURSE_PALETTE=[
@@ -1961,7 +1965,7 @@ function courseDirectionLayer(coords){
     const prev=i?dist[i-1]:0, s=seg[i], f=Math.max(0,Math.min(1,(target-prev)/s[2]));
     const ll=[s[0][0]+(s[1][0]-s[0][0])*f,s[0][1]+(s[1][1]-s[0][1])*f], angle=_courseBearing(s[0],s[1]);
     const svg='<span class="course-dir-arrow" style="transform:rotate('+angle.toFixed(1)+'deg)"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 15L9 4 16 15" fill="none" stroke="#32134f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".88"/><path d="M2 15L9 4 16 15" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
-    L.marker(ll,{pane:'overlayPane',interactive:false,keyboard:false,icon:L.divIcon({className:'course-dir-icon',html:svg,iconSize:[18,18],iconAnchor:[9,9]})}).addTo(out);
+    L.marker(ll,{pane:'courseDirectionPane',interactive:false,keyboard:false,icon:L.divIcon({className:'course-dir-icon',html:svg,iconSize:[18,18],iconAnchor:[9,9]})}).addTo(out);
   }
   return out;
 }
