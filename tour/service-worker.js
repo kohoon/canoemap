@@ -1,4 +1,4 @@
-const APP_CACHE = 'mycanoe-app-v10';
+const APP_CACHE = 'mycanoe-app-v11';
 const LEGACY_PACK_CACHE = 'mycanoe-offline-pack-v1';
 const PACK_CACHE_PREFIX = 'mycanoe-offline-pack-v2-';
 const ESRI_IMAGERY_HOST = 'server.arcgisonline.com';
