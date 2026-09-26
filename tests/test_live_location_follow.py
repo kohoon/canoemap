@@ -20,16 +20,24 @@ class LiveLocationFollowTests(unittest.TestCase):
         self.assertIn("_locMarker.setLatLng(e.latlng)", self.source)
         self.assertIn("map.panTo(e.latlng", self.source)
 
-    def test_manual_map_navigation_keeps_follow_mode(self):
+    def test_button_toggles_tracking_and_clears_the_location_display(self):
         self.assertIn("function stopLocateFollow()", self.source)
         self.assertIn("map.stopLocate()", self.source)
+        self.assertIn("if(_locWatching){\n    stopLocateFollow();", self.source)
+        self.assertIn("map.removeLayer(_locMarker);_locMarker=null", self.source)
+        self.assertIn("map.removeLayer(_locCircle);_locCircle=null", self.source)
+
+    def test_manual_map_navigation_keeps_gps_but_pauses_recentering(self):
+        self.assertIn("function pauseLocateViewFollow()", self.source)
+        self.assertIn("map.on('dragstart zoomstart',pauseLocateViewFollow)", self.source)
+        self.assertIn("else if(_locFollowView)map.panTo", self.source)
         self.assertNotIn("map.on('dragstart',stopLocateFollow)", self.source)
         self.assertNotIn("map.on('zoomstart',stopLocateFollow)", self.source)
 
     def test_tracking_state_is_visible_and_accessible(self):
         self.assertIn(".locbtn.active", self.source)
         self.assertIn("aria-pressed", self.source)
-        self.assertIn("실시간 위치 추적 중 · '+_locModeLabel[_locMode]+' · 지도 이동·확대 중에도 유지", self.source)
+        self.assertIn("'현재 위치 따라가기':'지도 자유 탐색 중'", self.source)
 
     def test_location_icon_uses_road_water_and_neutral_modes(self):
         self.assertIn("const MODEL_Y_SVG", self.source)

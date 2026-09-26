@@ -4327,7 +4327,7 @@ MinHeap.prototype.pop=function(){ const a=this.a, top=a[0], last=a.pop();
   return top; };
 
 // ---- 내 위치 ----
-let _locMarker=null,_locCircle=null,_locWatching=false,_locHasFix=false,_locMode='person',_locModePending='',_locModeHits=0,_locLastEvent=null;
+let _locMarker=null,_locCircle=null,_locWatching=false,_locHasFix=false,_locFollowView=false,_locInternalMove=false,_locMode='person',_locModePending='',_locModeHits=0,_locLastEvent=null;
 let _locSurfaceData=null,_locSurfaceLoading=null,_locSurfaceWindow=null;
 const _locModeLabel={car:'테슬라 모델 Y',canoe:'마이카누',person:'사람'};
 function _locIcon(mode){
@@ -4386,22 +4386,34 @@ function _setLocateState(active,loading){
   const b=document.getElementById('locBtn'); if(!b)return;
   b.classList.toggle('active',!!active); b.classList.toggle('loading',!!loading);
   b.setAttribute('aria-pressed',active?'true':'false');
-  b.title=active?'실시간 위치 추적 중 · '+_locModeLabel[_locMode]+' · 지도 이동·확대 중에도 유지':'내 위치';
+  b.title=active?('실시간 위치 추적 중 · '+_locModeLabel[_locMode]+' · '+(_locFollowView?'현재 위치 따라가기':'지도 자유 탐색 중')):'내 위치';
 }
 function stopLocateFollow(){
   if(!_locWatching)return;
-  _locWatching=false; _locHasFix=false; map.stopLocate(); _setLocateState(false,false);
+  _locWatching=false;_locHasFix=false;_locFollowView=false;_locLastEvent=null;map.stopLocate();
+  if(_locMarker){map.removeLayer(_locMarker);_locMarker=null;}
+  if(_locCircle){map.removeLayer(_locCircle);_locCircle=null;}
+  _setLocateState(false,false);
+}
+function pauseLocateViewFollow(){
+  if(!_locWatching||_locInternalMove||!_locFollowView)return;
+  _locFollowView=false;_setLocateState(true,false);
+}
+function _locSetInitialView(latlng){
+  _locInternalMove=true;
+  try{map.setView(latlng,Math.max(map.getZoom(),16));}finally{_locInternalMove=false;}
 }
 function locateMe(){
   if(!navigator.geolocation){ L.popup().setLatLng(map.getCenter()).setContent('이 브라우저는 위치를 지원하지 않습니다').openOn(map); return; }
   if(_locWatching){
-    if(_locMarker)map.setView(_locMarker.getLatLng(),map.getZoom(),{animate:true});
+    stopLocateFollow();
     return;
   }
-  _locWatching=true; _locHasFix=false; _setLocateState(true,true);
+  _locWatching=true;_locHasFix=false;_locFollowView=true;_setLocateState(true,true);
   map.locate({watch:true,setView:false,enableHighAccuracy:true,maximumAge:1000,timeout:15000});
   gaEvent('locate');
 }
+map.on('dragstart zoomstart',pauseLocateViewFollow);
 map.on('locationfound', function(e){
   if(!_locWatching)return;
   _locLastEvent=e;_setLocationMode(_classifyLocationMode(e),!_locMarker);
@@ -4412,8 +4424,8 @@ map.on('locationfound', function(e){
   if(_locMarker)_locMarker.setLatLng(e.latlng);
   else _locMarker=L.marker(e.latlng,{icon:_locIcon(_locMode),zIndexOffset:1000,interactive:false}).addTo(map);
   _ensureLocSurfaceData(e.latlng).then(function(){if(_locWatching&&_locLastEvent===e)_setLocationMode(_classifyLocationMode(e),true);});
-  if(!_locHasFix){_locHasFix=true;map.setView(e.latlng,Math.max(map.getZoom(),16));}
-  else map.panTo(e.latlng,{animate:true,duration:.35,noMoveStart:true});
+  if(!_locHasFix){_locHasFix=true;if(_locFollowView)_locSetInitialView(e.latlng);}
+  else if(_locFollowView)map.panTo(e.latlng,{animate:true,duration:.35,noMoveStart:true});
 });
 map.on('locationerror', function(){
   stopLocateFollow();

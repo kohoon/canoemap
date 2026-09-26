@@ -28,7 +28,7 @@ test.afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
-test('current-location mode survives manual map pan and zoom', async () => {
+test('current-location mode can be toggled off and allows free map browsing', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -94,11 +94,25 @@ test('current-location mode survives manual map pan and zoom', async () => {
   expect(state.radius).toBe(8);
   expect(state.pressed).toBe('true');
 
-  await page.evaluate(() => { map.fire('dragstart'); map.fire('zoomstart'); });
+  await page.evaluate(() => { map.fire('dragstart'); map.setView([35.18, 129.08], 12); });
   await expect(page.locator('#locBtn')).toHaveClass(/active/);
-  expect(await page.evaluate(() => ({ watching: _locWatching, cleared: window.__geoCleared || null }))).toEqual({ watching: true, cleared: null });
+  expect(await page.evaluate(() => ({ watching: _locWatching, following: _locFollowView, cleared: window.__geoCleared || null }))).toEqual({ watching: true, following: false, cleared: null });
   await page.evaluate(() => window.__pushGeo(37.9025, 127.7350, 7));
   await expect.poll(() => page.evaluate(() => _locMarker && _locMarker.getLatLng().lng)).toBeCloseTo(127.7350, 4);
+  const browsedCenter = await page.evaluate(() => ({ lat: map.getCenter().lat, lng: map.getCenter().lng }));
+  expect(browsedCenter.lat).toBeCloseTo(35.18, 2);
+  expect(browsedCenter.lng).toBeCloseTo(129.08, 2);
+
+  await page.locator('#locBtn').click();
+  await expect(page.locator('#locBtn')).not.toHaveClass(/active/);
+  expect(await page.evaluate(() => ({
+    watching: _locWatching,
+    following: _locFollowView,
+    cleared: window.__geoCleared || null,
+    marker: _locMarker,
+    circle: _locCircle,
+    pressed: document.querySelector('#locBtn').getAttribute('aria-pressed'),
+  }))).toEqual({ watching: false, following: false, cleared: 1, marker: null, circle: null, pressed: 'false' });
   expect(errors).toEqual([]);
 
   await context.close();
