@@ -229,6 +229,8 @@
   .meas-seg-num{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#ef6c00;color:#fff;font-size:9px;margin-right:3px;vertical-align:middle}
   .locbtn{cursor:pointer;background:#fff;width:40px;height:40px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.3);user-select:none;display:flex;align-items:center;justify-content:center}
   .locbtn.loading{opacity:.45}
+  .locbtn.active{background:#1976d2;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 3px rgba(25,118,210,.2)}
+  .locbtn.active svg{fill:#fff!important}
   .loc-dot{filter:drop-shadow(0 0 3px rgba(25,118,210,.6))}
   .addplace-btn{margin-top:7px;background:#00b894;color:#fff;border:0;border-radius:6px;padding:6px 11px;font:600 12px sans-serif;cursor:pointer}
   .addplace-btn.sugg{background:#1565c0}
@@ -4173,32 +4175,53 @@ MinHeap.prototype.pop=function(){ const a=this.a, top=a[0], last=a.pop();
   return top; };
 
 // ---- 내 위치 ----
-let _locMarker=null, _locCircle=null;
+let _locMarker=null, _locCircle=null, _locWatching=false, _locHasFix=false;
 const LocateCtl=L.Control.extend({ options:{position:'bottomleft'},
   onAdd:function(){ const d=L.DomUtil.create('div','locbtn'); d.id='locBtn'; d.title='내 위치';
+    d.setAttribute('role','button'); d.setAttribute('aria-label','실시간 현재 위치 보기'); d.setAttribute('aria-pressed','false');
     d.innerHTML='<svg viewBox="0 0 24 24" fill="#1976d2"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19a7 7 0 110-14 7 7 0 010 14z"/></svg>';
     L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
     L.DomEvent.on(d,'click',function(e){ L.DomEvent.preventDefault(e); locateMe(); });
     return d; }
 });
 map.addControl(new LocateCtl());
+function _setLocateState(active,loading){
+  const b=document.getElementById('locBtn'); if(!b)return;
+  b.classList.toggle('active',!!active); b.classList.toggle('loading',!!loading);
+  b.setAttribute('aria-pressed',active?'true':'false');
+  b.title=active?'실시간 위치 추적 중 · 지도를 끌면 종료':'내 위치';
+}
+function stopLocateFollow(){
+  if(!_locWatching)return;
+  _locWatching=false; _locHasFix=false; map.stopLocate(); _setLocateState(false,false);
+}
 function locateMe(){
   if(!navigator.geolocation){ L.popup().setLatLng(map.getCenter()).setContent('이 브라우저는 위치를 지원하지 않습니다').openOn(map); return; }
-  const b=document.getElementById('locBtn'); if(b) b.classList.add('loading');
-  map.locate({setView:true, maxZoom:16, enableHighAccuracy:true, timeout:10000});
+  if(_locWatching){
+    if(_locMarker)map.setView(_locMarker.getLatLng(),map.getZoom(),{animate:true});
+    return;
+  }
+  _locWatching=true; _locHasFix=false; _setLocateState(true,true);
+  map.locate({watch:true,setView:false,enableHighAccuracy:true,maximumAge:1000,timeout:15000});
+  gaEvent('locate');
 }
 map.on('locationfound', function(e){
-  const b=document.getElementById('locBtn'); if(b) b.classList.remove('loading');
-  if(_locMarker) map.removeLayer(_locMarker); if(_locCircle) map.removeLayer(_locCircle);
-  _locCircle=L.circle(e.latlng,{radius:Math.min(e.accuracy,2000),color:'#1976d2',weight:1,fillColor:'#42a5f5',fillOpacity:.15}).addTo(map);
+  if(!_locWatching)return;
+  _setLocateState(true,false);
+  const radius=Math.min(e.accuracy||0,2000);
+  if(_locCircle)_locCircle.setLatLng(e.latlng).setRadius(radius);
+  else _locCircle=L.circle(e.latlng,{radius:radius,color:'#1976d2',weight:1,fillColor:'#42a5f5',fillOpacity:.15}).addTo(map);
   // 내 위치 = 마이카누 듀오2 한 대(파란점 대신)
-  _locMarker=L.marker(e.latlng,{icon:L.divIcon({className:'loc-canoe',html:'<span class="loc-canoe-in">'+CANOE_SVG+'</span>',iconSize:[40,40],iconAnchor:[20,20]}),zIndexOffset:1000,interactive:false}).addTo(map);
-  gaEvent('locate');
+  if(_locMarker)_locMarker.setLatLng(e.latlng);
+  else _locMarker=L.marker(e.latlng,{icon:L.divIcon({className:'loc-canoe',html:'<span class="loc-canoe-in">'+CANOE_SVG+'</span>',iconSize:[40,40],iconAnchor:[20,20]}),zIndexOffset:1000,interactive:false}).addTo(map);
+  if(!_locHasFix){_locHasFix=true;map.setView(e.latlng,Math.max(map.getZoom(),16));}
+  else map.panTo(e.latlng,{animate:true,duration:.35,noMoveStart:true});
 });
 map.on('locationerror', function(){
-  const b=document.getElementById('locBtn'); if(b) b.classList.remove('loading');
+  stopLocateFollow();
   L.popup().setLatLng(map.getCenter()).setContent('위치를 가져올 수 없습니다.<br><small>브라우저 위치 권한을 허용해 주세요</small>').openOn(map);
 });
+map.on('dragstart',stopLocateFollow);
 
 
 
