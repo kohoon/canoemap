@@ -33,6 +33,9 @@ class LiveLocationFollowTests(unittest.TestCase):
     def test_location_icon_uses_road_water_and_neutral_modes(self):
         self.assertIn("const MODEL_Y_SVG", self.source)
         self.assertIn('viewBox="0 0 52 82" aria-label="위에서 본 Tesla Model Y"', self.source)
+        self.assertIn("const WOODEN_CANOE_SVG", self.source)
+        self.assertIn('viewBox="0 0 42 86" aria-label="위에서 본 우든카누"', self.source)
+        self.assertIn("mode==='canoe'?WOODEN_CANOE_SVG", self.source)
         self.assertIn("const PERSON_SVG", self.source)
         self.assertIn("function _locModeFromEvidence", self.source)
         self.assertIn("if(speed>=6||roadM<=roadLimit)return 'car'", self.source)
