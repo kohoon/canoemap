@@ -28,7 +28,7 @@ test.afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
-test('current-location mode follows live movement until the user drags the map', async () => {
+test('current-location mode survives manual map pan and zoom', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -94,9 +94,11 @@ test('current-location mode follows live movement until the user drags the map',
   expect(state.radius).toBe(8);
   expect(state.pressed).toBe('true');
 
-  await page.evaluate(() => { map.fire('dragstart'); });
-  await expect(page.locator('#locBtn')).not.toHaveClass(/active/);
-  expect(await page.evaluate(() => _locWatching)).toBe(false);
+  await page.evaluate(() => { map.fire('dragstart'); map.fire('zoomstart'); });
+  await expect(page.locator('#locBtn')).toHaveClass(/active/);
+  expect(await page.evaluate(() => ({ watching: _locWatching, cleared: window.__geoCleared || null }))).toEqual({ watching: true, cleared: null });
+  await page.evaluate(() => window.__pushGeo(37.9025, 127.7350, 7));
+  await expect.poll(() => page.evaluate(() => _locMarker && _locMarker.getLatLng().lng)).toBeCloseTo(127.7350, 4);
   expect(errors).toEqual([]);
 
   await context.close();

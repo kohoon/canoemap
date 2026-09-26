@@ -4274,7 +4274,7 @@ function _setLocateState(active,loading){
   const b=document.getElementById('locBtn'); if(!b)return;
   b.classList.toggle('active',!!active); b.classList.toggle('loading',!!loading);
   b.setAttribute('aria-pressed',active?'true':'false');
-  b.title=active?'실시간 위치 추적 중 · '+_locModeLabel[_locMode]+' · 지도를 끌면 종료':'내 위치';
+  b.title=active?'실시간 위치 추적 중 · '+_locModeLabel[_locMode]+' · 지도 이동·확대 중에도 유지':'내 위치';
 }
 function stopLocateFollow(){
   if(!_locWatching)return;
@@ -4307,7 +4307,6 @@ map.on('locationerror', function(){
   stopLocateFollow();
   L.popup().setLatLng(map.getCenter()).setContent('위치를 가져올 수 없습니다.<br><small>브라우저 위치 권한을 허용해 주세요</small>').openOn(map);
 });
-map.on('dragstart',stopLocateFollow);
 
 
 

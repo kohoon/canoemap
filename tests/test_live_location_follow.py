@@ -20,15 +20,16 @@ class LiveLocationFollowTests(unittest.TestCase):
         self.assertIn("_locMarker.setLatLng(e.latlng)", self.source)
         self.assertIn("map.panTo(e.latlng", self.source)
 
-    def test_manual_map_drag_stops_follow_mode(self):
+    def test_manual_map_navigation_keeps_follow_mode(self):
         self.assertIn("function stopLocateFollow()", self.source)
         self.assertIn("map.stopLocate()", self.source)
-        self.assertIn("map.on('dragstart',stopLocateFollow)", self.source)
+        self.assertNotIn("map.on('dragstart',stopLocateFollow)", self.source)
+        self.assertNotIn("map.on('zoomstart',stopLocateFollow)", self.source)
 
     def test_tracking_state_is_visible_and_accessible(self):
         self.assertIn(".locbtn.active", self.source)
         self.assertIn("aria-pressed", self.source)
-        self.assertIn("실시간 위치 추적 중 · '+_locModeLabel[_locMode]+' · 지도를 끌면 종료", self.source)
+        self.assertIn("실시간 위치 추적 중 · '+_locModeLabel[_locMode]+' · 지도 이동·확대 중에도 유지", self.source)
 
     def test_location_icon_uses_road_water_and_neutral_modes(self):
         self.assertIn("const MODEL_Y_SVG", self.source)
