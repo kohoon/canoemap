@@ -22,6 +22,7 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "daiso_stores.geojson"
+OVERRIDES = ROOT / "data" / "daiso_coord_overrides.json"
 SOURCE_URL = "https://www.daiso.co.kr/cs/ajax/shop_search"
 REGIONS = [
     "서울", "경기", "인천", "강원", "광주", "대전", "울산", "세종",
@@ -141,6 +142,38 @@ def valid_on(store: dict, as_of: date) -> bool:
     return True
 
 
+def store_key(store: dict) -> str:
+    phone = str(store.get("phone") or "").removeprefix("T.").strip()
+    return f"{store.get('name', '').strip()}|{phone}"
+
+
+def apply_coordinate_overrides(rows: list[dict], path: Path = OVERRIDES) -> int:
+    overrides = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    seen: set[str] = set()
+    for store in rows:
+        key = store_key(store)
+        override = overrides.get(key)
+        if not override:
+            continue
+        missing = [field for field in ("name", "phone", "lat", "lng", "reason", "source", "sourceUrl", "verifiedAt") if override.get(field) in (None, "")]
+        if missing:
+            raise RuntimeError(f"다이소 좌표 보정 {key} 필수 필드 누락: {', '.join(missing)}")
+        if override["name"] != store.get("name") or override["phone"] != key.partition("|")[2]:
+            raise RuntimeError(f"다이소 좌표 보정 키 불일치: {key}")
+        lat, lng = float(override["lat"]), float(override["lng"])
+        if not (32.5 <= lat <= 39.5 and 124 <= lng <= 132):
+            raise RuntimeError(f"다이소 좌표 보정이 대한민국 범위를 벗어남: {key}")
+        store["lat"], store["lng"] = lat, lng
+        if override.get("address"):
+            store["address"] = str(override["address"]).strip()
+        store["coordinateCorrection"] = {field: override[field] for field in ("reason", "source", "sourceUrl", "verifiedAt")}
+        seen.add(key)
+    unused = sorted(set(overrides) - seen)
+    if unused:
+        raise RuntimeError(f"공식 매장목록에서 찾지 못한 다이소 좌표 보정: {', '.join(unused)}")
+    return len(seen)
+
+
 def feature(store: dict) -> dict:
     phone = str(store.get("phone") or "").removeprefix("T.").strip()
     hours = ""
@@ -148,20 +181,23 @@ def feature(store: dict) -> dict:
         start, end = str(store["start"]), str(store["end"])
         if len(start) == 4 and len(end) == 4:
             hours = f"{start[:2]}:{start[2:]}–{end[:2]}:{end[2:]}"
+    properties = {
+        "name": store["name"],
+        "address": store["address"],
+        "phone": phone,
+        "hours": hours,
+        "openingDate": store.get("opnday") or "",
+        "region": store["region"],
+        "options": store.get("options") or [],
+        "source": "㈜아성다이소 공식 매장검색",
+        "sourceUrl": "https://www.daiso.co.kr/cs/shop",
+    }
+    if store.get("coordinateCorrection"):
+        properties["coordinateCorrection"] = store["coordinateCorrection"]
     return {
         "type": "Feature",
         "geometry": {"type": "Point", "coordinates": [store["lng"], store["lat"]]},
-        "properties": {
-            "name": store["name"],
-            "address": store["address"],
-            "phone": phone,
-            "hours": hours,
-            "openingDate": store.get("opnday") or "",
-            "region": store["region"],
-            "options": store.get("options") or [],
-            "source": "㈜아성다이소 공식 매장검색",
-            "sourceUrl": "https://www.daiso.co.kr/cs/shop",
-        },
+        "properties": properties,
     }
 
 
@@ -204,6 +240,7 @@ def main() -> None:
         print(f"{region}: {len(region_rows)} raw rows from {len(subdivisions)} subdivisions")
         rows.extend(region_rows)
 
+    corrections = apply_coordinate_overrides(rows)
     unique: dict[tuple, dict] = {}
     for store in rows:
         if not valid_on(store, as_of):
@@ -224,6 +261,7 @@ def main() -> None:
             "retrievedAt": datetime.now(ZoneInfo("Asia/Seoul")).isoformat(timespec="seconds"),
             "asOf": as_of.isoformat(),
             "count": len(features),
+            "coordinateCorrections": corrections,
         },
         "features": features,
     }

@@ -37,6 +37,15 @@ class DaisoDataTests(unittest.TestCase):
             if props.get("openingDate"):
                 self.assertLessEqual(datetime.strptime(props["openingDate"], "%Y%m%d").date(), as_of)
 
+    def test_verified_coordinate_overrides_are_applied(self):
+        overrides = json.loads((ROOT / "data" / "daiso_coord_overrides.json").read_text(encoding="utf-8"))
+        self.assertEqual(self.data["metadata"]["coordinateCorrections"], len(overrides))
+        by_key = {f"{f['properties']['name']}|{f['properties']['phone']}": f for f in self.data["features"]}
+        for key, override in overrides.items():
+            feature = by_key[key]
+            self.assertEqual(feature["geometry"]["coordinates"], [override["lng"], override["lat"]])
+            self.assertEqual(feature["properties"]["coordinateCorrection"]["verifiedAt"], override["verifiedAt"])
+
     def test_map_uses_selected_d_icon_with_lazy_clustering(self):
         self.assertIn("const DAISO_MARKER_SVG", self.source)
         self.assertIn("const daisoLayer=L.layerGroup().addTo(map)", self.source)
