@@ -29,6 +29,50 @@ test.afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
+test('legend choices follow the signed-in member across visits', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await context.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'legend-member', tok: 'current-test-token', nick: '패들러' })));
+  let serverPrefs = { hanaro: false, daiso: true, courses: false, cctv: true };
+  const writes = [];
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/profile') && route.request().method() === 'GET') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ profile: { memberId: 'member-legend', nick: '패들러', mypageTourSeen: 1, onboardingVersion: 1, legendPrefs: serverPrefs } }) });
+    } else if (url.pathname.endsWith('/profile') && route.request().method() === 'POST') {
+      const body = route.request().postDataJSON();
+      if (body.action === 'legend-prefs') { writes.push(body); serverPrefs = body.legendPrefs; }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ profile: { memberId: 'member-legend', nick: '패들러', mypageTourSeen: 1, onboardingVersion: 1, legendPrefs: serverPrefs } }) });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: url.pathname.endsWith('/launch-sites') ? JSON.stringify({ items: [], truncated: false }) : '[]' });
+    }
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof map !== 'undefined' && _legendPrefsReady && !map.hasLayer(hanaroLayer) && map.hasLayer(cctvLayer), null, { timeout: 10000 });
+  await page.evaluate(() => { map.addLayer(hanaroLayer); map.removeLayer(hanaroLayer); });
+  await expect.poll(() => writes.length, { timeout: 5000 }).toBe(1);
+  expect(writes[0].legendPrefs.hanaro).toBe(false);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('mc_legend_prefs_legend-member')).hanaro)).toBe(false);
+
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof map !== 'undefined' && _legendPrefsReady && !map.hasLayer(hanaroLayer), null, { timeout: 10000 });
+  expect(errors).toEqual([]);
+
+  // A shared course must be visible for this visit while the member's saved "courses off" choice stays intact.
+  await page.goto(baseURL + '/?course=1', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof map !== 'undefined' && _legendPrefsReady && map.hasLayer(allCoursesGroup), null, { timeout: 10000 });
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('mc_legend_prefs_legend-member')).courses)).toBe(false);
+  expect(serverPrefs.courses).toBe(false);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('course pack survives a mobile offline reload', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

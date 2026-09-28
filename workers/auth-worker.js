@@ -5,6 +5,7 @@ import {
   PRIVACY_VERSION,
   memberRecordIsActive,
   memberProfile,
+  normalizeLegendPrefs,
   ONBOARDING_VERSION,
   publicMemberSummary,
 } from "./member-security.mjs";
@@ -501,6 +502,16 @@ export default {
         if (b.action === "mypage-tour-seen") {
           if (!memberRecordIsActive(current)) return J({ ok: false, error: "inactive-member" }, 403);
           current.mypageTourSeen = Date.now();
+          current.updatedAt = Date.now();
+          await _memberPut(env, uid, current);
+          return J({ ok: true, profile: memberProfile(current) });
+        }
+        if (b.action === "legend-prefs") {
+          if (!_allowedOrigin(req, env)) return J({ ok: false, error: "forbidden-origin" }, 403);
+          if (!memberRecordIsActive(current)) return J({ ok: false, error: "inactive-member" }, 403);
+          const ip = req.headers.get("CF-Connecting-IP") || "0";
+          if (await _rateLimited(env, "legend_" + (await _uidHash(env, uid)), ip, 30)) return J({ ok: false, error: "rate-limit" }, 429);
+          current.legendPrefs = normalizeLegendPrefs(b.legendPrefs);
           current.updatedAt = Date.now();
           await _memberPut(env, uid, current);
           return J({ ok: true, profile: memberProfile(current) });

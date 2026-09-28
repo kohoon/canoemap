@@ -2,6 +2,17 @@ export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 export const TERMS_VERSION = "2026-09-16";
 export const PRIVACY_VERSION = "2026-09-16";
 export const ONBOARDING_VERSION = 1;
+const LEGEND_PREF_KEYS = [
+  "protect", "wlz", "waterplay", "courses", "famous", "canoe", "obstacles",
+  "roadview", "waterLevel", "damLevel", "cctv", "daiso", "hanaro",
+];
+
+export function normalizeLegendPrefs(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const out = {};
+  for (const key of LEGEND_PREF_KEYS) if (typeof source[key] === "boolean") out[key] = source[key];
+  return out;
+}
 
 export function sessionExpiryIsValid(exp, nowSec) {
   exp = Number(exp); nowSec = Number(nowSec);
@@ -26,6 +37,7 @@ export function memberProfile(member) {
     mypageTourSeen: Number(member.mypageTourSeen) || 0,
     onboardingVersion,
     onboardingStatus: String(member.onboardingStatus || ""),
+    legendPrefs: normalizeLegendPrefs(member.legendPrefs),
     consentAt: Number(member.consentAt) || 0,
     termsVersion: String(member.termsVersion || ""),
     privacyVersion: String(member.privacyVersion || ""),

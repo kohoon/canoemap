@@ -1047,7 +1047,7 @@ function ensureAppProfile(){
       const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||''),{cache:'no-store'});
       if(r.status===401){ setUser(null); showGate(); return false; }
       const d=await r.json();
-      if(d.profile&&d.profile.nick){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); return true; }
+      if(d.profile&&d.profile.nick){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); return true; }
       return await openNicknameModal(u,d.suggestedNick||'');
     }catch(e){ _profilePromise=null; return false; }
   })();
@@ -1061,7 +1061,7 @@ function openNicknameModal(u,suggestedNick){ return new Promise(function(resolve
     ok.disabled=true; msg.style.color='#778'; msg.textContent='확인 중…';
     try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:u.uid,tok:u.tok||'',nick:nick,termsAgreed:true,privacyAgreed:true,dev:devType()})});
       const d=await r.json().catch(function(){return {};});
-      if(r.ok&&d.profile){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); resolve(true); }
+      if(r.ok&&d.profile){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); resolve(true); }
       else { msg.style.color='#e53935'; msg.textContent=r.status===409?'이미 사용 중인 닉네임입니다':(r.status===401?'다시 로그인해 주세요':'한글·영문·숫자와 공백, . _ - 만 사용할 수 있습니다'); }
     }catch(e){ msg.style.color='#e53935'; msg.textContent='저장하지 못했습니다. 다시 시도하세요'; }
     finally{ ok.disabled=false; }
@@ -3354,6 +3354,31 @@ _ov[_lcTag('water')+'<span class="rv-sw">📹</span>CCTV'] = cctvLayer;         
 _ov[_lcTag('store')+'<span class="daiso-key">다</span>다이소'] = daisoLayer;       // 기본 ON, 줌≥10 표시·저줌 클러스터
 _ov[_lcTag('store')+'<span class="hanaro-key">장</span>하나로마트'] = hanaroLayer; // 기본 ON, 줌≥10 표시·저줌 클러스터
 const _layerControl=L.control.layers({'일반지도':baseOSM, '위성지도':baseSat, '오프라인 지도':offlineBase}, _ov, {collapsed:false, position:'bottomright'}).addTo(map);
+const _legendPrefLayers={
+  protect:_protectPH,wlz:_wlzPH,waterplay:_waterplayPH,courses:allCoursesGroup,
+  famous:famousLayer,canoe:canoeLayer,obstacles:obstacleLayer,roadview:roadviewLayer,
+  waterLevel:waterLevelLayer,damLevel:damLevelLayer,cctv:cctvLayer,daiso:daisoLayer,hanaro:hanaroLayer
+};
+let _legendPrefsReady=false,_legendPrefsApplying=false,_legendPrefsTouched=false,_legendPrefsTimer=null,_pendingServerLegendPrefs=null,_legendPrefsDesired={};
+function _legendPrefsClean(value){const out={};Object.keys(_legendPrefLayers).forEach(function(key){if(value&&typeof value[key]==='boolean')out[key]=value[key];});return out;}
+function _legendPrefsStorageKey(){const u=getUser();return u&&u.uid?'mc_legend_prefs_'+String(u.uid).slice(0,40):'';}
+function _legendPrefsSnapshot(){const out={},courseRequired=new URLSearchParams(location.search).has('course');Object.keys(_legendPrefLayers).forEach(function(key){out[key]=(key==='courses'&&courseRequired&&typeof _legendPrefsDesired.courses==='boolean')?_legendPrefsDesired.courses:map.hasLayer(_legendPrefLayers[key]);});return out;}
+function _legendPrefsWriteLocal(prefs){const key=_legendPrefsStorageKey();if(!key)return;try{localStorage.setItem(key,JSON.stringify(_legendPrefsClean(prefs)));}catch(e){}}
+function _legendPrefsReadLocal(){const key=_legendPrefsStorageKey();if(!key)return {};try{return _legendPrefsClean(JSON.parse(localStorage.getItem(key)||'{}'));}catch(e){return {};}}
+function _applyLegendPrefs(value){
+  const prefs=_legendPrefsClean(value),courseRequired=new URLSearchParams(location.search).has('course');Object.assign(_legendPrefsDesired,prefs);_legendPrefsApplying=true;
+  Object.keys(prefs).forEach(function(key){const layer=_legendPrefLayers[key],wanted=(key==='courses'&&courseRequired)?true:prefs[key];if(wanted&&!map.hasLayer(layer))map.addLayer(layer);else if(!wanted&&map.hasLayer(layer))map.removeLayer(layer);});
+  _legendPrefsApplying=false;if(_layerControl&&_layerControl._update)_layerControl._update();
+}
+function _sendLegendPrefs(){
+  const u=getUser();if(!u||!u.uid)return;const prefs=_legendPrefsSnapshot();_legendPrefsWriteLocal(prefs);
+  fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'legend-prefs',id:u.uid,tok:u.tok||'',legendPrefs:prefs})}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(d&&d.profile)_appProfile=d.profile;}).catch(function(){});
+}
+function _queueLegendPrefsSave(){if(!_legendPrefsReady||_legendPrefsApplying)return;_legendPrefsTouched=true;_legendPrefsDesired=_legendPrefsSnapshot();_legendPrefsWriteLocal(_legendPrefsDesired);clearTimeout(_legendPrefsTimer);_legendPrefsTimer=setTimeout(_sendLegendPrefs,650);}
+function _receiveServerLegendPrefs(value){
+  const prefs=_legendPrefsClean(value);if(!_legendPrefsReady){_pendingServerLegendPrefs=prefs;return;}if(_legendPrefsTouched){_queueLegendPrefsSave();return;}
+  if(Object.keys(prefs).length){_applyLegendPrefs(prefs);_legendPrefsWriteLocal(prefs);}else if(Object.keys(_legendPrefsReadLocal()).length){_queueLegendPrefsSave();}
+}
 function _organizeLayerLegend(){
   const c=_layerControl&&_layerControl.getContainer(),overlays=c&&c.querySelector('.leaflet-control-layers-overlays');if(!overlays)return;
   const labels=Array.from(overlays.querySelectorAll('label'));
@@ -3540,6 +3565,12 @@ map.on('overlayremove', function(e){
   else if(e.layer===_waterplayPH){ _waterplayWanted=false; if(waterplayLayer && map.hasLayer(waterplayLayer)) map.removeLayer(waterplayLayer); map.attributionControl.removeAttribution('물놀이 관리지역 &copy; 행정안전부 생활안전지도'); }
 });
 _heavyZoomGate();   // 초기 1회(줌7→no-op, 딥링크 줌≥11이면 즉시 로드)
+// 회원별 범례 상태: 기기 사본으로 즉시 복원하고, 회원 프로필의 서버 설정으로 기기 간 동기화한다.
+(function(){
+  _legendPrefsReady=true;const local=_legendPrefsReadLocal();if(Object.keys(local).length)_applyLegendPrefs(local);
+  map.on('overlayadd overlayremove',function(e){if(e&&Object.values(_legendPrefLayers).indexOf(e.layer)>=0)_queueLegendPrefsSave();});
+  if(_pendingServerLegendPrefs!==null){const pending=_pendingServerLegendPrefs;_pendingServerLegendPrefs=null;_receiveServerLegendPrefs(pending);}
+})();
 // 패널에 제목과 물놀이 관리지역 색상 키를 함께 표시
 // 모바일은 기본 닫힘 + 제목 탭으로 열고 닫기(화면 점유 최소화)
 (function(){ const c=_layerControl.getContainer(); if(!c) return;
