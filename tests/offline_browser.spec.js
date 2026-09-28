@@ -407,6 +407,56 @@ test('explicit member registration requires both consents', async () => {
   await browser.close();
 });
 
+test('new-member tutorial is short, skippable, and responsive', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const device of [
+    { name: 'mobile', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, expected: '두 번 탭' },
+    { name: 'desktop', viewport: { width: 1280, height: 800 }, isMobile: false, hasTouch: false, expected: '우클릭' },
+  ]) {
+    const context = await browser.newContext({ viewport: device.viewport, isMobile: device.isMobile, hasTouch: device.hasTouch });
+    await context.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: '123', tok: 'test-token', nick: '신규회원' })));
+    let dismissal = null;
+    await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname.endsWith('/profile') && route.request().method() === 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, profile: { memberId: 'new-member', nick: '신규회원', onboardingVersion: 0 } }) });
+      } else if (url.pathname.endsWith('/profile') && route.request().method() === 'POST') {
+        dismissal = route.request().postDataJSON();
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, profile: { memberId: 'new-member', nick: '신규회원', onboardingVersion: 1, onboardingStatus: dismissal.outcome } }) });
+      } else if (url.pathname.endsWith('/launch-sites')) {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], truncated: false }) });
+      } else {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+      }
+    });
+    const page = await context.newPage();
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#onboardingTour')).toHaveClass(/open/);
+    await expect(page.locator('#onboardCount')).toHaveText('1 / 3');
+    await page.locator('#onboardNext').click();
+    await expect(page.locator('#onboardText')).toContainText(device.expected);
+    const box = await page.locator('.onboard-card').evaluate((node) => {
+      const r = node.getBoundingClientRect();
+      return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, viewportWidth: innerWidth, viewportHeight: innerHeight, overflowX: node.scrollWidth > node.clientWidth + 1 };
+    });
+    expect(box.left).toBeGreaterThanOrEqual(0);
+    expect(box.right).toBeLessThanOrEqual(box.viewportWidth);
+    expect(box.top).toBeGreaterThanOrEqual(0);
+    expect(box.bottom).toBeLessThanOrEqual(box.viewportHeight);
+    expect(box.overflowX).toBe(false);
+    await page.locator('#onboardSkip').click();
+    await expect(page.locator('#onboardingTour')).not.toHaveClass(/open/);
+    await expect.poll(() => dismissal).not.toBeNull();
+    expect(dismissal).toMatchObject({ action: 'onboarding-dismiss', outcome: 'skipped' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#onboardingTour')).not.toHaveClass(/open/);
+    await context.close();
+  }
+  await browser.close();
+});
+
 test('measurement labels show segment and cumulative distance at each endpoint', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

@@ -1,6 +1,7 @@
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 export const TERMS_VERSION = "2026-09-16";
 export const PRIVACY_VERSION = "2026-09-16";
+export const ONBOARDING_VERSION = 1;
 
 export function sessionExpiryIsValid(exp, nowSec) {
   exp = Number(exp); nowSec = Number(nowSec);
@@ -15,11 +16,16 @@ export function memberRecordIsActive(member) {
 
 export function memberProfile(member) {
   if (!memberRecordIsActive(member)) return null;
+  // 이 필드가 없는 기존 회원은 신규 튜토리얼 대상이 아니다.
+  const onboardingVersion = member.onboardingVersion == null
+    ? ONBOARDING_VERSION : Math.max(0, Number(member.onboardingVersion) || 0);
   return {
     memberId: String(member.memberId || ""),
     nick: String(member.nick || ""),
     t: Number(member.joinedAt) || 0,
     mypageTourSeen: Number(member.mypageTourSeen) || 0,
+    onboardingVersion,
+    onboardingStatus: String(member.onboardingStatus || ""),
     consentAt: Number(member.consentAt) || 0,
     termsVersion: String(member.termsVersion || ""),
     privacyVersion: String(member.privacyVersion || ""),

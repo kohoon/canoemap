@@ -12,8 +12,8 @@ class MemberSecurityTest(unittest.TestCase):
         script = textwrap.dedent(
             """
             import {
-              memberRecordIsActive, publicMemberSummary, sessionExpiryIsValid,
-              SESSION_TTL_SECONDS
+              memberRecordIsActive, memberProfile, publicMemberSummary, sessionExpiryIsValid,
+              ONBOARDING_VERSION, SESSION_TTL_SECONDS
             } from './workers/member-security.mjs';
             const active = {memberId:'abc123', providerId:'4936913088', nick:'회원', status:'active', loginCount:2, visitCount:3};
             const withdrawn = {...active, status:'withdrawn'};
@@ -22,6 +22,8 @@ class MemberSecurityTest(unittest.TestCase):
             if (memberRecordIsActive(withdrawn)) throw new Error('withdrawn member accepted');
             const out = publicMemberSummary(active);
             if ('providerId' in out || JSON.stringify(out).includes('4936913088')) throw new Error('provider id leaked');
+            if (memberProfile(active).onboardingVersion !== ONBOARDING_VERSION) throw new Error('legacy member incorrectly onboarded');
+            if (memberProfile({...active, onboardingVersion:0}).onboardingVersion !== 0) throw new Error('new member tutorial suppressed');
             const now = 2_000_000_000;
             if (sessionExpiryIsValid(now, now)) throw new Error('expired token accepted');
             if (!sessionExpiryIsValid(now + SESSION_TTL_SECONDS, now)) throw new Error('valid token rejected');
@@ -41,6 +43,8 @@ class MemberSecurityTest(unittest.TestCase):
         self.assertIn('if (!env.ADMIN_KEY) return false', worker)
         self.assertNotIn('if (!env.ADMIN_KEY) return true', worker)
         self.assertIn('id: current.memberId', worker)
+        self.assertIn('b.action === "onboarding-dismiss"', worker)
+        self.assertIn('current.onboardingStatus = b.outcome === "completed" ? "completed" : "skipped"', worker)
         self.assertNotIn('"mc1|"', worker)
 
 

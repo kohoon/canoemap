@@ -5,6 +5,7 @@ import {
   PRIVACY_VERSION,
   memberRecordIsActive,
   memberProfile,
+  ONBOARDING_VERSION,
   publicMemberSummary,
 } from "./member-security.mjs";
 import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
@@ -488,6 +489,15 @@ export default {
         const uid = String(b.id || "").slice(0, 40);
         if (!uid || !(await _tokOk(env, uid, b.tok))) return J({ ok: false, error: "relogin" }, 401);
         let current = await _memberGet(env, uid);
+        if (b.action === "onboarding-dismiss") {
+          if (!memberRecordIsActive(current)) return J({ ok: false, error: "inactive-member" }, 403);
+          current.onboardingVersion = ONBOARDING_VERSION;
+          current.onboardingStatus = b.outcome === "completed" ? "completed" : "skipped";
+          current.onboardingAt = Date.now();
+          current.updatedAt = current.onboardingAt;
+          await _memberPut(env, uid, current);
+          return J({ ok: true, profile: memberProfile(current) });
+        }
         if (b.action === "mypage-tour-seen") {
           if (!memberRecordIsActive(current)) return J({ ok: false, error: "inactive-member" }, 403);
           current.mypageTourSeen = Date.now();
@@ -521,7 +531,8 @@ export default {
           v: 1, memberId, status: "active", nick,
           joinedAt: (current && Number(current.joinedAt)) || now,
           consentAt: now, termsVersion: TERMS_VERSION, privacyVersion: PRIVACY_VERSION,
-          mypageTourSeen: 0, loginCount: Math.max(0, Number(current && current.loginCount) || 0),
+          mypageTourSeen: 0, onboardingVersion: 0, onboardingStatus: "pending",
+          loginCount: Math.max(0, Number(current && current.loginCount) || 0),
           visitCount: Math.max(0, Number(current && current.visitCount) || 0), updatedAt: now,
         };
         await KV.put(nk, memberId); await _memberPut(env, uid, current);

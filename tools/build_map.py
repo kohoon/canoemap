@@ -652,7 +652,7 @@ __GTAG__
   html.tour-mode .search,html.tour-mode .leaflet-control-zoom,html.tour-mode .leaflet-control-layers,
   html.tour-mode .cafe-actions,html.tour-mode .noticebtn,html.tour-mode #measBtnBox,
   html.tour-mode #measModeBtn,html.tour-mode #obsBtnBox,html.tour-mode #mypageTour,
-  html.tour-mode .admin-badge{display:none!important}
+  html.tour-mode .admin-badge,html.tour-mode #onboardingTour{display:none!important}
   /* /TRIPCSS */
   .authbox{font:600 13px sans-serif}
   .authbox button{background:#FEE500;color:#191600;border:0;border-radius:6px;padding:8px 12px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)}
@@ -720,15 +720,14 @@ __GTAG__
   .auth-cancel{background:#eef1f3;color:#456}
   #authMsg{font-size:12.5px;color:#e53935;margin-top:9px;min-height:16px}
   #nickMsg{font-size:12.5px;color:#e53935;margin-top:9px;min-height:16px}
-  #mypageTour{position:fixed;z-index:3700;top:57px;right:10px;width:min(300px,calc(100vw - 20px));box-sizing:border-box;background:#fff;color:#263238;border:1px solid #d9e2e6;border-radius:8px;padding:15px 16px;box-shadow:0 12px 30px rgba(20,43,55,.28);display:none;font:13px/1.55 sans-serif}
-  #mypageTour.open{display:block;animation:tourIn .22s ease}
-  #mypageTour::before{content:'';position:absolute;right:31px;top:-8px;width:14px;height:14px;background:#fff;border-left:1px solid #d9e2e6;border-top:1px solid #d9e2e6;transform:rotate(45deg)}
-  #mypageTour b{display:block;color:#123b50;font-size:15px;margin-bottom:3px}
-  .tour-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:12px}
-  .tour-actions button{border:0;border-radius:6px;padding:8px 11px;font:700 12px sans-serif;cursor:pointer}
-  #tourDone{background:#edf1f3;color:#52636c} #tourOpen{background:#1565c0;color:#fff}
-  .authbox.tour-focus .who{outline:3px solid #42a5f5;box-shadow:0 0 0 6px rgba(66,165,245,.22),0 2px 7px rgba(0,0,0,.32)}
-  @keyframes tourIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+  #onboardingTour{position:fixed;inset:0;z-index:3700;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:16px;background:rgba(5,27,23,.48);backdrop-filter:blur(3px)}
+  #onboardingTour.open{display:flex}
+  .onboard-card{width:min(390px,100%);max-height:calc(100dvh - 32px);overflow:auto;box-sizing:border-box;background:#fff;color:#263238;border-radius:22px;padding:22px;box-shadow:0 22px 60px rgba(5,31,25,.4);animation:onboardIn .22s ease;font:14px/1.55 sans-serif}
+  .onboard-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.onboard-count{color:#718087;font:700 12px sans-serif}.onboard-skip{border:0;background:transparent;color:#64757c;padding:6px 0;font:700 12px sans-serif;cursor:pointer;text-decoration:underline}
+  .onboard-icon{display:flex;align-items:center;justify-content:center;width:62px;height:62px;margin:15px auto 12px;border-radius:20px;background:linear-gradient(145deg,#e9f7ff,#e8fbf3);font-size:30px}
+  .onboard-card h3{margin:0;text-align:center;color:#123b50;font:800 21px/1.3 sans-serif;letter-spacing:-.4px}.onboard-card p{margin:10px 0 4px;color:#4b5f67;text-align:center;word-break:keep-all}.onboard-dots{display:flex;justify-content:center;gap:6px;margin:18px 0}.onboard-dots i{width:7px;height:7px;border-radius:50%;background:#d7e0e4}.onboard-dots i.on{width:20px;border-radius:5px;background:#087561}
+  .onboard-actions{display:flex;gap:8px}.onboard-actions button{min-height:44px;border:0;border-radius:12px;padding:11px 14px;font:800 14px sans-serif;cursor:pointer}.onboard-prev{width:78px;background:#edf2f4;color:#52636c}.onboard-next{flex:1;background:#087561;color:#fff}
+  @keyframes onboardIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
   @media(max-width:520px){
     .measbtn{padding:8px 11px;font-size:12px}
     .search input{max-width:150px;font-size:12px}
@@ -760,6 +759,7 @@ __GTAG__
     .gate-brand{top:20px;left:18px}.gate-brand .gate-logo{width:48px;height:48px}.gate-brand .canoe-ico{width:36px}.gate-brand-name{font-size:20px}
     .gate-hero-copy{left:19px;right:19px;bottom:auto;top:112px;max-width:none}.gate-map-badge{margin-bottom:9px}.gate-hero-copy h1{font-size:27px;line-height:1.23}.gate-hero-copy p{font-size:12px;margin-top:7px}
     .gate-card{width:100%;max-width:420px;padding:19px 17px 16px;border-radius:22px}.gate-feats li{margin-bottom:7px}.gate-feats li span:first-child{width:32px;height:32px}.gate-openchat{margin-bottom:10px}.gate-warn{margin-bottom:10px}
+    #onboardingTour{align-items:flex-end;padding:12px 12px max(12px,env(safe-area-inset-bottom))}.onboard-card{width:100%;max-height:min(76dvh,610px);padding:19px 18px;border-radius:20px}.onboard-icon{width:56px;height:56px;margin-top:11px}.onboard-card h3{font-size:19px}
   }
 </style>
 </head>
@@ -847,10 +847,14 @@ __GTAG__
   <div class="pmodal-bg" onclick="closeAdminMembers()"></div>
   <div class="pmodal"><button class="pmodal-x" onclick="closeAdminMembers()">✕</button><div id="memberAdminBody"></div></div>
 </div>
-<div id="mypageTour" role="dialog" aria-live="polite" aria-label="마이페이지 안내">
-  <b>마이페이지가 새로 생겼어요</b>
-  우측 상단의 닉네임을 누르면 내 정보, 즐겨찾기와 내 코스를 한곳에서 확인할 수 있습니다.
-  <div class="tour-actions"><button id="tourDone">확인</button><button id="tourOpen">마이페이지 열기</button></div>
+<div id="onboardingTour" role="dialog" aria-modal="true" aria-labelledby="onboardTitle">
+  <div class="onboard-card">
+    <div class="onboard-top"><span id="onboardCount" class="onboard-count"></span><button id="onboardSkip" class="onboard-skip" type="button">건너뛰기</button></div>
+    <div id="onboardIcon" class="onboard-icon" aria-hidden="true"></div>
+    <h3 id="onboardTitle"></h3><p id="onboardText"></p>
+    <div id="onboardDots" class="onboard-dots" aria-hidden="true"></div>
+    <div class="onboard-actions"><button id="onboardPrev" class="onboard-prev" type="button">이전</button><button id="onboardNext" class="onboard-next" type="button">다음</button></div>
+  </div>
 </div>
 <div id="noticeModal" class="pmodal-wrap">
   <div class="pmodal-bg" onclick="closeNotices()"></div>
@@ -1043,7 +1047,7 @@ function ensureAppProfile(){
       const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||''),{cache:'no-store'});
       if(r.status===401){ setUser(null); showGate(); return false; }
       const d=await r.json();
-      if(d.profile&&d.profile.nick){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showMyPageTour(d.profile); return true; }
+      if(d.profile&&d.profile.nick){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); return true; }
       return await openNicknameModal(u,d.suggestedNick||'');
     }catch(e){ _profilePromise=null; return false; }
   })();
@@ -1057,30 +1061,48 @@ function openNicknameModal(u,suggestedNick){ return new Promise(function(resolve
     ok.disabled=true; msg.style.color='#778'; msg.textContent='확인 중…';
     try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:u.uid,tok:u.tok||'',nick:nick,termsAgreed:true,privacyAgreed:true,dev:devType()})});
       const d=await r.json().catch(function(){return {};});
-      if(r.ok&&d.profile){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showMyPageTour(d.profile); resolve(true); }
+      if(r.ok&&d.profile){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); resolve(true); }
       else { msg.style.color='#e53935'; msg.textContent=r.status===409?'이미 사용 중인 닉네임입니다':(r.status===401?'다시 로그인해 주세요':'한글·영문·숫자와 공백, . _ - 만 사용할 수 있습니다'); }
     }catch(e){ msg.style.color='#e53935'; msg.textContent='저장하지 못했습니다. 다시 시도하세요'; }
     finally{ ok.disabled=false; }
   }
   ok.onclick=submit; inp.onkeydown=function(e){if(e.key==='Enter') submit();}; setTimeout(function(){inp.focus();inp.select();},80);
 }); }
-function showMyPageTour(profile){
-  if(TOUR_MODE) return;
-  if(!profile||profile.mypageTourSeen) return;
-  const el=document.getElementById('mypageTour'), auth=document.getElementById('authbox'); if(!el) return;
-  el.classList.add('open'); if(auth) auth.classList.add('tour-focus');
-  const finish=async function(openPage){
-    el.classList.remove('open'); if(auth) auth.classList.remove('tour-focus');
-    const u=getUser(); if(u){
-      try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'mypage-tour-seen',id:u.uid,tok:u.tok||''})});
-        const d=await r.json(); if(d.profile) _appProfile=d.profile;
-      }catch(e){}
-    }
-    if(openPage) openMyPage();
-  };
-  document.getElementById('tourDone').onclick=function(){finish(false);};
-  document.getElementById('tourOpen').onclick=function(){finish(true);};
+const ONBOARDING_VERSION=1;
+let _onboardStep=0;
+function _onboardingStorageKey(profile){return 'mc_onboarding_v_'+String((profile&&profile.memberId)||'member').slice(0,20);}
+function _onboardingSteps(){
+  const mobile=devType()==='모바일';
+  return [
+    {icon:'🔎',title:'장소부터 찾아보세요',text:'강·호수·런칭지를 검색하거나 지도 아이콘을 '+(mobile?'탭':'클릭')+'하면 상세 정보와 이용자 코멘트를 확인할 수 있어요.'},
+    {icon:'📍',title:'지도에서 위치를 확인하세요',text:mobile?'지도를 두 번 탭하면 주소와 토지소유 정보를 확인하고 장소를 제안할 수 있어요.':'지도를 우클릭하면 주소와 토지소유 정보를 확인하고 장소를 제안할 수 있어요.'},
+    {icon:'📏',title:'코스와 안전정보를 함께',text:'코스만들기로 물길 거리를 계산하고, 레이어·범례에서 수위·CCTV·규제구역을 켜고 끌 수 있어요.'}
+  ];
 }
+function _renderOnboarding(){
+  const steps=_onboardingSteps(),s=steps[_onboardStep],last=_onboardStep===steps.length-1;
+  document.getElementById('onboardCount').textContent=(_onboardStep+1)+' / '+steps.length;
+  document.getElementById('onboardIcon').textContent=s.icon;document.getElementById('onboardTitle').textContent=s.title;document.getElementById('onboardText').textContent=s.text;
+  document.getElementById('onboardDots').innerHTML=steps.map(function(_,i){return '<i'+(i===_onboardStep?' class="on"':'')+'></i>';}).join('');
+  const prev=document.getElementById('onboardPrev');prev.style.display=_onboardStep?'block':'none';document.getElementById('onboardNext').textContent=last?'카누맵 시작하기':'다음';
+  setTimeout(function(){try{document.getElementById('onboardNext').focus();}catch(e){}},0);
+}
+function _dismissOnboarding(outcome){
+  const el=document.getElementById('onboardingTour');if(el)el.classList.remove('open');
+  const u=getUser(),profile=_appProfile||{};try{localStorage.setItem(_onboardingStorageKey(profile),String(ONBOARDING_VERSION));}catch(e){}
+  gaEvent(outcome==='completed'?'onboarding_complete':'onboarding_skip',{version:ONBOARDING_VERSION,step:_onboardStep+1});
+  if(u&&u.uid)fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'onboarding-dismiss',outcome:outcome,id:u.uid,tok:u.tok||''})}).then(function(r){return r.json();}).then(function(d){if(d.profile)_appProfile=d.profile;}).catch(function(){});
+}
+function showNewMemberTutorial(profile){
+  const profileVersion=profile&&profile.onboardingVersion==null?ONBOARDING_VERSION:Number(profile&&profile.onboardingVersion);
+  if(TOUR_MODE||!profile||profileVersion>=ONBOARDING_VERSION||_mapUrlOwnsView())return;
+  try{if(Number(localStorage.getItem(_onboardingStorageKey(profile))||0)>=ONBOARDING_VERSION)return;}catch(e){}
+  const el=document.getElementById('onboardingTour');if(!el)return;_onboardStep=0;el.classList.add('open');_renderOnboarding();gaEvent('onboarding_start',{version:ONBOARDING_VERSION});
+  document.getElementById('onboardSkip').onclick=function(){_dismissOnboarding('skipped');};
+  document.getElementById('onboardPrev').onclick=function(){if(_onboardStep>0){_onboardStep--;_renderOnboarding();}};
+  document.getElementById('onboardNext').onclick=function(){const last=_onboardStep>=_onboardingSteps().length-1;if(last)_dismissOnboarding('completed');else{_onboardStep++;_renderOnboarding();}};
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.getElementById('onboardingTour').classList.contains('open'))_dismissOnboarding('skipped');});
 (function(){   // 로그인 콜백(#login=ID&nick=NICK) 처리 + 세션 복원
   const h=location.hash||'', m=h.match(/login=([^&]+)/), nk=h.match(/nick=([^&]*)/), tk=h.match(/tok=([^&]*)/);
   if(m){
@@ -1106,8 +1128,8 @@ function renderAuth(){
   const u=getUser(), myTitle=TOUR_MODE?'투어 기록':'마이페이지';
   if(u&&u.uid){
     d.innerHTML='<span class="who"><span class="dot"></span><a id="mypageA" title="'+myTitle+'">'+pmEsc(u.nick||'회원')+'</a> <a id="logoutA">로그아웃</a></span>';
-    const my=document.getElementById('mypageA'); if(my) L.DomEvent.on(my,'click',function(e){ L.DomEvent.stop(e); if(TOUR_MODE){openTModal('trips');return;} const tour=document.getElementById('mypageTour'); if(tour&&tour.classList.contains('open')) document.getElementById('tourOpen').click(); else openMyPage(); });
-    const lo=document.getElementById('logoutA'); if(lo) L.DomEvent.on(lo,'click',function(e){ L.DomEvent.stop(e); setUser(null); _profilePromise=null; _appProfile=null; const tour=document.getElementById('mypageTour'); if(tour) tour.classList.remove('open'); gaEvent('logout'); renderAuth(); showGate(); });
+    const my=document.getElementById('mypageA'); if(my) L.DomEvent.on(my,'click',function(e){ L.DomEvent.stop(e); if(TOUR_MODE){openTModal('trips');return;} openMyPage(); });
+    const lo=document.getElementById('logoutA'); if(lo) L.DomEvent.on(lo,'click',function(e){ L.DomEvent.stop(e); setUser(null); _profilePromise=null; _appProfile=null; const tour=document.getElementById('onboardingTour'); if(tour) tour.classList.remove('open'); gaEvent('logout'); renderAuth(); showGate(); });
   } else {
     d.innerHTML='<button id="loginA">카카오 로그인</button>';
     const lb=document.getElementById('loginA'); if(lb) L.DomEvent.on(lb,'click',function(e){ L.DomEvent.stop(e); gaEvent('login_start'); location.href=loginWorkerUrl(); });
