@@ -143,6 +143,42 @@ test('Japanese lake names appear only on the satellite map', async () => {
   await browser.close();
 });
 
+test('base maps render one world and horizontal panning stays inside it', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const device of [
+    { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
+    { viewport: { width: 1280, height: 800 }, isMobile: false, hasTouch: false },
+  ]) {
+    const context = await browser.newContext(device);
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => typeof map !== 'undefined' && !!baseOSM);
+    const result = await page.evaluate(() => {
+      hideGate();
+      const layers = [baseOSM, satImgEsri, satLabels];
+      if (satImgV) layers.push(satImgV);
+      map.setView([0, 720], 3, { animate: false });
+      return {
+        noWrap: layers.every((layer) => layer.options.noWrap === true),
+        viscosity: map.options.maxBoundsViscosity,
+        west: map.options.maxBounds.getWest(),
+        east: map.options.maxBounds.getEast(),
+        centerLng: map.getCenter().lng,
+      };
+    });
+    expect(result).toMatchObject({ noWrap: true, viscosity: 1, west: -180, east: 180 });
+    expect(result.centerLng).toBeGreaterThanOrEqual(-180);
+    expect(result.centerLng).toBeLessThanOrEqual(180);
+    expect(errors).toEqual([]);
+    await context.close();
+  }
+  await browser.close();
+});
+
 test('candidate promotion persists in the unified place override', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

@@ -1152,7 +1152,8 @@ function _savedMapView(){
   }catch(e){} return null;
 }
 const _initialMapView=_savedMapView();
-const map = L.map('map', {preferCanvas:true, zoomControl:false}).setView(_initialMapView?[_initialMapView.lat,_initialMapView.lng]:[36.3,127.8],_initialMapView?_initialMapView.zoom:7);
+const WORLD_BOUNDS=L.latLngBounds([[-85.05112878,-180],[85.05112878,180]]);
+const map = L.map('map', {preferCanvas:true,zoomControl:false,maxBounds:WORLD_BOUNDS,maxBoundsViscosity:1}).setView(_initialMapView?[_initialMapView.lat,_initialMapView.lng]:[36.3,127.8],_initialMapView?_initialMapView.zoom:7);
 window.map = map;
 map.on('moveend',function(){if(_mapUrlOwnsView())return;try{const c=map.getCenter();localStorage.setItem('mc_map_view_v1',JSON.stringify({lat:+c.lat.toFixed(6),lng:+c.lng.toFixed(6),zoom:map.getZoom()}));}catch(e){}});
 map.attributionControl.setPrefix(false);   // 🇺🇦 깃발 + "Leaflet" 접두사 제거(© OpenStreetMap 만 유지)
@@ -1176,25 +1177,25 @@ const AdminCtl=L.Control.extend({ options:{position:'topright'},
     return d; } });
 
 const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  {maxZoom:19, attribution:'© OpenStreetMap'});   // 기본 추가는 저장된 설정으로(아래)
+  {maxZoom:19,noWrap:true,attribution:'© OpenStreetMap'});   // 기본 추가는 저장된 설정으로(아래)
 // 위성지도(단일 베이스) = Esri 또는 VWorld 정사영상. 서브토글(안 B)로 출처 교체.
 const SAT_MAXZOOM_E=18;   // Esri 고배율 미제공 줌 한계
 const SAT_MAXZOOM_V=19;   // VWorld 정사영상은 한 단계 더 확대
 map.createPane('satLabelsPane'); map.getPane('satLabelsPane').style.zIndex='350'; map.getPane('satLabelsPane').style.pointerEvents='none';
 // Esri World Imagery + OSM 반투명 라벨(리 단위 한글 지명, 키 불필요)
 const satImgEsri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  {maxNativeZoom:SAT_MAXZOOM_E, attribution:'Tiles © Esri'});
+  {maxNativeZoom:SAT_MAXZOOM_E,noWrap:true,attribution:'Tiles © Esri'});
 // 두 위성 공통 라벨: VWorld Hybrid(투명 PNG, 한글 지명·도로·경계) → 위성사진 선명(구글어스식).
 // (구: OSM 타일 0.4 불투명 → 위성이 뿌옇게 흐려지는 문제 → 투명 오버레이로 교체. VKEY 없으면 OSM 폴백)
 // maxZoom 명시 필수: L.tileLayer 기본 maxZoom=18 이라 미지정 시 줌19에서 렌더 멈춤(공백).
 const satLabels = VKEY
   ? L.tileLayer('https://api.vworld.kr/req/wmts/1.0.0/'+VKEY+'/Hybrid/{z}/{y}/{x}.png',
-      {maxNativeZoom:SAT_MAXZOOM_V, maxZoom:SAT_MAXZOOM_V, pane:'satLabelsPane', attribution:'© VWorld(국토지리정보원)'})
+      {maxNativeZoom:SAT_MAXZOOM_V,maxZoom:SAT_MAXZOOM_V,noWrap:true,pane:'satLabelsPane',attribution:'© VWorld(국토지리정보원)'})
   : L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {subdomains:'abc', maxNativeZoom:SAT_MAXZOOM_V, maxZoom:SAT_MAXZOOM_V, pane:'satLabelsPane', opacity:0.4, attribution:'© OpenStreetMap'});
+      {subdomains:'abc',maxNativeZoom:SAT_MAXZOOM_V,maxZoom:SAT_MAXZOOM_V,noWrap:true,pane:'satLabelsPane',opacity:0.4,attribution:'© OpenStreetMap'});
 // VWorld 정사영상(국토지리정보원). VKEY 도메인잠금, 브라우저 직접 호출. 라벨은 위 OSM 공용.
 const satImgV = VKEY ? L.tileLayer('https://api.vworld.kr/req/wmts/1.0.0/'+VKEY+'/Satellite/{z}/{y}/{x}.jpeg',
-  {maxNativeZoom:SAT_MAXZOOM_V, maxZoom:SAT_MAXZOOM_V, attribution:'© VWorld(국토지리정보원)'}) : null;
+  {maxNativeZoom:SAT_MAXZOOM_V,maxZoom:SAT_MAXZOOM_V,noWrap:true,attribution:'© VWorld(국토지리정보원)'}) : null;
 const baseSat = L.layerGroup();   // 내용은 setSatSource 가 Esri/VWorld 로 교체
 const JAPAN_LAKES=__JAPAN_LAKES__;   // 일본 국토지리원 조사 호수 77곳
 const japanLakeLabels=L.layerGroup();
@@ -1372,7 +1373,7 @@ function _wbDraw(){
   if(!sel||!sel.value) return;
   if(_wbLayer) map.removeLayer(_wbLayer);
   const url='https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/'+sel.value+'/{z}/{y}/{x}';
-  _wbLayer=L.tileLayer(url,{maxNativeZoom:18,maxZoom:19,opacity:1,attribution:'Historical imagery © Esri Wayback'}).addTo(map);
+  _wbLayer=L.tileLayer(url,{maxNativeZoom:18,maxZoom:19,noWrap:true,opacity:1,attribution:'Historical imagery © Esri Wayback'}).addTo(map);
   _wbLayer.bringToFront(); if(map.hasLayer(satLabels)) satLabels.bringToFront();
   _wbLayer.on('load tileload',_wbClip);
   requestAnimationFrame(_wbClip);
@@ -4955,7 +4956,7 @@ async function saveOfflinePack(){
   finally{_offlineBusy=false;_offlineStatus();}
 }
 function _renderOfflinePack(pack){
-  offlineBase.clearLayers();if(!pack)return;const sat=pack.satellite;if(sat&&sat.tiles)L.tileLayer(OFFLINE_ESRI_TEMPLATE,{bounds:[[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],minNativeZoom:sat.minZoom,maxNativeZoom:sat.maxZoom,maxZoom:19,crossOrigin:true,attribution:'Imagery &copy; Esri'}).addTo(offlineBase);L.rectangle([[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],{pane:'offlineBasePane',stroke:!!sat,color:'#00a2b8',weight:2,dashArray:'6 5',fill:true,fillColor:'#f4f2eb',fillOpacity:sat?0:1,interactive:false}).addTo(offlineBase);
+  offlineBase.clearLayers();if(!pack)return;const sat=pack.satellite;if(sat&&sat.tiles)L.tileLayer(OFFLINE_ESRI_TEMPLATE,{bounds:[[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],minNativeZoom:sat.minZoom,maxNativeZoom:sat.maxZoom,maxZoom:19,noWrap:true,crossOrigin:true,attribution:'Imagery &copy; Esri'}).addTo(offlineBase);L.rectangle([[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],{pane:'offlineBasePane',stroke:!!sat,color:'#00a2b8',weight:2,dashArray:'6 5',fill:true,fillColor:'#f4f2eb',fillOpacity:sat?0:1,interactive:false}).addTo(offlineBase);
   L.geoJSON(pack.roads,{pane:'offlineBasePane',interactive:false,style:function(f){const k=(f.properties||{}).kind;return{color:k==='expressway'?'#8d8277':(k==='national'?'#aaa096':'#c2bab2'),weight:k==='expressway'?3:(k==='national'?2:1.2),opacity:.9};}}).addTo(offlineBase);
   L.geoJSON(pack.rivers,{pane:'offlineBasePane',interactive:false,style:function(f){return{color:RIVER_SKY_COLOR,weight:(f.properties||{}).kind==='river'?5:3,opacity:(f.properties||{}).kind==='river'?.96:.86};}}).addTo(offlineBase);
 }

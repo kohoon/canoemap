@@ -948,7 +948,8 @@ function _savedMapView(){
   }catch(e){} return null;
 }
 const _initialMapView=_savedMapView();
-const map = L.map('map', {preferCanvas:true, zoomControl:false}).setView(_initialMapView?[_initialMapView.lat,_initialMapView.lng]:[36.3,127.8],_initialMapView?_initialMapView.zoom:7);
+const WORLD_BOUNDS=L.latLngBounds([[-85.05112878,-180],[85.05112878,180]]);
+const map = L.map('map', {preferCanvas:true,zoomControl:false,maxBounds:WORLD_BOUNDS,maxBoundsViscosity:1}).setView(_initialMapView?[_initialMapView.lat,_initialMapView.lng]:[36.3,127.8],_initialMapView?_initialMapView.zoom:7);
 window.map = map;
 map.on('moveend',function(){if(_mapUrlOwnsView())return;try{const c=map.getCenter();localStorage.setItem('mc_map_view_v1',JSON.stringify({lat:+c.lat.toFixed(6),lng:+c.lng.toFixed(6),zoom:map.getZoom()}));}catch(e){}});
 map.attributionControl.setPrefix(false);   // 🇺🇦 깃발 + "Leaflet" 접두사 제거(© OpenStreetMap 만 유지)
@@ -972,25 +973,25 @@ const AdminCtl=L.Control.extend({ options:{position:'topright'},
     return d; } });
 
 const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  {maxZoom:19, attribution:'© OpenStreetMap'});   // 기본 추가는 저장된 설정으로(아래)
+  {maxZoom:19,noWrap:true,attribution:'© OpenStreetMap'});   // 기본 추가는 저장된 설정으로(아래)
 // 위성지도(단일 베이스) = Esri 또는 VWorld 정사영상. 서브토글(안 B)로 출처 교체.
 const SAT_MAXZOOM_E=18;   // Esri 고배율 미제공 줌 한계
 const SAT_MAXZOOM_V=19;   // VWorld 정사영상은 한 단계 더 확대
 map.createPane('satLabelsPane'); map.getPane('satLabelsPane').style.zIndex='350'; map.getPane('satLabelsPane').style.pointerEvents='none';
 // Esri World Imagery + OSM 반투명 라벨(리 단위 한글 지명, 키 불필요)
 const satImgEsri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  {maxNativeZoom:SAT_MAXZOOM_E, attribution:'Tiles © Esri'});
+  {maxNativeZoom:SAT_MAXZOOM_E,noWrap:true,attribution:'Tiles © Esri'});
 // 두 위성 공통 라벨: VWorld Hybrid(투명 PNG, 한글 지명·도로·경계) → 위성사진 선명(구글어스식).
 // (구: OSM 타일 0.4 불투명 → 위성이 뿌옇게 흐려지는 문제 → 투명 오버레이로 교체. VKEY 없으면 OSM 폴백)
 // maxZoom 명시 필수: L.tileLayer 기본 maxZoom=18 이라 미지정 시 줌19에서 렌더 멈춤(공백).
 const satLabels = VKEY
   ? L.tileLayer('https://api.vworld.kr/req/wmts/1.0.0/'+VKEY+'/Hybrid/{z}/{y}/{x}.png',
-      {maxNativeZoom:SAT_MAXZOOM_V, maxZoom:SAT_MAXZOOM_V, pane:'satLabelsPane', attribution:'© VWorld(국토지리정보원)'})
+      {maxNativeZoom:SAT_MAXZOOM_V,maxZoom:SAT_MAXZOOM_V,noWrap:true,pane:'satLabelsPane',attribution:'© VWorld(국토지리정보원)'})
   : L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {subdomains:'abc', maxNativeZoom:SAT_MAXZOOM_V, maxZoom:SAT_MAXZOOM_V, pane:'satLabelsPane', opacity:0.4, attribution:'© OpenStreetMap'});
+      {subdomains:'abc',maxNativeZoom:SAT_MAXZOOM_V,maxZoom:SAT_MAXZOOM_V,noWrap:true,pane:'satLabelsPane',opacity:0.4,attribution:'© OpenStreetMap'});
 // VWorld 정사영상(국토지리정보원). VKEY 도메인잠금, 브라우저 직접 호출. 라벨은 위 OSM 공용.
 const satImgV = VKEY ? L.tileLayer('https://api.vworld.kr/req/wmts/1.0.0/'+VKEY+'/Satellite/{z}/{y}/{x}.jpeg',
-  {maxNativeZoom:SAT_MAXZOOM_V, maxZoom:SAT_MAXZOOM_V, attribution:'© VWorld(국토지리정보원)'}) : null;
+  {maxNativeZoom:SAT_MAXZOOM_V,maxZoom:SAT_MAXZOOM_V,noWrap:true,attribution:'© VWorld(국토지리정보원)'}) : null;
 const baseSat = L.layerGroup();   // 내용은 setSatSource 가 Esri/VWorld 로 교체
 const JAPAN_LAKES=[{"name":"コムケ湖","ko":"","lat":44.264256,"lng":143.497581,"minZoom":7},{"name":"サロマ湖","ko":"사로마호","lat":44.142428,"lng":143.792496,"minZoom":6},{"name":"風蓮湖","ko":"후렌호","lat":43.307068,"lng":145.33659,"minZoom":6},{"name":"支笏湖","ko":"시코쓰호","lat":42.755584,"lng":141.321602,"minZoom":6},{"name":"洞爺湖","ko":"도야호","lat":42.602378,"lng":140.853481,"minZoom":6},{"name":"十和田湖","ko":"도와다호","lat":40.466801,"lng":140.883522,"minZoom":6},{"name":"井土浦","ko":"","lat":38.185589,"lng":140.961953,"minZoom":9},{"name":"鳥の海","ko":"","lat":38.034115,"lng":140.907125,"minZoom":9},{"name":"桧原湖","ko":"히바라호","lat":37.688032,"lng":140.056543,"minZoom":7},{"name":"猪鼻湖","ko":"","lat":34.786054,"lng":137.555482,"minZoom":8},{"name":"浜名湖","ko":"하마나호","lat":34.741048,"lng":137.579727,"minZoom":6},{"name":"余呉湖","ko":"","lat":35.52313,"lng":136.194227,"minZoom":8},{"name":"琵琶湖","ko":"비와호","lat":35.262441,"lng":136.079407,"minZoom":5},{"name":"ポロ沼","ko":"","lat":45.27845,"lng":142.205679,"minZoom":8},{"name":"クッチャロ湖(小沼)","ko":"","lat":45.162629,"lng":142.280288,"minZoom":8},{"name":"クッチャロ湖(大沼)","ko":"","lat":45.135903,"lng":142.325177,"minZoom":8},{"name":"ペンケ沼","ko":"","lat":45.064996,"lng":141.705115,"minZoom":9},{"name":"パンケ沼","ko":"","lat":45.031571,"lng":141.716796,"minZoom":9},{"name":"能取湖","ko":"노토로호","lat":44.059268,"lng":144.149963,"minZoom":6},{"name":"網走湖","ko":"아바시리호","lat":43.968762,"lng":144.174437,"minZoom":7},{"name":"藻琴湖","ko":"","lat":43.957909,"lng":144.322519,"minZoom":9},{"name":"涛沸湖","ko":"","lat":43.936823,"lng":144.39402,"minZoom":7},{"name":"屈斜路湖","ko":"굿샤로호","lat":43.619487,"lng":144.332542,"minZoom":6},{"name":"摩周湖","ko":"마슈호","lat":43.57885,"lng":144.529242,"minZoom":7},{"name":"阿寒湖","ko":"아칸호","lat":43.457093,"lng":144.102859,"minZoom":7},{"name":"然別湖","ko":"","lat":43.280548,"lng":143.118188,"minZoom":8},{"name":"温根沼","ko":"","lat":43.252406,"lng":145.516036,"minZoom":8},{"name":"シラルトロ沼","ko":"","lat":43.181384,"lng":144.501078,"minZoom":8},{"name":"塘路湖","ko":"","lat":43.150913,"lng":144.53438,"minZoom":8},{"name":"達古武湖","ko":"","lat":43.10475,"lng":144.484978,"minZoom":9},{"name":"厚岸湖","ko":"","lat":43.047754,"lng":144.890356,"minZoom":7},{"name":"火散布沼","ko":"","lat":43.04483,"lng":145.013025,"minZoom":8},{"name":"ウトナイ湖","ko":"","lat":42.698854,"lng":141.710694,"minZoom":9},{"name":"倶多楽湖","ko":"","lat":42.500563,"lng":141.181724,"minZoom":8},{"name":"大沼","ko":"","lat":41.984887,"lng":140.678129,"minZoom":7},{"name":"小沼","ko":"","lat":41.984887,"lng":140.678129,"minZoom":7},{"name":"十三湖","ko":"주산호","lat":41.023363,"lng":140.359354,"minZoom":7},{"name":"内沼","ko":"","lat":40.857553,"lng":141.320187,"minZoom":9},{"name":"小川原湖","ko":"오가와라호","lat":40.781986,"lng":141.334619,"minZoom":6},{"name":"姉沼","ko":"","lat":40.711526,"lng":141.332964,"minZoom":9},{"name":"伊豆沼","ko":"","lat":38.718327,"lng":141.102455,"minZoom":9},{"name":"内沼","ko":"","lat":38.710923,"lng":141.07501,"minZoom":9},{"name":"万石浦","ko":"","lat":38.423097,"lng":141.395342,"minZoom":8},{"name":"八郎潟調整池","ko":"하치로가타 조정지","lat":39.916385,"lng":140.020494,"minZoom":6},{"name":"田沢湖","ko":"다자와호","lat":39.723197,"lng":140.666499,"minZoom":7},{"name":"小野川湖","ko":"","lat":37.671819,"lng":140.095832,"minZoom":8},{"name":"秋元湖","ko":"","lat":37.656254,"lng":140.134757,"minZoom":8},{"name":"猪苗代湖","ko":"이나와시로호","lat":37.473496,"lng":140.095081,"minZoom":6},{"name":"霞ヶ浦","ko":"가스미가우라호","lat":36.034895,"lng":140.392104,"minZoom":6},{"name":"北浦","ko":"기타우라","lat":36.030899,"lng":140.566324,"minZoom":7},{"name":"外浪逆浦","ko":"","lat":35.915643,"lng":140.600822,"minZoom":8},{"name":"牛久沼","ko":"","lat":35.969432,"lng":140.113968,"minZoom":7},{"name":"中禅寺湖","ko":"주젠지호","lat":36.736415,"lng":139.451523,"minZoom":7},{"name":"北印旛沼","ko":"","lat":35.802531,"lng":140.251205,"minZoom":8},{"name":"西印旛沼","ko":"","lat":35.755347,"lng":140.194657,"minZoom":8},{"name":"芦ノ湖","ko":"아시노호","lat":35.213961,"lng":139.001622,"minZoom":7},{"name":"北潟湖","ko":"","lat":36.269866,"lng":136.238906,"minZoom":8},{"name":"日向湖","ko":"","lat":35.605828,"lng":135.890087,"minZoom":9},{"name":"久々子湖","ko":"","lat":35.603323,"lng":135.908053,"minZoom":8},{"name":"水月湖","ko":"","lat":35.586941,"lng":135.881994,"minZoom":8},{"name":"菅湖","ko":"","lat":35.578766,"lng":135.896827,"minZoom":9},{"name":"三方湖","ko":"","lat":35.566739,"lng":135.884073,"minZoom":8},{"name":"河口湖","ko":"가와구치호","lat":35.513567,"lng":138.746083,"minZoom":8},{"name":"西湖","ko":"사이호","lat":35.498049,"lng":138.685002,"minZoom":9},{"name":"精進湖","ko":"쇼지호","lat":35.490079,"lng":138.607947,"minZoom":9},{"name":"本栖湖","ko":"모토스호","lat":35.464636,"lng":138.585603,"minZoom":8},{"name":"山中湖","ko":"야마나카호","lat":35.418114,"lng":138.875573,"minZoom":8},{"name":"野尻湖","ko":"노지리호","lat":36.825791,"lng":138.221615,"minZoom":8},{"name":"諏訪湖","ko":"스와호","lat":36.048328,"lng":138.08357,"minZoom":8},{"name":"久美浜湾","ko":"","lat":35.627271,"lng":134.908586,"minZoom":7},{"name":"阿蘇海","ko":"아소카이","lat":35.566891,"lng":135.176475,"minZoom":8},{"name":"湖山池","ko":"고야마이케","lat":35.508701,"lng":134.152379,"minZoom":8},{"name":"東郷池","ko":"","lat":35.478662,"lng":133.891065,"minZoom":8},{"name":"中海","ko":"나카우미","lat":35.477302,"lng":133.227562,"minZoom":6},{"name":"宍道湖","ko":"신지호","lat":35.450585,"lng":132.961739,"minZoom":6},{"name":"池田湖","ko":"이케다호","lat":31.236986,"lng":130.562038,"minZoom":7},{"name":"鰻池","ko":"","lat":31.223308,"lng":130.605794,"minZoom":8}];   // 일본 국토지리원 조사 호수 77곳
 const japanLakeLabels=L.layerGroup();
@@ -1168,7 +1169,7 @@ function _wbDraw(){
   if(!sel||!sel.value) return;
   if(_wbLayer) map.removeLayer(_wbLayer);
   const url='https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/'+sel.value+'/{z}/{y}/{x}';
-  _wbLayer=L.tileLayer(url,{maxNativeZoom:18,maxZoom:19,opacity:1,attribution:'Historical imagery © Esri Wayback'}).addTo(map);
+  _wbLayer=L.tileLayer(url,{maxNativeZoom:18,maxZoom:19,noWrap:true,opacity:1,attribution:'Historical imagery © Esri Wayback'}).addTo(map);
   _wbLayer.bringToFront(); if(map.hasLayer(satLabels)) satLabels.bringToFront();
   _wbLayer.on('load tileload',_wbClip);
   requestAnimationFrame(_wbClip);
@@ -4569,7 +4570,7 @@ async function saveOfflinePack(){
   finally{_offlineBusy=false;_offlineStatus();}
 }
 function _renderOfflinePack(pack){
-  offlineBase.clearLayers();if(!pack)return;const sat=pack.satellite;if(sat&&sat.tiles)L.tileLayer(OFFLINE_ESRI_TEMPLATE,{bounds:[[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],minNativeZoom:sat.minZoom,maxNativeZoom:sat.maxZoom,maxZoom:19,crossOrigin:true,attribution:'Imagery &copy; Esri'}).addTo(offlineBase);L.rectangle([[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],{pane:'offlineBasePane',stroke:!!sat,color:'#00a2b8',weight:2,dashArray:'6 5',fill:true,fillColor:'#f4f2eb',fillOpacity:sat?0:1,interactive:false}).addTo(offlineBase);
+  offlineBase.clearLayers();if(!pack)return;const sat=pack.satellite;if(sat&&sat.tiles)L.tileLayer(OFFLINE_ESRI_TEMPLATE,{bounds:[[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],minNativeZoom:sat.minZoom,maxNativeZoom:sat.maxZoom,maxZoom:19,noWrap:true,crossOrigin:true,attribution:'Imagery &copy; Esri'}).addTo(offlineBase);L.rectangle([[pack.bounds.s,pack.bounds.w],[pack.bounds.n,pack.bounds.e]],{pane:'offlineBasePane',stroke:!!sat,color:'#00a2b8',weight:2,dashArray:'6 5',fill:true,fillColor:'#f4f2eb',fillOpacity:sat?0:1,interactive:false}).addTo(offlineBase);
   L.geoJSON(pack.roads,{pane:'offlineBasePane',interactive:false,style:function(f){const k=(f.properties||{}).kind;return{color:k==='expressway'?'#8d8277':(k==='national'?'#aaa096':'#c2bab2'),weight:k==='expressway'?3:(k==='national'?2:1.2),opacity:.9};}}).addTo(offlineBase);
   L.geoJSON(pack.rivers,{pane:'offlineBasePane',interactive:false,style:function(f){return{color:RIVER_SKY_COLOR,weight:(f.properties||{}).kind==='river'?5:3,opacity:(f.properties||{}).kind==='river'?.96:.86};}}).addTo(offlineBase);
 }
