@@ -535,9 +535,16 @@ test('new-member tutorial is short, skippable, and responsive', async () => {
     await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#onboardingTour')).toHaveClass(/open/);
     await expect(page.locator('#hint')).toHaveText(device.hint);
-    await expect(page.locator('#onboardCount')).toHaveText('1 / 3');
+    await expect(page.locator('#onboardCount')).toHaveText('1 / 4');
     await page.locator('#onboardNext').click();
     await expect(page.locator('#onboardText')).toContainText(device.expected);
+    await page.locator('#onboardNext').click();
+    await page.locator('#onboardNext').click();
+    await expect(page.locator('#onboardCount')).toHaveText('4 / 4');
+    await expect(page.locator('#onboardTitle')).toHaveText('질문과 건의는 오픈채팅에서');
+    await expect(page.locator('#onboardText')).toContainText('오류 제보나 새로운 기능을 건의');
+    await expect(page.locator('#onboardChat')).toBeVisible();
+    await expect(page.locator('#onboardChat')).toHaveAttribute('href', 'https://open.kakao.com/o/gcURegPi');
     const box = await page.locator('.onboard-card').evaluate((node) => {
       const r = node.getBoundingClientRect();
       return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, viewportWidth: innerWidth, viewportHeight: innerHeight, overflowX: node.scrollWidth > node.clientWidth + 1 };
@@ -579,11 +586,14 @@ test('existing members can replay the complete tutorial', async () => {
   const page = await context.newPage();
   await page.goto(baseURL + '/?tutorial=1', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#onboardingTour')).toHaveClass(/open/);
-  await expect(page.locator('#onboardCount')).toHaveText('1 / 3');
+  await expect(page.locator('#onboardCount')).toHaveText('1 / 4');
   await page.locator('#onboardNext').click();
-  await expect(page.locator('#onboardCount')).toHaveText('2 / 3');
+  await expect(page.locator('#onboardCount')).toHaveText('2 / 4');
   await page.locator('#onboardNext').click();
-  await expect(page.locator('#onboardCount')).toHaveText('3 / 3');
+  await expect(page.locator('#onboardCount')).toHaveText('3 / 4');
+  await page.locator('#onboardNext').click();
+  await expect(page.locator('#onboardCount')).toHaveText('4 / 4');
+  await expect(page.locator('#onboardChat')).toBeVisible();
   await page.locator('#onboardNext').click();
   await expect(page.locator('#onboardingTour')).not.toHaveClass(/open/);
   expect(new URL(page.url()).searchParams.has('tutorial')).toBe(false);
@@ -594,7 +604,7 @@ test('existing members can replay the complete tutorial', async () => {
   await page.locator('#myTutorial').click();
   await expect(page.locator('#myModal')).not.toHaveClass(/open/);
   await expect(page.locator('#onboardingTour')).toHaveClass(/open/);
-  await expect(page.locator('#onboardCount')).toHaveText('1 / 3');
+  await expect(page.locator('#onboardCount')).toHaveText('1 / 4');
   await context.close();
   await browser.close();
 });
