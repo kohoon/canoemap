@@ -1408,18 +1408,21 @@ test('water level controls stay aligned and readable in the mobile legend', asyn
   await expect(items).toHaveText([/하천/, /호수·댐/, /CCTV/]);
   const layout = await items.evaluateAll((nodes) => nodes.map((node) => {
     const box = node.getBoundingClientRect();
-    return { top: Math.round(box.top), fits: node.scrollWidth <= node.clientWidth + 1 };
+    return { top: Math.round(box.top), height: box.height, fits: node.scrollWidth <= node.clientWidth + 1 };
   }));
   expect(new Set(layout.map((item) => item.top)).size).toBe(1);
   expect(layout.every((item) => item.fits)).toBe(true);
+  expect(Math.max(...layout.map((item) => item.height))).toBeLessThanOrEqual(26);
   const stores = page.locator('.lc-store-row label');
   await expect(stores).toHaveText([/다이소/, /하나로마트/]);
   const storeLayout = await stores.evaluateAll((nodes) => nodes.map((node) => ({
     top: Math.round(node.getBoundingClientRect().top),
+    height: node.getBoundingClientRect().height,
     fits: node.scrollWidth <= node.clientWidth + 1,
   })));
   expect(new Set(storeLayout.map((item) => item.top)).size).toBe(1);
   expect(storeLayout.every((item) => item.fits)).toBe(true);
+  expect(Math.max(...storeLayout.map((item) => item.height))).toBeLessThanOrEqual(26);
   await page.close();
   const shortPage = await browser.newPage({ viewport: { width: 900, height: 520 } });
   await shortPage.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });

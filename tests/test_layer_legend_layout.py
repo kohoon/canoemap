@@ -22,7 +22,9 @@ class LayerLegendLayoutTests(unittest.TestCase):
         self.assertNotIn("addAttribution('하나로마트", self.source)
 
     def test_base_map_rows_share_one_alignment_grid(self):
-        self.assertIn(".leaflet-control-layers-base>label{display:flex;align-items:center;min-height:30px", self.source)
+        self.assertIn(".leaflet-control-layers-base>label{display:flex;align-items:center;min-height:28px", self.source)
+        self.assertIn(".leaflet-control-layers label{margin:1px 0", self.source)
+        self.assertIn(".lc-section{margin-top:4px;padding-top:4px", self.source)
         self.assertIn(".leaflet-control-layers-base .leaflet-control-layers-selector{position:static;margin:0 4px 0 0}", self.source)
         self.assertIn(".wayback-open{display:inline-flex;align-items:center;justify-content:center;flex:none;height:26px", self.source)
 
