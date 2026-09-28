@@ -412,8 +412,8 @@ test('new-member tutorial is short, skippable, and responsive', async () => {
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   for (const device of [
-    { name: 'mobile', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, expected: '두 번 탭' },
-    { name: 'desktop', viewport: { width: 1280, height: 800 }, isMobile: false, hasTouch: false, expected: '우클릭' },
+    { name: 'mobile', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, expected: '더블탭', hint: '지도를 더블탭하면 장소 기본정보를 볼 수 있어요' },
+    { name: 'desktop', viewport: { width: 1280, height: 800 }, isMobile: false, hasTouch: false, expected: '우클릭', hint: '지도를 우클릭하면 장소 기본정보를 볼 수 있어요' },
   ]) {
     const context = await browser.newContext({ viewport: device.viewport, isMobile: device.isMobile, hasTouch: device.hasTouch });
     await context.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: '123', tok: 'test-token', nick: '신규회원' })));
@@ -434,6 +434,7 @@ test('new-member tutorial is short, skippable, and responsive', async () => {
     const page = await context.newPage();
     await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#onboardingTour')).toHaveClass(/open/);
+    await expect(page.locator('#hint')).toHaveText(device.hint);
     await expect(page.locator('#onboardCount')).toHaveText('1 / 3');
     await page.locator('#onboardNext').click();
     await expect(page.locator('#onboardText')).toContainText(device.expected);

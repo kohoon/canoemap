@@ -1075,7 +1075,7 @@ function _onboardingSteps(){
   const mobile=devType()==='모바일';
   return [
     {icon:'🔎',title:'장소부터 찾아보세요',text:'강·호수·런칭지를 검색하거나 지도 아이콘을 '+(mobile?'탭':'클릭')+'하면 상세 정보와 이용자 코멘트를 확인할 수 있어요.'},
-    {icon:'📍',title:'지도에서 위치를 확인하세요',text:mobile?'지도를 두 번 탭하면 주소와 토지소유 정보를 확인하고 장소를 제안할 수 있어요.':'지도를 우클릭하면 주소와 토지소유 정보를 확인하고 장소를 제안할 수 있어요.'},
+    {icon:'📍',title:'지도에서 위치를 확인하세요',text:mobile?'지도를 더블탭하면 선택한 장소의 기본정보와 토지소유 정보를 확인할 수 있어요.':'지도를 우클릭하면 선택한 장소의 기본정보와 토지소유 정보를 확인할 수 있어요.'},
     {icon:'📏',title:'코스와 안전정보를 함께',text:'코스만들기로 물길 거리를 계산하고, 레이어·범례에서 수위·CCTV·규제구역을 켜고 끌 수 있어요.'}
   ];
 }
@@ -1884,7 +1884,7 @@ if(isTouch){
 // 안내 토스트 (잠깐 표시 후 사라짐)
 (function(){
   const h=document.getElementById('hint');
-  h.textContent = isTouch ? '지도를 더블탭해 주소 보기' : '지도를 우클릭해 주소 보기';
+  h.textContent = isTouch ? '지도를 더블탭하면 장소 기본정보를 볼 수 있어요' : '지도를 우클릭하면 장소 기본정보를 볼 수 있어요';
   setTimeout(function(){ h.style.opacity='0'; }, 4500);
 })();
 
