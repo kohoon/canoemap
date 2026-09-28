@@ -9,6 +9,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class CourseSharePreviewTests(unittest.TestCase):
+    def test_native_share_receives_the_preview_url_explicitly(self):
+        source = (ROOT / "tools" / "build_map.py").read_text(encoding="utf-8")
+        self.assertIn("navigator.share({title:'카누맵 · '+info.name,text:summary.join('\\n'),url:u})", source)
+
     def test_share_html_contains_course_specific_open_graph_and_safe_redirect(self):
         script = textwrap.dedent(
             """

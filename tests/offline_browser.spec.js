@@ -1216,9 +1216,19 @@ test('course share URL and preview image use the course-specific map card', asyn
       coords: [[38.20519, 127.850647], [38.158603, 127.862341], [38.102075, 127.865463], [38.096304, 127.776642]],
     };
     const image = _drawCoursePreview(course, []);
-    return { url: courseShareUrl('k1788763953491'), prefix: image.slice(0, 27), length: image.length };
+    let payload = null;
+    Object.defineProperty(navigator, 'share', { configurable: true, value: (data) => { payload = data; return Promise.resolve(); } });
+    const prepare = _prepareCoursePreview;
+    _prepareCoursePreview = () => Promise.resolve(true);
+    shareCourse('k1788763953491', course.name, course.km);
+    _prepareCoursePreview = prepare;
+    return { url: courseShareUrl('k1788763953491'), prefix: image.slice(0, 27), length: image.length, payload };
   });
   expect(preview.url).toBe('https://mycanoe-map.kohoon0140.workers.dev/c/k1788763953491');
+  expect(preview.payload.url).toBe(preview.url);
+  expect(preview.payload.title).toContain('북한강 종주 #1');
+  expect(preview.payload.text).toContain('약 22.86km');
+  expect(preview.payload.text).not.toContain('canoe.crowdbase.kr');
   expect(preview.prefix).toBe('data:image/jpeg;base64,/9j/');
   expect(preview.length).toBeGreaterThan(20000);
   expect(errors).toEqual([]);

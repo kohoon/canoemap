@@ -3462,8 +3462,8 @@ async function _prepareCoursePreview(idStr,course){
   const sig=[c.name,c.km,c.color,c.coords.length,c.coords[0],c.coords[c.coords.length-1]].join('|');if(_coursePreviewDone[id]===sig)return true;
   try{const context=await _cpRouteContext(c.coords),img=_drawCoursePreview(c,context);if(!img)return false;const u=getUser()||{},body={id:id,img:img};if(isAdmin())body.adminKey=adminKey();else{body.uid=u.uid||'';body.tok=u.tok||'';}const r=await fetch(fapi('/course-preview'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)return false;_coursePreviewDone[id]=sig;return true;}catch(e){return false;}
 }
-function shareCourse(idStr,name,km){ const u=courseShareUrl(idStr),info=_courseShareInfo(idStr,name,km),lines=['🛶 코스명: '+info.name];if(info.dist)lines.push('📏 거리: 약 '+info.dist+'km');lines.push('🔗 '+u);const full=lines.join('\n');gaEvent('course_share');_prepareCoursePreview(idStr,info.course);
-  if(navigator.share){ navigator.share({text:full}).catch(function(){}); }
+function shareCourse(idStr,name,km){ const u=courseShareUrl(idStr),info=_courseShareInfo(idStr,name,km),summary=['🛶 코스명: '+info.name];if(info.dist)summary.push('📏 거리: 약 '+info.dist+'km');const full=summary.concat('🔗 '+u).join('\n');gaEvent('course_share');_prepareCoursePreview(idStr,info.course);
+  if(navigator.share){ navigator.share({title:'카누맵 · '+info.name,text:summary.join('\n'),url:u}).catch(function(){}); }
   else if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(full).then(function(){ alert('코스 정보와 링크가 복사됐어요!\n\n'+full); }).catch(function(){ prompt('아래 내용을 복사하세요', full); }); }
   else prompt('아래 내용을 복사하세요', full); }
 let _courseFocusCtl=null;
