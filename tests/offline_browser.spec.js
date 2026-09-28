@@ -1156,6 +1156,29 @@ test('water level controls stay aligned and readable in the mobile legend', asyn
   })));
   expect(new Set(storeLayout.map((item) => item.top)).size).toBe(1);
   expect(storeLayout.every((item) => item.fits)).toBe(true);
+  await page.close();
+  const shortPage = await browser.newPage({ viewport: { width: 900, height: 520 } });
+  await shortPage.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await shortPage.evaluate(() => hideGate());
+  const shortViewportLayout = await shortPage.evaluate(() => {
+    const panel = document.querySelector('.leaflet-control-layers');
+    panel.scrollTop = panel.scrollHeight;
+    const box = panel.getBoundingClientRect();
+    const title = panel.querySelector('.lc-title').getBoundingClientRect();
+    return {
+      top: box.top,
+      bottom: box.bottom,
+      viewportHeight: innerHeight,
+      clientHeight: panel.clientHeight,
+      scrollHeight: panel.scrollHeight,
+      titleVisible: title.top >= box.top && title.bottom <= box.bottom,
+    };
+  });
+  expect(shortViewportLayout.top).toBeGreaterThanOrEqual(10);
+  expect(shortViewportLayout.bottom).toBeLessThanOrEqual(shortViewportLayout.viewportHeight - 9);
+  expect(shortViewportLayout.scrollHeight).toBeGreaterThan(shortViewportLayout.clientHeight);
+  expect(shortViewportLayout.titleVisible).toBe(true);
+  await shortPage.close();
   await browser.close();
 });
 

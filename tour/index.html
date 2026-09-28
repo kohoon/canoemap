@@ -96,6 +96,11 @@
   .lc-collapsed .lc-arrow{transform:rotate(-90deg)}
   .lc-collapsed .lc-title{margin-bottom:0}
   .lc-collapsed .leaflet-control-layers-list,.lc-collapsed .lc-key{display:none}
+  .leaflet-control-layers:not(.lc-collapsed){box-sizing:border-box;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .leaflet-control-layers:not(.lc-collapsed) .lc-title{position:sticky;top:0;z-index:3;background:#fff;padding:2px 0 5px}
+  .leaflet-control-layers:not(.lc-collapsed)::-webkit-scrollbar{width:5px}
+  .leaflet-control-layers:not(.lc-collapsed)::-webkit-scrollbar-thumb{background:#b8c5cb;border-radius:5px}
+  .leaflet-control-layers.lc-collapsed{overflow:hidden}
   .leaflet-control-layers label{margin:3px 0;cursor:pointer}
   .leaflet-control-layers-base>label{display:flex;align-items:center;min-height:30px;margin:0!important}
   .leaflet-control-layers-base>label>span{display:flex;align-items:center;width:100%;min-width:0;line-height:1.2}
@@ -588,11 +593,7 @@
     .admin-sheet-card .cf-t,.admin-members-card .cf-t{display:none}
     .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge{width:27px;height:27px;font-size:17px}
     .legend-c{width:138px;font-size:12px}
-    .leaflet-control-layers:not(.lc-collapsed){box-sizing:border-box;max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
-    .leaflet-control-layers:not(.lc-collapsed) .lc-title{position:sticky;top:0;z-index:3;background:#fff;padding:2px 0 5px}
-    .leaflet-control-layers:not(.lc-collapsed)::-webkit-scrollbar{width:5px}
-    .leaflet-control-layers:not(.lc-collapsed)::-webkit-scrollbar-thumb{background:#b8c5cb;border-radius:5px}
-    .leaflet-control-layers.lc-collapsed{overflow:hidden}
+    .leaflet-control-layers:not(.lc-collapsed){max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px)}
     .pmodal{padding:16px 14px 20px}
     .cm-palette{grid-template-columns:repeat(6,32px)}
     #tripbar{bottom:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px))}.trip-live{padding:9px 7px;gap:3px}.trip-live b{font-size:13px}.trip-live small{font-size:9.5px}.tb-start{padding:12px 15px;font-size:14px}.tb-pause,.tb-refresh{padding:11px 10px;font-size:12px}

@@ -26,6 +26,11 @@ class LayerLegendLayoutTests(unittest.TestCase):
         self.assertIn(".leaflet-control-layers-base .leaflet-control-layers-selector{position:static;margin:0 4px 0 0}", self.source)
         self.assertIn(".wayback-open{display:inline-flex;align-items:center;justify-content:center;flex:none;height:26px", self.source)
 
+    def test_expanded_legend_is_bounded_on_every_viewport(self):
+        self.assertIn("max-height:calc(100dvh - 40px);overflow-y:auto", self.source)
+        self.assertIn("@media(max-width:520px)", self.source)
+        self.assertIn("max-height:calc(100dvh - 150px)", self.source)
+
 
 if __name__ == "__main__":
     unittest.main()
