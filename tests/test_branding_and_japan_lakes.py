@@ -24,6 +24,12 @@ def main():
     assert "cafe.naver.com/mytalon" not in source + index + tour
     assert '<h1>카누맵<span class="beta-tag">BETA</span></h1>' in index
     assert '<h1>카누맵 투어<span class="beta-tag">BETA</span></h1>' in tour
+    assert 'https://canoe.crowdbase.kr/og.png?v=20260928-safe' in index
+
+    og_card = (ROOT / "og-card.svg").read_text(encoding="utf-8")
+    assert 'x=120..1080 안전영역' in og_card
+    assert '<circle cx="200" cy="315" r="78"' in og_card
+    assert '<text x="600" y="580" text-anchor="middle"' in og_card
 
     assert lakes["source"] == "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
     assert len(lakes["items"]) >= 70
