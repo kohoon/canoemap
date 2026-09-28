@@ -12,7 +12,8 @@ class LayerLegendLayoutTests(unittest.TestCase):
 
     def test_water_layers_are_grouped_in_one_row(self):
         self.assertIn("['수위','water','lc-water-row']", self.source)
-        self.assertIn(".lc-water-row{display:grid;grid-template-columns:repeat(3", self.source)
+        self.assertIn(".lc-water-row{display:grid;grid-template-columns:.88fr 1.12fr 1fr", self.source)
+        self.assertIn(".lc-water-row input[type=checkbox]{width:14px", self.source)
         self.assertIn("_organizeLayerLegend", self.source)
 
     def test_store_layers_are_grouped_without_map_attribution(self):

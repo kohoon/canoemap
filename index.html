@@ -90,7 +90,7 @@
   #obNote{width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccd;border-radius:11px;font-size:14px;resize:vertical;font-family:inherit}
   #obMsg{font-size:13px;color:#888;margin-top:9px;min-height:18px;text-align:center}
   .leaflet-control-layers{padding:8px 11px!important;border-radius:8px!important;box-shadow:0 1px 5px rgba(0,0,0,.3)!important;font:13px/1.55 sans-serif}
-  .leaflet-control-layers-expanded{width:206px;color:#222}
+  .leaflet-control-layers-expanded{width:232px;max-width:calc(100vw - 48px);color:#222}
   .lc-title{font-weight:700;font-size:13px;color:#13312a;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;user-select:none}
   .lc-arrow{font-size:11px;color:#789;transition:transform .15s}
   .lc-collapsed .lc-arrow{transform:rotate(-90deg)}
@@ -103,13 +103,16 @@
   .lc-section:first-child{margin-top:0;padding-top:0;border-top:0}
   .lc-section-title{margin:0 0 3px;color:#718087;font:800 10px/1.25 sans-serif;letter-spacing:.02em}
   .lc-section-body>label{display:block}
-  .lc-water-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
-  .lc-water-row label{display:flex;align-items:center;min-width:0;margin:0;padding:4px 2px;border:1px solid #dbe4e8;border-radius:6px;background:#f7fafb;font-size:10.5px;white-space:nowrap}
-  .lc-water-row label>span{display:flex;align-items:center;min-width:0}
-  .lc-water-row .rv-sw{margin-right:1px}
-  .lc-store-row{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-  .lc-store-row label{display:flex;align-items:center;margin:0;padding:4px;border:1px solid #e1e7e9;border-radius:6px;background:#fff}
-  .lc-store-row label>span{display:flex;align-items:center}
+  .lc-water-row{display:grid;grid-template-columns:.88fr 1.12fr 1fr;gap:4px}
+  .lc-water-row label{display:flex;align-items:center;min-width:0;margin:0;padding:5px 4px;border:1px solid #dbe4e8;border-radius:8px;background:#f7fafb;font-size:10.5px;line-height:1;white-space:nowrap;overflow:hidden}
+  .lc-water-row label>span{display:flex;align-items:center;gap:2px;width:100%;min-width:0}
+  .lc-water-row input[type=checkbox]{width:14px;height:14px;flex:0 0 14px;margin:0 1px 0 0;accent-color:#1687d9}
+  .lc-water-row .rv-sw{display:inline-flex;align-items:center;justify-content:center;width:14px;flex:0 0 14px;margin:0;font-size:12px;line-height:1}
+  .lc-store-row{display:grid;grid-template-columns:.92fr 1.08fr;gap:4px}
+  .lc-store-row label{display:flex;align-items:center;min-width:0;margin:0;padding:6px 4px;border:1px solid #e1e7e9;border-radius:8px;background:#fff;font-size:10.5px;line-height:1;white-space:nowrap;overflow:hidden}
+  .lc-store-row label>span{display:flex;align-items:center;gap:3px;width:100%;min-width:0}
+  .lc-store-row input[type=checkbox]{width:14px;height:14px;flex:0 0 14px;margin:0 1px 0 0;accent-color:#1687d9}
+  .lc-store-row .daiso-key,.lc-store-row .hanaro-key{flex:none;margin-right:0}
   .lc-key{margin-top:2px}
   .lc-key .lg-row{margin:2px 0}
   .sat-src{display:none;align-items:center;gap:6px;margin:3px 0 6px 4px}

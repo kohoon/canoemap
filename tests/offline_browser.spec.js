@@ -1115,6 +1115,34 @@ test('entered places and courses stay above public map indexes in search preview
   await browser.close();
 });
 
+test('water level controls stay aligned and readable in the mobile legend', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => hideGate());
+  await page.locator('.lc-title').click();
+  const items = page.locator('.lc-water-row label');
+  await expect(items).toHaveCount(3);
+  await expect(items).toHaveText([/하천/, /호수·댐/, /CCTV/]);
+  const layout = await items.evaluateAll((nodes) => nodes.map((node) => {
+    const box = node.getBoundingClientRect();
+    return { top: Math.round(box.top), fits: node.scrollWidth <= node.clientWidth + 1 };
+  }));
+  expect(new Set(layout.map((item) => item.top)).size).toBe(1);
+  expect(layout.every((item) => item.fits)).toBe(true);
+  const stores = page.locator('.lc-store-row label');
+  await expect(stores).toHaveText([/다이소/, /하나로마트/]);
+  const storeLayout = await stores.evaluateAll((nodes) => nodes.map((node) => ({
+    top: Math.round(node.getBoundingClientRect().top),
+    fits: node.scrollWidth <= node.clientWidth + 1,
+  })));
+  expect(new Set(storeLayout.map((item) => item.top)).size).toBe(1);
+  expect(storeLayout.every((item) => item.fits)).toBe(true);
+  await browser.close();
+});
+
 test('open chat entry stays visible below the top-right account control', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
