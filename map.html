@@ -368,8 +368,9 @@
   .course-btn.ghost{background:#fff;color:#455a64}
   .course-btn.danger{background:#fff;color:#c62828;border-color:#efb4b4}
   .course-btn.danger.on{background:#c62828;color:#fff;border-color:#c62828}
-  .offline-btn{cursor:pointer;font:800 12.5px/1.2 sans-serif;background:#0f6174;color:#fff;padding:9px 11px;border-radius:8px;box-shadow:0 2px 7px rgba(0,0,0,.3);white-space:nowrap;user-select:none;border:0}
-  html.tour-mode #offlineCtl{position:fixed;left:10px;top:max(52px,calc(env(safe-area-inset-top,0px) + 48px))}
+  .offline-base-row{gap:4px}
+  .offline-base-row>span{display:flex;align-items:center;flex:1;min-width:0}
+  .offline-make{display:inline-flex;align-items:center;justify-content:center;flex:none;height:26px;box-sizing:border-box;border:1px solid #4d8a94;border-radius:7px;background:#eef8f8;color:#0f6174;padding:0 7px;font:800 11px/1 sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.08)}
   .offline-banner{position:fixed;left:50%;top:max(9px,env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:2100;display:none;align-items:center;gap:7px;max-width:calc(100vw - 180px);box-sizing:border-box;padding:7px 11px;border-radius:18px;background:#0f6174;color:#fff;font:800 12px/1.2 sans-serif;box-shadow:0 2px 9px rgba(0,0,0,.32);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
   .offline-banner.warn{background:#8b4b00}.offline-banner.on{display:flex}
   #offlineModal .pmodal{max-width:500px}
@@ -968,8 +969,6 @@ const isTouch = navigator.maxTouchPoints > 0 || (window.matchMedia&&window.match
 L.control.zoom({position:'bottomleft'}).addTo(map);
 map.addControl(new AuthCtl());   // 카카오 로그인 박스(우상단)
 map.addControl(new OpenChatCtl());   // 이용자 오픈채팅(우상단 마이페이지 아래)
-const OfflineCtl=L.Control.extend({options:{position:'bottomleft'},onAdd:function(){const b=L.DomUtil.create('button','offline-btn');b.id='offlineCtl';b.type='button';b.textContent='📥 오프라인';b.title='오프라인 지도 저장 및 사용법';L.DomEvent.disableClickPropagation(b);L.DomEvent.on(b,'click',function(e){L.DomEvent.stop(e);openOfflineModal();});return b;}});
-map.addControl(new OfflineCtl());
 const AdminCtl=L.Control.extend({ options:{position:'topright'},
   onAdd:function(){ const d=L.DomUtil.create('div','admin-actions'); d.id='adminActions';
     const sheet=L.DomUtil.create('a','admin-sheet-card',d); sheet.id='adminSheetLink'; sheet.target='_blank'; sheet.rel='noopener'; sheet.title='로그인 및 접속기록 스프레드시트';
@@ -3380,6 +3379,14 @@ _heavyZoomGate();   // 초기 1회(줌7→no-op, 딥링크 줌≥11이면 즉시
   L.DomEvent.on(h,'click',toggleLegend);L.DomEvent.on(h,'keydown',function(e){if(e.key==='Enter'||e.key===' '){L.DomEvent.preventDefault(e);toggleLegend(e);}});
   if(isTouch||window.matchMedia('(max-width:520px)').matches){c.classList.add('lc-collapsed');document.body.classList.remove('legend-open');h.setAttribute('aria-expanded','false');}   // 모바일 폭: 기본 닫힘
 })();
+// 오프라인 지도 생성은 별도 플로팅 버튼 대신 해당 베이스맵 행에서 시작한다.
+function _mountOfflineMaker(){
+  const c=_layerControl&&_layerControl.getContainer();if(!c)return;const base=c.querySelector('.leaflet-control-layers-base');if(!base)return;
+  const row=Array.from(base.querySelectorAll('label')).find(function(x){return (x.textContent||'').indexOf('오프라인 지도')>=0;});if(!row||row.querySelector('#offlineCtl'))return;
+  row.classList.add('offline-base-row');const b=L.DomUtil.create('button','offline-make',row);b.id='offlineCtl';b.type='button';b.textContent='📥 만들기';b.title='오프라인 지도 만들기';b.setAttribute('aria-label','오프라인 지도 만들기');
+  L.DomEvent.on(b,'mousedown click',function(e){L.DomEvent.stop(e);if(e.type==='click'){openOfflineModal();gaEvent('offline_builder_open');}return false;});
+}
+(function(){const c=_layerControl&&_layerControl.getContainer(),base=c&&c.querySelector('.leaflet-control-layers-base');if(!base)return;_mountOfflineMaker();new MutationObserver(_mountOfflineMaker).observe(base,{childList:true,subtree:true});})();
 // ---- 위성 출처 서브토글(안 B): 위성지도 활성 시에만 Esri↔VWorld 노출 ----
 function _syncSatToggle(){
   const el=document.getElementById('satSrcToggle'); if(!el) return;

@@ -89,6 +89,16 @@ test('course pack survives a mobile offline reload', async () => {
 
   await page.goto(baseURL + '/?course=1', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#gate')).toBeHidden({ timeout: 10000 });
+  await page.locator('.lc-title').click();
+  await expect(page.locator('.offline-base-row #offlineCtl')).toHaveText('📥 만들기');
+  expect(await page.locator('#offlineCtl').getAttribute('aria-label')).toBe('오프라인 지도 만들기');
+  const offlineBuilderLayout = await page.evaluate(() => {
+    const button = document.getElementById('offlineCtl');
+    const row = button.closest('label');
+    return { inBaseRow: !!row && row.textContent.includes('오프라인 지도'), right: button.getBoundingClientRect().right, viewport: innerWidth };
+  });
+  expect(offlineBuilderLayout.inBaseRow).toBe(true);
+  expect(offlineBuilderLayout.right).toBeLessThanOrEqual(offlineBuilderLayout.viewport);
   await page.locator('#offlineCtl').click();
   await expect(page.locator('#offlineModal')).toHaveClass(/open/);
   await page.locator('#offlineSave').click();
@@ -135,10 +145,12 @@ test('tour offline control does not cover tracker actions', async () => {
   const boxes = await page.evaluate(() => ({
     offline: document.querySelector('#offlineCtl').getBoundingClientRect().toJSON(),
     actions: document.querySelector('.trip-actions').getBoundingClientRect().toJSON(),
+    inBaseRow: !!document.querySelector('.offline-base-row #offlineCtl'),
   }));
   const overlaps = boxes.offline.left < boxes.actions.right && boxes.offline.right > boxes.actions.left
     && boxes.offline.top < boxes.actions.bottom && boxes.offline.bottom > boxes.actions.top;
   expect(overlaps).toBe(false);
+  expect(boxes.inBaseRow).toBe(true);
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();
