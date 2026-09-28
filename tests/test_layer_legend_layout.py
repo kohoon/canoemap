@@ -32,6 +32,7 @@ class LayerLegendLayoutTests(unittest.TestCase):
         self.assertIn("position:fixed;z-index:1200;left:12px;right:12px", self.source)
         self.assertIn("max-height:min(72dvh,620px)", self.source)
         self.assertIn("grid-template-columns:repeat(2,minmax(0,1fr))", self.source)
+        self.assertIn("isTouch||window.matchMedia('(max-width:520px)').matches", self.source)
 
 
 if __name__ == "__main__":

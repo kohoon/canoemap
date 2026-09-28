@@ -3362,7 +3362,7 @@ _heavyZoomGate();   // 초기 1회(줌7→no-op, 딥링크 줌≥11이면 즉시
   c.appendChild(k); L.DomEvent.disableClickPropagation(k); L.DomEvent.disableScrollPropagation(c);
   function toggleLegend(e){L.DomEvent.stop(e);const closed=c.classList.toggle('lc-collapsed');h.setAttribute('aria-expanded',closed?'false':'true');document.body.classList.toggle('legend-open',!closed);if(!closed)c.scrollTop=0;}
   L.DomEvent.on(h,'click',toggleLegend);L.DomEvent.on(h,'keydown',function(e){if(e.key==='Enter'||e.key===' '){L.DomEvent.preventDefault(e);toggleLegend(e);}});
-  if(isTouch){c.classList.add('lc-collapsed');document.body.classList.remove('legend-open');h.setAttribute('aria-expanded','false');}   // 모바일: 기본 닫힘
+  if(isTouch||window.matchMedia('(max-width:520px)').matches){c.classList.add('lc-collapsed');document.body.classList.remove('legend-open');h.setAttribute('aria-expanded','false');}   // 모바일 폭: 기본 닫힘
 })();
 // ---- 위성 출처 서브토글(안 B): 위성지도 활성 시에만 Esri↔VWorld 노출 ----
 function _syncSatToggle(){
