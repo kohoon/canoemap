@@ -593,7 +593,15 @@
     .admin-sheet-card .cf-t,.admin-members-card .cf-t{display:none}
     .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge{width:27px;height:27px;font-size:17px}
     .legend-c{width:138px;font-size:12px}
-    .leaflet-control-layers:not(.lc-collapsed){max-height:calc(100vh - 150px);max-height:calc(100dvh - 150px)}
+    .leaflet-control-layers:not(.lc-collapsed){position:fixed;z-index:1200;left:12px;right:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px));width:auto!important;max-width:none;max-height:min(72vh,620px);max-height:min(72dvh,620px);margin:0!important;padding:10px 12px 14px!important;border-radius:17px!important;box-shadow:0 12px 34px rgba(20,43,55,.32)!important}
+    .leaflet-control-layers:not(.lc-collapsed) .lc-title{font-size:15px;padding:13px 2px 10px;border-bottom:1px solid #e5eaec}
+    .leaflet-control-layers:not(.lc-collapsed) .lc-title::before{content:"";position:absolute;top:3px;left:50%;width:34px;height:4px;border-radius:3px;background:#ccd7dc;transform:translateX(-50%)}
+    .leaflet-control-layers:not(.lc-collapsed) .leaflet-control-layers-list{padding-top:5px}
+    .leaflet-control-layers:not(.lc-collapsed) .lc-section-body:not(.lc-water-row):not(.lc-store-row){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:10px}
+    .leaflet-control-layers:not(.lc-collapsed) .lc-section-body>label{display:flex;align-items:center;min-width:0;min-height:28px;margin:0}
+    .leaflet-control-layers:not(.lc-collapsed) .lc-key{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
+    .leaflet-control-layers:not(.lc-collapsed) .lc-key .lg-sub{grid-column:1/-1}
+    body.legend-open #hint{display:none}
     .pmodal{padding:16px 14px 20px}
     .cm-palette{grid-template-columns:repeat(6,32px)}
     #tripbar{bottom:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px))}.trip-live{padding:9px 7px;gap:3px}.trip-live b{font-size:13px}.trip-live small{font-size:9.5px}.tb-start{padding:12px 15px;font-size:14px}.tb-pause,.tb-refresh{padding:11px 10px;font-size:12px}
@@ -3352,9 +3360,9 @@ _heavyZoomGate();   // 초기 1회(줌7→no-op, 딥링크 줌≥11이면 즉시
     +'<div class="lg-row"><span class="sw" style="background:#1976d2;border-radius:50%"></span>일반지역</div>'
     +'<div class="lg-row"><span class="sw" style="background:#d32f2f;border-radius:50%"></span>위험지역</div>';
   c.appendChild(k); L.DomEvent.disableClickPropagation(k); L.DomEvent.disableScrollPropagation(c);
-  function toggleLegend(e){L.DomEvent.stop(e);const closed=c.classList.toggle('lc-collapsed');h.setAttribute('aria-expanded',closed?'false':'true');if(!closed)c.scrollTop=0;}
+  function toggleLegend(e){L.DomEvent.stop(e);const closed=c.classList.toggle('lc-collapsed');h.setAttribute('aria-expanded',closed?'false':'true');document.body.classList.toggle('legend-open',!closed);if(!closed)c.scrollTop=0;}
   L.DomEvent.on(h,'click',toggleLegend);L.DomEvent.on(h,'keydown',function(e){if(e.key==='Enter'||e.key===' '){L.DomEvent.preventDefault(e);toggleLegend(e);}});
-  if(isTouch){c.classList.add('lc-collapsed');h.setAttribute('aria-expanded','false');}   // 모바일: 기본 닫힘
+  if(isTouch){c.classList.add('lc-collapsed');document.body.classList.remove('legend-open');h.setAttribute('aria-expanded','false');}   // 모바일: 기본 닫힘
 })();
 // ---- 위성 출처 서브토글(안 B): 위성지도 활성 시에만 Esri↔VWorld 노출 ----
 function _syncSatToggle(){
@@ -3478,6 +3486,14 @@ function _cpText(ctx,text,x,y,maxWidth,size,weight,color){
   if(ctx.measureText(t).width>maxWidth){while(t.length>1&&ctx.measureText(t+'…').width>maxWidth)t=t.slice(0,-1);t+='…';}
   ctx.fillStyle=color;ctx.fillText(t,x,y);return t;
 }
+function _cpWrapText(ctx,text,x,y,maxWidth,size,weight,color,maxLines,lineHeight){
+  const family='Apple SD Gothic Neo, Pretendard, Noto Sans KR, sans-serif',raw=String(text||'').trim(),words=raw?raw.split(/\s+/):[''];let s=size,lines=[];
+  function layout(){ctx.font=weight+' '+s+'px '+family;const out=[];let line='';words.forEach(function(word){const next=line?line+' '+word:word;if(!line||ctx.measureText(next).width<=maxWidth)line=next;else{out.push(line);line=word;}});if(line)out.push(line);return out;}
+  lines=layout();while(s>17&&lines.length>maxLines){s--;lines=layout();}
+  if(lines.length>maxLines){lines=lines.slice(0,maxLines);let last=lines[maxLines-1];while(last.length>1&&ctx.measureText(last+'…').width>maxWidth)last=last.slice(0,-1);lines[maxLines-1]=last+'…';}
+  lines=lines.map(function(line){let out=line;while(out.length>1&&ctx.measureText(out).width>maxWidth)out=out.slice(0,-1);return out===line?out:out.slice(0,-1)+'…';});
+  ctx.fillStyle=color;lines.forEach(function(line,i){ctx.fillText(line,x,y+i*lineHeight);});return lines;
+}
 function _cpLabels(name){
   const raw=String(name||'카누맵 코스').trim(),dash=raw.indexOf(' - ');let title=dash>0?raw.slice(0,dash):raw,route=dash>0?raw.slice(dash+3):'';
   const ends=route.split(/\s+(?:~|→)\s+/);return {title:title,start:ends[0]||'코스 출발점',end:ends[1]||'코스 도착점'};
@@ -3497,19 +3513,19 @@ function _cpRouteContext(coords){
 function _drawCoursePreview(course,context){
   const coords=(course&&course.coords||[]).filter(function(p){return p&&isFinite(p[0])&&isFinite(p[1]);});if(coords.length<2)return '';
   const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=630;const ctx=canvas.getContext('2d');if(!ctx)return '';
-  ctx.fillStyle='#edf2e6';ctx.fillRect(0,0,1200,630);ctx.save();ctx.strokeStyle='#e1ead8';ctx.lineWidth=1;ctx.globalAlpha=.75;for(let x=-600;x<1400;x+=42){ctx.beginPath();ctx.moveTo(x,630);ctx.lineTo(x+364,0);ctx.stroke();}ctx.restore();
-  const frame={x:500,y:38,w:658,h:554},project=_cpProjection(coords,frame);ctx.save();ctx.beginPath();ctx.rect(frame.x,frame.y,frame.w,frame.h);ctx.clip();
+  ctx.fillStyle='#edf2e6';ctx.fillRect(0,0,1200,630);ctx.save();ctx.strokeStyle='#e1ead8';ctx.lineWidth=1;ctx.globalAlpha=.42;for(let x=-600;x<1400;x+=64){ctx.beginPath();ctx.moveTo(x,630);ctx.lineTo(x+364,0);ctx.stroke();}ctx.restore();
+  const frame={x:520,y:38,w:590,h:554},project=_cpProjection(coords,frame);ctx.save();ctx.beginPath();ctx.rect(frame.x,frame.y,frame.w,frame.h);ctx.clip();
   (context||[]).forEach(function(line,i){const ps=line.coords.map(project);if(ps.length<2)return;ctx.beginPath();ps.forEach(function(p,j){if(j)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1]);});ctx.strokeStyle=RIVER_SKY_COLOR;ctx.globalAlpha=line.kind==='river'?.84:.58;ctx.lineWidth=line.kind==='river'?6:2.5;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();});
   const route=coords.map(project);function stroke(color,width){ctx.beginPath();route.forEach(function(p,i){if(i)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1]);});ctx.strokeStyle=color;ctx.globalAlpha=1;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();}
-  stroke('#ffffff',14);stroke(validCourseColor(course.color)||'#d500f9',8);ctx.restore();
+  stroke('#ffffff',16);stroke(validCourseColor(course.color)||'#d500f9',10);ctx.restore();
   function marker(p,color,label,side){ctx.save();ctx.shadowColor='rgba(21,45,37,.22)';ctx.shadowBlur=10;ctx.shadowOffsetY=3;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(p[0],p[1],17,0,Math.PI*2);ctx.fill();ctx.shadowColor='transparent';ctx.fillStyle=color;ctx.beginPath();ctx.arc(p[0],p[1],11,0,Math.PI*2);ctx.fill();ctx.font='800 19px Apple SD Gothic Neo, Pretendard, sans-serif';ctx.textAlign=side==='right'?'left':'right';ctx.lineWidth=5;ctx.strokeStyle='#fff';ctx.strokeText(label,p[0]+(side==='right'?25:-25),p[1]+6);ctx.fillStyle='#14231e';ctx.fillText(label,p[0]+(side==='right'?25:-25),p[1]+6);ctx.restore();}
-  marker(route[0],'#13a26f','출발','right');marker(route[route.length-1],'#ef5b5b','도착','left');
-  ctx.save();ctx.shadowColor='rgba(21,45,37,.2)';ctx.shadowBlur=18;ctx.shadowOffsetY=5;ctx.fillStyle='#fff';_cpRound(ctx,42,42,430,546,26);ctx.fill();ctx.shadowColor='transparent';ctx.strokeStyle='#cbd8cf';ctx.lineWidth=1;ctx.stroke();ctx.restore();
-  const labels=_cpLabels(course.name);_cpText(ctx,'카누맵 · 추천 코스',76,102,362,20,'800','#5d6d65');_cpText(ctx,labels.title,76,161,362,40,'900','#14231e');ctx.strokeStyle='#cbd8cf';ctx.beginPath();ctx.moveTo(76,192);ctx.lineTo(438,192);ctx.stroke();
-  _cpText(ctx,'출발',76,239,362,18,'700','#5d6d65');_cpText(ctx,labels.start,76,273,362,25,'850','#14231e');_cpText(ctx,'도착',76,326,362,18,'700','#5d6d65');_cpText(ctx,labels.end,76,360,362,25,'850','#14231e');
-  ctx.fillStyle='#e1ead8';_cpRound(ctx,76,407,362,88,18);ctx.fill();_cpText(ctx,'전체 거리',100,442,314,17,'750','#5d6d65');_cpText(ctx,(Number(course.km)||0).toFixed(2).replace(/\.00$/,'')+' km',100,477,314,32,'900','#14231e');_cpText(ctx,'전체 코스를 지도에서 확인하세요 →',76,552,362,19,'850',validCourseColor(course.color)||'#d500f9');
-  ctx.fillStyle='#fff';_cpRound(ctx,1026,548,116,42,21);ctx.fill();ctx.strokeStyle='#cbd8cf';ctx.stroke();ctx.textAlign='center';ctx.font='900 18px Apple SD Gothic Neo, Pretendard, sans-serif';ctx.fillStyle='#14231e';ctx.fillText('카누맵',1084,576);ctx.textAlign='left';
-  return canvas.toDataURL('image/jpeg',.86);
+  const midX=frame.x+frame.w/2;marker(route[0],'#13a26f','출발',route[0][0]<midX?'right':'left');marker(route[route.length-1],'#ef5b5b','도착',route[route.length-1][0]<midX?'right':'left');
+  ctx.save();ctx.shadowColor='rgba(21,45,37,.2)';ctx.shadowBlur=18;ctx.shadowOffsetY=5;ctx.fillStyle='#fff';_cpRound(ctx,96,42,414,546,26);ctx.fill();ctx.shadowColor='transparent';ctx.strokeStyle='#cbd8cf';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+  const labels=_cpLabels(course.name),tx=130,tw=346;_cpText(ctx,'카누맵 · 추천 코스',tx,98,tw,20,'800','#5d6d65');_cpWrapText(ctx,labels.title,tx,145,tw,36,'900','#14231e',2,40);ctx.strokeStyle='#cbd8cf';ctx.beginPath();ctx.moveTo(tx,203);ctx.lineTo(tx+tw,203);ctx.stroke();
+  _cpText(ctx,'출발',tx,232,tw,17,'700','#5d6d65');_cpWrapText(ctx,labels.start,tx,262,tw,23,'850','#14231e',2,29);_cpText(ctx,'도착',tx,326,tw,17,'700','#5d6d65');_cpWrapText(ctx,labels.end,tx,356,tw,23,'850','#14231e',2,29);
+  ctx.fillStyle='#e1ead8';_cpRound(ctx,tx,414,tw,88,18);ctx.fill();_cpText(ctx,'전체 거리',tx+24,447,tw-48,17,'750','#5d6d65');_cpText(ctx,(Number(course.km)||0).toFixed(2).replace(/\.00$/,'')+' km',tx+24,483,tw-48,33,'900','#14231e');_cpText(ctx,'전체 코스를 지도에서 확인하세요 →',tx,552,tw,18,'850',validCourseColor(course.color)||'#d500f9');
+  ctx.fillStyle='#fff';_cpRound(ctx,980,548,116,42,21);ctx.fill();ctx.strokeStyle='#cbd8cf';ctx.stroke();ctx.textAlign='center';ctx.font='900 18px Apple SD Gothic Neo, Pretendard, sans-serif';ctx.fillStyle='#14231e';ctx.fillText('카누맵',1038,576);ctx.textAlign='left';
+  return canvas.toDataURL('image/jpeg',.95);
 }
 async function _prepareCoursePreview(idStr,course){
   const id=String(idStr||''),c=course||{};if(!/^(?:k[0-9]{8,24}|[0-9]{1,12})$/.test(id)||!c.coords||c.coords.length<2||!_canEditCourse(c,id))return false;

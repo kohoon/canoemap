@@ -61,6 +61,36 @@ def text(draw: ImageDraw.ImageDraw, xy, value, width, size, fill):
     draw.text(xy, value, font=fnt, fill=fill)
 
 
+def wrapped_text(draw: ImageDraw.ImageDraw, xy, value, width, size, fill, max_lines=2, line_height=29):
+    words = str(value or "").strip().split() or [""]
+    while size > 17:
+        fnt = font(size)
+        lines, line = [], ""
+        for word in words:
+            candidate = f"{line} {word}".strip()
+            if not line or draw.textbbox((0, 0), candidate, font=fnt)[2] <= width:
+                line = candidate
+            else:
+                lines.append(line)
+                line = word
+        if line:
+            lines.append(line)
+        if len(lines) <= max_lines:
+            break
+        size -= 1
+    overflow = len(lines) > max_lines
+    lines = lines[:max_lines]
+    if lines:
+        last = lines[-1]
+        was_cut = overflow or draw.textbbox((0, 0), last, font=fnt)[2] > width
+        while len(last) > 1 and draw.textbbox((0, 0), last + ("…" if was_cut else ""), font=fnt)[2] > width:
+            last = last[:-1]
+            was_cut = True
+        lines[-1] = last + ("…" if was_cut else "")
+    for index, line in enumerate(lines):
+        draw.text((xy[0], xy[1] + index * line_height), line, font=fnt, fill=fill)
+
+
 def labels(name: str):
     name = str(name or "카누맵 코스").strip()
     if " - " in name:
@@ -71,7 +101,7 @@ def labels(name: str):
     return title, ends[0] if ends and ends[0] else "코스 출발점", ends[1] if len(ends) > 1 else "코스 도착점"
 
 
-def project_factory(coords, frame=(500, 38, 658, 554)):
+def project_factory(coords, frame=(520, 38, 590, 554)):
     def merc(point):
         lat = max(-85.0, min(85.0, float(point[0]))) * math.pi / 180
         return float(point[1]) * math.pi / 180, math.log(math.tan(math.pi / 4 + lat / 2))
@@ -112,12 +142,12 @@ def render(course, rivers):
     coords = [[float(p[0]), float(p[1])] for p in course["coords"] if len(p) >= 2]
     image = Image.new("RGB", SIZE, COLORS["land"])
     draw = ImageDraw.Draw(image)
-    for x in range(-600, 1400, 42):
+    for x in range(-600, 1400, 64):
         draw.line((x, 630, x + 364, 0), fill=COLORS["land2"], width=1)
 
     project = project_factory(coords)
     frame_mask = Image.new("L", SIZE, 0)
-    ImageDraw.Draw(frame_mask).rectangle((500, 38, 1158, 592), fill=255)
+    ImageDraw.Draw(frame_mask).rectangle((520, 38, 1110, 592), fill=255)
     water = Image.new("RGBA", SIZE, (0, 0, 0, 0))
     water_draw = ImageDraw.Draw(water)
     for line in nearby_rivers(coords, rivers):
@@ -129,14 +159,17 @@ def render(course, rivers):
     image.paste(water.convert("RGB"), (0, 0), Image.composite(water, Image.new("RGBA", SIZE), frame_mask).getchannel("A"))
     draw = ImageDraw.Draw(image)
     route = [project(p) for p in coords]
-    draw.line(route, fill="#ffffff", width=14, joint="curve")
+    draw.line(route, fill="#ffffff", width=16, joint="curve")
     color = str(course.get("color") or "")
     if not re.fullmatch(r"#[0-9a-fA-F]{6}", color):
         color = COLORS["route"]
-    draw.line(route, fill=color, width=8, joint="curve")
+    draw.line(route, fill=color, width=10, joint="curve")
 
-    for point, marker_color, marker_label, side in ((route[0], "#13a26f", "출발", 1), (route[-1], "#ef5b5b", "도착", -1)):
+    mid_x = 520 + 590 / 2
+    markers = ((route[0], "#13a26f", "출발"), (route[-1], "#ef5b5b", "도착"))
+    for point, marker_color, marker_label in markers:
         x, y = point
+        side = 1 if x < mid_x else -1
         draw.ellipse((x - 17, y - 17, x + 17, y + 17), fill="#ffffff")
         draw.ellipse((x - 11, y - 11, x + 11, y + 11), fill=marker_color)
         fnt = font(19)
@@ -146,32 +179,32 @@ def render(course, rivers):
         draw.text((tx, y - 11), marker_label, font=fnt, fill=COLORS["ink"], stroke_width=5, stroke_fill="#ffffff")
 
     shadow = Image.new("RGBA", SIZE, (0, 0, 0, 0))
-    ImageDraw.Draw(shadow).rounded_rectangle((42, 42, 472, 588), radius=26, fill=(21, 45, 37, 65))
+    ImageDraw.Draw(shadow).rounded_rectangle((96, 42, 510, 588), radius=26, fill=(21, 45, 37, 65))
     shadow = shadow.filter(ImageFilter.GaussianBlur(10))
     image.paste(shadow, (0, 5), shadow)
     draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle((42, 42, 472, 588), radius=26, fill=COLORS["surface"], outline=COLORS["border"])
+    draw.rounded_rectangle((96, 42, 510, 588), radius=26, fill=COLORS["surface"], outline=COLORS["border"])
 
     title, start, end = labels(course.get("name", ""))
-    text(draw, (76, 85), "카누맵 · 추천 코스", 362, 20, COLORS["muted"])
-    text(draw, (76, 130), title, 362, 40, COLORS["ink"])
-    draw.line((76, 192, 438, 192), fill=COLORS["border"], width=1)
-    text(draw, (76, 220), "출발", 362, 18, COLORS["muted"])
-    text(draw, (76, 251), start, 362, 25, COLORS["ink"])
-    text(draw, (76, 307), "도착", 362, 18, COLORS["muted"])
-    text(draw, (76, 338), end, 362, 25, COLORS["ink"])
-    draw.rounded_rectangle((76, 407, 438, 495), radius=18, fill=COLORS["land2"])
-    text(draw, (100, 424), "전체 거리", 314, 17, COLORS["muted"])
+    text(draw, (130, 80), "카누맵 · 추천 코스", 346, 20, COLORS["muted"])
+    wrapped_text(draw, (130, 119), title, 346, 36, COLORS["ink"], max_lines=2, line_height=40)
+    draw.line((130, 203, 476, 203), fill=COLORS["border"], width=1)
+    text(draw, (130, 214), "출발", 346, 17, COLORS["muted"])
+    wrapped_text(draw, (130, 240), start, 346, 23, COLORS["ink"], max_lines=2, line_height=29)
+    text(draw, (130, 308), "도착", 346, 17, COLORS["muted"])
+    wrapped_text(draw, (130, 334), end, 346, 23, COLORS["ink"], max_lines=2, line_height=29)
+    draw.rounded_rectangle((130, 414, 476, 502), radius=18, fill=COLORS["land2"])
+    text(draw, (154, 430), "전체 거리", 298, 17, COLORS["muted"])
     km = round(float(course.get("km") or 0), 2)
-    text(draw, (100, 451), f"{km:g} km", 314, 32, COLORS["ink"])
-    text(draw, (76, 532), "전체 코스를 지도에서 확인하세요 →", 362, 19, color)
-    draw.rounded_rectangle((1026, 548, 1142, 590), radius=21, fill="#ffffff", outline=COLORS["border"])
+    text(draw, (154, 458), f"{km:g} km", 298, 33, COLORS["ink"])
+    text(draw, (130, 532), "전체 코스를 지도에서 확인하세요 →", 346, 18, color)
+    draw.rounded_rectangle((980, 548, 1096, 590), radius=21, fill="#ffffff", outline=COLORS["border"])
     brand = font(18)
     brand_box = draw.textbbox((0, 0), "카누맵", font=brand)
-    draw.text((1084 - (brand_box[2] - brand_box[0]) / 2, 558), "카누맵", font=brand, fill=COLORS["ink"])
+    draw.text((1038 - (brand_box[2] - brand_box[0]) / 2, 558), "카누맵", font=brand, fill=COLORS["ink"])
 
     output = io.BytesIO()
-    image.save(output, format="JPEG", quality=86, optimize=True, progressive=True)
+    image.save(output, format="JPEG", quality=95, subsampling=0, optimize=True, progressive=True)
     return output.getvalue()
 
 

@@ -1139,6 +1139,24 @@ test('water level controls stay aligned and readable in the mobile legend', asyn
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => hideGate());
   await page.locator('.lc-title').click();
+  const mobileSheet = await page.locator('.leaflet-control-layers').evaluate((panel) => {
+    const box = panel.getBoundingClientRect();
+    return {
+      left: box.left,
+      right: box.right,
+      bottom: box.bottom,
+      width: box.width,
+      viewportWidth: innerWidth,
+      viewportHeight: innerHeight,
+      horizontalOverflow: panel.scrollWidth > panel.clientWidth + 1,
+    };
+  });
+  expect(mobileSheet.left).toBeGreaterThanOrEqual(11);
+  expect(mobileSheet.right).toBeLessThanOrEqual(mobileSheet.viewportWidth - 11);
+  expect(mobileSheet.width).toBeGreaterThanOrEqual(mobileSheet.viewportWidth - 26);
+  expect(mobileSheet.bottom).toBeLessThanOrEqual(mobileSheet.viewportHeight - 7);
+  expect(mobileSheet.horizontalOverflow).toBe(false);
+  await expect(page.locator('#hint')).toBeHidden();
   const items = page.locator('.lc-water-row label');
   await expect(items).toHaveCount(3);
   await expect(items).toHaveText([/하천/, /호수·댐/, /CCTV/]);
@@ -1178,6 +1196,7 @@ test('water level controls stay aligned and readable in the mobile legend', asyn
   expect(shortViewportLayout.bottom).toBeLessThanOrEqual(shortViewportLayout.viewportHeight - 9);
   expect(shortViewportLayout.scrollHeight).toBeGreaterThan(shortViewportLayout.clientHeight);
   expect(shortViewportLayout.titleVisible).toBe(true);
+  expect(shortViewportLayout.clientHeight).toBeLessThanOrEqual(480);
   await shortPage.close();
   await browser.close();
 });
@@ -1230,7 +1249,7 @@ test('course share URL and preview image use the course-specific map card', asyn
   expect(preview.payload.text).toContain('약 22.86km');
   expect(preview.payload.text).not.toContain('canoe.crowdbase.kr');
   expect(preview.prefix).toBe('data:image/jpeg;base64,/9j/');
-  expect(preview.length).toBeGreaterThan(20000);
+  expect(preview.length).toBeGreaterThan(50000);
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();

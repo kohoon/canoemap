@@ -13,6 +13,14 @@ class CourseSharePreviewTests(unittest.TestCase):
         source = (ROOT / "tools" / "build_map.py").read_text(encoding="utf-8")
         self.assertIn("navigator.share({title:'카누맵 · '+info.name,text:summary.join('\\n'),url:u})", source)
 
+    def test_preview_uses_center_crop_safe_layout_and_high_quality_jpeg(self):
+        source = (ROOT / "tools" / "build_map.py").read_text(encoding="utf-8")
+        self.assertIn("const frame={x:520,y:38,w:590,h:554}", source)
+        self.assertIn("_cpRound(ctx,96,42,414,546,26)", source)
+        self.assertIn("_cpWrapText(ctx,labels.start", source)
+        self.assertIn("_cpWrapText(ctx,labels.end", source)
+        self.assertIn("canvas.toDataURL('image/jpeg',.95)", source)
+
     def test_share_html_contains_course_specific_open_graph_and_safe_redirect(self):
         script = textwrap.dedent(
             """
