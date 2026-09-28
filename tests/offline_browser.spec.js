@@ -114,7 +114,7 @@ test('Japanese lake names appear only on the satellite map', async () => {
   expect(await page.locator('#adminActions').evaluate((node) => getComputedStyle(node).display)).toBe('none');
 
   await page.evaluate(() => {
-    document.querySelector('#gate').style.display = 'none';
+    hideGate();
     map.invalidateSize();
     if (map.hasLayer(baseOSM)) map.removeLayer(baseOSM);
     if (!map.hasLayer(baseSat)) baseSat.addTo(map);
@@ -418,7 +418,7 @@ test('measurement labels show segment and cumulative distance at each endpoint',
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof map !== 'undefined' && typeof startMeasure === 'function');
   const draft = await page.evaluate(async () => {
-    document.querySelector('#gate').style.display = 'none';
+    hideGate();
     const points = [[38.191, 127.812], [38.1845, 127.831], [38.177, 127.85], [38.1665, 127.867]];
     map.fitBounds(L.latLngBounds(points), { padding: [55, 100] });
     measMode = 'straight';
@@ -763,7 +763,7 @@ test('campsites are visible only while administrator mode is active', async () =
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => isAdmin() && !!_obstacles['camp-test']);
-  await page.evaluate(() => { document.querySelector('#gate').style.display = 'none'; });
+  await page.evaluate(() => hideGate());
   await page.evaluate(() => map.setView([36.3, 127.8], 14, { animate: false }));
   await expect(page.locator('.obs-camp')).toHaveCount(1);
   await expect(page.locator('.obs-camp')).toHaveText('🏕️');
@@ -824,7 +824,7 @@ test('obstacles use icon-only markers with hover names except famous places', as
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => !!_obstacles['food-icon'] && !!_obstacles['spot-label']);
-  await page.evaluate(() => { document.querySelector('#gate').style.display = 'none'; });
+  await page.evaluate(() => hideGate());
   await page.evaluate(() => map.setView([36.31, 127.81], 14, { animate: false }));
   await expect(page.locator('.obs-food')).toHaveText('🍽️');
   await expect(page.locator('.obs-yeoul')).toHaveText('🌊');
@@ -1054,7 +1054,7 @@ test('duplicate geocoder place names show reverse-geocoded region hints', async 
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
-  await page.evaluate(() => { document.querySelector('#gate').style.display = 'none'; });
+  await page.evaluate(() => hideGate());
   await page.locator('#srchQ').fill('와룡산');
   await page.locator('#srchForm button').click();
   await expect(page.locator('.sr-item')).toHaveCount(3);

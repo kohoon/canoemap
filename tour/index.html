@@ -505,7 +505,9 @@
     background:linear-gradient(90deg,rgba(5,27,23,.56) 0%,rgba(5,27,23,.12) 48%,rgba(5,27,23,.3) 100%)}
   #gate::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(5,27,23,.16),transparent 38%,rgba(5,27,23,.22))}
   #gate::after{content:none}
-  body.gate-open .leaflet-top,body.gate-open .leaflet-control-layers,body.gate-open #hint{opacity:0;visibility:hidden;pointer-events:none}
+  body.gate-open .leaflet-top>.leaflet-control:not(#openChatCtl),body.gate-open .leaflet-control-layers,body.gate-open #hint{opacity:0;visibility:hidden;pointer-events:none}
+  body.gate-open .leaflet-top.leaflet-right{z-index:3101;pointer-events:none}
+  body.gate-open #openChatCtl{pointer-events:auto}
   .gate-brand{position:absolute;z-index:2;top:26px;left:28px;display:flex;align-items:center;gap:11px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.55)}
   .gate-brand-name{font:800 23px/1 sans-serif;letter-spacing:-.5px}
   .gate-brand .beta-tag{vertical-align:2px}
