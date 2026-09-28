@@ -885,18 +885,24 @@ function _renderOnboarding(){
 }
 function _dismissOnboarding(outcome){
   const el=document.getElementById('onboardingTour');if(el)el.classList.remove('open');
+  try{const url=new URL(location.href);if(url.searchParams.has('tutorial')){url.searchParams.delete('tutorial');history.replaceState(null,'',url.pathname+(url.search||'')+url.hash);}}catch(e){}
   const u=getUser(),profile=_appProfile||{};try{localStorage.setItem(_onboardingStorageKey(profile),String(ONBOARDING_VERSION));}catch(e){}
   gaEvent(outcome==='completed'?'onboarding_complete':'onboarding_skip',{version:ONBOARDING_VERSION,step:_onboardStep+1});
   if(u&&u.uid)fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'onboarding-dismiss',outcome:outcome,id:u.uid,tok:u.tok||''})}).then(function(r){return r.json();}).then(function(d){if(d.profile)_appProfile=d.profile;}).catch(function(){});
 }
-function showNewMemberTutorial(profile){
-  const profileVersion=profile&&profile.onboardingVersion==null?ONBOARDING_VERSION:Number(profile&&profile.onboardingVersion);
-  if(TOUR_MODE||!profile||profileVersion>=ONBOARDING_VERSION||_mapUrlOwnsView())return;
-  try{if(Number(localStorage.getItem(_onboardingStorageKey(profile))||0)>=ONBOARDING_VERSION)return;}catch(e){}
+function openOnboardingTutorial(source){
   const el=document.getElementById('onboardingTour');if(!el)return;_onboardStep=0;el.classList.add('open');_renderOnboarding();gaEvent('onboarding_start',{version:ONBOARDING_VERSION});
   document.getElementById('onboardSkip').onclick=function(){_dismissOnboarding('skipped');};
   document.getElementById('onboardPrev').onclick=function(){if(_onboardStep>0){_onboardStep--;_renderOnboarding();}};
   document.getElementById('onboardNext').onclick=function(){const last=_onboardStep>=_onboardingSteps().length-1;if(last)_dismissOnboarding('completed');else{_onboardStep++;_renderOnboarding();}};
+  if(source==='mypage')gaEvent('onboarding_replay',{version:ONBOARDING_VERSION});
+}
+function showNewMemberTutorial(profile){
+  const forced=new URLSearchParams(location.search).get('tutorial')==='1';
+  const profileVersion=profile&&profile.onboardingVersion==null?ONBOARDING_VERSION:Number(profile&&profile.onboardingVersion);
+  if(TOUR_MODE||!profile||(!forced&&(profileVersion>=ONBOARDING_VERSION||_mapUrlOwnsView())))return;
+  try{if(!forced&&Number(localStorage.getItem(_onboardingStorageKey(profile))||0)>=ONBOARDING_VERSION)return;}catch(e){}
+  openOnboardingTutorial(forced?'link':'new');
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.getElementById('onboardingTour').classList.contains('open'))_dismissOnboarding('skipped');});
 (function(){   // 로그인 콜백(#login=ID&nick=NICK) 처리 + 세션 복원
@@ -2603,11 +2609,12 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
   function renderInfo(){
     const p=_appProfile||{}, km=state.trips.reduce(function(s,x){return s+(+x.distKm||0);},0), sec=state.trips.reduce(function(s,x){return s+(+x.durSec||0);},0);
     shell('<div class="my-profile"><div class="my-avatar">'+pmEsc((u.nick||'회').charAt(0))+'</div><div><b>'+pmEsc(u.nick||'회원')+'</b><span>카카오 계정 연결됨 · '+(isAdmin()?'관리자':'일반회원')+'</span></div></div>'
-      +'<div class="my-section-title">기본정보</div><div class="my-info-row"><span>가입일</span><b>'+dateText(p.t)+'</b></div><div class="my-info-row"><span>닉네임</span><b>'+pmEsc(u.nick||'회원')+'</b></div>'
+      +'<div class="my-section-title">기본정보</div><div class="my-info-row"><span>가입일</span><b>'+dateText(p.t)+'</b></div><div class="my-info-row"><span>닉네임</span><b>'+pmEsc(u.nick||'회원')+'</b></div><div class="my-info-row"><span>카누맵 사용 방법</span><button id="myTutorial" class="my-icon-btn">튜토리얼 다시보기</button></div>'
       +'<div class="my-section-title">'+(TOUR_MODE?'활동통계':'저장 현황')+'</div><div class="my-stats'+(TOUR_MODE?'':' compact')+'"><div class="my-stat"><b>'+_favList.length+'</b><span>즐겨찾기</span></div><div class="my-stat"><b>'+state.mine.length+'</b><span>내 코스</span></div>'
       +(TOUR_MODE?'<div class="my-stat"><b>'+state.trips.length+'</b><span>패들링</span></div><div class="my-stat"><b>'+km.toFixed(1)+'</b><span>누적 km</span></div>':'')+'</div>'
       +(TOUR_MODE&&state.trips.length?'<div class="my-info-row"><span>누적 시간</span><b>'+durText(sec)+'</b></div>':'')
       +'<div class="my-section-title">회원정보 보호</div><div style="font-size:12px;line-height:1.55;color:#64747c">카카오 ID는 회원 DB에 원문으로 저장하지 않으며, 가명 회원번호와 30일 만료 세션을 사용합니다.</div><button id="myWithdraw" class="my-icon-btn del" style="margin-top:12px">회원 탈퇴</button>');
+    const tutorial=document.getElementById('myTutorial');if(tutorial)tutorial.onclick=function(){closeMyPage();openOnboardingTutorial('mypage');};
     const withdraw=document.getElementById('myWithdraw'); if(withdraw)withdraw.onclick=async function(){
       if(!confirm('회원 탈퇴 시 즉시 이용이 중지되고 회원 닉네임·최근 기기정보가 제거됩니다. 기존 작성 콘텐츠는 자동 삭제되지 않습니다. 탈퇴할까요?'))return;
       try{const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'withdraw',id:u.uid,tok:u.tok||''})});if(!r.ok)throw 0;setUser(null);_profilePromise=null;_appProfile=null;closeMyPage();renderAuth();showGate();}catch(e){alert('탈퇴 처리에 실패했습니다. 다시 시도해 주세요.');}

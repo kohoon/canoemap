@@ -494,6 +494,47 @@ test('new-member tutorial is short, skippable, and responsive', async () => {
   await browser.close();
 });
 
+test('existing members can replay the complete tutorial', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await context.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'existing-member', tok: 'test-token', nick: '기존회원' })));
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/profile') && route.request().method() === 'GET') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, profile: { memberId: 'existing-member', nick: '기존회원', onboardingVersion: 1 } }) });
+    } else if (url.pathname.endsWith('/launch-sites')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], truncated: false }) });
+    } else if (url.searchParams.has('over')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    }
+  });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/?tutorial=1', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#onboardingTour')).toHaveClass(/open/);
+  await expect(page.locator('#onboardCount')).toHaveText('1 / 3');
+  await page.locator('#onboardNext').click();
+  await expect(page.locator('#onboardCount')).toHaveText('2 / 3');
+  await page.locator('#onboardNext').click();
+  await expect(page.locator('#onboardCount')).toHaveText('3 / 3');
+  await page.locator('#onboardNext').click();
+  await expect(page.locator('#onboardingTour')).not.toHaveClass(/open/);
+  expect(new URL(page.url()).searchParams.has('tutorial')).toBe(false);
+
+  await page.locator('#mypageA').click();
+  await expect(page.locator('#myModal')).toHaveClass(/open/);
+  await expect(page.locator('#myTutorial')).toBeVisible();
+  await page.locator('#myTutorial').click();
+  await expect(page.locator('#myModal')).not.toHaveClass(/open/);
+  await expect(page.locator('#onboardingTour')).toHaveClass(/open/);
+  await expect(page.locator('#onboardCount')).toHaveText('1 / 3');
+  await context.close();
+  await browser.close();
+});
+
 test('members see curated expedition courses by default', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
