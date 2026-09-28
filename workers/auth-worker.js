@@ -762,7 +762,7 @@ export default {
               if (sent[sig]) return;
               const imgU = imgKey ? (url.origin + "/img?k=" + imgKey) : "";
               await fetch(env.LOG_WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "comment", cid: cseq, place: pl, nick: cnick, text: text, stars: (stars >= 1 && stars <= 5) ? stars : "", img: imgU }) }).catch(function () {});
+                body: JSON.stringify({ type: "comment", notify: true, cid: cseq, place: pl, nick: cnick, text: text, stars: (stars >= 1 && stars <= 5) ? stars : "", img: imgU }) }).catch(function () {});
               sent[sig] = 1; await KV.put("cmt_exported", JSON.stringify(sent));
             } catch (e) {} })());
           }
@@ -978,7 +978,7 @@ export default {
         if (env.LOG_WEBHOOK) ctx.waitUntil(fetch(env.LOG_WEBHOOK, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            type: "suggest", cat: String(b.cat || "기타").slice(0, 10),
+            type: "suggest", notify: true, cat: String(b.cat || "기타").slice(0, 10),
             place: String(b.addr || "").slice(0, 80), nick: String(b.nick || "").slice(0, 20),
             text: String(b.text || "").slice(0, 200), lat: Number(b.lat) || "", lng: Number(b.lng) || "",
             img: String(b.img || "").slice(0, 200),
