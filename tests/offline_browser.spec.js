@@ -905,6 +905,22 @@ test('historical imagery opens from the satellite legend row at the current map 
 
   const button = page.locator('.sat-base-row .wayback-open');
   await expect(button).toHaveText('🕘 과거');
+  const baseRowLayout = await page.evaluate(() => {
+    const rows = Array.from(document.querySelectorAll('.leaflet-control-layers-base>label'));
+    return {
+      heights: rows.map((row) => row.getBoundingClientRect().height),
+      centerOffsets: rows.map((row) => {
+        const rr = row.getBoundingClientRect();
+        const input = row.querySelector('input').getBoundingClientRect();
+        return Math.abs((input.top + input.height / 2) - (rr.top + rr.height / 2));
+      }),
+      buttonHeight: document.querySelector('.wayback-open').getBoundingClientRect().height,
+    };
+  });
+  expect(baseRowLayout.heights).toHaveLength(3);
+  expect(Math.max(...baseRowLayout.heights) - Math.min(...baseRowLayout.heights)).toBeLessThanOrEqual(0.5);
+  expect(Math.max(...baseRowLayout.centerOffsets)).toBeLessThanOrEqual(0.5);
+  expect(baseRowLayout.buttonHeight).toBe(26);
   // Leaflet의 모바일 레이어 컨트롤은 접힌 상태에서 합성 클릭을 삼킬 수 있어 DOM 클릭으로 실제 핸들러를 검증한다.
   await page.evaluate(() => document.querySelector('.sat-base-row .wayback-open').click());
   await page.waitForFunction(() => !!_wbTarget && document.getElementById('waybackCtl').classList.contains('on'), null, { timeout: 5000 });
