@@ -457,6 +457,60 @@ test('new-member tutorial is short, skippable, and responsive', async () => {
   await browser.close();
 });
 
+test('members see curated expedition courses by default', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await context.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'member-123', tok: 'member-token', nick: '회원' })));
+  let expeditionRequest = null;
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/profile') && route.request().method() === 'GET') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, profile: { memberId: 'member-123', nick: '회원', onboardingVersion: 1 } }) });
+    } else if (url.pathname.endsWith('/courses') && url.searchParams.has('expedition')) {
+      expeditionRequest = Object.fromEntries(url.searchParams.entries());
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([
+        { id: 'admin-expedition', owner: 'admin', name: '엑스페디션#20 테스트', km: 1.2, coords: [[37.1, 127.1], [37.11, 127.11]] },
+      ]) });
+    } else if (url.pathname.endsWith('/launch-sites')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], truncated: false }) });
+    } else if (url.searchParams.has('over')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    }
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => _courseStaticReady && _courseKvReady && !!_kvCourses['admin-expedition'], null, { timeout: 10000 });
+  expect(expeditionRequest).toMatchObject({ expedition: '1', uid: 'member-123', tok: 'member-token' });
+  const initial = await page.evaluate(() => {
+    const visibility = (entry) => entry && entry.grp.hasLayer(entry.l);
+    const expedition = Array.from(_staticExpeditionCids).flatMap((cid) => _staticCidLayers[cid] || []);
+    const other = Object.keys(_staticCidLayers).filter((cid) => !_staticExpeditionCids.has(cid)).flatMap((cid) => _staticCidLayers[cid] || []);
+    const kv = _kvCourseLayers['admin-expedition'];
+    return {
+      expeditionCount: expedition.length,
+      allExpeditionsVisible: expedition.length > 0 && expedition.every(visibility),
+      otherHidden: other.length > 0 && other.every((entry) => !visibility(entry)),
+      adminExpeditionVisible: !!kv && kv.ls.every((layer) => kv.grp.hasLayer(layer)),
+    };
+  });
+  expect(initial).toEqual({ expeditionCount: expect.any(Number), allExpeditionsVisible: true, otherHidden: true, adminExpeditionVisible: true });
+  expect(initial.expeditionCount).toBeGreaterThan(0);
+
+  await page.evaluate(() => setFavOnly(true));
+  expect(await page.evaluate(() => Array.from(_staticExpeditionCids).flatMap((cid) => _staticCidLayers[cid] || []).every((entry) => !entry.grp.hasLayer(entry.l)))).toBe(true);
+  await page.evaluate(() => setFavOnly(false));
+  expect(await page.evaluate(() => Array.from(_staticExpeditionCids).flatMap((cid) => _staticCidLayers[cid] || []).every((entry) => entry.grp.hasLayer(entry.l)))).toBe(true);
+  expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
 test('measurement labels show segment and cumulative distance at each endpoint', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

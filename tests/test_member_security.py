@@ -45,6 +45,9 @@ class MemberSecurityTest(unittest.TestCase):
         self.assertIn('id: current.memberId', worker)
         self.assertIn('b.action === "onboarding-dismiss"', worker)
         self.assertIn('current.onboardingStatus = b.outcome === "completed" ? "completed" : "skipped"', worker)
+        self.assertIn('url.searchParams.get("expedition")', worker)
+        self.assertIn('const userOk = !!uid && await _memberOk(env, uid, url.searchParams.get("tok"))', worker)
+        self.assertIn('String(x.owner || "") === "admin" && String(x.name || "").startsWith("엑스페디션")', worker)
         self.assertNotIn('"mc1|"', worker)
 
 

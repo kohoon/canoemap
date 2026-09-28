@@ -1834,6 +1834,7 @@ function _syncCourseDirectionVisibility(){map.getContainer().classList.toggle('c
 map.on('zoomend',_syncCourseDirectionVisibility);_syncCourseDirectionVisibility();
 const courseLayers={};    // 서브카테고리 -> layerGroup(전체 코스 그룹에 포함)
 const _staticCidLayers={};   // 정적 코스 cid -> [{grp,l}] (삭제/숨김용)
+const _staticExpeditionCids=new Set();   // 모든 회원에게 기본 표시할 운영 엑스페디션
 const _hiddenStaticCids=new Set();
 const allCoursesGroup=L.layerGroup().addTo(map);   // 코스 전체 토글(단일 레이어 항목)
 const _favLayerIdx={};   // 즐겨찾기 필터용: target -> [{l,parent}]
@@ -1861,15 +1862,19 @@ function _applyCourseFocus(){
   const focusStatic = isFocused && focusId.charAt(0)!=='k' ? focusId : '';
   const focusKv = isFocused && focusId.charAt(0)==='k' ? focusId.slice(1) : '';
   const showStaticAll = !isFocused && isAdmin();
-  const showOwnedKv = !isFocused;
+  const member=getUser(), showMemberExpeditions=!isFocused&&!!(member&&member.uid);
   Object.keys(_staticCidLayers).forEach(function(cid){
     const arr=_staticCidLayers[cid]; if(!arr) return;
-    const keep=showStaticAll || (focusStatic && String(cid)===focusStatic);
+    const target='course_c'+cid;
+    const defaultVisible=showStaticAll || (showMemberExpeditions&&_staticExpeditionCids.has(String(cid)));
+    const keep=!_hiddenStaticCids.has(String(cid)) && ((defaultVisible&&(!_favOnly||_favSet.has(target))) || (focusStatic&&String(cid)===focusStatic));
     arr.forEach(function(e){ if(keep) e.grp.addLayer(e.l); else e.grp.removeLayer(e.l); });
   });
   Object.keys(_kvCourseLayers).forEach(function(cid){
     const e=_kvCourseLayers[cid]; if(!e) return;
-    const keep=showOwnedKv || (focusKv && String(cid)===focusKv);
+    const c=_kvCourses[cid]||{}, target='course_k'+cid;
+    const defaultVisible=showStaticAll || (showMemberExpeditions&&String(c.owner||'')==='admin'&&courseSubcat(c.name)==='엑스페디션');
+    const keep=(defaultVisible&&(!_favOnly||_favSet.has(target)||_ownedCourseTargets.has(target))) || (focusKv&&String(cid)===focusKv);
     e.ls.forEach(function(l){ if(keep) e.grp.addLayer(l); else e.grp.removeLayer(l); });
   });
 }
@@ -1910,7 +1915,7 @@ function _renderStaticCourses(){
   COURSES.features.forEach(function(f){ _applyCourseOver(f); const p=f.properties||{};
     if(focusId && String(p.cid)===focusId) _courseFocusFound=true;
     if(p.cid!=null) _courseByCid[String(p.cid)]={id:p.cid, static:true, name:p.name||'코스', km:p.km||0, color:validCourseColor(p.color), coords:(f.geometry&&f.geometry.coordinates||[]).map(function(c){return [c[1],c[0]];})};
-    const sc=courseSubcat(p.name); (groups[sc]=groups[sc]||[]).push(f);
+    const sc=courseSubcat(p.name); if(sc==='엑스페디션'&&p.cid!=null)_staticExpeditionCids.add(String(p.cid)); (groups[sc]=groups[sc]||[]).push(f);
   });
   Object.keys(groups).forEach(function(sc){
     const fc={type:'FeatureCollection',features:groups[sc]};
@@ -3427,7 +3432,7 @@ function _ownedCourseRequest(){
   const u=getUser();
   if(!u||!u.uid) return Promise.resolve(null);
   if(isAdmin())return fetch(fapi('/course'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'listmine',adminKey:adminKey(),id:u.uid,tok:u.tok||''})});
-  return fetch(courseReadUrl('/courses?mine=1&uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||'')));
+  return fetch(courseReadUrl('/courses?expedition=1&uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||'')));
 }
 function reloadCoursesForViewer(){
   if(_courseFocusId)return;
@@ -3560,14 +3565,19 @@ function _applyCourseFocus(){
   const kvId=isKv?id.slice(1):'';
   const staticId=isFocused && !isKv?id:'';
   const showAll=!isFocused && isAdmin();
+  const member=getUser(), showMemberExpeditions=!isFocused&&!!(member&&member.uid);
   Object.keys(_staticCidLayers).forEach(function(cid){
     const arr=_staticCidLayers[cid]; if(!arr) return;
-    const keep=showAll || (!isKv && String(cid)===staticId);
+    const target='course_c'+cid;
+    const defaultVisible=showAll || (showMemberExpeditions&&_staticExpeditionCids.has(String(cid)));
+    const keep=!_hiddenStaticCids.has(String(cid)) && ((defaultVisible&&(!_favOnly||_favSet.has(target))) || (!isKv&&String(cid)===staticId));
     arr.forEach(function(e){ if(keep) e.grp.addLayer(e.l); else e.grp.removeLayer(e.l); });
   });
   Object.keys(_kvCourseLayers).forEach(function(cid){
     const e=_kvCourseLayers[cid]; if(!e) return;
-    const keep=showAll || (isKv && String(cid)===kvId);
+    const c=_kvCourses[cid]||{}, target='course_k'+cid;
+    const defaultVisible=showAll || (showMemberExpeditions&&String(c.owner||'')==='admin'&&courseSubcat(c.name)==='엑스페디션');
+    const keep=(defaultVisible&&(!_favOnly||_favSet.has(target)||_ownedCourseTargets.has(target))) || (isKv&&String(cid)===kvId);
     e.ls.forEach(function(l){ if(keep) e.grp.addLayer(l); else e.grp.removeLayer(l); });
   });
 }

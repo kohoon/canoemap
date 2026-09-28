@@ -1032,6 +1032,13 @@ export default {
           const shared = arr.find((x) => String(x.id) === sharedId);
           return new Response(JSON.stringify(shared ? [shared] : []), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "public, max-age=60" } });
         }
+        if (url.searchParams.get("expedition")) {
+          const uid = (url.searchParams.get("uid") || "").slice(0, 40);
+          const userOk = !!uid && await _memberOk(env, uid, url.searchParams.get("tok"));
+          if (!userOk) return J("[]");
+          arr = arr.filter((x) => String(x.owner || "") === "admin" && String(x.name || "").startsWith("엑스페디션"));
+          return new Response(JSON.stringify(arr), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
+        }
         if (url.searchParams.get("mine")) {
           const adminOk = !!env.ADMIN_KEY && String(req.headers.get("X-Admin-Key") || "") === String(env.ADMIN_KEY);
           const uid = (url.searchParams.get("uid") || "").slice(0, 40);
