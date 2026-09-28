@@ -143,7 +143,7 @@ test('Japanese lake names appear only on the satellite map', async () => {
   await browser.close();
 });
 
-test('base maps render one world and horizontal panning stays inside it', async () => {
+test('one world is centered on Korea with the Americas on the right', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -159,20 +159,28 @@ test('base maps render one world and horizontal panning stays inside it', async 
     await page.waitForFunction(() => typeof map !== 'undefined' && !!baseOSM);
     const result = await page.evaluate(() => {
       hideGate();
-      const layers = [baseOSM, satImgEsri, satLabels];
-      if (satImgV) layers.push(satImgV);
-      map.setView([0, 720], 3, { animate: false });
+      map.setView([0,720],map.getMinZoom(),{animate:false});
+      const view=map.getBounds(),centerX=map.latLngToContainerPoint([0,ASIA_WORLD_CENTER]).x,americaX=map.latLngToContainerPoint([0,260]).x;
       return {
-        noWrap: layers.every((layer) => layer.options.noWrap === true),
         viscosity: map.options.maxBoundsViscosity,
         west: map.options.maxBounds.getWest(),
         east: map.options.maxBounds.getEast(),
+        width: map.options.maxBounds.getEast()-map.options.maxBounds.getWest(),
+        asiaOffset: Math.abs(ASIA_WORLD_CENTER-(map.options.maxBounds.getWest()+map.options.maxBounds.getEast())/2),
+        koreaNearCenter: Math.abs(127.5-ASIA_WORLD_CENTER)<=25,
+        americaOnRight: WORLD_BOUNDS.contains([0,260])&&!WORLD_BOUNDS.contains([0,-100]),
+        viewportSpan: view.getEast()-view.getWest(),
+        fullWorldVisible: view.getEast()-view.getWest()>=359.9,
+        americaOnScreenRight: americaX>centerX&&americaX<=map.getSize().x,
+        minZoom: map.getMinZoom(),
         centerLng: map.getCenter().lng,
       };
     });
-    expect(result).toMatchObject({ noWrap: true, viscosity: 1, west: -180, east: 180 });
-    expect(result.centerLng).toBeGreaterThanOrEqual(-180);
-    expect(result.centerLng).toBeLessThanOrEqual(180);
+    expect(result).toMatchObject({ viscosity: 1, west: -30, east: 330, width: 360, asiaOffset: 0, koreaNearCenter: true, americaOnRight: true, fullWorldVisible: true, americaOnScreenRight: true });
+    expect(result.viewportSpan).toBeLessThanOrEqual(360.02);
+    expect(result.minZoom).toBeCloseTo(Math.log2(device.viewport.width / 256), 5);
+    expect(result.centerLng).toBeGreaterThanOrEqual(-30);
+    expect(result.centerLng).toBeLessThanOrEqual(330);
     expect(errors).toEqual([]);
     await context.close();
   }
