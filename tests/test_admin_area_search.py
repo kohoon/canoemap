@@ -36,7 +36,13 @@ class AdministrativeAreaSearchTests(unittest.TestCase):
         self.assertIn("function _adminDisplayGeometry(geometry)", self.source)
         self.assertIn("largest/total>=.97", self.source)
         self.assertIn("coordinates:kept.map(function(p){return [p[0]];})", self.source)
-        self.assertIn("features:features.map(_adminDisplayFeature)", self.source)
+        self.assertIn("features:features.map(function(f){return _adminDisplayFeature(f,x.disp);})", self.source)
+
+    def test_border_counties_are_clipped_to_the_military_demarcation_line(self):
+        self.assertIn("const MILITARY_DEMARCATION_LINE = __MILITARY_DEMARCATION_LINE__", self.source)
+        self.assertIn("function _clipAdminRingToMdl(ring,line)", self.source)
+        self.assertIn("파주시|연천군|철원군|화천군|양구군|인제군|고성군", self.source)
+        self.assertIn("_adminDisplayFeature(f,x.disp)", self.source)
 
 
 if __name__ == "__main__":

@@ -1607,6 +1607,13 @@ test('administrative district search highlights real boundaries on desktop and m
       return { dominantPolygons: dominant.coordinates.length, dominantRings: dominant.coordinates[0].length, islandPolygons: islands.coordinates.length };
     });
     expect(boundaryCleanup).toEqual({ dominantPolygons: 1, dominantRings: 1, islandPolygons: 2 });
+    const mdlCleanup = await page.evaluate(() => {
+      const ring = [[0, -1], [2, -1], [2, 2], [1, 3], [0, 2], [0, -1]];
+      const clipped = _clipAdminRingToMdl(ring, [[-0.5, 0], [2.5, 0]]);
+      return { maxLat: Math.max.apply(null, clipped.map((point) => point[1])), closed: clipped[0][0] === clipped.at(-1)[0] && clipped[0][1] === clipped.at(-1)[1] };
+    });
+    expect(mdlCleanup.maxLat).toBeLessThanOrEqual(0.000001);
+    expect(mdlCleanup.closed).toBe(true);
     await expect(page.locator('#srchQ')).toHaveAttribute('placeholder', '장소·주소·행정구역 검색');
     await page.locator('#srchQ').fill('춘천시');
     await page.locator('#srchForm button').click();

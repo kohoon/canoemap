@@ -138,6 +138,9 @@ DAISO_VER = _datahash("daiso_stores.geojson")
 HANARO_VER = _datahash("hanaro_stores.geojson")
 _cf = DATA / "courses.geojson"
 courses = json.loads(_cf.read_text(encoding="utf-8")) if _cf.exists() else {"type": "FeatureCollection", "features": []}
+_mdlf = DATA / "military_demarcation_line.geojson"
+military_demarcation_line = (json.loads(_mdlf.read_text(encoding="utf-8"))["features"][0]["geometry"]["coordinates"]
+                              if _mdlf.exists() else [])
 # 코스에도 ID 부여(코스명 기준 고정)
 _creg = json.loads((DATA / "course_ids.json").read_text(encoding="utf-8")) if (DATA / "course_ids.json").exists() else {"next": 1, "ids": {}}
 for _f in courses["features"]:
@@ -953,6 +956,7 @@ const LAKES = DAMS.map(function(d){ return {name:d.lake,aliases:[d.nm],lat:d.lat
 ]);   // 통합검색용 주요 호수·저수지 이름과 관용 별칭
 const HRFCO_KEY = "__HRFCO_KEY__";   // 수위 API(도메인잠금 없음 — 남용 시 재발급)
 const COURSES = __COURSES__;
+const MILITARY_DEMARCATION_LINE = __MILITARY_DEMARCATION_LINE__; // 남·북 DMZ OSM 관계가 공통으로 쓰는 군사분계선
 const VKEY = "__VKEY__";   // V-World 키(도메인잠금). 브라우저가 직접 호출. 비면 Nominatim
 const WORKER_URL = "__WORKER__";  // 카카오 로그인 OAuth Worker
 const GA_ID = "__GA_ID__";        // GA4 측정 ID(비면 추적 off)
@@ -1707,6 +1711,44 @@ function _adminRingArea(ring){
   for(let i=0,j=ring.length-1;i<ring.length;j=i++)sum+=(Number(ring[j][0])||0)*(Number(ring[i][1])||0)-(Number(ring[i][0])||0)*(Number(ring[j][1])||0);
   return Math.abs(sum/2);
 }
+function _mdlNearest(point,line){
+  let best=null,bestD=Infinity;
+  for(let i=1;i<line.length;i++){
+    const a=line[i-1],b=line[i],dx=b[0]-a[0],dy=b[1]-a[1],den=dx*dx+dy*dy;
+    let t=den?((point[0]-a[0])*dx+(point[1]-a[1])*dy)/den:0;t=Math.max(0,Math.min(1,t));
+    const q=[a[0]+dx*t,a[1]+dy*t],dd=(point[0]-q[0])*(point[0]-q[0])+(point[1]-q[1])*(point[1]-q[1]);
+    if(dd<bestD){bestD=dd;best={point:q,index:i-1,t:t,signed:point[1]-q[1]};}
+  }
+  return best;
+}
+function _mdlCross(a,b,line){
+  let lo=a.slice(),hi=b.slice(),la=_mdlNearest(lo,line),lb=_mdlNearest(hi,line);
+  if(!la||!lb)return null;if(la.signed>0){const p=lo;lo=hi;hi=p;const n=la;la=lb;lb=n;}
+  for(let i=0;i<28;i++){const mid=[(lo[0]+hi[0])/2,(lo[1]+hi[1])/2],m=_mdlNearest(mid,line);if(m.signed<=0){lo=mid;la=m;}else{hi=mid;lb=m;}}
+  const hit=_mdlNearest([(lo[0]+hi[0])/2,(lo[1]+hi[1])/2],line);return hit&&{point:hit.point,index:hit.index,t:hit.t};
+}
+function _mdlPath(a,b,line){
+  if(!a||!b)return [];let out=[a.point],forward=a.index+a.t<=b.index+b.t;
+  if(forward){for(let i=a.index+1;i<=b.index;i++)out.push(line[i]);}
+  else{for(let i=a.index;i>b.index;i--)out.push(line[i]);}
+  out.push(b.point);return out;
+}
+function _clipAdminRingToMdl(ring,line){
+  if(!Array.isArray(ring)||ring.length<4||!Array.isArray(line)||line.length<2)return ring;
+  const raw=ring.slice(0,-1),minX=Math.min.apply(null,raw.map(function(p){return p[0];}))-.03,maxX=Math.max.apply(null,raw.map(function(p){return p[0];}))+.03;
+  const hits=[];for(let i=1;i<line.length;i++)if(Math.max(line[i-1][0],line[i][0])>=minX&&Math.min(line[i-1][0],line[i][0])<=maxX){hits.push(i-1,i);}if(!hits.length)return ring;
+  const first=Math.max(0,hits[0]-2),last=Math.min(line.length-1,hits[hits.length-1]+2);
+  const local=line.slice(first,last+1);if(local.length<2)return ring;
+  const state=raw.map(function(p){return _mdlNearest(p,local);}),inside=state.map(function(x){return !!x&&x.signed<=0;});if(inside.every(Boolean))return ring;
+  const start=inside.findIndex(Boolean);if(start<0)return ring;const out=[raw[start]],n=raw.length;let exitHit=null;
+  for(let step=1;step<=n;step++){
+    const pi=(start+step-1)%n,ci=(start+step)%n,prev=raw[pi],curr=raw[ci],prevIn=inside[pi],currIn=inside[ci];
+    if(prevIn&&currIn){out.push(curr);continue;}
+    if(prevIn&&!currIn){exitHit=_mdlCross(prev,curr,local);if(exitHit)out.push(exitHit.point);continue;}
+    if(!prevIn&&currIn){const enterHit=_mdlCross(curr,prev,local);if(exitHit&&enterHit){const path=_mdlPath(exitHit,enterHit,local);out.push.apply(out,path.slice(1));}else if(enterHit)out.push(enterHit.point);out.push(curr);exitHit=null;}
+  }
+  if(out.length<4)return ring;const a=out[0],z=out[out.length-1];if(a[0]!==z[0]||a[1]!==z[1])out.push(a.slice());return out;
+}
 function _adminDisplayGeometry(geometry){
   if(!geometry||!Array.isArray(geometry.coordinates))return geometry;
   if(geometry.type==='Polygon'){
@@ -1720,7 +1762,14 @@ function _adminDisplayGeometry(geometry){
   const kept=total>0&&largest/total>=.97?[polygons[largestIndex]]:polygons;
   return {type:'MultiPolygon',coordinates:kept.map(function(p){return [p[0]];})};
 }
-function _adminDisplayFeature(feature){return {type:'Feature',id:feature&&feature.id,properties:feature&&feature.properties||{},geometry:_adminDisplayGeometry(feature&&feature.geometry)};}
+function _adminDisplayFeature(feature,name){
+  let geometry=_adminDisplayGeometry(feature&&feature.geometry);const border=/(?:파주시|연천군|철원군|화천군|양구군|인제군|고성군)/.test(String(name||''));
+  if(border&&MILITARY_DEMARCATION_LINE.length>1&&geometry){
+    if(geometry.type==='Polygon'&&geometry.coordinates[0])geometry={type:'Polygon',coordinates:[_clipAdminRingToMdl(geometry.coordinates[0],MILITARY_DEMARCATION_LINE)]};
+    else if(geometry.type==='MultiPolygon')geometry={type:'MultiPolygon',coordinates:geometry.coordinates.map(function(p){return [_clipAdminRingToMdl(p[0],MILITARY_DEMARCATION_LINE)];})};
+  }
+  return {type:'Feature',id:feature&&feature.id,properties:feature&&feature.properties||{},geometry:geometry};
+}
 function _cleanSearchText(s){ return (s||'').replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim(); }
 function _regionText(s){
   s=_cleanSearchText(s);
@@ -3935,7 +3984,7 @@ async function highlightAdministrativeArea(x){
     const points=x.adminPoints||[[x.lng,x.lat]],responses=await Promise.all(points.map(function(p){return vworldJsonp('/req/data',{service:'data',version:'2.0',request:'getfeature',format:'json',size:'1',page:'1',geometry:'true',attribute:'true',crs:'EPSG:4326',data:data,geomfilter:'POINT('+Number(p[0])+' '+Number(p[1])+')'},15000);}));
     const features=[];responses.forEach(function(d){const fc=d&&d.response&&d.response.result&&d.response.result.featureCollection,f=fc&&fc.features&&fc.features[0];if(f&&f.geometry&&!features.some(function(old){return old.id&&f.id&&old.id===f.id;}))features.push(f);});if(!features.length)throw new Error('not-found');
     clearAdministrativeArea();if(_searchMarker){map.removeLayer(_searchMarker);_searchMarker=null;}
-    const boundary={type:'FeatureCollection',features:features.map(_adminDisplayFeature)};
+    const boundary={type:'FeatureCollection',features:features.map(function(f){return _adminDisplayFeature(f,x.disp);})};
     _adminAreaLayer=L.featureGroup().addTo(map);
     L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#fff',weight:10,opacity:.92,fill:false,lineJoin:'round',lineCap:'round',smoothFactor:1.5}}).addTo(_adminAreaLayer);
     L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#00a8b5',weight:4,opacity:1,fill:false,lineJoin:'round',lineCap:'round',smoothFactor:1.5}}).addTo(_adminAreaLayer);
@@ -5146,6 +5195,7 @@ html = (HTML
         .replace("__WEIRS__", json.dumps(weirs, ensure_ascii=False, separators=(",", ":")))
         .replace("__HRFCO_KEY__", HRFCO_KEY)
         .replace("__COURSES__", json.dumps(courses, ensure_ascii=False, separators=(",", ":")))
+        .replace("__MILITARY_DEMARCATION_LINE__", json.dumps(military_demarcation_line, ensure_ascii=False, separators=(",", ":")))
         .replace("__VKEY__", VKEY)
         .replace("__KAKAO_JS_KEY__", KAKAO_JS_KEY)
         .replace("__GTAG__", GTAG)
