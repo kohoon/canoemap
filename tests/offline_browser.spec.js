@@ -1564,3 +1564,54 @@ test('short measure links load the stored path and legacy links still decode', a
   await context.close();
   await browser.close();
 });
+
+test('administrative district search highlights real boundaries on desktop and mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    const context = await browser.newContext({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
+    await context.route('https://api.vworld.kr/**', async (route) => {
+      const url = new URL(route.request().url()), callback = url.searchParams.get('callback');
+      let data = { response: { status: 'NOT_FOUND' } };
+      if (url.pathname === '/req/search' && url.searchParams.get('type') === 'district' && url.searchParams.get('category') === 'L2') {
+        data = { response: { status: 'OK', result: { items: [{ id: '51110', title: '강원특별자치도 춘천시', point: { x: '127.7301309', y: '37.88134015' } }] } } };
+      } else if (url.pathname === '/req/data' && url.searchParams.get('data') === 'LT_C_ADSIGG_INFO') {
+        data = { response: { status: 'OK', result: { featureCollection: { features: [{ type: 'Feature', properties: { full_nm: '강원특별자치도 춘천시' }, geometry: { type: 'Polygon', coordinates: [[[127.55, 37.75], [127.90, 37.75], [127.90, 38.02], [127.55, 38.02], [127.55, 37.75]]] } }] } } } };
+      }
+      await route.fulfill({ status: 200, contentType: 'application/javascript', body: `${callback}(${JSON.stringify(data)})` });
+    });
+    const page = await context.newPage(), errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => hideGate());
+    const groupedCity = await page.evaluate(async () => {
+      const original = vworldJsonp;
+      vworldJsonp = async (_path, params) => ({ response: { status: params.category === 'L2' ? 'OK' : 'NOT_FOUND', result: { items: params.category === 'L2' ? [
+        { id: '41111', title: '경기도 수원시 장안구', point: { x: '127.0', y: '37.3' } },
+        { id: '41113', title: '경기도 수원시 권선구', point: { x: '126.9', y: '37.2' } },
+      ] : [] } } });
+      const rows = await vworldDistrictSearch('수원시');
+      vworldJsonp = original;
+      return rows.map((row) => ({ name: row.disp, level: row.adminLevel, points: row.adminPoints.length }));
+    });
+    expect(groupedCity).toEqual([{ name: '경기도 수원시', level: 'L2GROUP', points: 2 }]);
+    await expect(page.locator('#srchQ')).toHaveAttribute('placeholder', '장소·주소·행정구역 검색');
+    await page.locator('#srchQ').fill('춘천시');
+    await page.locator('#srchForm button').click();
+    await expect(page.locator('.sr-head', { hasText: '행정구역' })).toBeVisible();
+    await expect(page.locator('.sr-item', { hasText: '강원특별자치도 춘천시 · 시·군·구' })).toBeVisible();
+    const resultBox = await page.locator('#srchRes').boundingBox();
+    expect(resultBox.y + resultBox.height).toBeLessThanOrEqual(viewport.height);
+    await page.locator('.sr-item', { hasText: '강원특별자치도 춘천시 · 시·군·구' }).click();
+    await expect(page.locator('#adminFocusBar')).toHaveClass(/on/);
+    expect(await page.locator('.admin-focus-name').textContent()).toBe('강원특별자치도 춘천시');
+    expect(await page.evaluate(() => ({ layers: _adminAreaLayer.getLayers().length, pointerEvents: getComputedStyle(_adminAreaPane).pointerEvents }))).toEqual({ layers: 1, pointerEvents: 'none' });
+    await page.locator('.admin-focus-x').click();
+    await expect(page.locator('#adminFocusBar')).not.toHaveClass(/\bon\b/);
+    expect(await page.evaluate(() => _adminAreaLayer)).toBeNull();
+    expect(errors).toEqual([]);
+    await context.close();
+  }
+  await browser.close();
+});

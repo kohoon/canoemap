@@ -1,0 +1,33 @@
+from pathlib import Path
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class AdministrativeAreaSearchTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.source = (ROOT / "tools" / "build_map.py").read_text(encoding="utf-8")
+
+    def test_all_administrative_levels_are_searched(self):
+        self.assertIn("levels=['L1','L2','L4']", self.source)
+        self.assertIn("_riCandidates(q,rawGeo)", self.source)
+        self.assertIn("<div class=\"sr-head\">행정구역</div>", self.source)
+
+    def test_selection_loads_real_boundary_layers(self):
+        for layer in ("LT_C_ADSIDO_INFO", "LT_C_ADSIGG_INFO", "LT_C_ADEMD_INFO", "LT_C_ADRI_INFO"):
+            self.assertIn(layer, self.source)
+        self.assertIn("highlightAdministrativeArea(x)", self.source)
+        self.assertIn("map.fitBounds(b,{padding:[32,32],maxZoom:maxZoom})", self.source)
+        self.assertIn("adminLevel:'L2GROUP'", self.source)
+        self.assertIn("adminPoints:g.map", self.source)
+
+    def test_highlight_is_non_blocking_and_can_be_closed(self):
+        self.assertIn("_adminAreaPane.style.pointerEvents='none'", self.source)
+        self.assertIn("aria-label=\"행정구역 강조 해제\"", self.source)
+        self.assertIn("clearAdministrativeArea", self.source)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -32,12 +32,18 @@
   .leaflet-popup-content{font:13px/1.55 sans-serif}
   .search input{padding:5px 6px;border:1px solid #bbb;border-radius:3px;width:44vw;max-width:200px;font-size:13px}
   .search button{padding:5px 9px;margin-left:3px;cursor:pointer;font-size:13px}
+  #srchRes{max-height:min(58vh,460px);overflow-y:auto;overscroll-behavior:contain;padding-right:2px}
   .sr-item{margin-top:5px;font-size:12px;border-top:1px solid #edf1f4;padding-top:5px}
   .sr-item:first-of-type{border-top:0}
   .sr-item a{display:block;color:#1565c0;text-decoration:none}
   .sr-title{display:block;font-weight:700;line-height:1.25;color:#1565c0;word-break:keep-all;overflow-wrap:anywhere}
   .sr-sub{display:block;margin-top:1px;font-size:11px;line-height:1.3;color:#74808a;word-break:keep-all;overflow-wrap:anywhere}
   .sr-head{margin-top:7px;font-size:10.5px;font-weight:700;color:#99a}
+  .admin-focus-bar{display:none;align-items:center;gap:8px;max-width:min(360px,82vw);box-sizing:border-box;background:#0b7285;color:#fff;padding:8px 8px 8px 11px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.38);font:700 13px/1.2 sans-serif}
+  .admin-focus-bar.on{display:flex}
+  .admin-focus-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .admin-focus-x{display:flex;align-items:center;justify-content:center;flex:none;width:25px;height:25px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font:700 18px/1 sans-serif;cursor:pointer}
+  .admin-focus-x:hover,.admin-focus-x:focus{background:rgba(255,255,255,.32);outline:none}
   .search-pin{font-size:30px;line-height:30px;text-align:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
   .course-share{color:#1565c0;cursor:pointer;text-decoration:none;font-weight:600}
   .river-focus-bar{display:none;align-items:center;gap:8px;max-width:min(260px,65vw);box-sizing:border-box;background:#087fa9;color:#fff;padding:8px 8px 8px 11px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.38);font:700 13px/1.2 sans-serif}
@@ -1488,7 +1494,7 @@ function vworldJsonp(path,params,timeoutMs){
   });
 }
 // ---- 전방 검색: V-World 검색 API(JSONP) — 도로명/지번 주소·장소 ----
-function vworldSearch(q, type, category){
+function vworldSearch(q, type, category, size){
   return new Promise(function(resolve){
     if(!VKEY){ resolve([]); return; }
     const name='__vws'+(_jpId++); let done=false;
@@ -1503,17 +1509,48 @@ function vworldSearch(q, type, category){
             const title=_cleanSearchText(it.title||'');
             const addr=(category==='road'?a.road:category==='parcel'?a.parcel:'')||a.road||a.parcel||'';
             const disp=addr||title||'';
-            return {lat:+(it.point&&it.point.y), lng:+(it.point&&it.point.x), title:title||disp, addr:addr, region:_regionText(addr), disp:disp};
+            return {lat:+(it.point&&it.point.y), lng:+(it.point&&it.point.x), title:title||disp, addr:addr, road:a.road||'', parcel:a.parcel||'', region:_regionText(addr), disp:disp};
           }).filter(function(x){ return isFinite(x.lat)&&isFinite(x.lng); }));
         } else resolve([]);
       }catch(e){ resolve([]); } cleanup();
     };
     s.onerror=function(){ if(!done){ done=true; clearTimeout(timer); cleanup(); resolve([]);} };
     s.src='https://api.vworld.kr/req/search?service=search&request=search&version=2.0&crs=EPSG:4326'
-      +'&size=8&page=1&type='+type+(category?'&category='+category:'')+'&format=json'
+      +'&size='+(size||8)+'&page=1&type='+type+(category?'&category='+category:'')+'&format=json'
       +'&query='+encodeURIComponent(q)+'&key='+VKEY+'&callback='+name;
     document.body.appendChild(s);
   });
+}
+function _adminLeaf(title){const p=_cleanSearchText(title).split(/\s+/).filter(Boolean);return p[p.length-1]||'';}
+function _adminLevelLabel(level){return level==='L1'?'시·도':(level==='L2'?'시·군·구':(level==='L4'?'읍·면·동':'리'));}
+async function vworldDistrictSearch(q){
+  if(!VKEY)return [];
+  const nq=_cleanSearchText(q).replace(/\s/g,'').toLowerCase(),levels=['L1','L2','L4'];
+  const rows=await Promise.all(levels.map(async function(level){
+    try{
+      const d=await vworldJsonp('/req/search',{service:'search',request:'search',version:'2.0',size:'30',page:'1',query:q,type:'district',category:level,format:'json',crs:'EPSG:4326'},9000);
+      const r=d&&d.response,it=r&&r.status==='OK'&&r.result&&r.result.items;
+      const mapped=(it||[]).map(function(x){const title=_cleanSearchText(x.title||''),leaf=_adminLeaf(title),p=x.point||{};return {kind:'admin',adminLevel:level,adminId:String(x.id||''),label:'🗺️ '+leaf,sub:title+' · '+_adminLevelLabel(level),disp:title,lat:+p.y,lng:+p.x};}).filter(function(x){return isFinite(x.lat)&&isFinite(x.lng)&&_adminLeaf(x.disp);});
+      // 수원시·청주시처럼 일반구로 분할된 시는 여러 구 경계를 하나의 시 결과로 묶는다.
+      if(level==='L2'){
+        const cityGroups={};mapped.forEach(function(x){const parts=x.disp.split(/\s+/),leaf=parts[parts.length-1],city=parts.slice(0,-1).reverse().find(function(p){return /시$/.test(p);});if(!/구$/.test(leaf)||!city)return;const cityN=city.replace(/\s/g,'').toLowerCase();if(cityN.indexOf(nq)<0)return;const i=parts.indexOf(city),full=parts.slice(0,i+1).join(' ');(cityGroups[full]||(cityGroups[full]=[])).push(x);});
+        const grouped=Object.keys(cityGroups).filter(function(full){return cityGroups[full].length>1;}).map(function(full){const g=cityGroups[full],city=_adminLeaf(full);return {kind:'admin',adminLevel:'L2GROUP',adminId:'CITY:'+full,label:'🗺️ '+city,sub:full+' · 시',disp:full,lat:g[0].lat,lng:g[0].lng,adminPoints:g.map(function(x){return [x.lng,x.lat];})};});
+        if(grouped.length)return grouped;
+      }
+      return mapped.filter(function(x){const leaf=_adminLeaf(x.disp).replace(/\s/g,'').toLowerCase();return leaf.indexOf(nq)>=0||nq.indexOf(leaf)>=0;});
+    }catch(e){return [];}
+  }));
+  const seen={};return [].concat.apply([],rows).filter(function(x){const k=x.adminLevel+':'+x.adminId;if(seen[k])return false;seen[k]=true;return true;}).slice(0,20);
+}
+function _riCandidates(q,rows){
+  const nq=_cleanSearchText(q).replace(/\s/g,'').toLowerCase(),seen={},out=[];
+  (rows||[]).forEach(function(x){
+    const parcel=_cleanSearchText(x.parcel||x.addr||''),parts=parcel.split(/\s+/).filter(Boolean),i=parts.findIndex(function(p){return /리$/.test(p);});
+    if(i<0)return;const leaf=parts[i],full=parts.slice(0,i+1).join(' '),compact=full.replace(/\s/g,'').toLowerCase();
+    if(leaf.replace(/\s/g,'').toLowerCase().indexOf(nq)<0&&compact.indexOf(nq)<0&&nq.indexOf(leaf.replace(/\s/g,'').toLowerCase())<0)return;
+    if(seen[full])return;seen[full]=true;out.push({kind:'admin',adminLevel:'RI',adminId:full,label:'🗺️ '+leaf,sub:full+' · 리',disp:full,lat:x.lat,lng:x.lng});
+  });
+  return out.slice(0,20);
 }
 function _cleanSearchText(s){ return (s||'').replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim(); }
 function _regionText(s){
@@ -3695,7 +3732,7 @@ function _applyCourseFocus(){
 const SearchCtl = L.Control.extend({ options:{position:'topleft'},
   onAdd:function(){
     const d=L.DomUtil.create('div','legend search');
-    d.innerHTML='<form id="srchForm"><input id="srchQ" placeholder="장소·주소(도로명·지번) 검색" autocomplete="off"><button type="submit">검색</button></form><div id="srchRes"></div>';
+    d.innerHTML='<form id="srchForm"><input id="srchQ" placeholder="장소·주소·행정구역 검색" autocomplete="off"><button type="submit">검색</button></form><div id="srchRes"></div>';
     L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
     return d;
   }
@@ -3709,6 +3746,30 @@ function showSearchPin(lat,lng,label){
   _searchMarker=L.marker([lat,lng],{icon:L.divIcon({className:'search-pin',html:'📍',iconSize:[30,30],iconAnchor:[15,30]}),zIndexOffset:1200})
     .addTo(map).bindPopup('<b>'+pmEsc(label||'검색 위치')+'</b>');
   return _searchMarker;
+}
+const _adminAreaPane=map.createPane('adminAreaPane');_adminAreaPane.style.zIndex='470';_adminAreaPane.style.pointerEvents='none';
+let _adminAreaLayer=null,_adminFocusCtl=null;
+function clearAdministrativeArea(){
+  if(_adminAreaLayer){try{map.removeLayer(_adminAreaLayer);}catch(e){}_adminAreaLayer=null;}
+  const d=document.getElementById('adminFocusBar');if(d)d.classList.remove('on');
+}
+function _showAdminFocusBar(name){
+  if(!_adminFocusCtl){
+    const C=L.Control.extend({options:{position:'topleft'},onAdd:function(){const d=L.DomUtil.create('div','admin-focus-bar');d.id='adminFocusBar';d.innerHTML='<span aria-hidden="true">🗺️</span><span class="admin-focus-name"></span><button class="admin-focus-x" type="button" title="행정구역 강조 해제" aria-label="행정구역 강조 해제">×</button>';L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);d.querySelector('button').onclick=clearAdministrativeArea;return d;}});_adminFocusCtl=new C();map.addControl(_adminFocusCtl);
+  }
+  const d=document.getElementById('adminFocusBar');if(!d)return;d.querySelector('.admin-focus-name').textContent=name;d.classList.add('on');
+}
+async function highlightAdministrativeArea(x){
+  const data=x.adminLevel==='L1'?'LT_C_ADSIDO_INFO':((x.adminLevel==='L2'||x.adminLevel==='L2GROUP')?'LT_C_ADSIGG_INFO':(x.adminLevel==='L4'?'LT_C_ADEMD_INFO':'LT_C_ADRI_INFO'));
+  _offToast('🗺️ '+x.disp+' 경계를 불러오는 중…');
+  try{
+    const points=x.adminPoints||[[x.lng,x.lat]],responses=await Promise.all(points.map(function(p){return vworldJsonp('/req/data',{service:'data',version:'2.0',request:'getfeature',format:'json',size:'1',page:'1',geometry:'true',attribute:'true',crs:'EPSG:4326',data:data,geomfilter:'POINT('+Number(p[0])+' '+Number(p[1])+')'},15000);}));
+    const features=[];responses.forEach(function(d){const fc=d&&d.response&&d.response.result&&d.response.result.featureCollection,f=fc&&fc.features&&fc.features[0];if(f&&f.geometry&&!features.some(function(old){return old.id&&f.id&&old.id===f.id;}))features.push(f);});if(!features.length)throw new Error('not-found');
+    clearAdministrativeArea();if(_searchMarker){map.removeLayer(_searchMarker);_searchMarker=null;}
+    _adminAreaLayer=L.geoJSON({type:'FeatureCollection',features:features},{pane:'adminAreaPane',interactive:false,style:{color:'#087f9c',weight:3.5,opacity:1,fillColor:'#22b8cf',fillOpacity:.2,dashArray:'9 5'}}).addTo(map);
+    const b=_adminAreaLayer.getBounds(),maxZoom=x.adminLevel==='L1'?8:((x.adminLevel==='L2'||x.adminLevel==='L2GROUP')?11:(x.adminLevel==='L4'?13:14));if(b&&b.isValid())map.fitBounds(b,{padding:[32,32],maxZoom:maxZoom});
+    _showAdminFocusBar(x.disp);gaEvent('admin_area_highlight',{level:x.adminLevel,name:String(x.disp||'').slice(0,50)});
+  }catch(e){_offToast('행정구역 경계를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');}
 }
 map.on('click', function(){ closeSearchPreview(true); });
 setTimeout(function(){
@@ -3767,25 +3828,32 @@ document.getElementById('srchForm').addEventListener('submit', async (ev)=>{
   const roadLocal=_roadSearch(q);
   const local=_orderedLocalSearch(q,riverLocal,roadLocal);   // 직접 등록한 장소·코스 → 호수 → 하천·도로
   // 2) 외부 지오코더 — V-World(도로명·지번·장소) 우선, 없으면 Nominatim 폴백
-  let geo=[];
+  let geo=[],admin=[];
   if(VKEY){
-    const rs=await Promise.all([vworldSearch(q,'address','road'), vworldSearch(q,'address','parcel'), vworldSearch(q,'place','')]);
-    const seen={}; geo=[].concat(rs[0],rs[1],rs[2]).filter(function(x){ const k=x.lat.toFixed(5)+','+x.lng.toFixed(5); if(seen[k])return false; seen[k]=true; return true; }).slice(0,8);
+    const riQuery=/리$/.test(q.replace(/\s/g,''));
+    const rs=await Promise.all([vworldSearch(q,'address','road'), vworldSearch(q,'address','parcel',riQuery?30:8), vworldSearch(q,'place','',riQuery?50:8),vworldDistrictSearch(q)]);
+    const rawGeo=[].concat(rs[0],rs[1],rs[2]);admin=rs[3].concat(riQuery?_riCandidates(q,rawGeo):[]);
+    const adminSeen={};admin=admin.filter(function(x){const k=x.adminLevel+':'+x.adminId;if(adminSeen[k])return false;adminSeen[k]=true;return true;}).slice(0,20);
+    const seen={}; geo=rawGeo.filter(function(x){ const k=x.lat.toFixed(5)+','+x.lng.toFixed(5); if(seen[k])return false; seen[k]=true; return true; }).slice(0,8);
   }
   if(!geo.length){ try{ const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=kr&accept-language=ko&limit=6&q='+encodeURIComponent(q)); const nj=await r.json(); geo=nj.map(function(x){ const disp=x.display_name||''; return {lat:+x.lat, lng:+x.lon, title:(x.name||disp.split(',')[0]||disp), addr:disp, region:_regionText(disp), disp:disp}; }); }catch(e){} }
   await _enrichGeoRegions(geo);
   if(seq!==_searchSeq) return;
-  _res=local.concat(geo.map(function(x){ return {kind:'geo', label:'🔎 '+_cleanSearchText(x.title||x.disp||'검색 결과'), sub:x.region||x.addr||'', lat:x.lat, lng:x.lng, disp:x.disp||x.addr||x.title}; }));
+  const geoRows=geo.map(function(x){ return {kind:'geo', label:'🔎 '+_cleanSearchText(x.title||x.disp||'검색 결과'), sub:x.region||x.addr||'', lat:x.lat, lng:x.lng, disp:x.disp||x.addr||x.title}; });
+  _res=local.concat(admin,geoRows);
   if(!_res.length){ box.textContent='결과 없음'; setTimeout(function(){ if(seq===_searchSeq) closeSearchPreview(false); }, 1400); return; }
-  box.innerHTML=(local.length?'<div class="sr-head">내 지도</div>':'')
-    + _res.map(function(x,i){ return (x.kind==='geo'&&(i===0||_res[i-1].kind!=='geo')?'<div class="sr-head">일반 검색</div>':'')
-        +_srHtml(x,i); }).join('');
+  let offset=0,html='';if(local.length){html+='<div class="sr-head">내 지도</div>'+local.map(function(x,i){return _srHtml(x,offset+i);}).join('');offset+=local.length;}
+  if(admin.length){html+='<div class="sr-head">행정구역</div>'+admin.map(function(x,i){return _srHtml(x,offset+i);}).join('');offset+=admin.length;}
+  if(geoRows.length)html+='<div class="sr-head">일반 검색</div>'+geoRows.map(function(x,i){return _srHtml(x,offset+i);}).join('');
+  box.innerHTML=html;
   box.querySelectorAll('a').forEach(function(a){ a.addEventListener('click',function(ze){
     ze.preventDefault(); const x=_res[a.dataset.i];
     closeSearchPreview(false); const _si=document.getElementById('srchQ'); if(_si) _si.blur();   // 선택 후 미리보기 리스트 닫기
-    if(x.kind==='river'){ focusRiverSearch(x); return; }
-    if(x.kind==='road'){ focusRoadSearch(x); return; }
+    if(x.kind==='river'){ clearAdministrativeArea();focusRiverSearch(x); return; }
+    if(x.kind==='road'){ clearAdministrativeArea();focusRoadSearch(x); return; }
+    if(x.kind==='admin'){ highlightAdministrativeArea(x); return; }
     clearRiverSearch();
+    clearAdministrativeArea();
     _roadSearchFocus.clearLayers();
     const pin=showSearchPin(x.lat,x.lng,(x.disp||x.label||q).replace(/^[^가-힣A-Za-z0-9]+/,''));
     if(x.kind==='lake'){ if(x.lake.bounds) map.fitBounds(x.lake.bounds,{padding:[24,24],maxZoom:12}); else map.setView([x.lat,x.lng],11); pin.setPopupContent('<b>'+pmEsc(x.lake.name)+'</b><br><small>'+pmEsc(x.lake.area)+'</small>').openPopup(); }
