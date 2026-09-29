@@ -1498,6 +1498,25 @@ function _riCandidates(q,rows){
   });
   return out.slice(0,20);
 }
+function _adminRingArea(ring){
+  if(!Array.isArray(ring)||ring.length<4)return 0;let sum=0;
+  for(let i=0,j=ring.length-1;i<ring.length;j=i++)sum+=(Number(ring[j][0])||0)*(Number(ring[i][1])||0)-(Number(ring[i][0])||0)*(Number(ring[j][1])||0);
+  return Math.abs(sum/2);
+}
+function _adminDisplayGeometry(geometry){
+  if(!geometry||!Array.isArray(geometry.coordinates))return geometry;
+  if(geometry.type==='Polygon'){
+    const outer=geometry.coordinates[0];return outer?{type:'Polygon',coordinates:[outer]}:geometry;
+  }
+  if(geometry.type!=='MultiPolygon')return geometry;
+  const polygons=geometry.coordinates.filter(function(p){return Array.isArray(p)&&Array.isArray(p[0])&&p[0].length>=4;});
+  if(!polygons.length)return geometry;
+  const areas=polygons.map(function(p){return _adminRingArea(p[0]);}),total=areas.reduce(function(a,b){return a+b;},0),largest=Math.max.apply(null,areas),largestIndex=areas.indexOf(largest);
+  // 본체가 압도적인 내륙형 경계는 VWorld의 작은 분리 조각을 숨긴다. 섬 지역처럼 면적이 분산된 경우에는 모든 외곽면을 유지한다.
+  const kept=total>0&&largest/total>=.97?[polygons[largestIndex]]:polygons;
+  return {type:'MultiPolygon',coordinates:kept.map(function(p){return [p[0]];})};
+}
+function _adminDisplayFeature(feature){return {type:'Feature',id:feature&&feature.id,properties:feature&&feature.properties||{},geometry:_adminDisplayGeometry(feature&&feature.geometry)};}
 function _cleanSearchText(s){ return (s||'').replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim(); }
 function _regionText(s){
   s=_cleanSearchText(s);
@@ -3712,10 +3731,10 @@ async function highlightAdministrativeArea(x){
     const points=x.adminPoints||[[x.lng,x.lat]],responses=await Promise.all(points.map(function(p){return vworldJsonp('/req/data',{service:'data',version:'2.0',request:'getfeature',format:'json',size:'1',page:'1',geometry:'true',attribute:'true',crs:'EPSG:4326',data:data,geomfilter:'POINT('+Number(p[0])+' '+Number(p[1])+')'},15000);}));
     const features=[];responses.forEach(function(d){const fc=d&&d.response&&d.response.result&&d.response.result.featureCollection,f=fc&&fc.features&&fc.features[0];if(f&&f.geometry&&!features.some(function(old){return old.id&&f.id&&old.id===f.id;}))features.push(f);});if(!features.length)throw new Error('not-found');
     clearAdministrativeArea();if(_searchMarker){map.removeLayer(_searchMarker);_searchMarker=null;}
-    const boundary={type:'FeatureCollection',features:features};
+    const boundary={type:'FeatureCollection',features:features.map(_adminDisplayFeature)};
     _adminAreaLayer=L.featureGroup().addTo(map);
-    L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#fff',weight:10,opacity:.92,fill:false,lineJoin:'round',lineCap:'round'}}).addTo(_adminAreaLayer);
-    L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#00a8b5',weight:4,opacity:1,fill:false,lineJoin:'round',lineCap:'round'}}).addTo(_adminAreaLayer);
+    L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#fff',weight:10,opacity:.92,fill:false,lineJoin:'round',lineCap:'round',smoothFactor:1.5}}).addTo(_adminAreaLayer);
+    L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#00a8b5',weight:4,opacity:1,fill:false,lineJoin:'round',lineCap:'round',smoothFactor:1.5}}).addTo(_adminAreaLayer);
     const b=_adminAreaLayer.getBounds(),maxZoom=x.adminLevel==='L1'?8:((x.adminLevel==='L2'||x.adminLevel==='L2GROUP')?11:(x.adminLevel==='L4'?13:14));if(b&&b.isValid())map.fitBounds(b,{padding:[32,32],maxZoom:maxZoom});
     _showAdminFocusBar(x.disp);gaEvent('admin_area_highlight',{level:x.adminLevel,name:String(x.disp||'').slice(0,50)});
   }catch(e){_offToast('행정구역 경계를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');}

@@ -32,6 +32,12 @@ class AdministrativeAreaSearchTests(unittest.TestCase):
         self.assertIn("color:'#fff',weight:10,opacity:.92,fill:false", self.source)
         self.assertIn("color:'#00a8b5',weight:4,opacity:1,fill:false", self.source)
 
+    def test_display_geometry_removes_holes_and_dominant_mainland_fragments(self):
+        self.assertIn("function _adminDisplayGeometry(geometry)", self.source)
+        self.assertIn("largest/total>=.97", self.source)
+        self.assertIn("coordinates:kept.map(function(p){return [p[0]];})", self.source)
+        self.assertIn("features:features.map(_adminDisplayFeature)", self.source)
+
 
 if __name__ == "__main__":
     unittest.main()

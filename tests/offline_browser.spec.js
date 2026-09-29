@@ -1596,6 +1596,17 @@ test('administrative district search highlights real boundaries on desktop and m
       return rows.map((row) => ({ name: row.disp, level: row.adminLevel, points: row.adminPoints.length }));
     });
     expect(groupedCity).toEqual([{ name: '경기도 수원시', level: 'L2GROUP', points: 2 }]);
+    const boundaryCleanup = await page.evaluate(() => {
+      const main = [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]];
+      const hole = [[2, 2], [3, 2], [3, 3], [2, 3], [2, 2]];
+      const tiny = [[20, 20], [20.1, 20], [20.1, 20.1], [20, 20.1], [20, 20]];
+      const dominant = _adminDisplayGeometry({ type: 'MultiPolygon', coordinates: [[main, hole], [tiny]] });
+      const islandA = [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]];
+      const islandB = [[4, 0], [6, 0], [6, 2], [4, 2], [4, 0]];
+      const islands = _adminDisplayGeometry({ type: 'MultiPolygon', coordinates: [[islandA], [islandB]] });
+      return { dominantPolygons: dominant.coordinates.length, dominantRings: dominant.coordinates[0].length, islandPolygons: islands.coordinates.length };
+    });
+    expect(boundaryCleanup).toEqual({ dominantPolygons: 1, dominantRings: 1, islandPolygons: 2 });
     await expect(page.locator('#srchQ')).toHaveAttribute('placeholder', '장소·주소·행정구역 검색');
     await page.locator('#srchQ').fill('춘천시');
     await page.locator('#srchForm button').click();
