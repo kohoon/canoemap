@@ -1606,7 +1606,7 @@ test('administrative district search highlights real boundaries on desktop and m
     await page.locator('.sr-item', { hasText: '강원특별자치도 춘천시 · 시·군·구' }).click();
     await expect(page.locator('#adminFocusBar')).toHaveClass(/on/);
     expect(await page.locator('.admin-focus-name').textContent()).toBe('강원특별자치도 춘천시');
-    expect(await page.evaluate(() => ({ layers: _adminAreaLayer.getLayers().length, pointerEvents: getComputedStyle(_adminAreaPane).pointerEvents }))).toEqual({ layers: 1, pointerEvents: 'none' });
+    expect(await page.evaluate(() => ({ layers: _adminAreaLayer.getLayers().length, pointerEvents: getComputedStyle(_adminAreaPane).pointerEvents }))).toEqual({ layers: 2, pointerEvents: 'none' });
     await page.locator('.admin-focus-x').click();
     await expect(page.locator('#adminFocusBar')).not.toHaveClass(/\bon\b/);
     expect(await page.evaluate(() => _adminAreaLayer)).toBeNull();

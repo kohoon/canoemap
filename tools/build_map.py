@@ -3916,7 +3916,10 @@ async function highlightAdministrativeArea(x){
     const points=x.adminPoints||[[x.lng,x.lat]],responses=await Promise.all(points.map(function(p){return vworldJsonp('/req/data',{service:'data',version:'2.0',request:'getfeature',format:'json',size:'1',page:'1',geometry:'true',attribute:'true',crs:'EPSG:4326',data:data,geomfilter:'POINT('+Number(p[0])+' '+Number(p[1])+')'},15000);}));
     const features=[];responses.forEach(function(d){const fc=d&&d.response&&d.response.result&&d.response.result.featureCollection,f=fc&&fc.features&&fc.features[0];if(f&&f.geometry&&!features.some(function(old){return old.id&&f.id&&old.id===f.id;}))features.push(f);});if(!features.length)throw new Error('not-found');
     clearAdministrativeArea();if(_searchMarker){map.removeLayer(_searchMarker);_searchMarker=null;}
-    _adminAreaLayer=L.geoJSON({type:'FeatureCollection',features:features},{pane:'adminAreaPane',interactive:false,style:{color:'#087f9c',weight:3.5,opacity:1,fillColor:'#22b8cf',fillOpacity:.2,dashArray:'9 5'}}).addTo(map);
+    const boundary={type:'FeatureCollection',features:features};
+    _adminAreaLayer=L.featureGroup().addTo(map);
+    L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#fff',weight:10,opacity:.92,fill:false,lineJoin:'round',lineCap:'round'}}).addTo(_adminAreaLayer);
+    L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#00a8b5',weight:4,opacity:1,fill:false,lineJoin:'round',lineCap:'round'}}).addTo(_adminAreaLayer);
     const b=_adminAreaLayer.getBounds(),maxZoom=x.adminLevel==='L1'?8:((x.adminLevel==='L2'||x.adminLevel==='L2GROUP')?11:(x.adminLevel==='L4'?13:14));if(b&&b.isValid())map.fitBounds(b,{padding:[32,32],maxZoom:maxZoom});
     _showAdminFocusBar(x.disp);gaEvent('admin_area_highlight',{level:x.adminLevel,name:String(x.disp||'').slice(0,50)});
   }catch(e){_offToast('행정구역 경계를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');}

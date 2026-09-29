@@ -28,6 +28,10 @@ class AdministrativeAreaSearchTests(unittest.TestCase):
         self.assertIn("aria-label=\"행정구역 강조 해제\"", self.source)
         self.assertIn("clearAdministrativeArea", self.source)
 
+    def test_selected_b_design_uses_white_halo_and_teal_center_without_fill(self):
+        self.assertIn("color:'#fff',weight:10,opacity:.92,fill:false", self.source)
+        self.assertIn("color:'#00a8b5',weight:4,opacity:1,fill:false", self.source)
+
 
 if __name__ == "__main__":
     unittest.main()
