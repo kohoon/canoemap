@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 import unittest
 
 
@@ -11,9 +12,12 @@ class AdministrativeAreaSearchTests(unittest.TestCase):
         cls.source = (ROOT / "tools" / "build_map.py").read_text(encoding="utf-8")
 
     def test_all_administrative_levels_are_searched(self):
-        self.assertIn("levels=['L1','L2','L4']", self.source)
+        self.assertIn("levels=['L1','L2','L3','L4']", self.source)
         self.assertIn("_riCandidates(q,rawGeo)", self.source)
         self.assertIn("<div class=\"sr-head\">행정구역</div>", self.source)
+        self.assertIn("admin=await _hjdSearch(q)", self.source)
+        self.assertIn("'법정동'", self.source)
+        self.assertIn("+' · 행정동 ('", self.source)
 
     def test_selection_loads_real_boundary_layers(self):
         for layer in ("LT_C_ADSIDO_INFO", "LT_C_ADSIGG_INFO", "LT_C_ADEMD_INFO", "LT_C_ADRI_INFO"):
@@ -22,6 +26,21 @@ class AdministrativeAreaSearchTests(unittest.TestCase):
         self.assertIn("map.fitBounds(b,{padding:[32,32],maxZoom:maxZoom})", self.source)
         self.assertIn("adminLevel:'L2GROUP'", self.source)
         self.assertIn("adminPoints:g.map", self.source)
+        self.assertIn("x.adminLevel==='L3'?'LT_C_ADEMD_INFO':'LT_C_ADRI_INFO'", self.source)
+        self.assertIn("if(x.adminLevel==='HJD')features.push(await _loadHjdFeature(x))", self.source)
+
+    def test_administrative_dong_index_and_regions_are_complete(self):
+        index = json.loads((ROOT / "admin_dong_index.json").read_text(encoding="utf-8"))
+        items = index["items"]
+        self.assertGreater(len(items), 3500)
+        self.assertEqual(len(items), len({x["id"] for x in items}))
+        self.assertEqual(index["metadata"]["asOf"], "2026-07-01")
+        self.assertTrue(any(x["name"].endswith("청운효자동") for x in items))
+        self.assertEqual({x["sido"] for x in items},
+                         {p.stem for p in (ROOT / "admin_dong").glob("*.geojson")})
+        for p in (ROOT / "admin_dong").glob("*.geojson"):
+            ids = {x["properties"]["adm_cd"] for x in json.loads(p.read_text(encoding="utf-8"))["features"]}
+            self.assertEqual(ids, {x["id"] for x in items if x["sido"] == p.stem})
 
     def test_highlight_is_non_blocking_and_can_be_closed(self):
         self.assertIn("_adminAreaPane.style.pointerEvents='none'", self.source)

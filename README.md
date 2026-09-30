@@ -23,6 +23,8 @@
 | `tools/build_map.py` | 데이터 → `map.html` 생성 |
 | `tools/build_daiso.py` | 공식 매장검색 → 전국 다이소 지점 GeoJSON 생성 |
 | `tools/build_hanaro.py` | 공식 전국마트찾기 → 전국 하나로마트 지점 GeoJSON 생성 |
+| `admin_dong_index.json` / `admin_dong/*.geojson` | 2026-07-01 기준 행정동 검색 색인·시도별 경계 (선택 시 지연 로드) |
+| `tools/build_admin_dong.py` | 날짜가 고정된 행정동 원본 GeoJSON에서 색인·경계 재생성 |
 | `tools/protect_endpoints.py` / `tools/protect_zones.py` | 구역 군집화·대표점 계산 |
 | `tools/kakao_naver_sync.py` | 카카오맵 즐겨찾기 → 네이버맵 동기화 |
 | `tools/kakao_add_favorites.py` | 카카오 폴더에 상수원보호구역 마커 일괄 추가 |
@@ -50,6 +52,8 @@ python3 tools/build_map.py
 python3 tools/build_hanaro.py
 python3 tools/build_map.py
 ```
+
+행정동 경계는 통계청 SGIS 원자료를 가공한 [vuski/admdongkor](https://github.com/vuski/admdongkor)의 2026-07-01 버전을 사용합니다. [출처·라이선스](admin_dong/ATTRIBUTION.md)를 유지하고, 원본 기준일을 바꿀 때 `tools/build_admin_dong.py`의 버전·출처도 함께 검토해야 합니다.
 ```bash
 # V-World 키 준비 (둘 중 하나)
 set VWORLD_KEY=발급키          # 또는 vworld_key.txt 에 키 저장

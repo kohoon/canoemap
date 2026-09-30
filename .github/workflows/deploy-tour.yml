@@ -12,6 +12,8 @@ on:
       - "roads.geojson"
       - "daiso_stores.geojson"
       - "hanaro_stores.geojson"
+      - "admin_dong_index.json"
+      - "admin_dong/**"
       - "og.png"
       - "tests/**"
       - ".github/workflows/deploy-tour.yml"
@@ -43,6 +45,8 @@ jobs:
           cp tour/service-worker.js tour/manifest.webmanifest tour/pwa-icon.svg "$RUNNER_TEMP/mycanoe-tour/"
           cp health.txt "$RUNNER_TEMP/mycanoe-tour/"
           cp protect_polygons.geojson wlz.geojson waterplay.geojson rivers.geojson roads.geojson daiso_stores.geojson hanaro_stores.geojson og.png "$RUNNER_TEMP/mycanoe-tour/"
+          cp admin_dong_index.json "$RUNNER_TEMP/mycanoe-tour/"
+          cp -R admin_dong "$RUNNER_TEMP/mycanoe-tour/"
 
       - name: Deploy Cloudflare Pages
         run: npx --yes wrangler pages deploy "$RUNNER_TEMP/mycanoe-tour" --project-name mycanoe-tour --branch main --commit-dirty=true

@@ -798,7 +798,7 @@
 // 런칭·랜딩 좌표는 정적 HTML에 넣지 않는다. 로그인 후 현재 화면 범위만 보호 API에서 조회한다.
 const POINTS = {type:'FeatureCollection',features:[]};
 // 상수원보호·수상레저금지 면은 임베드하지 않고 줌인(≥11) 시 외부 .geojson 을 fetch(아래 줌게이트).
-const DATAVER = {protect:"d87f5782", wlz:"b675389f", rivers:"94105460", roads:"793584ec", waterplay:"4f7748dc", daiso:"61c73627", hanaro:"50292cc8"};   // 콘텐츠 해시 캐시버스팅
+const DATAVER = {protect:"d87f5782", wlz:"b675389f", rivers:"94105460", roads:"793584ec", waterplay:"4f7748dc", daiso:"61c73627", hanaro:"50292cc8", hjd:"04d877f9"};   // 콘텐츠 해시 캐시버스팅
 let protectLayer = null, wlzLayer = null, waterplayLayer = null;          // 첫 줌인 때 생성
 let _protectLoading = null, _wlzLoading = null, _waterplayLoading = null; // in-flight fetch(중복 방지)
 let _protectWanted = true, _wlzWanted = true, _waterplayWanted = false;
@@ -1550,15 +1550,15 @@ function vworldSearch(q, type, category, size){
   });
 }
 function _adminLeaf(title){const p=_cleanSearchText(title).split(/\s+/).filter(Boolean);return p[p.length-1]||'';}
-function _adminLevelLabel(level){return level==='L1'?'시·도':(level==='L2'?'시·군·구':(level==='L4'?'읍·면·동':'리'));}
+function _adminLevelLabel(level,leaf){return level==='L1'?'시·도':(level==='L2'?'시·군·구':(level==='L3'?(/동$/.test(leaf)?'법정동':'법정 읍·면'):'법정 리'));}
 async function vworldDistrictSearch(q){
   if(!VKEY)return [];
-  const nq=_cleanSearchText(q).replace(/\s/g,'').toLowerCase(),levels=['L1','L2','L4'];
+  const nq=_cleanSearchText(q).replace(/\s/g,'').toLowerCase(),levels=['L1','L2','L3','L4'];
   const rows=await Promise.all(levels.map(async function(level){
     try{
       const d=await vworldJsonp('/req/search',{service:'search',request:'search',version:'2.0',size:'30',page:'1',query:q,type:'district',category:level,format:'json',crs:'EPSG:4326'},9000);
       const r=d&&d.response,it=r&&r.status==='OK'&&r.result&&r.result.items;
-      const mapped=(it||[]).map(function(x){const title=_cleanSearchText(x.title||''),leaf=_adminLeaf(title),p=x.point||{};return {kind:'admin',adminLevel:level,adminId:String(x.id||''),label:'🗺️ '+leaf,sub:title+' · '+_adminLevelLabel(level),disp:title,lat:+p.y,lng:+p.x};}).filter(function(x){return isFinite(x.lat)&&isFinite(x.lng)&&_adminLeaf(x.disp);});
+      const mapped=(it||[]).map(function(x){const title=_cleanSearchText(x.title||''),leaf=_adminLeaf(title),p=x.point||{};return {kind:'admin',adminLevel:level,adminId:String(x.id||''),label:'🗺️ '+leaf,sub:title+' · '+_adminLevelLabel(level,leaf),disp:title,lat:+p.y,lng:+p.x};}).filter(function(x){return isFinite(x.lat)&&isFinite(x.lng)&&_adminLeaf(x.disp);});
       // 수원시·청주시처럼 일반구로 분할된 시는 여러 구 경계를 하나의 시 결과로 묶는다.
       if(level==='L2'){
         const cityGroups={};mapped.forEach(function(x){const parts=x.disp.split(/\s+/),leaf=parts[parts.length-1],city=parts.slice(0,-1).reverse().find(function(p){return /시$/.test(p);});if(!/구$/.test(leaf)||!city)return;const cityN=city.replace(/\s/g,'').toLowerCase();if(cityN.indexOf(nq)<0)return;const i=parts.indexOf(city),full=parts.slice(0,i+1).join(' ');(cityGroups[full]||(cityGroups[full]=[])).push(x);});
@@ -1569,6 +1569,36 @@ async function vworldDistrictSearch(q){
     }catch(e){return [];}
   }));
   const seen={};return [].concat.apply([],rows).filter(function(x){const k=x.adminLevel+':'+x.adminId;if(seen[k])return false;seen[k]=true;return true;}).slice(0,20);
+}
+let _hjdIndex=null,_hjdIndexLoading=null;const _hjdChunks={},_hjdChunkLoading={};
+function _loadHjdIndex(){
+  if(_hjdIndex)return Promise.resolve(_hjdIndex);
+  if(_hjdIndexLoading)return _hjdIndexLoading;
+  _hjdIndexLoading=fetch('./admin_dong_index.json?v='+DATAVER.hjd).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();}).then(function(d){
+    _hjdIndex=d;
+    map.attributionControl.addAttribution('행정동 경계: <a href="https://sgis.mods.go.kr/" target="_blank" rel="noopener">통계청 SGIS</a> · <a href="https://github.com/vuski/admdongkor" target="_blank" rel="noopener">admdongkor</a> (CC BY 4.0)');
+    return d;
+  }).finally(function(){_hjdIndexLoading=null;});
+  return _hjdIndexLoading;
+}
+async function _hjdSearch(q){
+  try{
+    const d=await _loadHjdIndex(),nq=_cleanSearchText(q).replace(/\s/g,'').toLowerCase();
+    if(!nq)return [];
+    return (d.items||[]).filter(function(x){return String(x.name||'').replace(/\s/g,'').toLowerCase().indexOf(nq)>=0;})
+      .sort(function(a,b){const aa=_adminLeaf(a.name).replace(/\s/g,'').toLowerCase(),bb=_adminLeaf(b.name).replace(/\s/g,'').toLowerCase();return Number(bb===nq)-Number(aa===nq)||Number(bb.indexOf(nq)===0)-Number(aa.indexOf(nq)===0)||a.name.localeCompare(b.name,'ko');})
+      .slice(0,20).map(function(x){return {kind:'admin',adminLevel:'HJD',adminId:x.id,sidoCode:x.sido,label:'🗺️ '+_adminLeaf(x.name),sub:x.name+' · 행정동 ('+(d.metadata&&d.metadata.asOf||'기준일 미상')+' 기준)',disp:x.name,lat:x.lat,lng:x.lng};});
+  }catch(e){return [];}
+}
+function _loadHjdFeature(x){
+  const sido=String(x.sidoCode||'');if(!/^\d{2}$/.test(sido))return Promise.reject(new Error('invalid-sido'));
+  if(!_hjdChunkLoading[sido]&&!_hjdChunks[sido])_hjdChunkLoading[sido]=fetch('./admin_dong/'+sido+'.geojson?v='+DATAVER.hjd)
+    .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();})
+    .then(function(fc){_hjdChunks[sido]=fc;return fc;}).finally(function(){delete _hjdChunkLoading[sido];});
+  return (_hjdChunks[sido]?Promise.resolve(_hjdChunks[sido]):_hjdChunkLoading[sido]).then(function(fc){
+    const f=(fc.features||[]).find(function(v){return String(v.properties&&v.properties.adm_cd)===String(x.adminId);});
+    if(!f)throw new Error('not-found');return f;
+  });
 }
 function _riCandidates(q,rows){
   const nq=_cleanSearchText(q).replace(/\s/g,'').toLowerCase(),seen={},out=[];
@@ -3862,18 +3892,23 @@ function _showAdminFocusBar(name){
   const d=document.getElementById('adminFocusBar');if(!d)return;d.querySelector('.admin-focus-name').textContent=name;d.classList.add('on');
 }
 async function highlightAdministrativeArea(x){
-  const data=x.adminLevel==='L1'?'LT_C_ADSIDO_INFO':((x.adminLevel==='L2'||x.adminLevel==='L2GROUP')?'LT_C_ADSIGG_INFO':(x.adminLevel==='L4'?'LT_C_ADEMD_INFO':'LT_C_ADRI_INFO'));
+  const data=x.adminLevel==='L1'?'LT_C_ADSIDO_INFO':((x.adminLevel==='L2'||x.adminLevel==='L2GROUP')?'LT_C_ADSIGG_INFO':(x.adminLevel==='L3'?'LT_C_ADEMD_INFO':'LT_C_ADRI_INFO'));
   _offToast('🗺️ '+x.disp+' 경계를 불러오는 중…');
   try{
-    const points=x.adminPoints||[[x.lng,x.lat]],responses=await Promise.all(points.map(function(p){return vworldJsonp('/req/data',{service:'data',version:'2.0',request:'getfeature',format:'json',size:'1',page:'1',geometry:'true',attribute:'true',crs:'EPSG:4326',data:data,geomfilter:'POINT('+Number(p[0])+' '+Number(p[1])+')'},15000);}));
-    const features=[];responses.forEach(function(d){const fc=d&&d.response&&d.response.result&&d.response.result.featureCollection,f=fc&&fc.features&&fc.features[0];if(f&&f.geometry&&!features.some(function(old){return old.id&&f.id&&old.id===f.id;}))features.push(f);});if(!features.length)throw new Error('not-found');
+    const features=[];
+    if(x.adminLevel==='HJD')features.push(await _loadHjdFeature(x));
+    else{
+      const points=x.adminPoints||[[x.lng,x.lat]],responses=await Promise.all(points.map(function(p){return vworldJsonp('/req/data',{service:'data',version:'2.0',request:'getfeature',format:'json',size:'1',page:'1',geometry:'true',attribute:'true',crs:'EPSG:4326',data:data,geomfilter:'POINT('+Number(p[0])+' '+Number(p[1])+')'},15000);}));
+      responses.forEach(function(d){const fc=d&&d.response&&d.response.result&&d.response.result.featureCollection,f=fc&&fc.features&&fc.features[0];if(f&&f.geometry&&!features.some(function(old){return old.id&&f.id&&old.id===f.id;}))features.push(f);});
+    }
+    if(!features.length)throw new Error('not-found');
     clearAdministrativeArea();if(_searchMarker){map.removeLayer(_searchMarker);_searchMarker=null;}
     const boundary={type:'FeatureCollection',features:features.map(function(f){return _adminDisplayFeature(f,x.disp);})};
     _adminAreaLayer=L.featureGroup().addTo(map);
     L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#fff',weight:10,opacity:.92,fill:false,lineJoin:'round',lineCap:'round',smoothFactor:1.5}}).addTo(_adminAreaLayer);
     L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#00a8b5',weight:4,opacity:1,fill:false,lineJoin:'round',lineCap:'round',smoothFactor:1.5}}).addTo(_adminAreaLayer);
-    const b=_adminAreaLayer.getBounds(),maxZoom=x.adminLevel==='L1'?8:((x.adminLevel==='L2'||x.adminLevel==='L2GROUP')?11:(x.adminLevel==='L4'?13:14));if(b&&b.isValid())map.fitBounds(b,{padding:[32,32],maxZoom:maxZoom});
-    _showAdminFocusBar(x.disp);gaEvent('admin_area_highlight',{level:x.adminLevel,name:String(x.disp||'').slice(0,50)});
+    const b=_adminAreaLayer.getBounds(),maxZoom=x.adminLevel==='L1'?8:((x.adminLevel==='L2'||x.adminLevel==='L2GROUP')?11:((x.adminLevel==='L3'||x.adminLevel==='HJD')?13:14));if(b&&b.isValid())map.fitBounds(b,{padding:[32,32],maxZoom:maxZoom});
+    _showAdminFocusBar(x.disp+(x.adminLevel==='HJD'?' · 행정동 (SGIS·admdongkor)':''));gaEvent('admin_area_highlight',{level:x.adminLevel,name:String(x.disp||'').slice(0,50)});
   }catch(e){_offToast('행정구역 경계를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');}
 }
 map.on('click', function(){ closeSearchPreview(true); });
@@ -3933,11 +3968,11 @@ document.getElementById('srchForm').addEventListener('submit', async (ev)=>{
   const roadLocal=_roadSearch(q);
   const local=_orderedLocalSearch(q,riverLocal,roadLocal);   // 직접 등록한 장소·코스 → 호수 → 하천·도로
   // 2) 외부 지오코더 — V-World(도로명·지번·장소) 우선, 없으면 Nominatim 폴백
-  let geo=[],admin=[];
+  let geo=[],admin=await _hjdSearch(q);
   if(VKEY){
     const riQuery=/리$/.test(q.replace(/\s/g,''));
     const rs=await Promise.all([vworldSearch(q,'address','road'), vworldSearch(q,'address','parcel',riQuery?30:8), vworldSearch(q,'place','',riQuery?50:8),vworldDistrictSearch(q)]);
-    const rawGeo=[].concat(rs[0],rs[1],rs[2]);admin=rs[3].concat(riQuery?_riCandidates(q,rawGeo):[]);
+    const rawGeo=[].concat(rs[0],rs[1],rs[2]);admin=rs[3].concat(admin,riQuery?_riCandidates(q,rawGeo):[]);
     const adminSeen={};admin=admin.filter(function(x){const k=x.adminLevel+':'+x.adminId;if(adminSeen[k])return false;adminSeen[k]=true;return true;}).slice(0,20);
     const seen={}; geo=rawGeo.filter(function(x){ const k=x.lat.toFixed(5)+','+x.lng.toFixed(5); if(seen[k])return false; seen[k]=true; return true; }).slice(0,8);
   }
