@@ -102,6 +102,9 @@
   .leaflet-control-layers{padding:6px 9px!important;border-radius:8px!important;box-shadow:0 1px 5px rgba(0,0,0,.3)!important;font:13px/1.35 sans-serif}
   .leaflet-control-layers-expanded{width:232px;max-width:calc(100vw - 48px);color:#222}
   .lc-title{font-weight:700;font-size:13px;color:#13312a;margin-bottom:3px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;user-select:none}
+  .lc-title-actions{display:inline-flex;align-items:center;gap:8px}
+  .lc-map-shortcut{padding:2px 5px;border:1px solid #d9e2e5;border-radius:5px;background:#f6f9fa;color:#61737b;font:600 10px/1.2 sans-serif;white-space:nowrap}
+  @media(max-width:600px){.lc-map-shortcut{display:none}}
   .lc-arrow{font-size:11px;color:#789;transition:transform .15s}
   .lc-collapsed .lc-arrow{transform:rotate(-90deg)}
   .lc-collapsed .lc-title{margin-bottom:0}
@@ -3589,7 +3592,7 @@ _heavyZoomGate();   // 초기 1회(줌7→no-op, 딥링크 줌≥11이면 즉시
 })();
 // 모바일은 기본 닫힘 + 제목 탭으로 열고 닫기(화면 점유 최소화)
 (function(){ const c=_layerControl.getContainer(); if(!c) return;
-  const h=L.DomUtil.create('div','lc-title'); h.innerHTML='<span>🗺️ 레이어 · 범례</span><span class="lc-arrow">▾</span>';h.setAttribute('role','button');h.setAttribute('tabindex','0');h.setAttribute('aria-expanded','true');c.insertBefore(h, c.firstChild);
+  const h=L.DomUtil.create('div','lc-title'); h.innerHTML='<span>🗺️ 레이어 · 범례</span><span class="lc-title-actions"><kbd class="lc-map-shortcut" title="M 키로 일반지도·위성지도 전환">M 지도 전환</kbd><span class="lc-arrow">▾</span></span>';h.setAttribute('role','button');h.setAttribute('tabindex','0');h.setAttribute('aria-expanded','true');c.insertBefore(h, c.firstChild);
   L.DomEvent.disableScrollPropagation(c);
   function setLegendOpen(open){if(open)syncLegendClearance();c.classList.toggle('lc-collapsed',!open);h.setAttribute('aria-expanded',open?'true':'false');document.body.classList.toggle('legend-open',open);if(open){c.scrollTop=0;closeSearchPreview(true);}}
   function toggleLegend(e){L.DomEvent.stop(e);setLegendOpen(c.classList.contains('lc-collapsed'));}
@@ -3675,6 +3678,21 @@ map.on('baselayerchange', function(e){
   else if(saved==='오프라인 지도') {}   // IndexedDB 저장본을 읽은 뒤 _offlineInit에서 추가
   else baseOSM.addTo(map);
   _syncSatToggle(); _renderJapanLakeLabels(); })();
+// PC 단축키 M: 일반지도 ↔ 위성지도. 검색·입력·대화상자에서는 가로채지 않는다.
+function _toggleBasemapShortcut(){
+  const next=map.hasLayer(baseSat)?baseOSM:baseSat;
+  [baseOSM,baseSat,offlineBase].forEach(function(layer){if(map.hasLayer(layer))map.removeLayer(layer);});
+  next.addTo(map);
+  if(_layerControl&&_layerControl._update)_layerControl._update();
+  gaEvent('basemap_shortcut',{map:next===baseSat?'satellite':'standard'});
+}
+document.addEventListener('keydown',function(e){
+  if(e.code!=='KeyM'||e.repeat||e.isComposing||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
+  const target=e.target instanceof Element?e.target:null;
+  if(target&&target.closest('input,textarea,select,button,a,[contenteditable],[role="textbox"],[role="dialog"]'))return;
+  const gate=document.getElementById('gate');if(gate&&getComputedStyle(gate).display!=='none')return;
+  e.preventDefault();_toggleBasemapShortcut();
+});
 
 // ---- 등록 코스(KV) 로드/렌더 ----
 const _kvCourseGrp=L.layerGroup();
