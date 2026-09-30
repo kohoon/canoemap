@@ -101,6 +101,60 @@ test('old tour address keeps unsent records available', async () => {
 });
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`tour notices clear the bottom controls at ${viewport.width}px`, async () => {
+    const { browser, page, errors } = await setup(viewport);
+    try {
+      await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
+      const bounds = await page.evaluate(() => {
+        document.getElementById('tripbar').classList.add('rec');
+        toastMsg('GPS 위치를 다시 확인하고 있습니다. 잠시만 기다려 주세요.');
+        const hint = document.getElementById('hint').getBoundingClientRect();
+        const bar = document.getElementById('tripbar').getBoundingClientRect();
+        return { hintTop: hint.top, hintBottom: hint.bottom, hintLeft: hint.left, hintRight: hint.right, barTop: bar.top, width: innerWidth };
+      });
+      expect(bounds.hintBottom).toBeLessThanOrEqual(bounds.barTop - 8);
+      expect(bounds.hintTop).toBeGreaterThanOrEqual(0);
+      expect(bounds.hintLeft).toBeGreaterThanOrEqual(0);
+      expect(bounds.hintRight).toBeLessThanOrEqual(bounds.width);
+      expect(errors).toEqual([]);
+    } finally {
+      await browser.close();
+    }
+  });
+}
+
+test('long course hover labels stay within both horizontal map edges', async () => {
+  const { browser, page, errors } = await setup({ width: 786, height: 522 });
+  try {
+    await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
+    const bounds = await page.evaluate(() => {
+      map.setView([37.9, 127.7], 14);
+      const a = map.containerPointToLatLng([12, 160]);
+      const b = map.containerPointToLatLng([774, 160]);
+      renderKVCourse({ id: 'hover-edge-test', name: '엑스페디션#11 북한강 - 화천군 간동면 구만리 1393 ~ 춘천시 서면 오월리 163-2', km: 25.13, coords: [[a.lat, a.lng], [b.lat, b.lng]] });
+      const hit = _kvCourseLayers['hover-edge-test'].ls[3];
+      hit.addTo(map);
+      return [a, b].map((point) => {
+        hit.openTooltip(point);
+        const rect = hit.getTooltip().getElement().getBoundingClientRect();
+        return { left: rect.left, right: rect.right, width: rect.width, pane: hit.getTooltip().options.pane };
+      });
+    });
+    for (const rect of bounds) {
+      expect(rect.left).toBeGreaterThanOrEqual(0);
+      expect(rect.right).toBeLessThanOrEqual(786);
+      expect(rect.width).toBeLessThanOrEqual(330);
+      expect(rect.pane).toBe('courseTooltipPane');
+    }
+    expect(errors).toEqual([]);
+  } finally {
+    await browser.close();
+  }
+});
+
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
   test(`launch and landing icons select exact tour endpoints at ${viewport.width}px`, async () => {
     const { browser, page, errors } = await setup(viewport);
     try {
