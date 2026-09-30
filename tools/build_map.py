@@ -4741,7 +4741,7 @@ MinHeap.prototype.pop=function(){ const a=this.a, top=a[0], last=a.pop();
   return top; };
 
 // ---- 내 위치 ----
-let _locMarker=null,_locCircle=null,_locWatching=false,_locHasFix=false,_locFollowView=false,_locInternalMove=false,_locMode='person',_locModePending='',_locModeHits=0,_locLastEvent=null;
+let _locMarker=null,_locCircle=null,_locWatching=false,_locHasFix=false,_locFollowView=false,_locInternalMove=false,_locMode='person',_locModePending='',_locModeHits=0,_locLastEvent=null,_locLastErrorNotice=0;
 let _locSurfaceData=null,_locSurfaceLoading=null,_locSurfaceWindow=null;
 const _locModeLabel={car:'테슬라 모델 Y',canoe:'마이카누',person:'사람'};
 function _locIcon(mode){
@@ -4804,7 +4804,7 @@ function _setLocateState(active,loading){
 }
 function stopLocateFollow(){
   if(!_locWatching)return;
-  _locWatching=false;_locHasFix=false;_locFollowView=false;_locLastEvent=null;map.stopLocate();
+  _locWatching=false;_locHasFix=false;_locFollowView=false;_locLastEvent=null;_locLastErrorNotice=0;map.stopLocate();
   if(_locMarker){map.removeLayer(_locMarker);_locMarker=null;}
   if(_locCircle){map.removeLayer(_locCircle);_locCircle=null;}
   _setLocateState(false,false);
@@ -4830,7 +4830,7 @@ function locateMe(){
 map.on('dragstart zoomstart',pauseLocateViewFollow);
 map.on('locationfound', function(e){
   if(!_locWatching)return;
-  _locLastEvent=e;_setLocationMode(_classifyLocationMode(e),!_locMarker);
+  _locLastEvent=e;_locLastErrorNotice=0;_setLocationMode(_classifyLocationMode(e),!_locMarker);
   _setLocateState(true,false);
   const radius=Math.min(e.accuracy||0,2000);
   if(_locCircle)_locCircle.setLatLng(e.latlng).setRadius(radius);
@@ -4841,9 +4841,18 @@ map.on('locationfound', function(e){
   if(!_locHasFix){_locHasFix=true;if(_locFollowView)_locSetInitialView(e.latlng);}
   else if(_locFollowView)map.panTo(e.latlng,{animate:true,duration:.35,noMoveStart:true});
 });
-map.on('locationerror', function(){
-  stopLocateFollow();
-  L.popup().setLatLng(map.getCenter()).setContent('위치를 가져올 수 없습니다.<br><small>브라우저 위치 권한을 허용해 주세요</small>').openOn(map);
+map.on('locationerror', function(e){
+  if(!_locWatching)return;
+  if(+e.code===1){
+    stopLocateFollow();
+    L.popup().setLatLng(map.getCenter()).setContent('위치 접근이 차단되었습니다.<br><small>브라우저 권한과 기기의 위치 서비스 설정을 확인해 주세요.</small>').openOn(map);
+    return;
+  }
+  // 위치 미확인·시간 초과는 권한 거부가 아니다. GPS watch와 마지막 위치를 유지한다.
+  const msg=+e.code===3?'위치 응답이 지연됩니다. 추적은 계속 시도합니다.':'위치 신호가 일시적으로 끊겼습니다. 추적은 계속 시도합니다.';
+  _setLocateState(true,!_locHasFix);
+  const b=document.getElementById('locBtn');if(b)b.title=msg;
+  const now=Date.now();if(!_locLastErrorNotice||now-_locLastErrorNotice>60000){_locLastErrorNotice=now;toastMsg(msg);}
 });
 
 /* TRIPJS */

@@ -43,7 +43,7 @@ test('current-location mode can be toggled off and allows free map browsing', as
     Object.defineProperty(navigator, 'geolocation', { configurable: true, value: {
       watchPosition(success, error, options) {
         const id = nextId++;
-        watches.set(id, success);
+        watches.set(id, { success, error });
         window.__geoOptions = options;
         return id;
       },
@@ -56,9 +56,12 @@ test('current-location mode can be toggled off and allows free map browsing', as
       },
     }});
     window.__pushGeo = (latitude, longitude, accuracy) => {
-      for (const callback of watches.values()) {
-        callback({ coords: { latitude, longitude, accuracy }, timestamp: Date.now() });
+      for (const callbacks of watches.values()) {
+        callbacks.success({ coords: { latitude, longitude, accuracy }, timestamp: Date.now() });
       }
+    };
+    window.__geoError = (code) => {
+      for (const callbacks of watches.values()) callbacks.error({ code, message: 'simulated geolocation error' });
     };
   });
   const page = await context.newPage();
@@ -94,6 +97,12 @@ test('current-location mode can be toggled off and allows free map browsing', as
   expect(state.radius).toBe(8);
   expect(state.pressed).toBe('true');
 
+  await page.evaluate(() => window.__geoError(3));
+  expect(await page.evaluate(() => ({ watching: _locWatching, marker: !!_locMarker, cleared: window.__geoCleared || null, popup: !!document.querySelector('.leaflet-popup') }))).toEqual({ watching: true, marker: true, cleared: null, popup: false });
+  await page.evaluate(() => window.__geoError(2));
+  await page.evaluate(() => window.__pushGeo(37.9020, 127.7340, 9));
+  await expect.poll(() => page.evaluate(() => _locMarker && _locMarker.getLatLng().lng)).toBeCloseTo(127.7340, 4);
+
   await page.evaluate(() => { map.fire('dragstart'); map.setView([35.18, 129.08], 12); });
   await expect(page.locator('#locBtn')).toHaveClass(/active/);
   expect(await page.evaluate(() => ({ watching: _locWatching, following: _locFollowView, cleared: window.__geoCleared || null }))).toEqual({ watching: true, following: false, cleared: null });
@@ -113,6 +122,11 @@ test('current-location mode can be toggled off and allows free map browsing', as
     circle: _locCircle,
     pressed: document.querySelector('#locBtn').getAttribute('aria-pressed'),
   }))).toEqual({ watching: false, following: false, cleared: 1, marker: null, circle: null, pressed: 'false' });
+
+  await page.locator('#locBtn').click();
+  await page.evaluate(() => window.__geoError(1));
+  await expect(page.locator('#locBtn')).not.toHaveClass(/active/);
+  await expect(page.locator('.leaflet-popup')).toContainText('위치 접근이 차단되었습니다');
   expect(errors).toEqual([]);
 
   await context.close();
@@ -123,7 +137,7 @@ test('all generated map pages load the live-location code without JavaScript err
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
-  for (const route of ['/', '/map.html', '/tour/']) {
+  for (const route of ['/', '/map.html', '/tour/legacy.html']) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
     const errors = [];
