@@ -2730,6 +2730,11 @@ function _bindPlaceClick(m, getPlace, label){
       _measPickPoint(m.getLatLng(), typeof label==='function'?label():(label||'장소'));
       return;
     }
+    if(TOUR_MODE&&_tourPick&&m._kind==='canoe'){
+      if(e&&e.originalEvent) L.DomEvent.stopPropagation(e.originalEvent);
+      _tourPickPoint(m.getLatLng(),typeof label==='function'?label():(label||'런칭·랜딩지'));
+      return;
+    }
     openPlaceModal(getPlace());
   });
 }
@@ -4870,7 +4875,7 @@ function tripBackupClear(){ try{ localStorage.removeItem('mc_trk'); }catch(e){} 
 function openTripStart(){
   const u=getUser();if(!u||!u.uid){toastMsg('로그인 후 이용하세요');return;}
   cancelTourPick();
-  document.getElementById('tmBody').innerHTML='<h3>🛶 투어 시작</h3><div class="tm-note"><b>코스 지정:</b> 지도에서 출발지를 먼저 찍고, 이어서 도착지를 찍으면 물길을 따라 예정 코스를 계산합니다.</div><div class="tm-note">화면을 켠 상태에서 사용하세요. 화면 잠금·앱 전환 중에는 GPS가 누락될 수 있습니다. 정확한 위치·이동경로·기록 시각은 내 계정의 투어 기록으로 저장됩니다. 기본 비공개이며 직접 공유하면 다른 이용자에게 공개됩니다. 내 기록에서 공유 해제·삭제할 수 있습니다. 누락 구간의 추정 경로는 실측과 구분합니다.</div><label class="tm-toggle"><input type="checkbox" id="tmGpsAgree"> 위치·이동경로 기록에 동의합니다</label><button class="tm-choice pick" id="tmPick" disabled>📍 출발지·도착지 찍기</button><button class="tm-choice free" id="tmFree" disabled>코스 없이 자유 투어</button><div class="tm-row"><button class="tm-btn" onclick="closeTModal()">취소</button></div>';openTModalRaw();
+  document.getElementById('tmBody').innerHTML='<h3>🛶 투어 시작</h3><div class="tm-note"><b>코스 지정:</b> 지도에서 런칭·랜딩지 아이콘을 누르거나 원하는 지점을 찍어 출발지와 도착지를 차례로 선택하세요. 물길을 따라 예정 코스를 계산합니다.</div><div class="tm-note">화면을 켠 상태에서 사용하세요. 화면 잠금·앱 전환 중에는 GPS가 누락될 수 있습니다. 정확한 위치·이동경로·기록 시각은 내 계정의 투어 기록으로 저장됩니다. 기본 비공개이며 직접 공유하면 다른 이용자에게 공개됩니다. 내 기록에서 공유 해제·삭제할 수 있습니다. 누락 구간의 추정 경로는 실측과 구분합니다.</div><label class="tm-toggle"><input type="checkbox" id="tmGpsAgree"> 위치·이동경로 기록에 동의합니다</label><button class="tm-choice pick" id="tmPick" disabled>📍 출발지·도착지 선택</button><button class="tm-choice free" id="tmFree" disabled>코스 없이 자유 투어</button><div class="tm-row"><button class="tm-btn" onclick="closeTModal()">취소</button></div>';openTModalRaw();
   _tourConsentForStart=false;document.getElementById('tmGpsAgree').onchange=function(){_tourConsentForStart=this.checked;document.getElementById('tmPick').disabled=!this.checked;document.getElementById('tmFree').disabled=!this.checked;};
   document.getElementById('tmPick').onclick=beginTourPick;
   document.getElementById('tmFree').onclick=function(){closeTModal();startTrip(null,null);};
@@ -4883,7 +4888,7 @@ function cancelTourPick(){
 function beginTourPick(){
   cancelTourPick();try{if(measureMode)cancelMeasure();}catch(e){}try{if(typeof obsPlaceMode!=='undefined'&&obsPlaceMode)toggleObsPlace();}catch(e){}
   document.getElementById('tmodal').classList.remove('open');const seq=++_tourPickSeq;_tourPick={seq:seq,points:[],startMarker:null,endMarker:null,line:null,busy:false,stage:'start'};
-  document.getElementById('tripbar').classList.add('picking');map.getContainer().style.cursor='crosshair';_tourPickText('📍 출발지를 지도에서 찍으세요');toastMsg('지도에서 출발지를 먼저 찍으세요');
+  document.getElementById('tripbar').classList.add('picking');map.getContainer().style.cursor='crosshair';_tourPickText('📍 출발지 아이콘 또는 지도 지점을 선택하세요');toastMsg('런칭·랜딩지 아이콘 또는 지도에서 출발지를 선택하세요');
 }
 function _tourPickFailure(err){
   const msg=err==='overpass'?'물길 서버가 혼잡합니다. 도착지를 다시 찍어 주세요':err==='farwater'?'출발지와 도착지를 물길 가까이에 찍어 주세요':err==='detour'?'우회가 너무 큽니다. 더 가까운 도착지를 찍어 주세요':'두 지점을 잇는 물길을 찾지 못했습니다';
@@ -4896,14 +4901,18 @@ function _showTourPickConfirm(p,r){
   document.getElementById('tmPickedGo').onclick=function(){const c=p.course;_tourPick=null;[p.startMarker,p.endMarker,p.line].forEach(function(l){if(l)map.removeLayer(l);});closeTModal();startTrip(null,c);};
   document.getElementById('tmRepick').onclick=beginTourPick;
 }
-map.on('click',async function(e){
-  const p=_tourPick;if(!p||p.busy||p.stage==='confirm'||!e.latlng)return;
-  const pt={lat:+e.latlng.lat,lng:+e.latlng.lng};
-  if(!p.points.length){p.points.push(pt);p.stage='end';p.startMarker=L.circleMarker([pt.lat,pt.lng],{radius:8,color:'#fff',weight:3,fillColor:'#2e7d32',fillOpacity:1}).addTo(map).bindTooltip('출발',{permanent:true,direction:'top'});_tourPickText('🏁 도착지를 지도에서 찍으세요');toastMsg('이제 도착지를 찍으세요');return;}
+async function _tourPickPoint(ll,label){
+  const p=_tourPick;if(!p||p.busy||p.stage==='confirm'||!ll)return;
+  const pt={lat:+ll.lat,lng:+ll.lng};
+  if(!Number.isFinite(pt.lat)||!Number.isFinite(pt.lng))return;
+  if(!p.points.length){p.points.push(pt);p.stage='end';p.startMarker=L.circleMarker([pt.lat,pt.lng],{radius:8,color:'#fff',weight:3,fillColor:'#2e7d32',fillOpacity:1}).addTo(map).bindTooltip(label?'출발 · '+label:'출발',{permanent:true,direction:'top'});_tourPickText('🏁 도착지 아이콘 또는 지도 지점을 선택하세요');toastMsg((label?label+' 출발지 선택됨 · ':'')+'이제 도착지를 선택하세요');return;}
   p.points.push(pt);p.busy=true;p.stage='routing';p.endMarker=L.circleMarker([pt.lat,pt.lng],{radius:8,color:'#fff',weight:3,fillColor:'#c62828',fillOpacity:1}).addTo(map).bindTooltip('도착',{permanent:true,direction:'top'});_tourPickText('⏳ 물길 코스를 계산하고 있어요…');
   const seq=p.seq;let r=null;try{r=await waterRoute(p.points[0],p.points[1]);}catch(err){r={err:'overpass'};}if(!_tourPick||_tourPick!==p||p.seq!==seq)return;
   if(!r||r.err||!r.coords||r.coords.length<2){_tourPickFailure(r&&r.err);return;}
   p.line=L.polyline(r.coords,{color:'#1565c0',weight:7,opacity:.7,dashArray:'12 8'}).addTo(map);try{map.fitBounds(p.line.getBounds().pad(.15));}catch(e2){}_showTourPickConfirm(p,r);
+}
+map.on('click',function(e){
+  if(_tourPick&&e.latlng)_tourPickPoint(e.latlng);
 });
 let _tourConsentForStart=false,_tourStarting=false;
 function _tourStartWatch(){if(!_trk||_trk.watchId!=null||(_trk.paused&&_trk.pauseType==='manual'))return;_trk.watchId=navigator.geolocation.watchPosition(onTripPos,function(err){_tourGpsStatus(_tourGpsError(err),'bad');},{enableHighAccuracy:true,maximumAge:1000,timeout:15000});}

@@ -99,3 +99,43 @@ test('old tour address keeps unsent records available', async () => {
     await browser.close();
   }
 });
+
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`launch and landing icons select exact tour endpoints at ${viewport.width}px`, async () => {
+    const { browser, page, errors } = await setup(viewport);
+    try {
+      await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
+      await page.evaluate(() => {
+        const c = map.getCenter();
+        map.setView(c, 14);
+        const points = [[c.lat, c.lng - 0.001], [c.lat, c.lng + 0.001]];
+        window._tourTestMarkers = points.map((point, index) => {
+          const m = makeMarker(point, 'canoe');
+          _bindPlaceClick(m, () => ({ lat: point[0], lng: point[1], name: `테스트 ${index + 1}`, cat: '런칭/랜딩' }), () => `테스트 ${index + 1}`);
+          m.addTo(canoeLayer);
+          m.getElement().dataset.tourTest = String(index);
+          return m;
+        });
+        waterRoute = async (a, b) => ({ coords: [[a.lat, a.lng], [b.lat, b.lng]], km: 0.2 });
+      });
+      await page.locator('#tripStart').click();
+      await page.locator('#tmGpsAgree').check();
+      await page.locator('#tmPick').click();
+      await page.locator('[data-tour-test="0"]').click();
+      expect(await page.evaluate(() => _tourPick.points)).toEqual(await page.evaluate(() => {
+        const p = _tourTestMarkers[0].getLatLng();
+        return [{ lat: p.lat, lng: p.lng }];
+      }));
+      await expect(page.locator('#pmodal')).not.toHaveClass(/open/);
+      await page.locator('[data-tour-test="1"]').click();
+      await expect(page.locator('#tmPickedGo')).toBeVisible();
+      expect(await page.evaluate(() => _tourPick.points)).toEqual(await page.evaluate(() => _tourTestMarkers.map(m => {
+        const p = m.getLatLng(); return { lat: p.lat, lng: p.lng };
+      })));
+      expect(errors).toEqual([]);
+    } finally {
+      await browser.close();
+    }
+  });
+}
