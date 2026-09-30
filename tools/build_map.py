@@ -258,7 +258,7 @@ __GTAG__
   .lc-collapsed .lc-arrow{transform:rotate(-90deg)}
   .lc-collapsed .lc-title{margin-bottom:0}
   .lc-collapsed .leaflet-control-layers-list,.lc-collapsed .lc-key{display:none}
-  .leaflet-control-layers:not(.lc-collapsed){box-sizing:border-box;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .leaflet-control-layers:not(.lc-collapsed){box-sizing:border-box;max-height:max(80px,calc(var(--app-height) - var(--legend-top-clearance,190px) - 32px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
   .leaflet-control-layers:not(.lc-collapsed) .lc-title{position:sticky;top:0;z-index:3;background:#fff;padding:2px 0 5px}
   .leaflet-control-layers:not(.lc-collapsed)::-webkit-scrollbar{width:5px}
   .leaflet-control-layers:not(.lc-collapsed)::-webkit-scrollbar-thumb{background:#b8c5cb;border-radius:5px}
@@ -670,7 +670,9 @@ __GTAG__
   .tm-note{font-size:12.5px;line-height:1.5;color:#60747c;background:#eef6f8;border-radius:9px;padding:9px 10px;margin:8px 0}
   .tm-choice{width:100%;border:0;border-radius:10px;padding:13px 12px;font:800 14px sans-serif;cursor:pointer}.tm-choice.pick{background:#1565c0;color:#fff}.tm-choice.free{margin-top:8px;background:#edf2f4;color:#43545c}
   .tm-choice:disabled{opacity:.45;cursor:not-allowed}
-  html.tour-mode .leaflet-control-layers:not(.lc-collapsed){max-height:calc(100dvh - 180px)}
+  html.tour-mode .leaflet-control-layers.lc-collapsed{margin-bottom:var(--tour-bar-clearance,80px)!important}
+  body.legend-open #tripbar{visibility:hidden;pointer-events:none}
+  body.legend-open #hint{display:none}
   /* /TRIPCSS */
   .authbox{font:600 13px sans-serif}
   .authbox button{background:#FEE500;color:#191600;border:0;border-radius:6px;padding:8px 12px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)}
@@ -760,7 +762,7 @@ __GTAG__
     .admin-sheet-card .cf-t,.admin-members-card .cf-t{display:none}
     .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge{width:27px;height:27px;font-size:17px}
     .legend-c{width:138px;font-size:12px}
-    .leaflet-control-layers:not(.lc-collapsed){position:fixed;z-index:1200;left:12px;right:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px));width:auto!important;max-width:none;max-height:min(72vh,620px);max-height:min(72dvh,620px);margin:0!important;padding:10px 12px 14px!important;border-radius:17px!important;box-shadow:0 12px 34px rgba(20,43,55,.32)!important}
+    .leaflet-control-layers:not(.lc-collapsed){position:fixed;z-index:1200;left:12px;right:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px));width:auto!important;max-width:none;max-height:min(72dvh,620px,max(80px,calc(var(--app-height) - var(--legend-top-clearance,190px) - 32px)));margin:0!important;padding:10px 12px 14px!important;border-radius:17px!important;box-shadow:0 12px 34px rgba(20,43,55,.32)!important}
     .leaflet-control-layers:not(.lc-collapsed) .lc-title{font-size:15px;padding:11px 2px 8px;border-bottom:1px solid #e5eaec}
     .leaflet-control-layers:not(.lc-collapsed) .lc-title::before{content:"";position:absolute;top:3px;left:50%;width:34px;height:4px;border-radius:3px;background:#ccd7dc;transform:translateX(-50%)}
     .leaflet-control-layers:not(.lc-collapsed) .leaflet-control-layers-list{padding-top:3px}
@@ -768,7 +770,6 @@ __GTAG__
     .leaflet-control-layers:not(.lc-collapsed) .lc-section-body>label{display:flex;align-items:center;min-width:0;min-height:24px;margin:0}
     .leaflet-control-layers:not(.lc-collapsed) .lc-key{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
     .leaflet-control-layers:not(.lc-collapsed) .lc-key .lg-sub{grid-column:1/-1}
-    body.legend-open #hint{display:none}
     .pmodal{padding:16px 14px 20px}
     .cm-palette{grid-template-columns:repeat(6,32px)}
     #tripbar{bottom:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px))}.trip-live{padding:9px 7px;gap:3px}.trip-live b{font-size:13px}.trip-live small{font-size:9.5px}.tb-start{padding:12px 15px;font-size:14px}.tb-pause,.tb-refresh{padding:11px 10px;font-size:12px}
@@ -3706,9 +3707,20 @@ _heavyZoomGate();   // 초기 1회(줌7→no-op, 딥링크 줌≥11이면 즉시
     +'<div class="lg-row"><span class="sw" style="background:#1976d2;border-radius:50%"></span>일반지역</div>'
     +'<div class="lg-row"><span class="sw" style="background:#d32f2f;border-radius:50%"></span>위험지역</div>';
   c.appendChild(k); L.DomEvent.disableClickPropagation(k); L.DomEvent.disableScrollPropagation(c);
-  function toggleLegend(e){L.DomEvent.stop(e);const closed=c.classList.toggle('lc-collapsed');h.setAttribute('aria-expanded',closed?'false':'true');document.body.classList.toggle('legend-open',!closed);if(!closed)c.scrollTop=0;}
+  function setLegendOpen(open){c.classList.toggle('lc-collapsed',!open);h.setAttribute('aria-expanded',open?'true':'false');document.body.classList.toggle('legend-open',open);if(open){c.scrollTop=0;closeSearchPreview(true);}}
+  function toggleLegend(e){L.DomEvent.stop(e);setLegendOpen(c.classList.contains('lc-collapsed'));}
   L.DomEvent.on(h,'click',toggleLegend);L.DomEvent.on(h,'keydown',function(e){if(e.key==='Enter'||e.key===' '){L.DomEvent.preventDefault(e);toggleLegend(e);}});
-  if(isTouch||window.matchMedia('(max-width:520px)').matches){c.classList.add('lc-collapsed');document.body.classList.remove('legend-open');h.setAttribute('aria-expanded','false');}   // 모바일 폭: 기본 닫힘
+  setLegendOpen(false);
+  map.on('click',function(){if(document.body.classList.contains('legend-open'))setLegendOpen(false);});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('legend-open'))setLegendOpen(false);});
+  function syncLegendClearance(){
+    const top=document.querySelector('.leaflet-top.leaflet-right'),bar=document.getElementById('tripbar');
+    document.documentElement.style.setProperty('--legend-top-clearance',Math.ceil(top?top.getBoundingClientRect().bottom+12:190)+'px');
+    if(bar)document.documentElement.style.setProperty('--tour-bar-clearance',Math.ceil(bar.offsetHeight+(parseFloat(getComputedStyle(bar).bottom)||0)+12)+'px');
+  }
+  syncLegendClearance();window.addEventListener('resize',syncLegendClearance);
+  if(window.visualViewport)window.visualViewport.addEventListener('resize',syncLegendClearance);
+  if(window.ResizeObserver){const ro=new ResizeObserver(syncLegendClearance);const top=document.querySelector('.leaflet-top.leaflet-right'),bar=document.getElementById('tripbar');if(top)ro.observe(top);if(bar)ro.observe(bar);}
 })();
 // 오프라인 지도 생성은 별도 플로팅 버튼 대신 해당 베이스맵 행에서 시작한다.
 function _mountOfflineMaker(){

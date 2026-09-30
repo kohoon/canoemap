@@ -1439,6 +1439,7 @@ test('water level controls stay aligned and readable in the mobile legend', asyn
   const shortPage = await browser.newPage({ viewport: { width: 900, height: 520 } });
   await shortPage.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await shortPage.evaluate(() => hideGate());
+  await shortPage.locator('.lc-title').click();
   const shortViewportLayout = await shortPage.evaluate(() => {
     const panel = document.querySelector('.leaflet-control-layers');
     panel.scrollTop = panel.scrollHeight;
@@ -1459,6 +1460,50 @@ test('water level controls stay aligned and readable in the mobile legend', asyn
   expect(shortViewportLayout.titleVisible).toBe(true);
   expect(shortViewportLayout.clientHeight).toBeLessThanOrEqual(480);
   await shortPage.close();
+  await browser.close();
+});
+
+test('legend stays clear of account, admin, and tour controls on short screens', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const device of [
+    { viewport: { width: 390, height: 520 }, isMobile: true, hasTouch: true },
+    { viewport: { width: 574, height: 520 }, isMobile: false, hasTouch: false },
+  ]) {
+    const page = await browser.newPage(device);
+    await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => {
+      hideGate();
+      const admin = document.getElementById('adminActions');
+      admin.style.display = 'flex';
+      admin.querySelectorAll('a,button').forEach((item) => { item.style.display = 'flex'; });
+    });
+    await expect.poll(() => page.evaluate(() => {
+      const clearance = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--legend-top-clearance'));
+      return clearance - document.querySelector('.leaflet-top.leaflet-right').getBoundingClientRect().bottom;
+    })).toBeGreaterThanOrEqual(11);
+    const collapsed = await page.evaluate(() => {
+      const legend = document.querySelector('.leaflet-control-layers').getBoundingClientRect();
+      const tour = document.getElementById('tripbar').getBoundingClientRect();
+      return { legendBottom: legend.bottom, tourTop: tour.top, closed: document.querySelector('.leaflet-control-layers').classList.contains('lc-collapsed') };
+    });
+    expect(collapsed.closed).toBe(true);
+    expect(collapsed.legendBottom).toBeLessThanOrEqual(collapsed.tourTop - 8);
+    await page.locator('.lc-title').click();
+    const expanded = await page.evaluate(() => {
+      const legend = document.querySelector('.leaflet-control-layers').getBoundingClientRect();
+      const top = document.querySelector('.leaflet-top.leaflet-right').getBoundingClientRect();
+      return { legendTop: legend.top, legendLeft: legend.left, legendRight: legend.right, topBottom: top.bottom, tourHidden: getComputedStyle(document.getElementById('tripbar')).visibility === 'hidden' };
+    });
+    expect(expanded.legendTop).toBeGreaterThanOrEqual(expanded.topBottom + 7);
+    expect(expanded.legendLeft).toBeGreaterThanOrEqual(0);
+    expect(expanded.legendRight).toBeLessThanOrEqual(device.viewport.width);
+    expect(expanded.tourHidden).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.leaflet-control-layers')).toHaveClass(/lc-collapsed/);
+    await page.close();
+  }
   await browser.close();
 });
 

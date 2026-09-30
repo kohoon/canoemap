@@ -29,12 +29,14 @@ class LayerLegendLayoutTests(unittest.TestCase):
         self.assertIn(".wayback-open{display:inline-flex;align-items:center;justify-content:center;flex:none;height:26px", self.source)
 
     def test_expanded_legend_is_bounded_on_every_viewport(self):
-        self.assertIn("max-height:calc(100dvh - 40px);overflow-y:auto", self.source)
+        self.assertIn("var(--app-height) - var(--legend-top-clearance,190px) - 32px", self.source)
+        self.assertIn("const ro=new ResizeObserver(syncLegendClearance)", self.source)
+        self.assertIn("setLegendOpen(false)", self.source)
         self.assertIn("@media(max-width:520px)", self.source)
         self.assertIn("position:fixed;z-index:1200;left:12px;right:12px", self.source)
-        self.assertIn("max-height:min(72dvh,620px)", self.source)
+        self.assertIn("max-height:min(72dvh,620px,", self.source)
         self.assertIn("grid-template-columns:repeat(2,minmax(0,1fr))", self.source)
-        self.assertIn("isTouch||window.matchMedia('(max-width:520px)').matches", self.source)
+        self.assertIn("html.tour-mode .leaflet-control-layers.lc-collapsed{margin-bottom:var(--tour-bar-clearance,80px)", self.source)
 
 
 if __name__ == "__main__":
