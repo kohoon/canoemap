@@ -39,8 +39,9 @@ jobs:
       - name: Prepare Pages artifact
         run: |
           mkdir -p "$RUNNER_TEMP/mycanoe-tour"
-          cp tour/index.html "$RUNNER_TEMP/mycanoe-tour/index.html"
+          cp tour/index.html tour/legacy.html "$RUNNER_TEMP/mycanoe-tour/"
           cp tour/service-worker.js tour/manifest.webmanifest tour/pwa-icon.svg "$RUNNER_TEMP/mycanoe-tour/"
+          cp health.txt "$RUNNER_TEMP/mycanoe-tour/"
           cp protect_polygons.geojson wlz.geojson waterplay.geojson rivers.geojson roads.geojson daiso_stores.geojson hanaro_stores.geojson og.png "$RUNNER_TEMP/mycanoe-tour/"
 
       - name: Deploy Cloudflare Pages

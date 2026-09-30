@@ -1,4 +1,4 @@
-const APP_CACHE = 'mycanoe-app-v12';
+const APP_CACHE = 'mycanoe-app-v13';
 const LEGACY_PACK_CACHE = 'mycanoe-offline-pack-v1';
 const PACK_CACHE_PREFIX = 'mycanoe-offline-pack-v2-';
 const ESRI_IMAGERY_HOST = 'server.arcgisonline.com';
@@ -87,7 +87,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(cachedNavigation(request));
     return;
   }
-  if (url.origin === self.location.origin && url.pathname.endsWith('/__online_probe__')) {
+  if (url.origin === self.location.origin && url.pathname.endsWith('/health.txt')) {
     event.respondWith(fetch(request, { cache: 'no-store' }));
     return;
   }

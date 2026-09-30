@@ -14,7 +14,7 @@ def main():
     service_worker = (ROOT / "service-worker.js").read_text(encoding="utf-8")
     manifest = json.loads((ROOT / "manifest.webmanifest").read_text(encoding="utf-8"))
 
-    for output in (ROOT / "index.html", ROOT / "tour" / "index.html"):
+    for output in (ROOT / "index.html", ROOT / "tour" / "legacy.html"):
         html = output.read_text(encoding="utf-8")
         assert '<link rel="manifest" href="./manifest.webmanifest">' in html
         assert "navigator.serviceWorker.register('./service-worker.js')" in html
@@ -25,6 +25,12 @@ def main():
 
     for asset in ("service-worker.js", "manifest.webmanifest", "pwa-icon.svg"):
         assert (ROOT / "tour" / asset).read_bytes() == (ROOT / asset).read_bytes()
+
+    redirect = (ROOT / "tour" / "index.html").read_text(encoding="utf-8")
+    assert "https://canoe.crowdbase.kr/" in redirect
+    assert "mc_trip_queue_v1" in redirect and "mc_trk" in redirect
+    assert "./legacy.html" in redirect
+    assert "health.txt" in source and (ROOT / "health.txt").read_text().strip() == "ok"
 
     assert manifest["display"] == "standalone"
     assert manifest["start_url"] == "./"

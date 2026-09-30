@@ -1475,12 +1475,12 @@ export default {
         if (tp.endsWith("/feed")) {             // 공유 트립 목록(uid 비노출)
           let feed = []; try { feed = JSON.parse((KV ? await KV.get("feed") : null) || "[]"); } catch (e) {}
           return J(JSON.stringify(feed.map((x) => ({ id: x.id, nick: x.nick, title: x.title, distKm: x.distKm,
-            durSec: x.durSec, start: x.start, estimated: !!x.estimated, courseName: x.courseName || "",
+            durSec: x.durSec, start: x.start, estimated: !!x.estimated, recordVersion: x.recordVersion || 1, courseName: x.courseName || "",
             courseProgress: Math.max(0, Math.min(100, Number(x.courseProgress) || 0)) }))));
         }
         if (tp.endsWith("/board")) {            // 랭킹(uid → 가명 해시, 본인 행은 me 표시)
           let obj = {};
-          try { obj = JSON.parse((KV ? await KV.get("board") : null) || "{}"); } catch (e) {}
+          try { obj = JSON.parse((KV ? await KV.get("board_measured_v2") : null) || "{}"); } catch (e) {}
           let me = url.searchParams.get("uid") || "";
           if (me && !(await _memberOk(env, me, url.searchParams.get("tok")))) me = "";
           const arr = [];
@@ -1512,9 +1512,17 @@ export default {
           if (!KV) return TXT("no-store", 500);
 
           if (action === "save") {
-            let track = Array.isArray(b.track) ? b.track.slice(0, 5000) : [];
-            if (track.length < 2) return TXT("bad", 400);
+            const legacyEstimate = !!b.estimated && Array.isArray(b.gpsTrack) && b.gpsTrack.length >= 2 && !Array.isArray(b.estimatedTrack);
+            const sourceTrack = legacyEstimate ? b.gpsTrack : b.track;
+            if (!Array.isArray(sourceTrack) || sourceTrack.length < 2 || sourceTrack.length > 5000) return TXT("bad track", 400);
+            const track = sourceTrack.map((p) => Array.isArray(p) ? [Number(p[0]), Number(p[1]), Number(p[2])] : []);
+            if (track.some((p) => p.length !== 3 || !Number.isFinite(p[0]) || !Number.isFinite(p[1]) || !Number.isFinite(p[2]) || Math.abs(p[0]) > 90 || Math.abs(p[1]) > 180 || p[2] <= 0)) return TXT("bad track", 400);
+            for (let i = 1; i < track.length; i++) if (track[i][2] < track[i - 1][2]) return TXT("bad time", 400);
             const breaks = Array.isArray(b.breaks) ? b.breaks.slice(0, 200).map(Number).filter((x) => Number.isInteger(x) && x > 0 && x < track.length) : [];
+            if (legacyEstimate) for (let i = 1; i < track.length; i++) if (track[i][2] - track[i - 1][2] > 30000 && !breaks.includes(i)) breaks.push(i);
+            for (let i = 1; i < track.length; i++) if (!breaks.includes(i)) { const elapsed = Math.max(1, (track[i][2] - track[i - 1][2]) / 1000); if (elapsed > 30 || _hav(track[i - 1], track[i]) / elapsed > 20) breaks.push(i); }
+            const estimateSource = legacyEstimate ? b.track : b.estimatedTrack;
+            const estimatedTrack = Array.isArray(estimateSource) ? estimateSource.slice(0, 5000).filter((p) => Array.isArray(p) && Number.isFinite(Number(p[0])) && Number.isFinite(Number(p[1])) && Math.abs(Number(p[0])) <= 90 && Math.abs(Number(p[1])) <= 180).map((p) => [Number(p[0]), Number(p[1])]) : [];
             const distKm = Math.round(_trackKm(track, breaks) * 100) / 100;
             const clientId = String(b.clientId || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64);
             const id = String(b.id) + "_" + (clientId || Date.now());
@@ -1529,25 +1537,26 @@ export default {
               title: String(b.title || "카누잉").slice(0, 40),
               start: Number(b.start) || 0, end: Number(b.end) || 0, durSec: Number(b.durSec) || 0,
               distKm, track, breaks, launch: b.launch || null, landing: b.landing || null,
-              gpsTrack: Array.isArray(b.gpsTrack) ? b.gpsTrack.slice(0, 5000) : null,
+              gpsTrack: track, estimatedTrack, estimatedKm: Math.round(_trackKm(estimatedTrack, []) * 100) / 100,
+              recordVersion: 2,
               estimated: !!b.estimated, courseId: String(b.courseId || "").slice(0, 30),
               courseName: String(b.courseName || "").slice(0, 80), courseProgress: Math.max(0, Math.min(100, Number(b.courseProgress) || 0)),
               shared: !!b.shared, ct: Date.now(), clientId: clientId,
             };
             await KV.put("trip:" + id, JSON.stringify(trip));
-            const sum = { id, title: trip.title, start: trip.start, distKm, durSec: trip.durSec, shared: trip.shared,
+            const sum = { id, title: trip.title, start: trip.start, distKm, durSec: trip.durSec, shared: trip.shared, recordVersion: 2,
               estimated: trip.estimated, courseName: trip.courseName, courseProgress: trip.courseProgress };
             let ut = []; try { ut = JSON.parse((await KV.get("utrips:" + trip.uid)) || "[]"); } catch (e) {}
             ut.unshift(sum); if (ut.length > 500) ut = ut.slice(0, 500);
             await KV.put("utrips:" + trip.uid, JSON.stringify(ut));
-            let bd = {}; try { bd = JSON.parse((await KV.get("board")) || "{}"); } catch (e) {}
+            let bd = {}; try { bd = JSON.parse((await KV.get("board_measured_v2")) || "{}"); } catch (e) {}
             const en = bd[trip.uid] || { nick: trip.nick, totalKm: 0, trips: 0 };
             en.nick = trip.nick || en.nick; en.totalKm = Math.round((en.totalKm + distKm) * 100) / 100; en.trips++;
-            bd[trip.uid] = en; await KV.put("board", JSON.stringify(bd));
+            bd[trip.uid] = en; await KV.put("board_measured_v2", JSON.stringify(bd));
             if (trip.shared) {
               let feed = []; try { feed = JSON.parse((await KV.get("feed")) || "[]"); } catch (e) {}
               feed.unshift({ id, uid: trip.uid, nick: trip.nick, title: trip.title, distKm, durSec: trip.durSec, start: trip.start,
-                estimated: trip.estimated, courseName: trip.courseName, courseProgress: trip.courseProgress });
+                estimated: trip.estimated, recordVersion: 2, courseName: trip.courseName, courseProgress: trip.courseProgress });
               if (feed.length > 500) feed = feed.slice(0, 500);
               await KV.put("feed", JSON.stringify(feed));
             }
@@ -1565,7 +1574,7 @@ export default {
             let feed = []; try { feed = JSON.parse((await KV.get("feed")) || "[]"); } catch (e) {}
             feed = feed.filter((x) => x.id !== id);
             if (trip.shared) feed.unshift({ id, uid: trip.uid, nick: trip.nick, title: trip.title, distKm: trip.distKm,
-              durSec: trip.durSec, start: trip.start, estimated: trip.estimated,
+              durSec: trip.durSec, start: trip.start, estimated: trip.estimated, recordVersion: trip.recordVersion || 1,
               courseName: trip.courseName, courseProgress: trip.courseProgress });
             if (feed.length > 500) feed = feed.slice(0, 500);
             await KV.put("feed", JSON.stringify(feed));
@@ -1582,11 +1591,11 @@ export default {
             await KV.put("utrips:" + trip.uid, JSON.stringify(ut.filter((x) => x.id !== id)));
             let feed = []; try { feed = JSON.parse((await KV.get("feed")) || "[]"); } catch (e) {}
             await KV.put("feed", JSON.stringify(feed.filter((x) => x.id !== id)));
-            let bd = {}; try { bd = JSON.parse((await KV.get("board")) || "{}"); } catch (e) {}
-            if (bd[trip.uid]) {
+            let bd = {}; try { bd = JSON.parse((await KV.get("board_measured_v2")) || "{}"); } catch (e) {}
+            if (trip.recordVersion === 2 && bd[trip.uid]) {
               bd[trip.uid].totalKm = Math.max(0, Math.round((bd[trip.uid].totalKm - trip.distKm) * 100) / 100);
               bd[trip.uid].trips = Math.max(0, bd[trip.uid].trips - 1);
-              await KV.put("board", JSON.stringify(bd));
+              await KV.put("board_measured_v2", JSON.stringify(bd));
             }
             return J(JSON.stringify({ ok: true }));
           }

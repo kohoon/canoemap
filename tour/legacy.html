@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>카누맵 — 카누 명소·코스·물길 거리측정</title>
+<title>카누맵 투어 — 실시간 GPS 카누잉 기록</title>
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://canoe.crowdbase.kr/">
-<meta property="og:title" content="카누맵">
+<meta property="og:url" content="https://tour.crowdbase.kr/">
+<meta property="og:title" content="카누맵 투어">
 <meta property="og:description" content="전국 카누 명소·런칭/랜딩·카누잉 코스·물길 거리측정. 카누 타는 곳을 한눈에.">
 <meta property="og:image" content="https://canoe.crowdbase.kr/og.png?v=20260928-safe">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="카누맵">
+<meta name="twitter:title" content="카누맵 투어">
 <meta name="twitter:description" content="전국 카누 명소·코스·물길 거리측정">
 <meta name="twitter:image" content="https://canoe.crowdbase.kr/og.png?v=20260928-safe">
 <meta name="theme-color" content="#0f6174">
@@ -646,17 +646,16 @@
     <p>전국 카누 명소 · 코스 · 수위 · 안전정보</p>
   </div>
   <div class="gate-card">
-
+    <h1>카누맵 투어<span class="beta-tag">BETA</span></h1>
+    <p class="gate-sub">카누 활동을 실시간으로 기록하세요</p>
     <ul class="gate-feats">
-      <li><span>📍</span><span>어디서 타고 내릴지 확인<small>런칭·랜딩 장소와 이용자 등록 지점</small></span></li>
-      <li><span>🛶</span><span>물길을 따라 코스 계획<small>거리측정·추천 코스·수위와 CCTV</small></span></li>
-      <li><span>🛟</span><span>출발 전 규제와 위험 확인<small>상수원보호구역·금지구역·지형지물</small></span></li>
+      <li><span>🧭</span><span>GPS 이동 경로·거리·속도</span></li>
+      <li><span>🗺️</span><span>지정 코스 진행률 확인</span></li>
+      <li><span>⏸️</span><span>휴식 제외 활동 시간과 기록 저장</span></li>
     </ul>
-    <a id="gateOpenChat" class="gate-openchat" href="https://open.kakao.com/o/gcURegPi" target="_blank" rel="noopener"><span aria-hidden="true">💬</span><span><b>카누맵 이용자 그룹 오픈채팅</b><small>운영자와 이용자가 현장 정보를 함께 나눕니다</small></span><span class="go-arr" aria-hidden="true">↗</span></a>
-    <div class="gate-warn"><span>⚠️</span><span>현장 안전과 최신 규정은 출발 전에 다시 확인해 주세요.</span></div>
-    <button id="gateLogin" class="kakao-btn"><svg class="kakao-ico" viewBox="0 0 24 24"><path d="M12 3.4C6.7 3.4 2.4 6.9 2.4 11.1c0 2.7 1.8 5.1 4.5 6.5-.2.7-.7 2.5-.8 2.9-.1.5.2.5.4.4.2-.1 2.5-1.7 3.5-2.4.5.1 1 .2 1.5.2 5.3 0 9.6-3.4 9.6-7.6S17.3 3.4 12 3.4z"/></svg>카카오로 시작하기</button>
-    <small>로그인 후 장소·코스 저장과 등록 기능을 이용할 수 있어요</small>
-
+    <div class="gate-warn"><span>⚠️</span><span>화면이 꺼지면 GPS가 누락될 수 있어요. 복귀 시 물길 기준으로 추정합니다.</span></div>
+    <button id="gateLogin" class="kakao-btn"><svg class="kakao-ico" viewBox="0 0 24 24"><path d="M12 3.4C6.7 3.4 2.4 6.9 2.4 11.1c0 2.7 1.8 5.1 4.5 6.5-.2.7-.7 2.5-.8 2.9-.1.5.2.5.4.4.2-.1 2.5-1.7 3.5-2.4.5.1 1 .2 1.5.2 5.3 0 9.6-3.4 9.6-7.6S17.3 3.4 12 3.4z"/></svg>카카오로 투어 시작</button>
+    <small>로그인 후 바로 기록할 수 있어요</small>
   </div>
 </div>
 <div id="pmodal" class="pmodal-wrap">
@@ -814,7 +813,7 @@ const MILITARY_DEMARCATION_LINE = [[126.6895499,37.8432042],[126.6890033,37.8482
 const VKEY = "9EC86A7C-7341-3FE5-BA0D-FDB52EC8E3EE";   // V-World 키(도메인잠금). 브라우저가 직접 호출. 비면 Nominatim
 const WORKER_URL = "https://mycanoe-map.kohoon0140.workers.dev/";  // 카카오 로그인 OAuth Worker
 const GA_ID = "G-W75JHWTDYS";        // GA4 측정 ID(비면 추적 off)
-const TOUR_MODE = new URLSearchParams(location.search).get('tour')==='1';
+const TOUR_MODE = true;
 if(TOUR_MODE)document.documentElement.classList.add('tour-mode');
 function syncAppViewport(){
   const vv=window.visualViewport,h=Math.round(vv&&vv.height?vv.height:window.innerHeight);

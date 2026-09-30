@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     source = (ROOT / "tools" / "build_map.py").read_text(encoding="utf-8")
     index = (ROOT / "index.html").read_text(encoding="utf-8")
-    tour = (ROOT / "tour" / "index.html").read_text(encoding="utf-8")
+    tour = (ROOT / "tour" / "legacy.html").read_text(encoding="utf-8")
     manifest = json.loads((ROOT / "manifest.webmanifest").read_text(encoding="utf-8"))
     lakes = json.loads((ROOT / "data" / "japan_lakes.json").read_text(encoding="utf-8"))
 
@@ -22,7 +22,7 @@ def main():
     assert "마이카누 투어" not in source + index + tour
     assert "마이카누 카페" not in source + index + tour
     assert "cafe.naver.com/mytalon" not in source + index + tour
-    assert '<h1>카누맵<span class="beta-tag">BETA</span></h1>' in index
+    assert '<div class="gate-brand-name">카누맵<span class="beta-tag">BETA</span></div>' in index
     assert '<h1>카누맵 투어<span class="beta-tag">BETA</span></h1>' in tour
     assert 'https://canoe.crowdbase.kr/og.png?v=20260928-safe' in index
 

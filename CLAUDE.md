@@ -15,7 +15,7 @@
 
 ## 빌드 & 배포 (반드시 이 순서)
 ```
-python tools/build_map.py        # index.html / map.html + tour/index.html(투어 운영)
+python tools/build_map.py        # index.html / map.html(통합 투어) + tour/index.html(이전 안내) + tour/legacy.html(기록 복구)
 python tools/build_map.py test   # test.html(투어 테스트)
 # → Playwright headless 검증: JS 에러 0 + 핵심 함수/엔드포인트
 git add … && git commit && git push   # GitHub Pages 자동 반영, Worker 1~2분 자동 재배포
@@ -25,7 +25,7 @@ tools/deploy_tour.sh             # Cloudflare Pages mycanoe-tour 정적 자원 �
 - 사용자가 로컬 수정만 요청하거나 배포 금지를 명시하지 않은 한, 서비스 코드·데이터 수정의 완료 조건은
   **검증 → 현재 작업 파일만 선별 커밋 → `main` 푸시 → GitHub Actions의 투어 배포 확인 → 공개 URL 확인**까지다.
   미완성 초안과 문서 전용 변경은 자동 배포하지 않는다. 기존 미커밋 변경은 현재 작업 커밋에 섞지 않는다.
-- `.github/workflows/deploy-tour.yml`이 `main` 푸시 후 투어 정적 자원을 Cloudflare Pages에 배포한다.
+- `.github/workflows/deploy-tour.yml`이 `main` 푸시 후 기존 투어 주소의 이전 안내·기록 복구 자원을 Cloudflare Pages에 배포한다.
   저장소 Secret `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`가 필요하며, 로컬 수동 재배포만
   `tools/deploy_tour.sh`를 사용한다.
 - 커밋 메시지 끝: `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` (기존 히스토리 관례).

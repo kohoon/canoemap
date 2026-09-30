@@ -1,6 +1,6 @@
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 export const TERMS_VERSION = "2026-09-16";
-export const PRIVACY_VERSION = "2026-09-16";
+export const PRIVACY_VERSION = "2026-09-30";
 export const ONBOARDING_VERSION = 1;
 const LEGEND_PREF_KEYS = [
   "protect", "wlz", "waterplay", "courses", "famous", "canoe", "obstacles",

@@ -140,7 +140,7 @@ test('tour offline control does not cover tracker actions', async () => {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto(baseURL + '/tour/?course=1', { waitUntil: 'domcontentloaded' });
+  await page.goto(baseURL + '/?course=1&tour=1', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#gate')).toBeHidden({ timeout: 10000 });
   const boxes = await page.evaluate(() => ({
     offline: document.querySelector('#offlineCtl').getBoundingClientRect().toJSON(),
