@@ -3555,7 +3555,7 @@ _heavyZoomGate();   // 초기 1회(줌7→no-op, 딥링크 줌≥11이면 즉시
     +'<div class="lg-row"><span class="sw" style="background:#1976d2;border-radius:50%"></span>일반지역</div>'
     +'<div class="lg-row"><span class="sw" style="background:#d32f2f;border-radius:50%"></span>위험지역</div>';
   c.appendChild(k); L.DomEvent.disableClickPropagation(k); L.DomEvent.disableScrollPropagation(c);
-  function setLegendOpen(open){c.classList.toggle('lc-collapsed',!open);h.setAttribute('aria-expanded',open?'true':'false');document.body.classList.toggle('legend-open',open);if(open){c.scrollTop=0;closeSearchPreview(true);}}
+  function setLegendOpen(open){if(open)syncLegendClearance();c.classList.toggle('lc-collapsed',!open);h.setAttribute('aria-expanded',open?'true':'false');document.body.classList.toggle('legend-open',open);if(open){c.scrollTop=0;closeSearchPreview(true);}}
   function toggleLegend(e){L.DomEvent.stop(e);setLegendOpen(c.classList.contains('lc-collapsed'));}
   L.DomEvent.on(h,'click',toggleLegend);L.DomEvent.on(h,'keydown',function(e){if(e.key==='Enter'||e.key===' '){L.DomEvent.preventDefault(e);toggleLegend(e);}});
   setLegendOpen(false);

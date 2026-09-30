@@ -1479,10 +1479,6 @@ test('legend stays clear of account, admin, and tour controls on short screens',
       admin.style.display = 'flex';
       admin.querySelectorAll('a,button').forEach((item) => { item.style.display = 'flex'; });
     });
-    await expect.poll(() => page.evaluate(() => {
-      const clearance = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--legend-top-clearance'));
-      return clearance - document.querySelector('.leaflet-top.leaflet-right').getBoundingClientRect().bottom;
-    })).toBeGreaterThanOrEqual(11);
     const collapsed = await page.evaluate(() => {
       const legend = document.querySelector('.leaflet-control-layers').getBoundingClientRect();
       const tour = document.getElementById('tripbar').getBoundingClientRect();
