@@ -259,6 +259,10 @@
     document.getElementById("search").addEventListener("input",render);
     PaddlingAuth.acceptCallback();
     PaddlingAuth.verify().then(state=>{if(state)render();});
+    window.addEventListener("storage",event=>{
+      if(event.key!=="mc_user")return;
+      PaddlingAuth.verify().then(state=>{if(state)render();});
+    });
   </script>
 </body>
 </html>

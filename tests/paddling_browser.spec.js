@@ -119,3 +119,14 @@ test('Kakao callback and existing map session unlock both pages', async ({ page 
   await expect(page.locator('.layout')).toBeVisible();
   await expect(page.locator('.term').first()).toBeVisible();
 });
+
+test('logging out in another same-origin tab locks an open school page', async ({ context, page }) => {
+  await signInMock(page);
+  await page.goto(`${baseURL}/paddling/`);
+  await expect(page.locator('.school-visual')).toBeVisible();
+  const mapTab = await context.newPage();
+  await mapTab.goto(baseURL);
+  await mapTab.evaluate(() => localStorage.removeItem('mc_user'));
+  await expect(page.locator('#authGate')).toBeVisible();
+  await expect(page.locator('.layout')).toBeHidden();
+});

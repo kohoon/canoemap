@@ -983,12 +983,18 @@
     PaddlingAuth.acceptCallback();
     document.getElementById("loginBtn").onclick=startLogin;
     document.getElementById("logoutBtn").onclick=()=>{setUser(null);closeSkill(false);closeQuick();PaddlingAuth.verify();};
-    PaddlingAuth.verify().then(state=>{
+    function unlockSchool(state){
       if(!state)return;
       loadUserState(state);
       logPaddlingVisit();
       const initialSkill=bySlug[new URL(location.href).searchParams.get("skill")];
       if(initialSkill)openSkill(initialSkill,false);
+    }
+    PaddlingAuth.verify().then(unlockSchool);
+    window.addEventListener("storage",event=>{
+      if(event.key!=="mc_user")return;
+      closeVideo();closeSkill(false);closeQuick();
+      PaddlingAuth.verify().then(unlockSchool);
     });
   </script>
 </body>
