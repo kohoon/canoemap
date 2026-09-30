@@ -10,6 +10,13 @@
     *{box-sizing:border-box}
     html{scroll-behavior:smooth;scroll-padding-top:126px}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+    body:not(.school-authorized)>:not(#authGate):not(script){display:none!important}
+    #authGate[hidden]{display:none}
+    #authGate{min-height:100dvh;display:grid;place-items:center;padding:24px}
+    .auth-card{width:min(420px,100%);padding:32px 26px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(26,65,58,.09);text-align:center}
+    .auth-card h2{margin:0 0 10px;font-size:24px}.auth-card p{color:var(--muted);line-height:1.6}
+    .auth-card button{width:100%;margin-top:14px;border:0;border-radius:9px;background:#fee500;padding:14px;font-weight:900;cursor:pointer}
+    .auth-card a{display:inline-block;margin-top:18px;color:var(--green);font-size:13px}
     button,input{font:inherit}
     .topbar{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.97);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
     .top-inner{width:min(980px,100%);margin:auto;padding:15px 20px 12px}
@@ -52,6 +59,7 @@
   </style>
 </head>
 <body>
+  <section id="authGate" aria-live="polite"><div class="auth-card"><h2>패들 용어사전</h2><p id="gateStatus">회원 상태를 확인하고 있습니다…</p><button id="gateAction" type="button" hidden>카카오 로그인</button><a href="../">패들링 스쿨로 돌아가기</a></div></section>
   <header class="topbar">
     <div class="top-inner">
       <div class="head">
@@ -70,6 +78,7 @@
     </main>
   </div>
   <footer>교육 자료마다 번역이 다를 수 있어 영문 용어를 함께 표기합니다.</footer>
+  <script src="../auth-gate.js"></script>
   <script>
     const groups=[
       {id:"direction",name:"방향 기준",terms:[
@@ -248,7 +257,8 @@
       document.getElementById("empty").style.display=matched.length?"none":"block";
     }
     document.getElementById("search").addEventListener("input",render);
-    render();
+    PaddlingAuth.acceptCallback();
+    PaddlingAuth.verify().then(state=>{if(state)render();});
   </script>
 </body>
 </html>

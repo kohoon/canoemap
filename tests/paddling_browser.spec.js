@@ -7,6 +7,12 @@ const root = path.resolve(__dirname, '..');
 let server;
 let baseURL;
 
+async function signInMock(page) {
+  await page.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'test-member', nick: '테스트', tok: 'valid-token' })));
+  await page.route('**/paddling-state**', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, favorites: [], recent: [], progress: {} }) }));
+  await page.route('**/log', route => route.fulfill({ status: 200, body: 'ok' }));
+}
+
 test.beforeAll(async () => {
   server = http.createServer((request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
@@ -34,6 +40,7 @@ test('beavertail paddle anatomy stays visible on desktop and mobile', async () =
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const context = await browser.newContext({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
     const page = await context.newPage();
+    await signInMock(page);
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseURL}/paddling/?skill=paddle-anatomy`, { waitUntil: 'domcontentloaded' });
@@ -58,6 +65,7 @@ test('learning paths and on-water practice card work on desktop and mobile', asy
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const context = await browser.newContext({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
     const page = await context.newPage();
+    await signInMock(page);
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseURL}/paddling/`, { waitUntil: 'domcontentloaded' });
@@ -77,10 +85,37 @@ test('learning paths and on-water practice card work on desktop and mobile', asy
     await expect(page.locator('#quickMode')).toHaveClass(/open/);
     await expect(page.locator('.quick-cue')).toHaveCount(3);
     await page.locator('[data-quick-state="doing"]').click();
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('paddling_guest_state_v1')).progress['canoe-safety-equipment'])).toBe('doing');
+    await expect(page.locator('[data-quick-state="doing"]')).toHaveClass(/active/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     expect(errors).toEqual([]);
     await context.close();
   }
   await browser.close();
+});
+
+test('anonymous and invalid sessions cannot open school or glossary', async ({ page }) => {
+  await page.goto(`${baseURL}/paddling/?skill=j-stroke`);
+  await expect(page.locator('#authGate')).toBeVisible();
+  await expect(page.locator('#gateAction')).toHaveText('카카오 로그인');
+  await expect(page.locator('#skillModal')).toBeHidden();
+  await expect(page.locator('.layout')).toBeHidden();
+  await page.goto(`${baseURL}/paddling/glossary/`);
+  await expect(page.locator('#authGate')).toBeVisible();
+  await expect(page.locator('.layout')).toBeHidden();
+  await page.evaluate(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'fake', tok: 'fake' })));
+  await page.route('**/paddling-state**', route => route.fulfill({ status: 401, contentType: 'application/json', body: '{"ok":false}' }));
+  await page.reload();
+  await expect(page.locator('#gateAction')).toHaveText('카누맵에서 로그인·회원가입');
+  await expect(page.locator('.layout')).toBeHidden();
+});
+
+test('Kakao callback and existing map session unlock both pages', async ({ page }) => {
+  await page.route('**/paddling-state**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true,"favorites":[],"recent":[],"progress":{}}' }));
+  await page.route('**/log', route => route.fulfill({ status: 200, body: 'ok' }));
+  await page.goto(`${baseURL}/paddling/#login=test-member&nick=%ED%85%8C%EC%8A%A4%ED%8A%B8&tok=valid-token`);
+  await expect(page.locator('.school-visual')).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('mc_user'))).toContain('test-member');
+  await page.goto(`${baseURL}/paddling/glossary/`);
+  await expect(page.locator('.layout')).toBeVisible();
+  await expect(page.locator('.term').first()).toBeVisible();
 });
