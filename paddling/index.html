@@ -56,6 +56,16 @@
     .intro{border-left:4px solid var(--green);background:#fff;padding:16px 18px;margin-bottom:28px;box-shadow:var(--shadow)}
     .intro strong{display:block;font-size:15px;margin-bottom:5px}
     .intro p{margin:0;color:var(--muted);font-size:13px;line-height:1.65}
+    .learn-home{margin:0 0 34px}
+    .learn-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:12px}
+    .learn-head h2{margin:0;font-size:20px}.learn-head p{margin:0;color:var(--muted);font-size:12px}
+    .paths{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .path-card{display:flex;flex-direction:column;min-width:0;padding:15px;border:1px solid var(--line);border-radius:8px;background:#fff;box-shadow:0 3px 12px rgba(26,65,58,.05)}
+    .path-card h3{margin:0;font-size:15px}.path-card p{min-height:38px;margin:7px 0 12px;color:var(--muted);font-size:12px;line-height:1.55}
+    .path-count{display:flex;justify-content:space-between;color:#60716d;font-size:11px;font-weight:800}
+    .path-bar{height:6px;margin:7px 0 12px;overflow:hidden;border-radius:99px;background:#e4ece9}.path-bar i{display:block;height:100%;background:var(--green)}
+    .path-start{margin-top:auto;border:0;border-radius:5px;padding:9px 10px;background:var(--green-soft);color:var(--green);font-size:12px;font-weight:900;cursor:pointer}
+    .progress-badge{background:#edf0f8;color:#47537d}.progress-badge.done{background:#dbf2e7;color:#126143}.progress-badge.doing{background:#fff1cf;color:#80530b}
     .school-visual{position:relative;aspect-ratio:2.35/1;margin-bottom:16px;overflow:hidden;background:#dce7e3}
     .school-visual img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 54%}
     .category{margin-bottom:42px}
@@ -125,6 +135,17 @@
     .related button{border:1px solid #b8d0ca;background:#fff;color:var(--green);border-radius:5px;padding:7px 9px;font-size:12px;font-weight:800;cursor:pointer}
     .empty{display:none;padding:30px;background:#fff;border:1px solid var(--line);text-align:center;color:var(--muted)}
     .safety{background:var(--amber-soft);border:1px solid #e6c98f;padding:13px 15px;font-size:12px;line-height:1.6;color:#624315;margin-top:18px}
+    .quick-mode{position:fixed;inset:0;z-index:130;display:none;background:#092822;color:#fff;overflow:auto}
+    .quick-mode.open{display:block}.quick-shell{width:min(560px,100%);min-height:100%;margin:auto;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom))}
+    .quick-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.quick-kicker{color:#9ed7c8;font-size:12px;font-weight:900;letter-spacing:.08em}
+    .quick-close{width:44px;height:44px;border:1px solid #6f938a;border-radius:50%;background:transparent;color:#fff;font-size:28px;line-height:1;cursor:pointer}
+    .quick-title{margin:18px 0 7px;font-size:clamp(28px,8vw,42px);line-height:1.15}.quick-en{color:#a8c6be;font-size:14px;font-weight:800}
+    .quick-alert{margin:18px 0;padding:11px 13px;border-left:4px solid #ffc54d;background:#173c34;color:#ffe4a0;font-size:12px;font-weight:800;line-height:1.55}
+    .quick-cues{display:grid;gap:10px;margin:16px 0}.quick-cue{padding:16px;border:1px solid #52776e;border-radius:10px;background:#12362f}
+    .quick-cue strong{display:block;margin-bottom:6px;color:#75d3ba;font-size:12px}.quick-cue span{font-size:clamp(17px,4.8vw,22px);font-weight:850;line-height:1.4}
+    .quick-state{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.quick-state button{border:1px solid #6f938a;border-radius:8px;padding:13px 8px;background:transparent;color:#fff;font-size:13px;font-weight:900;cursor:pointer}.quick-state button.active{border-color:#ffd069;background:#ffd069;color:#18302c}
+    .quick-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}.quick-nav button{border:0;border-radius:8px;padding:14px 10px;background:#e8f4f0;color:#173b33;font-size:13px;font-weight:900;cursor:pointer}.quick-nav button:disabled{opacity:.35}
+    .quick-wake{margin:13px 0 0;color:#9eb9b2;font-size:11px;text-align:center}
     footer{border-top:1px solid var(--line);padding:22px 20px 36px;text-align:center;color:var(--muted);font-size:11px;line-height:1.6}
     @media(max-width:860px){
       html{scroll-padding-top:112px}
@@ -138,6 +159,7 @@
       .top-inner{padding:12px 14px 8px}
       .tools{margin-top:10px}
       .search{width:100%}
+      .paths{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
     @media(max-width:640px){
       .brand-row{align-items:flex-start;flex-wrap:wrap}
@@ -162,6 +184,7 @@
       .equipment-group{grid-template-columns:1fr;gap:4px;padding:11px 2px}
       .school-visual{aspect-ratio:1.55/1}
       .school-visual img{object-position:58% center}
+      .learn-head{display:block}.learn-head p{margin-top:5px}.paths{grid-template-columns:1fr}.path-card p{min-height:0}
     }
   </style>
 </head>
@@ -202,6 +225,10 @@
         <strong>모든 스트로크는 캐치(Catch) → 추진(Power) → 회수(Recovery)로 연결됩니다.</strong>
         <p>기술 이름보다 블레이드를 어디에 심고, 어느 방향으로 힘을 만들며, 저항 없이 어떻게 회수하는지를 먼저 확인하세요.</p>
       </section>
+      <section class="learn-home" aria-labelledby="learnTitle">
+        <div class="learn-head"><h2 id="learnTitle">순서대로 배우기</h2><p>목적에 맞는 코스를 고르고, 물 위에서는 짧은 연습 카드로 확인하세요.</p></div>
+        <div id="learningPaths" class="paths"></div>
+      </section>
       <div id="content"></div>
       <div id="empty" class="empty">일치하는 기술이 없습니다.</div>
       <div class="safety">급류·강풍 환경에서 카누 기울이기, 더펙, 브레이스를 연습하면 전복이나 어깨 부상으로 이어질 수 있습니다. 구명조끼를 착용하고 구조 가능한 동료 및 검증된 강사와 함께 연습하세요.</div>
@@ -233,6 +260,18 @@
       <button id="modalClose" class="modal-close" type="button" aria-label="영상 닫기" title="닫기">×</button>
     </div>
   </div>
+
+  <section id="quickMode" class="quick-mode" role="dialog" aria-modal="true" aria-labelledby="quickTitle">
+    <div class="quick-shell">
+      <div class="quick-top"><span class="quick-kicker">🛶 수상 연습 카드</span><button id="quickClose" class="quick-close" type="button" aria-label="연습 카드 닫기">×</button></div>
+      <h2 id="quickTitle" class="quick-title"></h2><div id="quickEn" class="quick-en"></div>
+      <div class="quick-alert">카누를 멈추고 안전한 곳에서 확인하세요. 휴대전화를 보며 패들링하지 마세요.</div>
+      <div id="quickCues" class="quick-cues"></div>
+      <div id="quickState" class="quick-state"></div>
+      <div class="quick-nav"><button id="quickPrev" type="button">← 이전 기술</button><button id="quickNext" type="button">다음 기술 →</button></div>
+      <p id="quickWake" class="quick-wake">화면 꺼짐 방지를 준비 중입니다.</p>
+    </div>
+  </section>
 
   <script>
     const videos = {
@@ -285,7 +324,15 @@
       soloReentry:{id:"lFP1cHGVQkM",author:"The Bear Essentials",title:"How to Get Back In When Your Canoe Tips Over (Solo)",tags:["솔로 자가 구조","배수","재승선"]},
       dryBagReentry:{id:"ppcFv0aNT_4",author:"Charles Burchill",title:"Deep Water Reentry, Dry Bag Assist",tags:["심수 재승선","드라이백 보조"]},
       fullTRescue:{id:"0BUAVVQx6po",author:"Charles Burchill",title:"Full T Rescue",tags:["T 구조","카누 오버 카누"]},
-      paddleTVRescue:{id:"mg7T8nyV17Y",author:"PaddleTV · ACA",title:"Canoe Over Canoe Rescue",tags:["동료 구조","재승선"]}
+      paddleTVRescue:{id:"mg7T8nyV17Y",author:"PaddleTV · ACA",title:"Canoe Over Canoe Rescue",tags:["동료 구조","재승선"]},
+      flipResponse:{id:"g3SR1WoDAt0",author:"PaddleTV · ACA",title:"How to Deal with a Flipped Canoe",tags:["전복 대응","카누 구조"]},
+      riverGear:{id:"gipNG9kgC2Y",author:"PaddleTV",title:"Choosing the Right Gear for River Canoeing",tags:["안전 장비","복장"]},
+      braceSafety:{id:"-HofhF4__ps",author:"PaddleTV",title:"How to Keep Your Canoe From Flipping",tags:["로우 브레이스","하이 브레이스"]},
+      essentialGear:{id:"L7DkmwqfcLI",author:"PaddleTV · ACA",title:"Essential Gear All Paddlers Need to Carry",tags:["필수 장비","안전"]},
+      topCanoeTips:{id:"sIVp6XjZ_Ew",author:"PaddleTV",title:"Top 5 Tips to Make You a Better Paddler",tags:["입문","자세","기본기"]},
+      goldenRules:{id:"a6Qy5sVRCtk",author:"PaddleTV",title:"Golden Rules of Canoeing",tags:["안전","입문"]},
+      goodTechnique:{id:"5eLJ0d7TDS4",author:"PaddleTV",title:"Good Technique for Paddling a Canoe",tags:["전진","몸통 회전"]},
+      threeStrokes:{id:"dVUNzKkBE5o",author:"PaddleTV",title:"3 Key Strokes All Paddlers Should Know",tags:["전진","J 스트로크","드로우"]}
     };
 
     const categories = [
@@ -365,11 +412,11 @@
     ];
 
     const skillVideos = {
-      "패들 구성":["paddleHold"],"스트로크의 3단계":["forward","linked"],
+      "패들 구성":["paddleHold"],"스트로크의 3단계":["forward","linked","goodTechnique"],
       "패들 쪽":[],"패들 반대쪽·크로스 동작":["offside"],
       "카누 기울이기":["edge"],"기울기로 선체 제어":["edge"],"퍼치 자세":[],"무릎 꿇은 자세":["kneeling"],
       "패들 쪽으로 기울여 회전하기":["onsideTurns"],"패들 반대쪽 제어":["offside"],
-      "전진 스트로크":["forward"],"J 스트로크":["j","beckyJ","beckyCanadian"],"캐나디언 스트로크":["canadian","beckyCanadian"],
+      "전진 스트로크":["forward","goodTechnique","topCanoeTips"],"J 스트로크":["j","beckyJ","beckyCanadian","threeStrokes"],"캐나디언 스트로크":["canadian","beckyCanadian"],
       "인디언 스트로크":["indian"],"사일런트 스트로크":["silent"],"C 스트로크":["cstroke"],
       "전진 스컬링":["forwardScull"],
       "백 스트로크":["reverse"],"러더":["rudder"],"리버스 J 스트로크":["reverse"],
@@ -381,9 +428,9 @@
       "프라이":["sideways"],"스컬링 프라이":["beckyScullPry"],"러닝 보우 프라이":["bowpry"],
       "행잉 드로우 사이드슬립":["hanging","sideslip"],"프라이 사이드슬립":["pryslip","sideslip"],
       "크로스 보우 드로우":["crossdraw"],
-      "로우 브레이스":["rapidLowBrace","beckyLowBrace","brace","rightingPry"],"하이 브레이스":["brace"],"고정 브레이스":[],
+      "로우 브레이스":["rapidLowBrace","beckyLowBrace","brace","braceSafety","rightingPry"],"하이 브레이스":["brace","braceSafety"],"고정 브레이스":["braceSafety"],
       "행잉 드로우를 이용한 지지":["hanging"],"스컬링 로우 브레이스":[],"라이팅 프라이":["rightingPry"],
-      "카누 장비·안전장비":[],"전복 직후 대응":[],"카누 오버 카누 구조":["fullTRescue","paddleTVRescue"],
+      "카누 장비·안전장비":["essentialGear","riverGear","goldenRules"],"전복 직후 대응":["flipResponse","goldenRules"],"카누 오버 카누 구조":["fullTRescue","paddleTVRescue","flipResponse"],
       "솔로 셀프레스큐":["dryBagReentry","soloReentry"],
       "급류 읽기":["readingWaterLevel","readingRocks","readingSpey","readingVyrnwy","readingTryweryn","readingArdeche"],
       "에디 턴":["eddy"],"페리 글라이드":["ferry"],"크로스 전진 스트로크":["crossForward"],
@@ -416,6 +463,31 @@
       "급류 읽기":["에디 턴","페리 글라이드"],
       "에디 턴":["기울기로 선체 제어","더펙"],"페리 글라이드":["기울기로 선체 제어","전진 스트로크"],"크로스 전진 스트로크":["패들 반대쪽·크로스 동작"],
       "스트로크 연결":["J 스트로크","풀 스윕","드로우"]
+    };
+    const learningPaths=[
+      {id:"first",title:"처음 타는 날",desc:"장비 확인부터 직진·정지·기본 회전까지",skills:["카누 장비·안전장비","패들 구성","스트로크의 3단계","전진 스트로크","정지","하프 스윕","드로우","J 스트로크"]},
+      {id:"solo",title:"솔로 직진",desc:"힘을 낭비하지 않고 조용히 직진하기",skills:["전진 스트로크","J 스트로크","캐나디언 스트로크","인디언 스트로크","사일런트 스트로크"]},
+      {id:"control",title:"잔잔한 물 조종",desc:"회전·횡이동·접안을 한 흐름으로",skills:["하프 스윕","풀 스윕","드로우","드로우의 슬라이스 회수","프라이","스컬링 드로우","행잉 드로우 사이드슬립"]},
+      {id:"balance",title:"기울이기와 지지",desc:"선체 반응을 느끼고 균형을 되찾기",skills:["무릎 꿇은 자세","카누 기울이기","기울기로 선체 제어","로우 브레이스","고정 브레이스","스컬링 로우 브레이스"]},
+      {id:"rescue",title:"전복과 구조",desc:"전복 직후 판단부터 동료·자가 구조까지",skills:["카누 장비·안전장비","전복 직후 대응","카누 오버 카누 구조","솔로 셀프레스큐"]},
+      {id:"river",title:"흐르는 물 입문",desc:"정지 수역 기본기를 약한 흐름에 연결",skills:["급류 읽기","페리 글라이드","에디 턴","크로스 전진 스트로크","더펙","스트로크 연결"]}
+    ];
+    const quickGuides={
+      "전진 스트로크":["몸통을 앞으로 돌리고 블레이드를 발 앞, 선체 가까이에 수직으로 세웁니다.","팔보다 몸통 회전으로 카누가 블레이드를 지나가게 합니다.","엉덩이선에서 조용히 빼며 좌우 흔들림과 물 튐을 확인합니다."],
+      "J 스트로크":["전진 스트로크를 짧고 수직으로 시작합니다.","엉덩이선에서 파워 페이스를 바깥으로 돌려 짧게 보정합니다.","속도를 크게 잃지 않고 선수가 곧게 유지되는지 봅니다."],
+      "캐나디언 스트로크":["전진 추진을 끝낸 뒤 그립을 느슨하게 둡니다.","블레이드 앞날을 낮춰 물속에서 얇게 앞으로 회수합니다.","회수 중 보정이 생기고 소리·기포가 적은지 확인합니다."],
+      "정지":["진행 방향과 하류 장애물을 먼저 확인합니다.","엉덩이 옆에서 짧은 백 스트로크를 좌우 균형 있게 반복합니다.","선체가 한쪽으로 돌지 않고 통제된 거리 안에 멈추는지 봅니다."],
+      "하프 스윕":["돌릴 반대쪽에 블레이드를 선체에서 멀리 놓습니다.","선수 또는 선미 절반만 큰 원으로 몸통과 함께 쓸어 줍니다.","전진·후진 이동보다 회전이 크게 생기는지 확인합니다."],
+      "드로우":["이동할 쪽 선체 옆에 블레이드를 평행하게 세웁니다.","카누를 블레이드 쪽으로 당기고 닿기 전에 날을 세워 회수합니다.","선수가 돌지 않고 선체 전체가 옆으로 이동하는지 봅니다."],
+      "프라이":["블레이드를 거널 가까이에 완전히 담그고 샤프트를 지렛점에 둡니다.","그립 손을 무릎 쪽으로 당겨 선체를 반대쪽으로 짧게 밉니다.","거널을 찍지 않고 선체가 수평 이동하는지 확인합니다."],
+      "스컬링 드로우":["블레이드를 선체와 평행하게 두고 앞날을 약 20~45도 엽니다.","앞뒤로 오갈 때마다 앞날을 바꾸며 압력을 끊지 않습니다.","카누가 부드럽게 패들 쪽으로 이동하는지 봅니다."],
+      "카누 기울이기":["얕고 잔잔한 물에서 무릎·발의 지지점을 만듭니다.","골반으로 선체만 기울이고 머리는 카누 안쪽에 둡니다.","작은 기울기에서 멈추고 스스로 복원되는 범위를 확인합니다."],
+      "로우 브레이스":["팔꿈치를 낮게 두고 패들 뒷면을 수면 가까이에 둡니다.","짧게 수면을 눌러 지지하면서 골반으로 카누를 먼저 세웁니다.","머리가 마지막에 올라오고 어깨에 무리가 없는지 봅니다."],
+      "전복 직후 대응":["호흡을 가라앉히고 인원·부상·하류 위험을 먼저 확인합니다.","가능하면 카누와 패들을 유지하되 사람의 안전을 우선합니다.","가까운 안전한 물가가 있으면 재승선보다 탈출을 선택합니다."],
+      "카누 오버 카누 구조":["두 카누와 전복자가 서로 소통하며 안전한 위치를 잡습니다.","전복 카누를 직각으로 받아 끌어올려 배수한 뒤 바로 세웁니다.","카누를 나란히 지지한 상태에서 재승선자의 중심을 확인합니다."],
+      "급류 읽기":["육상에서 하류 위험, 본류, 에디와 흐름 경계를 먼저 찾습니다.","도착점을 정하고 중간 통과점과 진입점을 거꾸로 연결합니다.","실패할 때 들어갈 대체 에디와 포티지 여부까지 정합니다."],
+      "페리 글라이드":["하류 공간과 도착 지점을 확인하고 선수를 상류로 세웁니다.","유속에 맞춰 각도와 전진력을 유지하며 흐름을 가로지릅니다.","너무 하류로 밀리면 힘보다 선수 각도를 먼저 조정합니다."],
+      "에디 턴":["에디와 흐름 경계, 진입 속도·각도를 미리 정합니다.","경계를 지나며 회전 안쪽으로 기울이고 시선을 출구로 둡니다.","더펙이나 보우 드로우는 작게 쓰고 흐름이 회전을 끝내게 합니다."]
     };
     const esc=s=>(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
     const norm=s=>(s||"").toLowerCase().replace(/\s+/g,"");
@@ -475,10 +547,27 @@
     function startLogin(){location.href=loginUrl();}
     const favorites=new Set();
     let recent=[];
+    let progress={};
     let stateLoaded=false;
     let saveTimer=0;
     let activeFilter="all";
     let currentSkill=null;
+    let quickSkill=null;
+    let wakeLock=null;
+    const GUEST_STATE_KEY="paddling_guest_state_v1";
+
+    function loadGuestProgress(){
+      try{const d=JSON.parse(localStorage.getItem(GUEST_STATE_KEY)||"{}");progress=d&&typeof d.progress==="object"?d.progress:{};}catch(e){progress={};}
+    }
+    function saveGuestProgress(){try{localStorage.setItem(GUEST_STATE_KEY,JSON.stringify({progress,updated:Date.now()}));}catch(e){}}
+    function setProgress(slugValue,value){
+      if(value)progress[slugValue]=value;else delete progress[slugValue];
+      getUser()?saveUserState():saveGuestProgress();
+      render();
+      if(currentSkill)updateSkillToolbar(currentSkill);
+      if(quickSkill)renderQuick(quickSkill);
+    }
+    const progressText=value=>value==="done"?"익힘":value==="doing"?"연습 중":"미학습";
 
     function renderAccount(){
       const u=getUser(),name=document.getElementById("accountName"),login=document.getElementById("loginBtn"),logout=document.getElementById("logoutBtn");
@@ -488,14 +577,15 @@
     }
     async function loadUserState(){
       const u=getUser();
-      favorites.clear();recent=[];stateLoaded=false;
-      if(!u||!u.uid){renderAccount();render();return;}
+      favorites.clear();recent=[];progress={};stateLoaded=false;
+      if(!u||!u.uid){loadGuestProgress();renderAccount();render();return;}
       try{
         const r=await fetch(`${WORKER_URL}/paddling-state?uid=${encodeURIComponent(u.uid)}&tok=${encodeURIComponent(u.tok||"")}`);
         if(r.status===401){setUser(null);renderAccount();render();return;}
         const d=await r.json();
         (d.favorites||[]).forEach(x=>favorites.add(currentSlug(x)));
         recent=Array.isArray(d.recent)?d.recent.map(currentSlug):[];
+        progress=d.progress&&typeof d.progress==="object"?Object.fromEntries(Object.entries(d.progress).map(([k,v])=>[currentSlug(k),v])):{};
         stateLoaded=true;
       }catch(e){}
       renderAccount();render();
@@ -507,7 +597,7 @@
       saveTimer=setTimeout(async()=>{
         try{
           const r=await fetch(WORKER_URL+"/paddling-state",{method:"POST",headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({id:u.uid,tok:u.tok||"",favorites:[...favorites],recent})});
+            body:JSON.stringify({id:u.uid,tok:u.tok||"",favorites:[...favorites],recent,progress})});
           if(r.status===401){setUser(null);renderAccount();render();}
         }catch(e){}
       },250);
@@ -526,7 +616,7 @@
         const count=allSkills.filter(s=>s.category===c.id).length;
         return `<a href="#${c.id}">${c.name} <small>${count}</small></a>`;
       }).join("");
-      const filters=[["all","전체 기술"],["beginner","입문·기초"],["video","영상 있는 기술"],["saved","즐겨찾기"],["recent","최근 본 기술"]];
+      const filters=[["all","전체 기술"],["beginner","입문·기초"],["video","영상 있는 기술"],["practicing","연습 중"],["saved","즐겨찾기"],["recent","최근 본 기술"]];
       document.getElementById("sideFilter").innerHTML=filters.map(f=>`<button class="filter-btn ${activeFilter===f[0]?"active":""}" data-filter="${f[0]}" type="button">${f[1]}</button>`).join("");
       document.querySelectorAll(".filter-btn").forEach(b=>b.onclick=()=>{
         if((b.dataset.filter==="saved"||b.dataset.filter==="recent")&&!getUser()){startLogin();return;}
@@ -537,6 +627,7 @@
     function passesFilter(s){
       if(activeFilter==="beginner")return s.level==="입문"||s.level==="기초";
       if(activeFilter==="video")return s.videos.length>0;
+      if(activeFilter==="practicing")return progress[s.slug]==="doing";
       if(activeFilter==="saved")return favorites.has(s.slug);
       if(activeFilter==="recent")return recent.includes(s.slug);
       return true;
@@ -548,7 +639,7 @@
           <button class="icon-btn fav-btn ${favorites.has(s.slug)?"on":""}" data-slug="${s.slug}" type="button" title="즐겨찾기" aria-label="${esc(s.name)} 즐겨찾기">${favorites.has(s.slug)?"★":"☆"}</button>
         </div>
         <p>${esc(s.summary)}</p>
-        <div class="skill-meta"><span class="badge">${s.level}</span><span class="badge env">${s.environment}</span>${s.videos.length?`<span class="badge">영상 ${s.videos.length}</span>`:""}${s.danger?`<span class="badge danger">주의</span>`:""}</div>
+        <div class="skill-meta"><span class="badge">${s.level}</span><span class="badge env">${s.environment}</span>${progress[s.slug]?`<span class="badge progress-badge ${progress[s.slug]}">${progressText(progress[s.slug])}</span>`:""}${s.videos.length?`<span class="badge">영상 ${s.videos.length}</span>`:""}${s.danger?`<span class="badge danger">주의</span>`:""}</div>
         <div class="skill-actions"><button class="detail-btn" data-detail="${s.slug}" type="button">자세히 보기</button></div>
       </article>`;
     }
@@ -566,6 +657,7 @@
 
     function render(){
       renderNav();
+      renderLearningPaths();
       const q=norm(document.getElementById("search").value);
       let shown=0;
       const html=categories.map(c=>{
@@ -577,6 +669,16 @@
       document.getElementById("content").innerHTML=html;
       document.getElementById("empty").style.display=shown?"none":"block";
       bindListActions();
+    }
+    function renderLearningPaths(){
+      document.getElementById("learningPaths").innerHTML=learningPaths.map(path=>{
+        const list=path.skills.map(name=>byName[name]).filter(Boolean);
+        const done=list.filter(s=>progress[s.slug]==="done").length;
+        const next=list.find(s=>progress[s.slug]!=="done")||list[0];
+        const pct=list.length?Math.round(done/list.length*100):0;
+        return `<article class="path-card"><h3>${esc(path.title)}</h3><p>${esc(path.desc)}</p><div class="path-count"><span>${done}/${list.length} 익힘</span><span>${pct}%</span></div><div class="path-bar"><i style="width:${pct}%"></i></div><button class="path-start" type="button" data-path-skill="${next.slug}">${done?"이어보기":"시작하기"} · ${esc(next.name)}</button></article>`;
+      }).join("");
+      document.querySelectorAll("[data-path-skill]").forEach(btn=>btn.onclick=()=>openSkill(bySlug[btn.dataset.pathSkill],true));
     }
     const skillModal=document.getElementById("skillModal");
     const skillTitle=document.getElementById("skillTitle");
@@ -761,8 +863,14 @@
     }
     function updateSkillToolbar(s){
       skillToolbar.innerHTML=`
+        <button class="command primary" id="detailQuick" type="button">🛶 수상 연습 카드</button>
+        <button class="command" id="detailDoing" type="button">${progress[s.slug]==="doing"?"● 연습 중":"연습 중으로 표시"}</button>
+        <button class="command" id="detailDone" type="button">${progress[s.slug]==="done"?"✓ 익힘":"익힘으로 표시"}</button>
         <button class="command" id="detailFav" type="button">${favorites.has(s.slug)?"★ 즐겨찾기됨":"☆ 즐겨찾기"}</button>
         <button class="command" id="detailShare" type="button">공유</button>`;
+      document.getElementById("detailQuick").onclick=()=>openQuick(s);
+      document.getElementById("detailDoing").onclick=()=>setProgress(s.slug,progress[s.slug]==="doing"?"":"doing");
+      document.getElementById("detailDone").onclick=()=>setProgress(s.slug,progress[s.slug]==="done"?"":"done");
       document.getElementById("detailFav").onclick=()=>{if(toggleSet(favorites,s.slug))updateSkillToolbar(s);};
       document.getElementById("detailShare").onclick=async()=>{
         const url=new URL(location.href);url.searchParams.set("skill",s.slug);url.hash="";
@@ -770,6 +878,46 @@
         catch(e){prompt("공유 주소",url.href);}
       };
     }
+    const quickMode=document.getElementById("quickMode");
+    const quickClose=document.getElementById("quickClose");
+    function quickSequence(s){
+      const path=learningPaths.find(p=>p.skills.includes(s.name));
+      const names=path?path.skills:allSkills.filter(x=>x.category===s.category).map(x=>x.name);
+      return names.map(name=>byName[name]).filter(Boolean);
+    }
+    function quickCueList(s){
+      if(quickGuides[s.name])return quickGuides[s.name];
+      const steps=practiceSteps(s);
+      return [steps[0],s.cue,steps[steps.length-1]];
+    }
+    async function requestWakeLock(){
+      const label=document.getElementById("quickWake");
+      if(!("wakeLock" in navigator)){label.textContent="화면 자동 잠금은 기기 설정을 따릅니다.";return;}
+      try{wakeLock=await navigator.wakeLock.request("screen");label.textContent="연습 카드를 보는 동안 화면 꺼짐을 방지합니다.";wakeLock.addEventListener("release",()=>{wakeLock=null;});}
+      catch(e){label.textContent="화면 자동 잠금은 기기 설정을 따릅니다.";}
+    }
+    function renderQuick(s){
+      quickSkill=s;
+      const cues=quickCueList(s),labels=["1 · 준비","2 · 동작","3 · 확인"];
+      document.getElementById("quickTitle").textContent=s.name;
+      document.getElementById("quickEn").textContent=s.en+" · "+s.environment;
+      document.getElementById("quickCues").innerHTML=cues.map((cue,i)=>`<div class="quick-cue"><strong>${labels[i]}</strong><span>${esc(cue)}</span></div>`).join("");
+      document.getElementById("quickState").innerHTML=`<button type="button" data-quick-state="doing" class="${progress[s.slug]==="doing"?"active":""}">● 연습 중</button><button type="button" data-quick-state="done" class="${progress[s.slug]==="done"?"active":""}">✓ 익힘</button>`;
+      document.querySelectorAll("[data-quick-state]").forEach(btn=>btn.onclick=()=>setProgress(s.slug,progress[s.slug]===btn.dataset.quickState?"":btn.dataset.quickState));
+      const seq=quickSequence(s),idx=seq.indexOf(s),prev=seq[idx-1],next=seq[idx+1];
+      const prevBtn=document.getElementById("quickPrev"),nextBtn=document.getElementById("quickNext");
+      prevBtn.disabled=!prev;nextBtn.disabled=!next;
+      prevBtn.onclick=()=>prev&&renderQuick(prev);nextBtn.onclick=()=>next&&renderQuick(next);
+    }
+    function openQuick(s){
+      renderQuick(s);quickMode.classList.add("open");skillModal.classList.remove("open");document.body.style.overflow="hidden";quickClose.focus();requestWakeLock();
+    }
+    async function closeQuick(){
+      quickMode.classList.remove("open");if(wakeLock){try{await wakeLock.release();}catch(e){}wakeLock=null;}
+      if(currentSkill){skillModal.classList.add("open");document.body.style.overflow="hidden";}else document.body.style.overflow="";
+    }
+    quickClose.onclick=closeQuick;
+    document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&quickMode.classList.contains("open")&&!wakeLock)requestWakeLock();});
     function openSkill(s,pushUrl){
       if(!s)return;
       currentSkill=s;
@@ -822,7 +970,8 @@
     modal.onclick=e=>{if(e.target===modal)closeVideo();};
     document.addEventListener("keydown",e=>{
       if(e.key!=="Escape")return;
-      if(modal.classList.contains("open"))closeVideo();
+      if(quickMode.classList.contains("open"))closeQuick();
+      else if(modal.classList.contains("open"))closeVideo();
       else if(skillModal.classList.contains("open"))closeSkill();
     });
     window.addEventListener("popstate",()=>{

@@ -1250,14 +1250,21 @@ export default {
         const uid = String(url.searchParams.get("uid") || "").slice(0, 40);
         if (!uid || !(await _memberOk(env, uid, url.searchParams.get("tok")))) return J({ ok: false, error: "relogin" }, 401);
         let state = {}; try { state = JSON.parse((await KV.get("paddling_" + uid)) || "{}"); } catch (e) {}
-        return J({ ok: true, favorites: state.favorites || [], recent: state.recent || [] });
+        return J({ ok: true, favorites: state.favorites || [], recent: state.recent || [], progress: state.progress || {} });
       }
       if (req.method === "POST") {
         let b = {}; try { b = await req.json(); } catch (e) {}
         const uid = String(b.id || "").slice(0, 40);
         if (!uid || !(await _memberOk(env, uid, b.tok))) return J({ ok: false, error: "relogin" }, 401);
         const clean = (a, max) => [...new Set((Array.isArray(a) ? a : []).map((x) => String(x).slice(0, 60)).filter(Boolean))].slice(0, max);
-        const state = { favorites: clean(b.favorites, 100), recent: clean(b.recent, 20), updated: Date.now() };
+        const progress = {};
+        if (b.progress && typeof b.progress === "object" && !Array.isArray(b.progress)) {
+          for (const [key, value] of Object.entries(b.progress).slice(0, 100)) {
+            const safeKey = String(key).toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60);
+            if (safeKey && (value === "doing" || value === "done")) progress[safeKey] = value;
+          }
+        }
+        const state = { favorites: clean(b.favorites, 100), recent: clean(b.recent, 20), progress, updated: Date.now() };
         await KV.put("paddling_" + uid, JSON.stringify(state));
         return J({ ok: true });
       }

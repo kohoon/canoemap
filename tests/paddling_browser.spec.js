@@ -50,3 +50,28 @@ test('beavertail paddle anatomy stays visible on desktop and mobile', async () =
   }
   await browser.close();
 });
+
+test('learning paths and on-water practice card work on desktop and mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    const context = await browser.newContext({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto(`${baseURL}/paddling/`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.path-card')).toHaveCount(6);
+    await page.locator('[data-path-skill="canoe-safety-equipment"]').first().click();
+    await expect(page.locator('#skillModal')).toHaveClass(/open/);
+    await page.locator('#detailQuick').click();
+    await expect(page.locator('#quickMode')).toHaveClass(/open/);
+    await expect(page.locator('.quick-cue')).toHaveCount(3);
+    await page.locator('[data-quick-state="doing"]').click();
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('paddling_guest_state_v1')).progress['canoe-safety-equipment'])).toBe('doing');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    expect(errors).toEqual([]);
+    await context.close();
+  }
+  await browser.close();
+});
