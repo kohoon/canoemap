@@ -61,6 +61,38 @@ test('waterplay legend explains both marker colors inline without a duplicate fo
   await browser.close();
 });
 
+test('long course hover labels stay readable near map edges', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    const context = await browser.newContext({ viewport });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => { document.querySelector('#gate').style.display = 'none'; document.body.classList.remove('gate-open'); });
+    for (const x of [28, viewport.width / 2, viewport.width - 28]) {
+      const metrics = await page.evaluate(async x => {
+        if (window.__testCourseTip) map.removeLayer(window.__testCourseTip);
+        window.__testCourseTip = L.tooltip({ className: 'course-hover-tooltip', direction: 'auto', pane: 'courseTooltipPane' })
+          .setContent('<b>북한강 종주 #6 - 가평 자라섬 ~ 가평 청평댐</b> 26.63km')
+          .setLatLng(map.containerPointToLatLng([x, 350])).addTo(map);
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        const box = window.__testCourseTip.getElement().getBoundingClientRect();
+        return { x: box.x, width: box.width, height: box.height };
+      }, x);
+      expect(metrics.width).toBeGreaterThan(150);
+      expect(metrics.height).toBeLessThan(100);
+      expect(metrics.x).toBeGreaterThanOrEqual(0);
+      expect(metrics.x + metrics.width).toBeLessThanOrEqual(viewport.width);
+    }
+    expect(errors).toEqual([]);
+    await context.close();
+  }
+  await browser.close();
+});
+
 test('legend choices follow the signed-in member across visits', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

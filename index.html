@@ -67,7 +67,7 @@
         max-width:calc(100vw - 24px);box-sizing:border-box;text-align:center;overflow-wrap:anywhere;
         font:12px/1.35 sans-serif;transition:opacity .6s;pointer-events:none}
   html.tour-mode #hint{z-index:1250}
-  .course-hover-tooltip{max-width:min(320px,calc(50vw - 32px));white-space:normal;overflow-wrap:anywhere;line-height:1.35;box-shadow:0 2px 9px rgba(0,0,0,.24)}
+  .course-hover-tooltip{box-sizing:border-box;width:max-content;max-width:min(320px,calc(100vw - 32px));white-space:normal;word-break:keep-all;overflow-wrap:break-word;line-height:1.35;box-shadow:0 2px 9px rgba(0,0,0,.24)}
   .leaflet-control-zoom a{width:40px;height:40px;line-height:40px;font-size:22px}
   .measbtn{cursor:pointer;font:600 13px/1.25 sans-serif;background:#fff;color:#222;padding:7px 10px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.3);white-space:nowrap;user-select:none;width:112px;box-sizing:border-box;text-align:center}
   .measbtn .meas-sub{font-size:11px;font-weight:500;color:#667}
@@ -1040,6 +1040,18 @@ const WORLD_BOUNDS=L.latLngBounds([[-85.05112878,WORLD_WEST],[85.05112878,WORLD_
 const map = L.map('map', {preferCanvas:true,zoomControl:false,zoomSnap:0,wheelPxPerZoomLevel:30,maxBounds:WORLD_BOUNDS,maxBoundsViscosity:1}).setView(_initialMapView?[_initialMapView.lat,_initialMapView.lng]:[36.3,127.8],_initialMapView?_initialMapView.zoom:7);
 window.map = map;
 map.createPane('courseTooltipPane');map.getPane('courseTooltipPane').style.zIndex='720';
+// 긴 코스명은 내용 폭을 유지하고, 커서가 화면 가장자리에 있어도 말풍선만 안쪽으로 이동한다.
+let _courseTipFrame=0;
+function _clampCourseHoverTooltip(tooltip){
+  const tips=document.querySelectorAll('.leaflet-tooltip.course-hover-tooltip'),el=tooltip&&tooltip.getElement?tooltip.getElement():tips[tips.length-1];
+  if(!el||!el.classList.contains('course-hover-tooltip'))return;
+  el.style.translate='0px 0';
+  const r=el.getBoundingClientRect(),m=map.getContainer().getBoundingClientRect(),left=m.left+12,right=m.right-12;
+  const dx=r.left<left?left-r.left:(r.right>right?right-r.right:0);
+  el.style.translate=dx+'px 0';
+}
+function _scheduleCourseTipClamp(e){if(_courseTipFrame)cancelAnimationFrame(_courseTipFrame);const tip=e&&e.tooltip;_courseTipFrame=requestAnimationFrame(function(){_courseTipFrame=0;_clampCourseHoverTooltip(tip);});}
+map.on('tooltipopen mousemove zoomend moveend',_scheduleCourseTipClamp);
 function _syncSingleWorldMinZoom(){const w=Math.max(1,map.getSize().x),z=Math.max(0,Math.log(w/256)/Math.LN2);map.setMinZoom(z);if(map.getZoom()<z)map.setZoom(z);}
 map.whenReady(_syncSingleWorldMinZoom);map.on('resize',_syncSingleWorldMinZoom);
 map.on('moveend',function(){if(_mapUrlOwnsView())return;try{const c=map.getCenter();localStorage.setItem('mc_map_view_v1',JSON.stringify({lat:+c.lat.toFixed(6),lng:+c.lng.toFixed(6),zoom:map.getZoom()}));}catch(e){}});
