@@ -66,7 +66,7 @@
     .path-bar{height:6px;margin:7px 0 12px;overflow:hidden;border-radius:99px;background:#e4ece9}.path-bar i{display:block;height:100%;background:var(--green)}
     .path-start{margin-top:auto;border:0;border-radius:5px;padding:9px 10px;background:var(--green-soft);color:var(--green);font-size:12px;font-weight:900;cursor:pointer}
     .progress-badge{background:#edf0f8;color:#47537d}.progress-badge.done{background:#dbf2e7;color:#126143}.progress-badge.doing{background:#fff1cf;color:#80530b}
-    .school-visual{position:relative;aspect-ratio:2.35/1;margin-bottom:16px;overflow:hidden;background:#dce7e3}
+    .school-visual{position:relative;aspect-ratio:2.35/1;margin:0 0 16px;overflow:hidden;background:#dce7e3}
     .school-visual img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 54%}
     .category{margin-bottom:42px}
     .cat-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;border-bottom:2px solid #aac9c1;padding-bottom:10px;margin-bottom:14px}
@@ -135,6 +135,7 @@
     .related button{border:1px solid #b8d0ca;background:#fff;color:var(--green);border-radius:5px;padding:7px 9px;font-size:12px;font-weight:800;cursor:pointer}
     .empty{display:none;padding:30px;background:#fff;border:1px solid var(--line);text-align:center;color:var(--muted)}
     .safety{background:var(--amber-soft);border:1px solid #e6c98f;padding:13px 15px;font-size:12px;line-height:1.6;color:#624315;margin-top:18px}
+    .mobile-dock{display:none}
     .quick-mode{position:fixed;inset:0;z-index:130;display:none;background:#092822;color:#fff;overflow:auto}
     .quick-mode.open{display:block}.quick-shell{width:min(560px,100%);min-height:100%;margin:auto;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom))}
     .quick-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.quick-kicker{color:#9ed7c8;font-size:12px;font-weight:900;letter-spacing:.08em}
@@ -149,6 +150,7 @@
     footer{border-top:1px solid var(--line);padding:22px 20px 36px;text-align:center;color:var(--muted);font-size:11px;line-height:1.6}
     @media(max-width:860px){
       html{scroll-padding-top:112px}
+      .topbar{position:static}
       .layout{display:block;padding:18px 14px 44px}
       .side{position:static;display:block;margin:0 0 18px;overflow-x:auto;scrollbar-width:thin}
       .side-title{display:none}
@@ -159,7 +161,9 @@
       .top-inner{padding:12px 14px 8px}
       .tools{margin-top:10px}
       .search{width:100%}
-      .paths{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .paths{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-inline:contain;padding:1px 1px 8px;scrollbar-width:none}
+      .paths::-webkit-scrollbar{display:none}
+      .path-card{flex:0 0 82vw;max-width:320px;scroll-snap-align:start}
     }
     @media(max-width:640px){
       .brand-row{align-items:flex-start;flex-wrap:wrap}
@@ -168,11 +172,11 @@
       h1{font-size:21px}
       .subtitle{font-size:12px}
       .map-link{padding:8px 9px}
-      .skills{grid-template-columns:1fr}
+      .skills{grid-template-columns:1fr;gap:8px}
       .cat-head{display:block}
       .cat-head p{text-align:left;margin-top:5px}
       .category{margin-bottom:34px}
-      .skill{padding:13px}
+      .skill{padding:12px 13px}.skill p{-webkit-line-clamp:1;margin-top:7px}.skill-meta{margin-top:8px}.skill-actions{padding-top:9px}
       .modal{padding:10px}
       .modal-title{font-size:12px}
       .skill-panel-head{padding:16px 58px 14px 16px}
@@ -182,9 +186,15 @@
       .detail-videos{grid-template-columns:1fr}
       .paddle-anatomy figcaption{padding:9px 11px;font-size:11px}
       .equipment-group{grid-template-columns:1fr;gap:4px;padding:11px 2px}
-      .school-visual{aspect-ratio:1.55/1}
+      .school-visual{aspect-ratio:1.65/1;border-radius:8px}
       .school-visual img{object-position:58% center}
-      .learn-head{display:block}.learn-head p{margin-top:5px}.paths{grid-template-columns:1fr}.path-card p{min-height:0}
+      .intro{margin-bottom:24px;padding:14px 15px}.intro p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+      .learn-head{display:block}.learn-head p{margin-top:5px}.path-card p{min-height:38px}
+      .category{margin-bottom:28px}.cat-head{margin-bottom:10px}.cat-head h2{font-size:19px}
+      .detail-toolbar{display:grid;grid-template-columns:1fr 1fr}.detail-toolbar .command{min-height:42px}.detail-toolbar .command.primary{grid-column:1/-1}
+      body{padding-bottom:calc(70px + env(safe-area-inset-bottom))}
+      .mobile-dock{position:fixed;z-index:45;left:10px;right:10px;bottom:max(8px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,1fr);overflow:hidden;border:1px solid #c5d4d0;border-radius:14px;background:rgba(255,255,255,.96);box-shadow:0 8px 30px rgba(14,47,40,.18);backdrop-filter:blur(14px)}
+      .mobile-dock a,.mobile-dock button{display:grid;place-items:center;min-height:54px;border:0;border-right:1px solid #e2e9e7;background:transparent;color:#425852;text-decoration:none;font-size:11px;font-weight:900;cursor:pointer}.mobile-dock a:last-child{border-right:0}.mobile-dock span{display:block;font-size:17px;line-height:1;margin-bottom:3px}
     }
   </style>
 </head>
@@ -240,6 +250,13 @@
     YouTube 영상의 저작권과 내용은 각 제작자에게 있습니다.<br>
     방문 통계를 위해 비로그인 방문자의 IP를 일일 익명값으로 변환하며, 원본 IP는 저장하지 않습니다.
   </footer>
+
+  <nav class="mobile-dock" aria-label="모바일 빠른 메뉴">
+    <a href="#learnTitle"><span>🧭</span>학습 코스</a>
+    <a href="#fundamentals"><span>🛶</span>전체 기술</a>
+    <button id="mobileSearch" type="button"><span>⌕</span>기술 검색</button>
+    <a href="../"><span>🗺️</span>카누맵</a>
+  </nav>
 
   <div id="skillModal" class="skill-modal" role="dialog" aria-modal="true" aria-labelledby="skillTitle">
     <article class="skill-panel">
@@ -979,7 +996,12 @@
       if(target)openSkill(target,false);
       else if(skillModal.classList.contains("open"))closeSkill(false);
     });
-    document.getElementById("search").addEventListener("input",render);
+    const searchInput=document.getElementById("search");
+    searchInput.addEventListener("input",render);
+    document.getElementById("mobileSearch").onclick=()=>{
+      searchInput.scrollIntoView({behavior:"smooth",block:"center"});
+      setTimeout(()=>searchInput.focus(),250);
+    };
     parseLogin();
     logPaddlingVisit();
     document.getElementById("loginBtn").onclick=startLogin;

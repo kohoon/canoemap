@@ -62,6 +62,15 @@ test('learning paths and on-water practice card work on desktop and mobile', asy
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseURL}/paddling/`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.path-card')).toHaveCount(6);
+    if (viewport.width < 500) {
+      await expect(page.locator('.mobile-dock')).toBeVisible();
+      const visual = await page.locator('.school-visual').boundingBox();
+      expect(visual.width).toBeGreaterThanOrEqual(viewport.width - 32);
+      const pathCard = await page.locator('.path-card').first().boundingBox();
+      expect(pathCard.width).toBeGreaterThanOrEqual(280);
+      expect(await page.locator('.paths').evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+      expect(await page.locator('.topbar').evaluate((element) => getComputedStyle(element).position)).toBe('static');
+    }
     await page.locator('[data-path-skill="canoe-safety-equipment"]').first().click();
     await expect(page.locator('#skillModal')).toHaveClass(/open/);
     await page.locator('#detailQuick').click();
