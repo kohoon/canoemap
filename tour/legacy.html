@@ -105,7 +105,7 @@
   .lc-arrow{font-size:11px;color:#789;transition:transform .15s}
   .lc-collapsed .lc-arrow{transform:rotate(-90deg)}
   .lc-collapsed .lc-title{margin-bottom:0}
-  .lc-collapsed .leaflet-control-layers-list,.lc-collapsed .lc-key{display:none}
+  .lc-collapsed .leaflet-control-layers-list{display:none}
   .leaflet-control-layers:not(.lc-collapsed){box-sizing:border-box;max-height:max(80px,calc(var(--app-height) - var(--legend-top-clearance,190px) - 32px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
   .leaflet-control-layers:not(.lc-collapsed) .lc-title{position:sticky;top:0;z-index:3;background:#fff;padding:2px 0 5px}
   .leaflet-control-layers:not(.lc-collapsed)::-webkit-scrollbar{width:5px}
@@ -131,8 +131,9 @@
   .lc-store-row label>span{display:flex;align-items:center;gap:3px;width:100%;min-width:0}
   .lc-store-row input[type=checkbox]{width:14px;height:14px;flex:0 0 14px;margin:0 1px 0 0;accent-color:#1687d9}
   .lc-store-row .daiso-key,.lc-store-row .hanaro-key{flex:none;margin-right:0}
-  .lc-key{margin-top:2px}
-  .lc-key .lg-row{margin:2px 0}
+  .wp-key-note{display:inline-flex;align-items:center;gap:3px;margin-left:3px;color:#53656b;font-size:10px;white-space:nowrap}
+  .wp-key-dot{display:inline-block;width:11px;height:11px;box-sizing:border-box;border:3px solid #1976d2;border-radius:50%;background:#fff;vertical-align:middle}
+  .wp-key-dot.risk{border-color:#d32f2f}
   .sat-src{display:none;align-items:center;gap:6px;margin:3px 0 6px 4px}
   .sat-src .sat-seg{display:inline-flex;border:1px solid #b9cadf;border-radius:9px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.08)}
   .sat-src button{font:600 12.5px sans-serif;border:0;border-left:1px solid #d3def0;background:#fff;color:#41566b;padding:7px 12px;cursor:pointer;white-space:nowrap;line-height:1}
@@ -616,8 +617,7 @@
     .leaflet-control-layers:not(.lc-collapsed) .leaflet-control-layers-list{padding-top:3px}
     .leaflet-control-layers:not(.lc-collapsed) .lc-section-body:not(.lc-water-row):not(.lc-store-row){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:10px}
     .leaflet-control-layers:not(.lc-collapsed) .lc-section-body>label{display:flex;align-items:center;min-width:0;min-height:24px;margin:0}
-    .leaflet-control-layers:not(.lc-collapsed) .lc-key{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
-    .leaflet-control-layers:not(.lc-collapsed) .lc-key .lg-sub{grid-column:1/-1}
+    .leaflet-control-layers:not(.lc-collapsed) .lc-waterplay-label{grid-column:1/-1}
     .pmodal{padding:16px 14px 20px}
     .cm-palette{grid-template-columns:repeat(6,32px)}
     #tripbar{bottom:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px))}.trip-live{padding:9px 7px;gap:3px}.trip-live b{font-size:13px}.trip-live small{font-size:9.5px}.tb-start{padding:12px 15px;font-size:14px}.tb-pause,.tb-refresh{padding:11px 10px;font-size:12px}
@@ -3316,7 +3316,7 @@ const _protectPH = L.layerGroup(), _wlzPH = L.layerGroup(), _waterplayPH = L.lay
 function _lcTag(group){return '<i class="lc-group-tag" data-lc-group="'+group+'"></i>';}
 _ov[_lcTag('safety')+_sw('rgba(229,57,53,.45)')+'상수원보호'] = _protectPH;
 _ov[_lcTag('safety')+_sw('rgba(255,152,0,.5)')+'수상레저금지'] = _wlzPH;
-_ov[_lcTag('safety')+'<span class="rv-sw">🛟</span>물놀이 관리지역'] = _waterplayPH;
+_ov[_lcTag('safety')+'물놀이관리지역<span class="wp-key-note">(<span class="wp-key-dot" aria-hidden="true"></span>일반 · <span class="wp-key-dot risk" aria-hidden="true"></span>위험)</span>'] = _waterplayPH;
 _ov[_lcTag('canoe')+'<span class="sw sw-course"></span>🛶 카누잉 코스'] = allCoursesGroup;   // 코스 전체 단일 토글
 _ov[_lcTag('canoe')+_sw('#ec407a')+'카누명소'] = famousLayer;
 _ov[_lcTag('canoe')+_sw('#2196f3')+'런칭/랜딩'] = canoeLayer;
@@ -3363,7 +3363,7 @@ function _organizeLayerLegend(){
     ['편의시설','store','lc-store-row']
   ];
   const used=new Set();overlays.replaceChildren();
-  definitions.forEach(function(def){const matches=labels.filter(function(label){const tag=label.querySelector('.lc-group-tag');return tag&&tag.dataset.lcGroup===def[1];});if(!matches.length)return;const section=L.DomUtil.create('div','lc-section',overlays),title=L.DomUtil.create('div','lc-section-title',section),body=L.DomUtil.create('div','lc-section-body '+def[2],section);title.textContent=def[0];matches.forEach(function(label){used.add(label);body.appendChild(label);});});
+  definitions.forEach(function(def){const matches=labels.filter(function(label){const tag=label.querySelector('.lc-group-tag');return tag&&tag.dataset.lcGroup===def[1];});if(!matches.length)return;const section=L.DomUtil.create('div','lc-section',overlays),title=L.DomUtil.create('div','lc-section-title',section),body=L.DomUtil.create('div','lc-section-body '+def[2],section);title.textContent=def[0];matches.forEach(function(label){used.add(label);if(label.querySelector('.wp-key-note'))label.classList.add('lc-waterplay-label');body.appendChild(label);});});
   const rest=labels.filter(function(label){return !used.has(label);});if(rest.length){const section=L.DomUtil.create('div','lc-section',overlays),title=L.DomUtil.create('div','lc-section-title',section),body=L.DomUtil.create('div','lc-section-body',section);title.textContent='관리자';rest.forEach(function(label){body.appendChild(label);});}
 }
 const _layerControlUpdate=_layerControl._update.bind(_layerControl);_layerControl._update=function(){const result=_layerControlUpdate();_organizeLayerLegend();return result;};
@@ -3545,15 +3545,10 @@ _heavyZoomGate();   // 초기 1회(줌7→no-op, 딥링크 줌≥11이면 즉시
   map.on('overlayadd overlayremove',function(e){if(e&&Object.values(_legendPrefLayers).indexOf(e.layer)>=0)_queueLegendPrefsSave();});
   if(_pendingServerLegendPrefs!==null){const pending=_pendingServerLegendPrefs;_pendingServerLegendPrefs=null;_receiveServerLegendPrefs(pending);}
 })();
-// 패널에 제목과 물놀이 관리지역 색상 키를 함께 표시
 // 모바일은 기본 닫힘 + 제목 탭으로 열고 닫기(화면 점유 최소화)
 (function(){ const c=_layerControl.getContainer(); if(!c) return;
   const h=L.DomUtil.create('div','lc-title'); h.innerHTML='<span>🗺️ 레이어 · 범례</span><span class="lc-arrow">▾</span>';h.setAttribute('role','button');h.setAttribute('tabindex','0');h.setAttribute('aria-expanded','true');c.insertBefore(h, c.firstChild);
-  const k=L.DomUtil.create('div','lc-key');
-  k.innerHTML='<div class="lg-sub">🛟 물놀이 관리지역</div>'
-    +'<div class="lg-row"><span class="sw" style="background:#1976d2;border-radius:50%"></span>일반지역</div>'
-    +'<div class="lg-row"><span class="sw" style="background:#d32f2f;border-radius:50%"></span>위험지역</div>';
-  c.appendChild(k); L.DomEvent.disableClickPropagation(k); L.DomEvent.disableScrollPropagation(c);
+  L.DomEvent.disableScrollPropagation(c);
   function setLegendOpen(open){if(open)syncLegendClearance();c.classList.toggle('lc-collapsed',!open);h.setAttribute('aria-expanded',open?'true':'false');document.body.classList.toggle('legend-open',open);if(open){c.scrollTop=0;closeSearchPreview(true);}}
   function toggleLegend(e){L.DomEvent.stop(e);setLegendOpen(c.classList.contains('lc-collapsed'));}
   L.DomEvent.on(h,'click',toggleLegend);L.DomEvent.on(h,'keydown',function(e){if(e.key==='Enter'||e.key===' '){L.DomEvent.preventDefault(e);toggleLegend(e);}});

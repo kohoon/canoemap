@@ -29,6 +29,38 @@ test.afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
+test('waterplay legend explains both marker colors inline without a duplicate footer', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    const context = await browser.newContext({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => { document.querySelector('#gate').style.display = 'none'; document.body.classList.remove('gate-open'); });
+    await page.locator('.lc-title').click();
+    const label = page.locator('.lc-waterplay-label');
+    await expect(label).toBeVisible();
+    await expect(label).toContainText('물놀이관리지역');
+    await expect(label).toContainText('일반');
+    await expect(label).toContainText('위험');
+    expect(await label.locator('.wp-key-dot').count()).toBe(2);
+    expect(await label.locator('.wp-key-dot').first().evaluate(el => getComputedStyle(el).borderTopColor)).toBe('rgb(25, 118, 210)');
+    expect(await label.locator('.wp-key-dot').last().evaluate(el => getComputedStyle(el).borderTopColor)).toBe('rgb(211, 47, 47)');
+    expect(await page.locator('.lc-key').count()).toBe(0);
+    const control = page.locator('.leaflet-control-layers');
+    const bounds = await control.boundingBox();
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width);
+    expect(await label.evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+    expect(errors).toEqual([]);
+    await context.close();
+  }
+  await browser.close();
+});
+
 test('legend choices follow the signed-in member across visits', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

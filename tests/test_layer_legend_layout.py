@@ -38,6 +38,12 @@ class LayerLegendLayoutTests(unittest.TestCase):
         self.assertIn("grid-template-columns:repeat(2,minmax(0,1fr))", self.source)
         self.assertIn("html.tour-mode .leaflet-control-layers.lc-collapsed{margin-bottom:var(--tour-bar-clearance,80px)", self.source)
 
+    def test_waterplay_key_is_inline_not_repeated_at_bottom(self):
+        self.assertIn("물놀이관리지역<span class=\"wp-key-note\">", self.source)
+        self.assertIn(".wp-key-dot.risk{border-color:#d32f2f}", self.source)
+        self.assertIn(".lc-waterplay-label{grid-column:1/-1}", self.source)
+        self.assertNotIn("L.DomUtil.create('div','lc-key')", self.source)
+
 
 if __name__ == "__main__":
     unittest.main()
