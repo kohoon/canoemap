@@ -1567,19 +1567,37 @@ test('legend stays clear of account, admin, and tour controls on short screens',
   await browser.close();
 });
 
-test('open chat entry stays visible below the top-right account control', async () => {
+test('open chat and paddling school shortcuts share a row below the account control', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
-  const chat = page.locator('#openChatCtl');
-  await expect(chat).toBeVisible();
-  await expect(chat).toHaveText(/이용자 오픈채팅/);
-  await expect(chat).toHaveAttribute('href', 'https://open.kakao.com/o/gcURegPi');
-  await expect(chat).toHaveAttribute('target', '_blank');
-  const order = await page.locator('.leaflet-top.leaflet-right > .leaflet-control').evaluateAll((nodes) => nodes.map((node) => node.id));
-  expect(order.indexOf('authbox')).toBeLessThan(order.indexOf('openChatCtl'));
+  for (const { width, tour } of [{ width: 320, tour: false }, { width: 390, tour: false }, { width: 1280, tour: false }, { width: 390, tour: true }]) {
+    const page = await browser.newPage({ viewport: { width, height: 844 } });
+    await page.goto(baseURL + (tour ? '/?tour=1' : '/'), { waitUntil: 'domcontentloaded' });
+    const chat = page.locator('#openChatLink');
+    const school = page.locator('#paddlingSchoolCtl');
+    await expect(chat).toBeVisible();
+    await expect(chat).toHaveText(/오픈채팅/);
+    await expect(chat).toHaveAttribute('href', 'https://open.kakao.com/o/gcURegPi');
+    await expect(chat).toHaveAttribute('target', '_blank');
+    await expect(school).toBeVisible();
+    await expect(school).toHaveText(/패들링 스쿨/);
+    await expect(school).toHaveAttribute('href', '/paddling/');
+    const bounds = await page.evaluate(() => {
+      const chat = document.getElementById('openChatLink').getBoundingClientRect();
+      const school = document.getElementById('paddlingSchoolCtl').getBoundingClientRect();
+      const tour = document.getElementById('tourEntry').getBoundingClientRect();
+      return { chatLeft: chat.left, chatRight: chat.right, schoolLeft: school.left, chatTop: chat.top, schoolTop: school.top, schoolRight: school.right, schoolBottom: school.bottom, tourTop: tour.top };
+    });
+    expect(bounds.chatLeft).toBeGreaterThanOrEqual(0);
+    expect(bounds.chatRight).toBeLessThan(bounds.schoolLeft);
+    expect(Math.abs(bounds.chatTop - bounds.schoolTop)).toBeLessThan(2);
+    expect(bounds.schoolRight).toBeLessThanOrEqual(width);
+    expect(bounds.schoolBottom).toBeLessThan(bounds.tourTop);
+    const order = await page.locator('.leaflet-top.leaflet-right > .leaflet-control').evaluateAll((nodes) => nodes.map((node) => node.id));
+    expect(order.indexOf('authbox')).toBeLessThan(order.indexOf('openChatCtl'));
+    await page.close();
+  }
   await browser.close();
 });
 

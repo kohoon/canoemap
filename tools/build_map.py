@@ -684,8 +684,11 @@ __GTAG__
   .authbox .who{display:inline-block;background:#fff;border-radius:6px;padding:7px 10px;box-shadow:0 1px 4px rgba(0,0,0,.3);max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .authbox .who a{color:#1565c0;margin-left:8px;text-decoration:none;cursor:pointer}
   .authbox .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2ecc71;margin-right:6px;vertical-align:middle}
-  .openchat-btn{display:flex;align-items:center;justify-content:center;gap:5px;background:#FEE500;color:#191600!important;border:0;border-radius:18px;padding:9px 12px;text-decoration:none!important;font:700 12.5px/1 sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.28);transition:transform .12s,box-shadow .12s}
-  .openchat-btn:hover,.openchat-btn:focus{transform:translateY(-1px);box-shadow:0 4px 11px rgba(0,0,0,.32);outline:none}
+  .map-quick-links{display:flex;align-items:center;justify-content:flex-end;gap:8px;max-width:calc(100vw - 20px)}
+  .openchat-btn,.paddling-school-btn{display:flex;align-items:center;justify-content:center;gap:5px;min-height:38px;box-sizing:border-box;border-radius:18px;padding:9px 12px;text-decoration:none!important;font:700 12.5px/1 sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.28);transition:transform .12s,box-shadow .12s}
+  .openchat-btn{background:#FEE500;color:#191600!important;border:0}
+  .paddling-school-btn{background:#e1f8ef;color:#075d4c!important;border:1px solid #95d9c2}
+  .openchat-btn:hover,.openchat-btn:focus,.paddling-school-btn:hover,.paddling-school-btn:focus{transform:translateY(-1px);box-shadow:0 4px 11px rgba(0,0,0,.32);outline:2px solid #0c7d74;outline-offset:2px}
   #gate{position:fixed;inset:0;z-index:3000;display:flex;align-items:flex-end;justify-content:flex-end;overflow:hidden;box-sizing:border-box;padding:24px;
     background:linear-gradient(90deg,rgba(5,27,23,.56) 0%,rgba(5,27,23,.12) 48%,rgba(5,27,23,.3) 100%)}
   #gate::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(5,27,23,.16),transparent 38%,rgba(5,27,23,.22))}
@@ -761,7 +764,8 @@ __GTAG__
     .leaflet-popup-content{font-size:12px;line-height:1.5}
     .authbox button{padding:7px 11px;font-size:12.5px}
     .authbox .who{font-size:12.5px;padding:6px 9px}
-    .openchat-btn{padding:9px 11px;font-size:12px}
+    .map-quick-links{gap:6px}
+    .openchat-btn,.paddling-school-btn{padding:9px 10px;font-size:12px}
     .cafe-actions{justify-content:flex-end}
     .admin-sheet-card,.admin-members-card{width:40px;height:40px;padding:6px;justify-content:center;gap:0}
     .admin-sheet-card .cf-t,.admin-members-card .cf-t{display:none}
@@ -1174,7 +1178,15 @@ function renderAuth(){
 const AuthCtl=L.Control.extend({ options:{position:'topright'},
   onAdd:function(){ const d=L.DomUtil.create('div','authbox'); d.id='authbox'; L.DomEvent.disableClickPropagation(d); setTimeout(renderAuth,0); return d; } });
 const OpenChatCtl=L.Control.extend({ options:{position:'topright'},
-  onAdd:function(){ const a=L.DomUtil.create('a','openchat-btn'); a.id='openChatCtl'; a.href='https://open.kakao.com/o/gcURegPi'; a.target='_blank'; a.rel='noopener'; a.setAttribute('aria-label','카누맵 이용자 오픈채팅방 열기'); a.innerHTML='<span aria-hidden="true">💬</span><span>이용자 오픈채팅</span>'; L.DomEvent.disableClickPropagation(a); L.DomEvent.on(a,'click',function(){gaEvent('openchat_click',{placement:'topright'});}); return a; } });
+  onAdd:function(){
+    const row=L.DomUtil.create('div','map-quick-links'); row.id='openChatCtl';
+    const chat=L.DomUtil.create('a','openchat-btn',row); chat.id='openChatLink'; chat.href='https://open.kakao.com/o/gcURegPi'; chat.target='_blank'; chat.rel='noopener'; chat.setAttribute('aria-label','카누맵 이용자 오픈채팅방 열기'); chat.innerHTML='<span aria-hidden="true">💬</span><span>오픈채팅</span>';
+    const school=L.DomUtil.create('a','paddling-school-btn',row); school.id='paddlingSchoolCtl'; school.href='/paddling/'; school.setAttribute('aria-label','패들링 스쿨 열기'); school.innerHTML='<span aria-hidden="true">🛶</span><span>패들링 스쿨</span>';
+    L.DomEvent.disableClickPropagation(row);
+    L.DomEvent.on(chat,'click',function(){gaEvent('openchat_click',{placement:'topright'});});
+    L.DomEvent.on(school,'click',function(){gaEvent('paddling_school_click',{placement:'topright'});});
+    return row;
+  } });
 const TourCtl=L.Control.extend({ options:{position:'topright'},
   onAdd:function(){const b=L.DomUtil.create('button','tour-entry');b.type='button';b.id='tourEntry';b.innerHTML=TOUR_MODE?'🗺️ 지도 탐색':'🛶 투어 모드 <span>BETA</span>';b.setAttribute('aria-label',TOUR_MODE?'투어 모드 종료하고 지도 탐색':'카누 투어 기록 모드 열기');L.DomEvent.disableClickPropagation(b);L.DomEvent.on(b,'click',function(){if(TOUR_MODE&&typeof _trk!=='undefined'&&_trk){toastMsg('진행 중인 투어를 먼저 종료해 주세요');return;}const next=new URL(location.href);if(TOUR_MODE)next.searchParams.delete('tour');else next.searchParams.set('tour','1');location.assign(next.toString());});return b;} });
 
@@ -1216,7 +1228,7 @@ let measureMode = false;   // 물길 거리측정 모드
 const isTouch = navigator.maxTouchPoints > 0 || (window.matchMedia&&window.matchMedia('(pointer: coarse)').matches);   // 모바일/터치 여부
 L.control.zoom({position:'bottomleft'}).addTo(map);
 map.addControl(new AuthCtl());   // 카카오 로그인 박스(우상단)
-map.addControl(new OpenChatCtl());   // 이용자 오픈채팅(우상단 마이페이지 아래)
+map.addControl(new OpenChatCtl());   // 오픈채팅·패들링 스쿨 한 줄 바로가기
 map.addControl(new TourCtl());
 const AdminCtl=L.Control.extend({ options:{position:'topright'},
   onAdd:function(){ const d=L.DomUtil.create('div','admin-actions'); d.id='adminActions';
