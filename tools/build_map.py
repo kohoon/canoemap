@@ -1229,7 +1229,7 @@ const OpenChatCtl=L.Control.extend({ options:{position:'topright'},
     return row;
   } });
 const TourCtl=L.Control.extend({ options:{position:'topright'},
-  onAdd:function(){const b=L.DomUtil.create('button','tour-entry');b.type='button';b.id='tourEntry';b.innerHTML=TOUR_MODE?'🗺️ 지도 탐색':'🛶 투어 모드 <span>BETA</span>';b.setAttribute('aria-label',TOUR_MODE?'투어 모드 종료하고 지도 탐색':'카누 투어 기록 모드 열기');L.DomEvent.disableClickPropagation(b);L.DomEvent.on(b,'click',function(){if(TOUR_MODE&&typeof _trk!=='undefined'&&_trk){toastMsg('진행 중인 투어를 먼저 종료해 주세요');return;}const next=new URL(location.href);if(TOUR_MODE)next.searchParams.delete('tour');else next.searchParams.set('tour','1');location.assign(next.toString());});return b;} });
+  onAdd:function(){const b=L.DomUtil.create('button','tour-entry');b.type='button';b.id='tourEntry';b.innerHTML=TOUR_MODE?'↩️ 투어모드 종료':'🛶 투어 모드 <span>BETA</span>';b.setAttribute('aria-label',TOUR_MODE?'투어모드 종료':'카누 투어 기록 모드 열기');L.DomEvent.disableClickPropagation(b);L.DomEvent.on(b,'click',function(){if(TOUR_MODE&&typeof _trk!=='undefined'&&_trk){toastMsg('진행 중인 투어를 먼저 종료해 주세요');return;}const next=new URL(location.href);if(TOUR_MODE)next.searchParams.delete('tour');else next.searchParams.set('tour','1');location.assign(next.toString());});return b;} });
 
 const ua = navigator.userAgent;
 const isiOS = /iphone|ipad|ipod/i.test(ua);

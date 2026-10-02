@@ -63,6 +63,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
       await expect(page).toHaveURL(/tour=1/);
       await expect(page.locator('html')).toHaveClass(/tour-mode/, { timeout: 15000 });
       await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
+      await expect(page.locator('#tourEntry')).toHaveText('↩️ 투어모드 종료');
       await expect(page.locator('#tripbar')).toBeVisible();
       await expect(page.locator('#tripStart')).toBeVisible();
       await page.locator('#tripStart').click();
