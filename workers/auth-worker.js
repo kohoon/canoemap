@@ -482,6 +482,7 @@ export default {
         if (!uid || !(await _tokOk(env, uid, url.searchParams.get("tok")))) return J({ ok: false, error: "relogin" }, 401);
         const member = await _memberGet(env, uid);
         if (memberRecordIsActive(member)) return J({ ok: true, profile: memberProfile(member), registrationRequired: false });
+        if (member && member.status === "withdrawn") return J({ ok: false, error: "withdrawn-member" }, 403);
         let legacy = null; try { legacy = JSON.parse((await KV.get("profile:" + uid)) || "null"); } catch (e) {}
         return J({ ok: true, profile: null, registrationRequired: true, suggestedNick: String((legacy && legacy.nick) || "").slice(0, 20) });
       }
@@ -529,6 +530,7 @@ export default {
           await _memberPut(env, uid, current);
           return J({ ok: true, status: "withdrawn" });
         }
+        if (current && current.status === "withdrawn") return J({ ok: false, error: "withdrawn-member" }, 403);
         if (memberRecordIsActive(current)) return J({ ok: true, profile: memberProfile(current) });
         if (b.termsAgreed !== true || b.privacyAgreed !== true) return J({ ok: false, error: "consent-required" }, 400);
         const nick = String(b.nick || "").trim().replace(/\s+/g, " ").slice(0, 20);

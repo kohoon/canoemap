@@ -573,6 +573,68 @@ test('explicit member registration requires both consents', async () => {
   await browser.close();
 });
 
+test('withdrawal immediately hides the map and returning withdrawn members cannot register again', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.addInitScript(() => { if (!localStorage.getItem('mc_withdrawn_v1')) localStorage.setItem('mc_user', JSON.stringify({ uid: 'withdraw-user', tok: 'test-token', nick: '테스트회원' })); });
+  let withdrawn = false;
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/profile') && route.request().method() === 'GET') {
+      await route.fulfill({ status: withdrawn ? 403 : 200, contentType: 'application/json', body: JSON.stringify(withdrawn
+        ? { ok: false, error: 'withdrawn-member' }
+        : { ok: true, profile: { memberId: 'withdraw-member', nick: '테스트회원', onboardingVersion: 1 } }) });
+    } else if (url.pathname.endsWith('/profile') && route.request().method() === 'POST') {
+      const body = route.request().postDataJSON();
+      if (body.action === 'withdraw') withdrawn = true;
+      await route.fulfill({ status: withdrawn ? (body.action === 'withdraw' ? 200 : 403) : 200, contentType: 'application/json', body: JSON.stringify(body.action === 'withdraw' ? { ok: true, status: 'withdrawn' } : { ok: false, error: 'withdrawn-member' }) });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    }
+  });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#memberBlocked')).not.toBeVisible();
+  await page.locator('#mypageA').click();
+  await expect(page.locator('.my-withdraw-note')).toContainText('바로 재가입할 수 없습니다');
+  await expect(page.locator('.my-withdraw-note a')).toHaveAttribute('href', 'mailto:crowd@kakao.com');
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.locator('#myWithdraw').click();
+  await expect(page.locator('#memberBlocked')).toBeVisible();
+  await expect(page.locator('#memberBlockedTitle')).toHaveText('회원 탈퇴가 완료되었습니다');
+  await expect(page.locator('#memberBlockedMail')).toBeVisible();
+  await expect(page.locator('#map')).toBeHidden();
+  for (const width of [320, 390, 1280]) {
+    await page.setViewportSize({ width, height: 844 });
+    const layout = await page.locator('.member-block-card').evaluate((node) => {
+      const r = node.getBoundingClientRect();
+      return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, overflowX: node.scrollWidth > node.clientWidth + 1, viewportWidth: innerWidth, viewportHeight: innerHeight };
+    });
+    expect(layout.left).toBeGreaterThanOrEqual(0);
+    expect(layout.right).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(layout.top).toBeGreaterThanOrEqual(0);
+    expect(layout.bottom).toBeLessThanOrEqual(layout.viewportHeight);
+    expect(layout.overflowX).toBe(false);
+  }
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#memberBlockedTitle')).toHaveText('탈퇴한 계정입니다');
+  await expect(page.locator('#map')).toBeHidden();
+  await expect(page.locator('#nickModal')).not.toHaveClass(/open/);
+
+  await page.evaluate(() => {
+    localStorage.setItem('mc_user', JSON.stringify({ uid: 'withdraw-user', tok: 'test-token', nick: '테스트회원' }));
+    localStorage.removeItem('mc_withdrawn_v1');
+  });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#memberBlockedTitle')).toHaveText('탈퇴한 계정입니다');
+  await expect(page.locator('#map')).toBeHidden();
+  await expect(page.locator('#nickModal')).not.toHaveClass(/open/);
+  await context.close();
+  await browser.close();
+});
+
 test('new-member tutorial is short, skippable, and responsive', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

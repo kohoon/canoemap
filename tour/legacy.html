@@ -370,6 +370,7 @@
   .my-list-row .my-list-main{min-width:0;flex:1;cursor:pointer}.my-list-main b{display:block;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.my-list-main small{color:#7c8b92;font-size:11px}
   .my-kind{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e8f2f4;flex:none;font-size:15px}
   .my-actions{display:flex;gap:4px;flex:none}.my-icon-btn{border:1px solid #ccd8dd;background:#fff;color:#52656e;border-radius:6px;min-width:32px;height:32px;padding:0 8px;cursor:pointer;font-size:12px}.my-icon-btn.del{color:#c62828;border-color:#ecc5c5}
+  .my-withdraw-note{margin:9px 0 0;color:#64747c;font:12px/1.55 sans-serif;word-break:keep-all}.my-withdraw-note a{color:#087561;text-decoration:underline;text-underline-offset:2px}
   .my-empty{text-align:center;color:#829097;font-size:13px;padding:44px 12px}.my-empty b{display:block;color:#4c6068;margin-bottom:5px;font-size:14px}
   @media(max-width:620px){#myModal .pmodal{width:100%;height:94vh;max-height:94vh;border-radius:14px 14px 0 0}#myBody{height:94vh}.my-head{padding:17px 16px 12px}.my-tabs{padding:0 7px}.my-tab{padding:12px 11px 10px}.my-pane{padding:14px 15px 24px}.my-stats{grid-template-columns:repeat(2,1fr)}.my-stat:nth-child(2){border-right:0}.my-stat:nth-child(-n+2){border-bottom:1px solid #e3e9eb}.my-stats.compact .my-stat{border-bottom:0}.my-tools{align-items:stretch}.my-toggle{width:100%;margin-left:0}.my-actions .label{display:none}}
   #pmLinks{font-size:13px;margin-bottom:10px}
@@ -572,6 +573,16 @@
   .beta-tag{display:inline-block;background:#ff7043;color:#fff;font:700 10px sans-serif;padding:2px 7px;border-radius:8px;vertical-align:middle;margin-left:7px}
   .gate-warn{display:flex;gap:8px;text-align:left;background:#fff8e1;border-radius:10px;padding:8px 10px;margin:0 0 12px;font:11px/1.45 sans-serif;color:#6d4c00}
   .gate-warn span:first-child{flex:none}
+  body.member-blocked #map{visibility:hidden}
+  #memberBlocked{position:fixed;inset:0;z-index:4100;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:20px;background:#f1f7f4;color:#193a31}
+  body.member-blocked #memberBlocked{display:flex}
+  .member-block-card{width:min(420px,100%);box-sizing:border-box;padding:28px 24px;border:1px solid #d8e7df;border-radius:22px;background:#fff;box-shadow:0 14px 40px rgba(24,58,45,.12);text-align:center}
+  .member-block-icon{display:flex;align-items:center;justify-content:center;width:58px;height:58px;margin:0 auto 14px;border-radius:18px;background:#e5f6ef;font-size:27px}
+  .member-block-card h2{margin:0 0 10px;font:800 21px/1.3 sans-serif;word-break:keep-all}
+  .member-block-card p{margin:0;color:#526b60;font:13.5px/1.65 sans-serif;word-break:keep-all}
+  .member-block-mail{display:inline-flex;align-items:center;justify-content:center;min-height:44px;box-sizing:border-box;margin-top:20px;padding:10px 16px;border-radius:12px;background:#087561;color:#fff!important;text-decoration:none;font:700 13px sans-serif}
+  .member-block-retry{display:block;margin:12px auto 0;padding:8px 10px;border:0;background:transparent;color:#42675a;font:700 12px sans-serif;text-decoration:underline;cursor:pointer}
+  .member-block-mail[hidden],.member-block-retry[hidden]{display:none}
   .admin-badge{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:3100;display:flex;align-items:center;gap:8px;white-space:nowrap;background:#263238;color:#fff;padding:7px 13px;border-radius:22px;font:700 12.5px sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.3)}
   .admin-badge .ab-dot{width:8px;height:8px;border-radius:50%;background:#69f0ae;box-shadow:0 0 6px #69f0ae}
   .admin-badge a{color:#80d8ff;text-decoration:none;cursor:pointer;margin-left:4px}
@@ -639,6 +650,7 @@
 </style>
 </head>
 <body>
+<script>try{if(localStorage.getItem('mc_user')||localStorage.getItem('mc_withdrawn_v1')==='1')document.body.classList.add('member-blocked');}catch(e){}</script>
 <div id="map"></div>
 <div id="hint"></div>
 <button id="offlineBanner" class="offline-banner" type="button" onclick="openOfflineModal()"></button>
@@ -667,6 +679,15 @@
     <div class="gate-warn"><span>⚠️</span><span>화면이 꺼지면 GPS가 누락될 수 있어요. 복귀 시 물길 기준으로 추정합니다.</span></div>
     <button id="gateLogin" class="kakao-btn"><svg class="kakao-ico" viewBox="0 0 24 24"><path d="M12 3.4C6.7 3.4 2.4 6.9 2.4 11.1c0 2.7 1.8 5.1 4.5 6.5-.2.7-.7 2.5-.8 2.9-.1.5.2.5.4.4.2-.1 2.5-1.7 3.5-2.4.5.1 1 .2 1.5.2 5.3 0 9.6-3.4 9.6-7.6S17.3 3.4 12 3.4z"/></svg>카카오로 투어 시작</button>
     <small>로그인 후 바로 기록할 수 있어요</small>
+  </div>
+</div>
+<div id="memberBlocked" role="dialog" aria-modal="true" aria-labelledby="memberBlockedTitle">
+  <div class="member-block-card">
+    <div class="member-block-icon" aria-hidden="true">👤</div>
+    <h2 id="memberBlockedTitle">회원 상태를 확인하는 중입니다</h2>
+    <p id="memberBlockedText">잠시만 기다려 주세요.</p>
+    <a id="memberBlockedMail" class="member-block-mail" href="mailto:crowd@kakao.com?subject=%EC%B9%B4%EB%88%84%EB%A7%B5%20%EC%9E%AC%EA%B0%80%EC%9E%85%20%EB%AC%B8%EC%9D%98" hidden>관리자에게 이메일 보내기</a>
+    <button id="memberBlockedRetry" class="member-block-retry" type="button" hidden>카카오로 다시 로그인</button>
   </div>
 </div>
 <div id="pmodal" class="pmodal-wrap">
@@ -897,6 +918,10 @@ window.addEventListener('hashchange', _maybeAdmin);   // 새로고침 없이 #ad
 function gaEvent(name, params){ try{ if(window.gtag) gtag('event', name, params||{}); }catch(e){} }
 function getUser(){ try{ return JSON.parse(localStorage.getItem('mc_user')||'null'); }catch(e){ return null; } }
 function setUser(u){ try{ u?localStorage.setItem('mc_user',JSON.stringify(u)):localStorage.removeItem('mc_user'); }catch(e){} }
+const MEMBER_BLOCK_KEY='mc_withdrawn_v1';
+function rememberWithdrawal(){try{localStorage.setItem(MEMBER_BLOCK_KEY,'1');}catch(e){}}
+function clearWithdrawal(){try{localStorage.removeItem(MEMBER_BLOCK_KEY);}catch(e){}}
+function hadWithdrawal(){try{return localStorage.getItem(MEMBER_BLOCK_KEY)==='1';}catch(e){return false;}}
 function devType(){ return (('ontouchstart' in window)||navigator.maxTouchPoints>0)?'모바일':'PC'; }
 function loginReturnPath(){
   const cleanHash=location.hash.replace(/#login=[^&]+(&nick=[^&]*)?(&tok=[^&]*)?/, '');
@@ -922,11 +947,13 @@ function ensureAppProfile(){
     const u=getUser(); if(!u||!u.uid) return false;
     try{
       const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||''),{cache:'no-store'});
-      if(r.status===401){ setUser(null); showGate(); return false; }
+      if(r.status===401){ setUser(null); if(hadWithdrawal())showMemberBlock('error');else{hideMemberBlock();showGate();} return false; }
       const d=await r.json();
-      if(d.profile&&d.profile.nick){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); return true; }
-      return await openNicknameModal(u,d.suggestedNick||'');
-    }catch(e){ _profilePromise=null; return false; }
+      if(r.status===403&&d.error==='withdrawn-member'){rememberWithdrawal();setUser(null);_appProfile=null;showMemberBlock('withdrawn');return false;}
+      if(!r.ok){showMemberBlock('error');return false;}
+      if(d.profile&&d.profile.nick){ clearWithdrawal();hideMemberBlock();_appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); return true; }
+      hideMemberBlock();return await openNicknameModal(u,d.suggestedNick||'');
+    }catch(e){ _profilePromise=null; showMemberBlock('error'); return false; }
   })();
   return _profilePromise;
 }
@@ -938,7 +965,8 @@ function openNicknameModal(u,suggestedNick){ return new Promise(function(resolve
     ok.disabled=true; msg.style.color='#778'; msg.textContent='확인 중…';
     try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:u.uid,tok:u.tok||'',nick:nick,termsAgreed:true,privacyAgreed:true,dev:devType()})});
       const d=await r.json().catch(function(){return {};});
-      if(r.ok&&d.profile){ _appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); resolve(true); }
+      if(r.ok&&d.profile){ clearWithdrawal();hideMemberBlock();_appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); resolve(true); }
+      else if(r.status===403&&d.error==='withdrawn-member'){m.classList.remove('open');rememberWithdrawal();setUser(null);showMemberBlock('withdrawn');resolve(false);}
       else { msg.style.color='#e53935'; msg.textContent=r.status===409?'이미 사용 중인 닉네임입니다':(r.status===401?'다시 로그인해 주세요':'한글·영문·숫자와 공백, . _ - 만 사용할 수 있습니다'); }
     }catch(e){ msg.style.color='#e53935'; msg.textContent='저장하지 못했습니다. 다시 시도하세요'; }
     finally{ ok.disabled=false; }
@@ -999,15 +1027,28 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
   }
 })();
 // 로그인 관문: 미로그인 시 지도 차단(로그인 화면 표시)
-function showGate(){ const g=document.getElementById('gate'); document.body.classList.add('gate-open'); if(g) g.style.display='flex'; }
+function showGate(){ if(hadWithdrawal()){showMemberBlock('withdrawn');return;} hideMemberBlock();const g=document.getElementById('gate'); document.body.classList.add('gate-open'); if(g) g.style.display='flex'; }
 function hideGate(){ const g=document.getElementById('gate'); document.body.classList.remove('gate-open'); if(g) g.style.display='none'; }
+function showMemberBlock(kind){
+  hideGate();document.body.classList.add('member-blocked');
+  const title=document.getElementById('memberBlockedTitle'),desc=document.getElementById('memberBlockedText'),mail=document.getElementById('memberBlockedMail'),retry=document.getElementById('memberBlockedRetry');
+  const messages={
+    checking:['회원 상태를 확인하는 중입니다','잠시만 기다려 주세요.'],
+    complete:['회원 탈퇴가 완료되었습니다','이 계정으로는 카누맵 지도를 이용하거나 바로 재가입할 수 없습니다. 재가입을 원하시면 관리자에게 이메일을 보내 주세요.'],
+    withdrawn:['탈퇴한 계정입니다','이 계정으로는 카누맵 지도를 이용하거나 바로 재가입할 수 없습니다. 재가입을 원하시면 관리자에게 이메일을 보내 주세요.'],
+    error:['회원 상태를 확인할 수 없습니다','지도를 표시하지 않았습니다. 네트워크를 확인한 뒤 카카오로 다시 로그인해 주세요.']
+  };
+  const m=messages[kind]||messages.withdrawn;title.textContent=m[0];desc.textContent=m[1];mail.hidden=kind==='checking'||kind==='error';retry.hidden=kind==='checking'||kind==='complete';
+}
+function hideMemberBlock(){document.body.classList.remove('member-blocked');}
 let _notices=[];   // 공지 목록(로드 시 채움)
 (function(){
   const gb=document.getElementById('gateLogin');
   if(gb) gb.onclick=function(){ gaEvent('login_start'); location.href=loginWorkerUrl(); };
   const gc=document.getElementById('gateOpenChat');
   if(gc) gc.onclick=function(){ gaEvent('openchat_click',{placement:'landing'}); };
-  const u=getUser(); if(u&&u.uid){ hideGate(); ensureAppProfile().then(function(ok){ if(ok) fetchNotices().then(updateNoticeBadge); }); } else showGate();
+  const retry=document.getElementById('memberBlockedRetry');if(retry)retry.onclick=function(){gaEvent('login_start',{placement:'member_blocked'});location.href=loginWorkerUrl();};
+  const u=getUser(); if(u&&u.uid){ hideGate();showMemberBlock('checking');ensureAppProfile().then(function(ok){ if(ok) fetchNotices().then(updateNoticeBadge); }); } else showGate();
 })();
 function renderAuth(){
   const d=document.getElementById('authbox'); if(!d) return;
@@ -1015,7 +1056,7 @@ function renderAuth(){
   if(u&&u.uid){
     d.innerHTML='<span class="who"><span class="dot"></span><a id="mypageA" title="'+myTitle+'">'+pmEsc(u.nick||'회원')+'</a> <a id="logoutA">로그아웃</a></span>';
     const my=document.getElementById('mypageA'); if(my) L.DomEvent.on(my,'click',function(e){ L.DomEvent.stop(e); openMyPage(); });
-    const lo=document.getElementById('logoutA'); if(lo) L.DomEvent.on(lo,'click',function(e){ L.DomEvent.stop(e); setUser(null); _profilePromise=null; _appProfile=null; const tour=document.getElementById('onboardingTour'); if(tour) tour.classList.remove('open'); gaEvent('logout'); renderAuth(); showGate(); });
+    const lo=document.getElementById('logoutA'); if(lo) L.DomEvent.on(lo,'click',function(e){ L.DomEvent.stop(e); setUser(null); _profilePromise=null; _appProfile=null; hideMemberBlock(); const tour=document.getElementById('onboardingTour'); if(tour) tour.classList.remove('open'); gaEvent('logout'); renderAuth(); showGate(); });
   } else {
     d.innerHTML='<button id="loginA">카카오 로그인</button>';
     const lb=document.getElementById('loginA'); if(lb) L.DomEvent.on(lb,'click',function(e){ L.DomEvent.stop(e); gaEvent('login_start'); location.href=loginWorkerUrl(); });
@@ -2852,11 +2893,11 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
       +'<div class="my-section-title">활동통계</div><div class="my-stats"><div class="my-stat"><b>'+_favList.length+'</b><span>즐겨찾기</span></div><div class="my-stat"><b>'+state.mine.length+'</b><span>내 코스</span></div>'
       +'<div class="my-stat"><b>'+state.trips.length+'</b><span>패들링</span></div><div class="my-stat"><b>'+km.toFixed(1)+'</b><span>실측 km</span></div></div>'
       +(state.trips.length?'<div class="my-info-row"><span>누적 시간</span><b>'+durText(sec)+'</b></div>':'')
-      +'<div class="my-section-title">회원정보 보호</div><div style="font-size:12px;line-height:1.55;color:#64747c">카카오 ID는 회원 DB에 원문으로 저장하지 않으며, 가명 회원번호와 30일 만료 세션을 사용합니다.</div><button id="myWithdraw" class="my-icon-btn del" style="margin-top:12px">회원 탈퇴</button>');
+      +'<div class="my-section-title">회원정보 보호</div><div style="font-size:12px;line-height:1.55;color:#64747c">카카오 ID는 회원 DB에 원문으로 저장하지 않으며, 가명 회원번호와 30일 만료 세션을 사용합니다.</div><button id="myWithdraw" class="my-icon-btn del" style="margin-top:12px">회원 탈퇴</button><p class="my-withdraw-note">탈퇴 후에는 지도를 이용하거나 같은 카카오 계정으로 바로 재가입할 수 없습니다. 재가입을 원하시면 <a href="mailto:crowd@kakao.com">crowd@kakao.com</a>으로 문의해 주세요.</p>');
     const tutorial=document.getElementById('myTutorial');if(tutorial)tutorial.onclick=function(){closeMyPage();openOnboardingTutorial('mypage');};
     const withdraw=document.getElementById('myWithdraw'); if(withdraw)withdraw.onclick=async function(){
-      if(!confirm('회원 탈퇴 시 즉시 이용이 중지되고 회원 닉네임·최근 기기정보가 제거됩니다. 기존 작성 콘텐츠는 자동 삭제되지 않습니다. 탈퇴할까요?'))return;
-      try{const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'withdraw',id:u.uid,tok:u.tok||''})});if(!r.ok)throw 0;setUser(null);_profilePromise=null;_appProfile=null;closeMyPage();renderAuth();showGate();}catch(e){alert('탈퇴 처리에 실패했습니다. 다시 시도해 주세요.');}
+      if(!confirm('탈퇴하면 지도를 이용하거나 바로 재가입할 수 없습니다. 닉네임·최근 기기정보는 제거되지만 기존 작성 콘텐츠는 자동 삭제되지 않습니다. 탈퇴할까요?'))return;
+      try{const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'withdraw',id:u.uid,tok:u.tok||''})});if(!r.ok)throw 0;rememberWithdrawal();setUser(null);_profilePromise=null;_appProfile=null;closeMyPage();renderAuth();showMemberBlock('complete');}catch(e){alert('탈퇴 처리에 실패했습니다. 다시 시도해 주세요.');}
     };
   }
   function renderFavs(){
