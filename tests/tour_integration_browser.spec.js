@@ -77,8 +77,26 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
       await page.waitForTimeout(2500);
       await context.setGeolocation({ latitude: 37.8901, longitude: 127.7401, accuracy: 8 });
       await expect.poll(() => page.evaluate(() => _trk && _trk.track.length)).toBeGreaterThanOrEqual(2);
+      await page.locator('#tripPause').click();
+      await expect(page.locator('#tripbar')).toHaveClass(/paused/);
+      await page.waitForTimeout(1100);
+      await page.locator('#tripPause').click();
+      const pauses = await page.evaluate(() => _trk.pauses);
+      expect(pauses).toHaveLength(1);
+      expect(pauses[0].type).toBe('manual');
+      expect(pauses[0].end - pauses[0].start).toBeGreaterThanOrEqual(1000);
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem('mc_trk')).pauses)).toEqual(pauses);
+      await page.evaluate(() => pauseTour(false));
+      await page.waitForTimeout(1100);
       await page.locator('#tripStart').click();
       await expect(page.locator('#tmBody')).toContainText('실측 km');
+      await expect(page.locator('#tmBody')).toContainText('휴식 내역');
+      const savedPauses = await page.evaluate(() => _pendTrip.pauses);
+      expect(savedPauses).toHaveLength(2);
+      expect(savedPauses[0]).toEqual(pauses[0]);
+      expect(savedPauses[1].type).toBe('auto');
+      expect(savedPauses[1].end - savedPauses[1].start).toBeGreaterThanOrEqual(1000);
+      expect(await page.evaluate(() => [...document.querySelectorAll('.tm-time-stat > div')].every(el => el.getBoundingClientRect().right <= window.innerWidth + 1))).toBe(true);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
       expect(errors).toEqual([]);
     } finally {

@@ -1477,7 +1477,7 @@ export default {
         if (tp.endsWith("/feed")) {             // 공유 트립 목록(uid 비노출)
           let feed = []; try { feed = JSON.parse((KV ? await KV.get("feed") : null) || "[]"); } catch (e) {}
           return J(JSON.stringify(feed.map((x) => ({ id: x.id, nick: x.nick, title: x.title, distKm: x.distKm,
-            durSec: x.durSec, start: x.start, estimated: !!x.estimated, recordVersion: x.recordVersion || 1, courseName: x.courseName || "",
+            durSec: x.durSec, restSec: x.restSec || 0, start: x.start, estimated: !!x.estimated, recordVersion: x.recordVersion || 1, courseName: x.courseName || "",
             courseProgress: Math.max(0, Math.min(100, Number(x.courseProgress) || 0)) }))));
         }
         if (tp.endsWith("/board")) {            // 랭킹(uid → 가명 해시, 본인 행은 me 표시)
@@ -1525,6 +1525,12 @@ export default {
             for (let i = 1; i < track.length; i++) if (!breaks.includes(i)) { const elapsed = Math.max(1, (track[i][2] - track[i - 1][2]) / 1000); if (elapsed > 30 || _hav(track[i - 1], track[i]) / elapsed > 20) breaks.push(i); }
             const estimateSource = legacyEstimate ? b.track : b.estimatedTrack;
             const estimatedTrack = Array.isArray(estimateSource) ? estimateSource.slice(0, 5000).filter((p) => Array.isArray(p) && Number.isFinite(Number(p[0])) && Number.isFinite(Number(p[1])) && Math.abs(Number(p[0])) <= 90 && Math.abs(Number(p[1])) <= 180).map((p) => [Number(p[0]), Number(p[1])]) : [];
+            if (b.pauses != null && (!Array.isArray(b.pauses) || b.pauses.length > 200)) return TXT("bad pauses", 400);
+            const pauses = (b.pauses || []).map((p) => ({ start: Number(p?.start), end: Number(p?.end), type: p?.type }));
+            const tripStart = Number(b.start), tripEnd = Number(b.end);
+            if (pauses.length && (!Number.isFinite(tripStart) || !Number.isFinite(tripEnd) || tripEnd <= tripStart)) return TXT("bad pauses", 400);
+            if (pauses.some((p, i) => !Number.isFinite(p.start) || !Number.isFinite(p.end) || p.start < tripStart || p.end > tripEnd || p.end <= p.start || !["manual", "auto"].includes(p.type) || (i > 0 && p.start < pauses[i - 1].end))) return TXT("bad pauses", 400);
+            const restSec = Math.round(pauses.reduce((sum, p) => sum + (p.end - p.start), 0) / 1000);
             const distKm = Math.round(_trackKm(track, breaks) * 100) / 100;
             const clientId = String(b.clientId || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64);
             const id = String(b.id) + "_" + (clientId || Date.now());
@@ -1537,7 +1543,7 @@ export default {
             const trip = {
               id, uid: String(b.id), nick: String(b.nick || "").slice(0, 20),
               title: String(b.title || "카누잉").slice(0, 40),
-              start: Number(b.start) || 0, end: Number(b.end) || 0, durSec: Number(b.durSec) || 0,
+              start: Number(b.start) || 0, end: Number(b.end) || 0, durSec: Number(b.durSec) || 0, restSec, pauses,
               distKm, track, breaks, launch: b.launch || null, landing: b.landing || null,
               gpsTrack: track, estimatedTrack, estimatedKm: Math.round(_trackKm(estimatedTrack, []) * 100) / 100,
               recordVersion: 2,
@@ -1546,7 +1552,7 @@ export default {
               shared: !!b.shared, ct: Date.now(), clientId: clientId,
             };
             await KV.put("trip:" + id, JSON.stringify(trip));
-            const sum = { id, title: trip.title, start: trip.start, distKm, durSec: trip.durSec, shared: trip.shared, recordVersion: 2,
+            const sum = { id, title: trip.title, start: trip.start, end: trip.end, distKm, durSec: trip.durSec, restSec, shared: trip.shared, recordVersion: 2,
               estimated: trip.estimated, courseName: trip.courseName, courseProgress: trip.courseProgress };
             let ut = []; try { ut = JSON.parse((await KV.get("utrips:" + trip.uid)) || "[]"); } catch (e) {}
             ut.unshift(sum); if (ut.length > 500) ut = ut.slice(0, 500);
@@ -1557,7 +1563,7 @@ export default {
             bd[trip.uid] = en; await KV.put("board_measured_v2", JSON.stringify(bd));
             if (trip.shared) {
               let feed = []; try { feed = JSON.parse((await KV.get("feed")) || "[]"); } catch (e) {}
-              feed.unshift({ id, uid: trip.uid, nick: trip.nick, title: trip.title, distKm, durSec: trip.durSec, start: trip.start,
+              feed.unshift({ id, uid: trip.uid, nick: trip.nick, title: trip.title, distKm, durSec: trip.durSec, restSec, start: trip.start,
                 estimated: trip.estimated, recordVersion: 2, courseName: trip.courseName, courseProgress: trip.courseProgress });
               if (feed.length > 500) feed = feed.slice(0, 500);
               await KV.put("feed", JSON.stringify(feed));
@@ -1576,7 +1582,7 @@ export default {
             let feed = []; try { feed = JSON.parse((await KV.get("feed")) || "[]"); } catch (e) {}
             feed = feed.filter((x) => x.id !== id);
             if (trip.shared) feed.unshift({ id, uid: trip.uid, nick: trip.nick, title: trip.title, distKm: trip.distKm,
-              durSec: trip.durSec, start: trip.start, estimated: trip.estimated, recordVersion: trip.recordVersion || 1,
+              durSec: trip.durSec, restSec: trip.restSec || 0, start: trip.start, estimated: trip.estimated, recordVersion: trip.recordVersion || 1,
               courseName: trip.courseName, courseProgress: trip.courseProgress });
             if (feed.length > 500) feed = feed.slice(0, 500);
             await KV.put("feed", JSON.stringify(feed));
