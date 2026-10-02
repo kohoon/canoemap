@@ -102,7 +102,7 @@ test('old tour address keeps unsent records available', async () => {
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
   test(`tour notices clear the bottom controls at ${viewport.width}px`, async () => {
-    const { browser, page, errors } = await setup(viewport);
+    const { browser, context, page, errors } = await setup(viewport);
     try {
       await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
@@ -156,7 +156,7 @@ test('long course hover labels stay within both horizontal map edges', async () 
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
   test(`launch and landing icons select exact tour endpoints at ${viewport.width}px`, async () => {
-    const { browser, page, errors } = await setup(viewport);
+    const { browser, context, page, errors } = await setup(viewport);
     try {
       await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
@@ -187,9 +187,60 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
       expect(await page.evaluate(() => _tourPick.points)).toEqual(await page.evaluate(() => _tourTestMarkers.map(m => {
         const p = m.getLatLng(); return { lat: p.lat, lng: p.lng };
       })));
+      await page.locator('#tmPickedGo').click();
+      await expect(page.locator('#tripbar')).toHaveClass(/rec/);
+      await expect(page.locator('#tripGpsStatus')).toContainText('GPS 정상');
+      const tracking = await page.evaluate(() => ({
+        points: _trk.track.length,
+        marker: _trk.posMarker?.getLatLng(),
+        center: map.getCenter(),
+      }));
+      expect(tracking.points).toBeGreaterThanOrEqual(1);
+      expect(tracking.marker.lat).toBeCloseTo(37.89, 3);
+      expect(tracking.center.lat).toBeCloseTo(37.89, 2);
+      await page.waitForTimeout(2500);
+      await context.setGeolocation({ latitude: 37.8901, longitude: 127.7401, accuracy: 8 });
+      await expect.poll(() => page.evaluate(() => _trk.track.length)).toBeGreaterThanOrEqual(2);
+      await page.evaluate(() => { map.fire('dragstart'); });
+      expect(await page.evaluate(() => _trk.followView)).toBe(false);
+      await page.locator('#tripRefresh').click();
+      await expect.poll(() => page.evaluate(() => _trk.followView)).toBe(true);
       expect(errors).toEqual([]);
     } finally {
       await browser.close();
     }
   });
 }
+
+test('selected tour keeps its confirmation open when GPS permission fails', async () => {
+  const { browser, page, errors } = await setup({ width: 390, height: 844 });
+  try {
+    await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
+    await page.evaluate(() => {
+      _tourConsentForStart = true;
+      const coords = [[37.89, 127.74], [37.891, 127.741]];
+      const p = {
+        seq: ++_tourPickSeq, points: coords.map(([lat, lng]) => ({ lat, lng })),
+        startMarker: L.circleMarker(coords[0]).addTo(map),
+        endMarker: L.circleMarker(coords[1]).addTo(map),
+        line: L.polyline(coords).addTo(map), busy: false, stage: 'routing',
+      };
+      _tourPick = p;
+      _showTourPickConfirm(p, { coords, km: 0.2 });
+      Object.defineProperty(navigator.geolocation, 'getCurrentPosition', {
+        configurable: true,
+        value: (_success, error) => error({ code: 1 }),
+      });
+    });
+    await page.locator('#tmPickedGo').click();
+    await expect(page.locator('#tmStartStatus')).toContainText('위치 권한이 거부되었습니다');
+    await expect(page.locator('#tmodal')).toHaveClass(/open/);
+    await expect(page.locator('#tmPickedGo')).toBeEnabled();
+    expect(await page.evaluate(() => _trk)).toBeNull();
+    expect(await page.evaluate(() => !!_tourPick?.line?._map)).toBe(true);
+    expect(errors).toEqual([]);
+  } finally {
+    await browser.close();
+  }
+});
