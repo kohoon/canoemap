@@ -212,6 +212,58 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
   });
 }
 
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`registered course can guide a GPS tour at ${viewport.width}px`, async () => {
+    const { browser, page, errors } = await setup(viewport);
+    try {
+      const course = { id: 'saved-tour-test', owner: 'tour-beta-member', name: '내 카누코스 테스트', km: 1.2, coords: [[37.89, 127.74], [37.895, 127.745]] };
+      await page.route('**/courses?**', async (route) => {
+        const url = new URL(route.request().url());
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(url.searchParams.has('mine') ? [course] : []) });
+      });
+      await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
+      await page.locator('#tripStart').click();
+      await page.locator('#tmCourseToggle').click();
+      await page.locator('#tmCourseSearch').fill('카누코스 테스트');
+      await expect(page.locator('.tm-course-result')).toHaveCount(1);
+      expect(await page.evaluate(() => document.getElementById('tmCoursePanel').getBoundingClientRect().right <= window.innerWidth + 1)).toBe(true);
+      await page.locator('.tm-course-result').click();
+      await expect(page.locator('#tmSelectedCourse')).toContainText('내 카누코스 테스트');
+      await page.locator('#tmGpsAgree').check();
+      await page.locator('#tmStartNow').click();
+      await expect(page.locator('#tripbar')).toHaveClass(/rec/);
+      const recorded = await page.evaluate(() => ({ courseId: _trk.course?.id, first: _trk.track[0].slice(0, 2), plan: !!_trk.planLine }));
+      expect(recorded).toEqual({ courseId: 'ksaved-tour-test', first: [37.89, 127.74], plan: true });
+      expect(errors).toEqual([]);
+    } finally {
+      await browser.close();
+    }
+  });
+}
+
+test('course details offer a preselected tour start', async () => {
+  const { browser, page, errors } = await setup({ width: 390, height: 844 });
+  try {
+    await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
+    await page.evaluate(() => {
+      const c = { id: 'detail-tour-test', owner: 'tour-beta-member', name: '상세에서 선택한 코스', km: 0.8, coords: [[37.89, 127.74], [37.895, 127.745]] };
+      openCourseComments('course_k' + c.id, c, 'k' + c.id);
+    });
+    await page.locator('#pmTourRecord').click();
+    await expect(page.locator('#tmSelectedCourse')).toContainText('상세에서 선택한 코스');
+    await expect(page.locator('#tmStartNow')).toHaveText('선택한 코스로 투어 시작');
+    await page.locator('#tmGpsAgree').check();
+    await page.locator('#tmStartNow').click();
+    await expect(page.locator('#tripbar')).toHaveClass(/rec/);
+    expect(await page.evaluate(() => _trk.course?.id)).toBe('kdetail-tour-test');
+    expect(errors).toEqual([]);
+  } finally {
+    await browser.close();
+  }
+});
+
 test('tour start keeps confirmation open when GPS permission fails', async () => {
   const { browser, page, errors } = await setup({ width: 390, height: 844 });
   try {
