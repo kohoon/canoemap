@@ -13,6 +13,7 @@ import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
 import { MEASURE_SHARE_CORRECTIONS } from "./measure-share-corrections.mjs";
 import { coursePreviewKey, courseShareHtml, normalizeCourseShareId } from "./course-share.mjs";
 import { applyCourseCorrection, coursePreviewVersionIsCurrent } from "./course-corrections.mjs";
+import { normalizeExpedition } from "./expedition.mjs";
 import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
 
 /**
@@ -46,7 +47,7 @@ async function _courseShareRecord(env, id) {
     let courses = [];
     try { courses = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
     const foundRaw = (Array.isArray(courses) ? courses : []).find((course) => String(course && course.id) === safeId.slice(1));
-    const found = applyCourseCorrection(foundRaw);
+    const found = normalizeExpedition(applyCourseCorrection(foundRaw),safeId);
     if (!found) return null;
     return {
       id: safeId,
@@ -66,7 +67,7 @@ async function _courseShareRecord(env, id) {
   const patch = (over && over[safeId]) || {};
   return {
     id: safeId,
-    name: String(patch.name || base.name || "카누맵 코스").slice(0, 100),
+    name: normalizeExpedition({static:true,id:safeId,name:String(patch.name || base.name || "카누맵 코스")},safeId).name.slice(0,100),
     km: Number.isFinite(Number(patch.km)) ? Number(patch.km) : Number(base.km) || 0,
     owner: "admin",
     updatedAt: Number(patch.updatedAt) || 0,
@@ -74,7 +75,7 @@ async function _courseShareRecord(env, id) {
   };
 }
 
-async function _coursePreviewRecord(KV, id) {
+async function _coursePreviewRecord(KV, id, courseName) {
   if (!KV) return null;
   const key = coursePreviewKey(id);
   if (!key) return null;
@@ -82,6 +83,7 @@ async function _coursePreviewRecord(KV, id) {
     const parsed = JSON.parse((await KV.get(key)) || "null");
     if (!parsed || !/^[A-Za-z0-9+/=]+$/.test(String(parsed.b64 || ""))) return null;
     if (!coursePreviewVersionIsCurrent(id, parsed.v)) return null;
+    if (/^엑스페디션 #[0-9]+ · /.test(courseName || "") && parsed.name !== courseName) return null;
     return { b64: String(parsed.b64), v: String(parsed.v || "0").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32) || "0" };
   } catch (e) { return null; }
 }
@@ -313,7 +315,7 @@ export default {
       const id = normalizeCourseShareId(courseShareMatch[1]);
       const course = await _courseShareRecord(env, id);
       if (!course) return new Response("course not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
-      const preview = await _coursePreviewRecord(env.PLACES, id);
+      const preview = await _coursePreviewRecord(env.PLACES, id, course.name);
       const site = new URL(env.SITE_URL || "https://canoe.crowdbase.kr/");
       site.searchParams.set("course", id);
       const imageUrl = preview
@@ -329,7 +331,7 @@ export default {
       const id = normalizeCourseShareId(coursePreviewMatch[1]);
       const course = await _courseShareRecord(env, id);   // 삭제·숨김 코스는 식별자가 남아도 현재 코스로 보지 않는다.
       if (!course) return new Response("not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
-      const preview = await _coursePreviewRecord(env.PLACES, id);
+      const preview = await _coursePreviewRecord(env.PLACES, id, course.name);
       if (!preview) return Response.redirect(new URL("og.png", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
       const bytes = Uint8Array.from(atob(preview.b64), (c) => c.charCodeAt(0));
       return new Response(bytes, { headers: {
@@ -360,7 +362,7 @@ export default {
       const match = String(body.img || "").match(/^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/);
       if (!match || match[1].length < 100 || match[1].length > 950000 || !match[1].startsWith("/9j/")) return J({ ok: false, error: "bad-image" }, 400);
       const version = Date.now().toString(36);
-      await env.PLACES.put(coursePreviewKey(id), JSON.stringify({ v: version, b64: match[1] }));
+      await env.PLACES.put(coursePreviewKey(id), JSON.stringify({ v: version, b64: match[1], name: course.name }));
       return J({ ok: true, v: version });
     }
 
@@ -1039,7 +1041,7 @@ export default {
         if (url.searchParams.get("over")) { const o = KV ? await KV.get("course_over") : null; return new Response(o || "{}", { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=60" } }); }   // 정적 코스 이름/분류/거리 오버라이드
         const d = KV ? await KV.get("courses") : null;
         let arr = []; try { arr = JSON.parse(d || "[]"); } catch (e) {}
-        arr = (Array.isArray(arr) ? arr : []).map(applyCourseCorrection);
+        arr = (Array.isArray(arr) ? arr : []).map((c)=>normalizeExpedition(applyCourseCorrection(c),"k"+(c&&c.id)));
         const sharedId = String(url.searchParams.get("shared") || "").replace(/^k/, "").slice(0, 24);
         if (sharedId) {
           const shared = arr.find((x) => String(x.id) === sharedId);

@@ -652,6 +652,8 @@
     .gate-card{width:100%;max-width:420px;padding:19px 17px 16px;border-radius:22px}.gate-feats li{margin-bottom:7px}.gate-feats li span:first-child{width:32px;height:32px}.gate-openchat{margin-bottom:10px}.gate-warn{margin-bottom:10px}
     #onboardingTour{align-items:flex-end;padding:12px 12px max(12px,env(safe-area-inset-bottom))}.onboard-card{width:100%;max-height:min(76dvh,610px);padding:19px 18px;border-radius:20px}.onboard-icon{width:56px;height:56px;margin-top:11px}.onboard-card h3{font-size:19px}
   }
+.expedition-detail{margin:18px 0 20px}.expedition-sticker{display:flex;justify-content:center;align-items:center;background:#f1f3f6;border-radius:18px;padding:20px}.expedition-sticker img{display:block;width:100%;max-width:300px;max-height:330px;object-fit:contain}.expedition-detail h3{font-size:17px;margin:22px 0 10px;color:#294b3b}.expedition-nicknames{display:flex;flex-wrap:wrap;gap:10px 16px;line-height:1.8;color:#52675c}.expedition-nicknames .pm-empty{padding:0;text-align:left}.expedition-sticker img[src*="_02."]{max-width:220px}@media(max-width:480px){.expedition-sticker{padding:18px}.expedition-sticker img{max-width:240px;max-height:280px}}
+.expedition-sticker{overflow:hidden}.expedition-art-5{clip-path:polygon(6.12245% 9.06433%,92.72959% 9.06433%,49.36224% 95.02924%)}.expedition-art-6{clip-path:polygon(6.99301% 87.28653%,50.17483% 9.01328%,92.65734% 87.28653%)}.expedition-art-7{clip-path:polygon(2.82302% 1.48064%,96.52552% 1.48064%,96.52552% 8.88383%,76.54723% 44.30524%,90.77090% 60.47836%,95.11401% 78.47380%,80.89034% 80.41002%,65.58089% 80.41002%,49.72856% 98.29157%,32.46471% 77.67654%,4.56026% 72.32346%,7.92617% 64.12301%,15.74376% 59.56720%,21.93268% 47.26651%,2.82302% 8.88383%)}.expedition-art-8{clip-path:polygon(1.49740% 96.49123%,50.26042% 1.60183%,98.95833% 96.49123%)}.expedition-art-11{clip-path:inset(11.18421% 13.80952% 11.10197% 11.90476%);transform:scale(1.28)}
 </style>
 </head>
 <body>
@@ -2141,6 +2143,7 @@ function _applyCourseOver(f){
     if(validCourseColor(o.color)) p.color=validCourseColor(o.color);
     f.properties=p;
   }
+  p.name=normalizeExpedition({id:cid,static:true,name:p.name},String(cid)).name;
   return f;
 }
 function _applyCourseFocus(){
@@ -2402,6 +2405,27 @@ async function deletePlace(){ if(!isAdmin()||!_pmPlace||_pmPlace.id==null) retur
     if(r.ok){ _placeOver[p.id]=Object.assign({},_placeOver[p.id]||{},{del:1}); const e=_placeMarkerById[p.id]; if(e&&e.m){ (e.cat==='spot'?famousLayer:canoeLayer).removeLayer(e.m); } gaEvent('place_del'); closePlaceModal(); }
     else alert(r.status===403?'권한 없음':'실패'); }catch(e){ alert('오류'); } }
 // 코스 코멘트 — 장소 모달(#pmodal) 재사용, 코스별 키로 저장
+// Verified official expedition display metadata. No geometry or distance changes.
+const EXPEDITIONS = Object.freeze({
+  1:['남한강','탄금강천길'],2:['남한강','장회서창길'],3:['평창강','대상선암길'],
+  4:['남한강','영월영춘길'],5:['금강','섬바위소이나루길'],6:['금강','연주장계길'],
+  7:['금강','방우용화길'],8:['금강','천내구강길'],9:['금강','금정백지길'],
+  10:['동강','문산삼옥길'],11:['북한강','구만오월길']
+});
+function expeditionNumber(course, shareId){
+  if(!course)return 0;
+  const id=String(shareId||'');
+  if(course.static||id&&id.charAt(0)!=='k')return /^[1-9]$/.test(id||String(course.id))?Number(id||course.id):0;
+  if(String(course.owner||'')!=='admin')return 0;
+  const match=String(course.name||'').match(/^엑스페디션\s*#\s*(\d+)(?!\d)/);
+  const n=match?Number(match[1]):0;
+  return EXPEDITIONS[n]?n:0;
+}
+function normalizeExpedition(course, shareId){
+  const n=expeditionNumber(course,shareId),meta=EXPEDITIONS[n];
+  return meta?{...course,name:'엑스페디션 #'+n+' · '+meta[0]+' · '+meta[1]}:course;
+}
+
 const _courseByCid={};
 COURSES.features.forEach(function(f){ const p=f.properties||{}; if(p.cid!=null) _courseByCid[String(p.cid)]={name:p.name||'코스',km:p.km||0}; });
 let _courseInfoCourse=null, _courseInfoOpen=false;
@@ -2413,7 +2437,7 @@ function _canEditCourse(course, shareId){
   return _isCourseOwner(course);
 }
 function openCourseComments(key,course,shareId){
-  course=course||{};
+  course=normalizeExpedition(course||{},shareId);
   _courseInfoCourse=course; _courseInfoOpen=false;
   const name=course.name||'코스', km=course.km||0;
   _pmPlace={name:name}; _pmSlug=key;
@@ -2426,7 +2450,8 @@ function openCourseComments(key,course,shareId){
     (shareId?'<a class="course-btn" onclick="shareCourse(\''+shareId+'\')">🔗 공유</a>':''),
     (TOUR_MODE&&canAnalyze&&!_trk&&!_tourStopping?'<button class="course-btn on" id="pmTourRecord" type="button">🛶 이 코스로 투어 기록</button>':''),
     (canAnalyze?'<a class="course-btn ghost" onclick="toggleCourseAnalysis()">📊 분석</a>':''),
-    (canAnalyze?'<a class="course-btn ghost" onclick="openOfflineModal(_courseInfoCourse)">📥 오프라인 저장</a>':'')
+    (canAnalyze?'<a class="course-btn ghost" onclick="openOfflineModal(_courseInfoCourse)">📥 오프라인 저장</a>':''),
+    (canAnalyze?'<button class="course-btn ghost" type="button" onclick="downloadCourseGpx(_courseInfoCourse)">↓ GPX 다운로드</button>':'')
   ].join('');
   let _cadm='';
   if(shareId && _canEditCourse(course, shareId)){
@@ -2436,7 +2461,8 @@ function openCourseComments(key,course,shareId){
   document.getElementById('pmLinks').innerHTML=(km?'<div class="pm-memo">약 '+km+'km</div>':'')
     +((actions||_cadm)?'<div class="course-actions">'+actions+'</div>':'')
     +_cadm
-    +'<div id="courseAnalysisPanel" class="cm-analysis" style="display:none"></div>';
+    +'<div id="courseAnalysisPanel" class="cm-analysis" style="display:none"></div>'
+    +expeditionDetail(course,shareId);
   document.getElementById('pmAdmin').innerHTML='';
   document.getElementById('pmCmts').innerHTML='<div class="pm-empty">불러오는 중…</div>';
   document.getElementById('pmCnt').textContent=''; document.getElementById('pmInput').value=''; document.getElementById('pmMsg').textContent='';
@@ -2444,6 +2470,28 @@ function openCourseComments(key,course,shareId){
   document.getElementById('pmodal').classList.add('open');
   gaEvent('course_open',{name:name||''}); loadComments(); if(shareId)_prepareCoursePreview(shareId,course);
 }
+
+function expeditionDetail(course,shareId){
+  const n=expeditionNumber(course,shareId);if(!n)return '';
+  // No verified participant roster is currently available; never infer from photos/comments.
+  return '<section class="expedition-detail" aria-label="엑스페디션 완주기념"><div class="expedition-sticker"><img class="expedition-art-'+n+'" src="/assets/expedition/expedition_'+String(n).padStart(2,'0')+([2,3,4,5,9].indexOf(n)>=0?'.jpg':'.png')+'" alt="엑스페디션 '+n+'회 완주기념 스티커"></div><h3>함께한 참가자</h3><div class="expedition-nicknames"><span class="pm-empty">등록된 참가자 정보가 없습니다</span></div></section>';
+}
+function courseGpx(course){
+  const coords=course&&course.coords;
+  if(!Array.isArray(coords)||coords.length<2)throw new Error('다운로드할 코스 경로가 없습니다');
+  if(coords.some(function(p){return !Array.isArray(p)||typeof p[0]!=='number'||typeof p[1]!=='number'||!Number.isFinite(p[0])||!Number.isFinite(p[1])||Math.abs(p[0])>90||Math.abs(p[1])>180;}))throw new Error('코스에 유효하지 않은 좌표가 있습니다');
+  const xml=function(v){return String(v||'').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c];});};
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="카누맵" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>'+xml(course.name||'카누맵 코스')+'</name><trkseg>'+coords.map(function(p){return '<trkpt lat="'+p[0]+'" lon="'+p[1]+'"/>';}).join('')+'</trkseg></trk></gpx>';
+}
+function downloadCourseGpx(course){
+  let xml;try{xml=courseGpx(course);}catch(e){alert(e.message);return;}
+  const name=String(course.name||'카누맵 코스').replace(/[\/\\:*?"<>|\u0000-\u001f]/g,'_').slice(0,100)+'.gpx';
+  const url=URL.createObjectURL(new Blob([xml],{type:'application/gpx+xml;charset=utf-8'})),a=document.createElement('a');
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  // Safari needs the URL alive while its download is being handed off.
+  setTimeout(function(){URL.revokeObjectURL(url);},60000);
+}
+
 async function toggleCourseAnalysis(){
   const box=document.getElementById('courseAnalysisPanel'); if(!box || !_courseInfoCourse || !_courseInfoCourse.coords || !_courseInfoCourse.coords.length) return;
   const on=box.style.display!=='none';
@@ -3756,6 +3804,7 @@ let _courseFocusId=(function(){ const m=(location.search||'').match(/[?&]course=
 let _courseFocusFound=false;
 function renderKVCourse(c){
   if(!c||!c.coords||c.coords.length<2) return;
+  c.name=normalizeExpedition(c,'k'+c.id).name;
   const focusId=String(_courseFocusId||'').trim();
   if(focusId && focusId === ('k'+c.id)) _courseFocusFound=true;
   _kvCourses[c.id]=c;
