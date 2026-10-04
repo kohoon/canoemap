@@ -2594,7 +2594,7 @@ function _curUid(){ const u=getUser(); return (u&&u.uid)||''; }
 const EXPEDITION_DATES = {"1":["2025-05-01","2025-05-02"],"2":["2025-06-06","2025-06-07"],"3":["2025-07-20"],"4":["2025-09-06"],"5":["2025-10-18"],"6":["2025-11-22"],"7":["2026-04-11"],"8":["2026-05-09"],"9":["2026-06-06"],"10":["2026-07-04"],"11":["2026-10-03","2026-10-04"]};
 function expeditionDateHtml(course,shareId){
   const dates=EXPEDITION_DATES[expeditionNumber(course,shareId)];if(!dates)return '';
-  return '<div class="expedition-date" aria-label="개최 날짜">📅 '+dates.map(function(date){return '<time datetime="'+date+'">'+date.replace(/-/g,'.')+'</time>';}).join(' – ')+'</div>';
+  return '<div class="expedition-date" aria-label="개최 날짜">📅 '+dates.map(function(date,index){const parts=date.split('-').map(Number);if(index&&date.slice(0,4)===dates[0].slice(0,4))parts.shift();return '<time datetime="'+date+'">'+parts.join('. ')+'.</time>';}).join(' ~ ')+'</div>';
 }
 function _isCourseOwner(course){ const u=_curUid(); if(!u) return false; return String((course&&course.owner)||'')===String(u); }
 function _canEditCourse(course, shareId){
