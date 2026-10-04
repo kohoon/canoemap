@@ -12,8 +12,8 @@ class ExpeditionParticipantTests(unittest.TestCase):
  def test_total_count_descending_korean_ties_and_round_filter(self):
   rows=[{'participantId':pid,'nickname':nick,'expedition':n} for pid,nick,rounds in [('a','가람',[1,2]),('b','나래',[1,4]),('d','다람',[1,2,3]),('c','바람',[1])] for n in rounds]
   self.assertEqual(self.run_sort(rows),['다람','가람','나래','바람'])
-  self.assertEqual(self.run_sort(rows,1),['다람','가람','나래','바람'])
-  self.assertEqual(self.run_sort(rows,2),['다람','가람'])
+  self.assertEqual(self.run_sort(rows,1),['가람','나래','다람','바람'])
+  self.assertEqual(self.run_sort(rows,2),['가람','다람'])
  def test_duplicate_rounds_do_not_increase_count_and_names_do_not_merge(self):
   rows=[{'participantId':p,'nickname':n,'expedition':r} for p,n,r in [('one','나래',1),('one','나래',1),('two','가람',1),('two','가람',2),('three','나래',1),('four','나래님',1)]]
   self.assertEqual(self.run_sort(rows,1),['가람','나래','나래','나래님'])
@@ -44,3 +44,11 @@ class ExpeditionParticipantTests(unittest.TestCase):
  def test_no_unknown_round_attendance(self):
   rosters=json.loads((ROOT/'tests/fixtures/verified_expedition_rosters.json').read_text());rows=json.loads((ROOT/'data/expedition_participants.json').read_text())
   self.assertEqual(self.run_sort(rows,max(map(int,rosters))+1),[])
+
+ def test_future_rounds_cannot_change_past_sort(self):
+  rows=json.loads((ROOT/'data/expedition_participants.json').read_text())
+  for n in range(1,12):
+   history=[r for r in rows if r['expedition']<=n]
+   self.assertEqual(self.run_sort(rows,n),self.run_sort(history,n))
+   future=[{'participantId':r['participantId'],'nickname':r['nickname'],'expedition':100} for r in rows]
+   self.assertEqual(self.run_sort(rows,n),self.run_sort(rows+future,n))
