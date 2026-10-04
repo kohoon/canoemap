@@ -23,34 +23,24 @@ class ExpeditionParticipantTests(unittest.TestCase):
   self.assertEqual(self.run_sort([]),[])
   self.assertEqual(self.run_sort([{},None,{'participantId':'one','nickname':'가람','expedition':0},{'participantId':'one','nickname':'가람','expedition':'1'}]),[])
   self.assertEqual(self.run_sort([{'participantId':'one','nickname':'가람','expedition':1}],11),[])
- def test_verified_first_round_roster_only(self):
+ def test_verified_rosters_and_stable_identity(self):
+  rosters=json.loads((ROOT/'tests/fixtures/verified_expedition_rosters.json').read_text())
   rows=json.loads((ROOT/'data/expedition_participants.json').read_text())
-  first=[r for r in rows if r["expedition"]==1]
-  self.assertEqual(len(first),14)
-  self.assertEqual(len({r['participantId'] for r in first}),14)
-  self.assertEqual({r['expedition'] for r in rows},{1,2,3})
-  self.assertEqual({r['nickname'] for r in first},{'카누맨','카누맨2','용부장','쭈리','쪼리','예건','잠실벗','로쟌','번버리','초코파티','욘니','토끼사냥꾼','요트맨','묵향'})
-  self.assertEqual(len(self.run_sort(rows,1)),14)
-  self.assertEqual(self.run_sort(rows,4),[])
-
- def test_second_round_exact_nickname_identity_and_known_counts(self):
-  rows=json.loads((ROOT/'data/expedition_participants.json').read_text())
-  second=[r for r in rows if r['expedition']==2]
-  names={'쭈리','쪼리','사포녀','엑스맨','카누맨','카누맨2','용부장','초코파티','인키','묵향','J혁스','현이','예건','잠실벗','김영식','번버리','요트맨','재민','토끼사냥꾼','명동물개','냥꼬','차니','작은영'}
-  self.assertEqual(len(second),23);self.assertEqual({r['nickname'] for r in second},names)
-  rounds={}
-  for r in rows:rounds.setdefault(r['participantId'],set()).add(r['expedition'])
-  self.assertEqual(len(rounds),26)
-  self.assertEqual(sum(len(r)==2 for r in rounds.values()),8)
-  by_name={}
-  for r in rows:by_name.setdefault(r['nickname'],set()).add(r['participantId'])
-  self.assertTrue(all(len(ids)==1 for ids in by_name.values()))
-  self.assertNotEqual(by_name['카누맨'],by_name['카누맨2']);self.assertNotEqual(by_name['쭈리'],by_name['쪼리'])
-  self.assertEqual(self.run_sort(rows,1),['묵향','번버리','예건','요트맨','쪼리','쭈리','초코파티','카누맨','토끼사냥꾼','로쟌','용부장','잠실벗','카누맨2','욘니'])
-
- def test_third_round_verified_names_no_invented_canoeman2(self):
-  rows=json.loads((ROOT/'data/expedition_participants.json').read_text());third=[r for r in rows if r['expedition']==3]
-  self.assertEqual(len(third),15)
-  self.assertEqual({r['nickname'] for r in third},{'토끼사냥꾼','윈윈','묵향','초코파티','번버리','J혁스','요트맨','로쟌','쭈리','쪼리','예건','냥꼬','사포녀','엑스맨','카누맨'})
-  self.assertNotIn('카누맨2',{r['nickname'] for r in third})
-  self.assertEqual(self.run_sort(rows,3),['묵향','번버리','예건','요트맨','쪼리','쭈리','초코파티','카누맨','토끼사냥꾼','냥꼬','로쟌','사포녀','엑스맨','J혁스','윈윈'])
+  self.assertEqual({r['expedition'] for r in rows},{int(n) for n in rosters})
+  self.assertEqual(len(rows),sum(len(names) for names in rosters.values()))
+  for n,names in rosters.items():
+   actual=[r['nickname'] for r in rows if r['expedition']==int(n)]
+   self.assertCountEqual(actual,names);self.assertEqual(len(actual),len(names))
+  ids={};rounds={}
+  for r in rows:
+   ids.setdefault(r['nickname'],set()).add(r['participantId']);rounds.setdefault(r['participantId'],set()).add(r['expedition'])
+  self.assertTrue(all(len(person_ids)==1 for person_ids in ids.values()))
+  self.assertEqual(len({next(iter(i)) for i in ids.values()}),len(ids))
+  for name,person_ids in ids.items():
+   expected={int(n) for n,names in rosters.items() if name in names}
+   self.assertEqual(rounds[next(iter(person_ids))],expected)
+  self.assertNotEqual(ids['카누맨'],ids['카누맨2']);self.assertNotEqual(ids['쭈리'],ids['쪼리'])
+  self.assertNotIn('카누맨2',rosters['3']);self.assertIn('J혁스',rosters['2']);self.assertIn('둥글3',rosters['4'])
+ def test_no_unknown_round_attendance(self):
+  rosters=json.loads((ROOT/'tests/fixtures/verified_expedition_rosters.json').read_text());rows=json.loads((ROOT/'data/expedition_participants.json').read_text())
+  self.assertEqual(self.run_sort(rows,max(map(int,rosters))+1),[])
