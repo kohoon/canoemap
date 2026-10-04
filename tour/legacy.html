@@ -2428,7 +2428,7 @@ function normalizeExpedition(course, shareId){
 }
 
 const _courseByCid={};
-COURSES.features.forEach(function(f){ const p=f.properties||{}; if(p.cid!=null) _courseByCid[String(p.cid)]={name:p.name||'코스',km:p.km||0}; });
+COURSES.features.forEach(function(f){ _applyCourseOver(f); const p=f.properties||{}; if(p.cid!=null) _courseByCid[String(p.cid)]={id:p.cid,static:true,name:p.name||'코스',km:p.km||0,color:validCourseColor(p.color),coords:(f.geometry&&f.geometry.coordinates||[]).map(function(c){return [c[1],c[0]];})}; });
 let _courseInfoCourse=null, _courseInfoOpen=false;
 function _curUid(){ const u=getUser(); return (u&&u.uid)||''; }
 function _isCourseOwner(course){ const u=_curUid(); if(!u) return false; return String((course&&course.owner)||'')===String(u); }
