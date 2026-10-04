@@ -66,4 +66,7 @@ assert.equal(pausedDetail.status, 200);
 assert.deepEqual((await pausedDetail.json()).pauses, pauseIntervals);
 const badPause = await post({ action: 'save', clientId: 'bad-pause', start: t, end: t + 3000, pauses: [{ start: t - 1000, end: t + 500, type: 'manual' }], track: measured });
 assert.equal(badPause.status, 400);
+const stationary = await post({ action: 'save', clientId: 'stationary-tour', start: t, end: t + 3000, durSec: 3, track: [[37.89, 127.74, t], [37.89, 127.74, t + 3000]] });
+assert.equal(stationary.status, 200);
+assert.equal((await stationary.json()).distKm, 0);
 console.log('tour worker measured/estimated regression: ok');
