@@ -1,0 +1,72 @@
+[
+  {
+    "participantId": "expedition-person-0001",
+    "nickname": "카누맨",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0002",
+    "nickname": "카누맨2",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0003",
+    "nickname": "용부장",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0004",
+    "nickname": "쭈리",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0005",
+    "nickname": "쪼리",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0006",
+    "nickname": "예건",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0007",
+    "nickname": "잠실벗",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0008",
+    "nickname": "로쟌",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0009",
+    "nickname": "번버리",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0010",
+    "nickname": "초코파티",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0011",
+    "nickname": "욘니",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0012",
+    "nickname": "토끼사냥꾼",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0013",
+    "nickname": "요트맨",
+    "expedition": 1
+  },
+  {
+    "participantId": "expedition-person-0014",
+    "nickname": "묵향",
+    "expedition": 1
+  }
+]

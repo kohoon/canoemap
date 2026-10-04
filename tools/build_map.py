@@ -152,6 +152,11 @@ for _f in courses["features"]:
 (DATA / "course_ids.json").write_text(json.dumps(_creg, ensure_ascii=False, indent=0), encoding="utf-8")
 print(f"점 {len(pfeats)} / 면 {len(polygons['features'])} / 코스 {len(courses['features'])} / VKEY {'있음' if VKEY else '없음'}")
 
+_participant_file = DATA / "expedition_participants.json"
+participant_records = json.loads(_participant_file.read_text(encoding="utf-8")) if _participant_file.exists() else []
+if not isinstance(participant_records, list):
+    raise ValueError("expedition_participants.json must contain an attendance-record array")
+
 HTML = r"""<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -1001,6 +1006,7 @@ const LAKES = DAMS.map(function(d){ return {name:d.lake,aliases:[d.nm],lat:d.lat
 ]);   // 통합검색용 주요 호수·저수지 이름과 관용 별칭
 const HRFCO_KEY = "__HRFCO_KEY__";   // 수위 API(도메인잠금 없음 — 남용 시 재발급)
 const COURSES = __COURSES__;
+const EXPEDITION_PARTICIPANTS = __PARTICIPANTS__;
 const MILITARY_DEMARCATION_LINE = __MILITARY_DEMARCATION_LINE__; // 남·북 DMZ OSM 관계가 공통으로 쓰는 군사분계선
 const VKEY = "__VKEY__";   // V-World 키(도메인잠금). 브라우저가 직접 호출. 비면 Nominatim
 const WORKER_URL = "__WORKER__";  // 카카오 로그인 OAuth Worker
@@ -2625,10 +2631,29 @@ function openCourseComments(key,course,shareId){
   gaEvent('course_open',{name:name||''}); loadComments(); if(shareId)_prepareCoursePreview(shareId,course);
 }
 
+// Verified attendance only: participantId identifies a person, expedition identifies a round.
+// Counts include all rounds even when rendering one expedition. Nicknames never identify people.
+function expeditionParticipantNicknames(records,round){
+  const people=new Map(),collator=new Intl.Collator('ko-KR',{usage:'sort',sensitivity:'variant'});
+  (Array.isArray(records)?records:[]).forEach(function(record){
+    if(!record||typeof record.participantId!=='string'||!record.participantId.trim()||typeof record.nickname!=='string'||!record.nickname.trim()||!Number.isSafeInteger(record.expedition)||record.expedition<1)return;
+    const id=record.participantId,nickname=record.nickname.trim();
+    if(!people.has(id))people.set(id,{id:id,nickname:nickname,rounds:new Set()});
+    const person=people.get(id);person.nickname=nickname;person.rounds.add(record.expedition);
+  });
+  return Array.from(people.values()).filter(function(p){return round==null||p.rounds.has(round);})
+    .sort(function(a,b){return b.rounds.size-a.rounds.size||collator.compare(a.nickname,b.nickname)||collator.compare(a.id,b.id);})
+    .map(function(p){return p.nickname;});
+}
+function expeditionParticipantHtml(records,round){
+  const nicknames=expeditionParticipantNicknames(records,round);
+  return nicknames.length?nicknames.map(function(nickname){return '<span class="expedition-nickname">'+pmEsc(nickname)+'</span>';}).join(''):'<span class="pm-empty">등록된 참가자 정보가 없습니다</span>';
+}
+
 function expeditionDetail(course,shareId){
   const n=expeditionNumber(course,shareId);if(!n)return '';
-  // No verified participant roster is currently available; never infer from photos/comments.
-  return '<section class="expedition-detail" aria-label="엑스페디션 완주기념"><div class="expedition-sticker"><img class="expedition-art-'+n+'" src="/assets/expedition/expedition_'+String(n).padStart(2,'0')+([2,3,4,5,9].indexOf(n)>=0?'.jpg':'.png')+'" alt="엑스페디션 '+n+'회 완주기념 스티커"></div><h3>함께한 참가자</h3><div class="expedition-nicknames"><span class="pm-empty">등록된 참가자 정보가 없습니다</span></div></section>';
+  // Only verified attendance records are rendered; never infer from photos/comments.
+  return '<section class="expedition-detail" aria-label="엑스페디션 완주기념"><div class="expedition-sticker"><img class="expedition-art-'+n+'" src="/assets/expedition/expedition_'+String(n).padStart(2,'0')+([2,3,4,5,9].indexOf(n)>=0?'.jpg':'.png')+'" alt="엑스페디션 '+n+'회 완주기념 스티커"></div><h3>함께한 참가자</h3><div class="expedition-nicknames">'+expeditionParticipantHtml(EXPEDITION_PARTICIPANTS,n)+'</div></section>';
 }
 function courseGpx(course){
   const coords=course&&course.coords;
@@ -5412,6 +5437,7 @@ html = (HTML
         .replace("__WEIRS__", json.dumps(weirs, ensure_ascii=False, separators=(",", ":")))
         .replace("__HRFCO_KEY__", HRFCO_KEY)
         .replace("__COURSES__", json.dumps(courses, ensure_ascii=False, separators=(",", ":")))
+        .replace("__PARTICIPANTS__", json.dumps(participant_records, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c"))
         .replace("__MILITARY_DEMARCATION_LINE__", json.dumps(military_demarcation_line, ensure_ascii=False, separators=(",", ":")))
         .replace("__VKEY__", VKEY)
         .replace("__KAKAO_JS_KEY__", KAKAO_JS_KEY)

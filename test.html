@@ -2353,10 +2353,30 @@ function openCourseComments(key,course,shareId){
   gaEvent('course_open',{name:name||''}); loadComments(); if(shareId)_prepareCoursePreview(shareId,course);
 }
 
+// Verified attendance only: participantId identifies a person, expedition identifies a round.
+// Counts include all rounds even when rendering one expedition. Nicknames never identify people.
+const EXPEDITION_PARTICIPANTS = [{"participantId":"expedition-person-0001","nickname":"카누맨","expedition":1},{"participantId":"expedition-person-0002","nickname":"카누맨2","expedition":1},{"participantId":"expedition-person-0003","nickname":"용부장","expedition":1},{"participantId":"expedition-person-0004","nickname":"쭈리","expedition":1},{"participantId":"expedition-person-0005","nickname":"쪼리","expedition":1},{"participantId":"expedition-person-0006","nickname":"예건","expedition":1},{"participantId":"expedition-person-0007","nickname":"잠실벗","expedition":1},{"participantId":"expedition-person-0008","nickname":"로쟌","expedition":1},{"participantId":"expedition-person-0009","nickname":"번버리","expedition":1},{"participantId":"expedition-person-0010","nickname":"초코파티","expedition":1},{"participantId":"expedition-person-0011","nickname":"욘니","expedition":1},{"participantId":"expedition-person-0012","nickname":"토끼사냥꾼","expedition":1},{"participantId":"expedition-person-0013","nickname":"요트맨","expedition":1},{"participantId":"expedition-person-0014","nickname":"묵향","expedition":1}];
+function expeditionParticipantNicknames(records,round){
+  const people=new Map(),collator=new Intl.Collator('ko-KR',{usage:'sort',sensitivity:'variant'});
+  (Array.isArray(records)?records:[]).forEach(function(record){
+    if(!record||typeof record.participantId!=='string'||!record.participantId.trim()||typeof record.nickname!=='string'||!record.nickname.trim()||!Number.isSafeInteger(record.expedition)||record.expedition<1)return;
+    const id=record.participantId,nickname=record.nickname.trim();
+    if(!people.has(id))people.set(id,{id:id,nickname:nickname,rounds:new Set()});
+    const person=people.get(id);person.nickname=nickname;person.rounds.add(record.expedition);
+  });
+  return Array.from(people.values()).filter(function(p){return round==null||p.rounds.has(round);})
+    .sort(function(a,b){return b.rounds.size-a.rounds.size||collator.compare(a.nickname,b.nickname)||collator.compare(a.id,b.id);})
+    .map(function(p){return p.nickname;});
+}
+function expeditionParticipantHtml(records,round){
+  const nicknames=expeditionParticipantNicknames(records,round);
+  return nicknames.length?nicknames.map(function(nickname){return '<span class="expedition-nickname">'+pmEsc(nickname)+'</span>';}).join(''):'<span class="pm-empty">등록된 참가자 정보가 없습니다</span>';
+}
+
 function expeditionDetail(course,shareId){
   const n=expeditionNumber(course,shareId);if(!n)return '';
-  // No verified participant roster is currently available; never infer from photos/comments.
-  return '<section class="expedition-detail" aria-label="엑스페디션 완주기념"><div class="expedition-sticker"><img class="expedition-art-'+n+'" src="/assets/expedition/expedition_'+String(n).padStart(2,'0')+([2,3,4,5,9].indexOf(n)>=0?'.jpg':'.png')+'" alt="엑스페디션 '+n+'회 완주기념 스티커"></div><h3>함께한 참가자</h3><div class="expedition-nicknames"><span class="pm-empty">등록된 참가자 정보가 없습니다</span></div></section>';
+  // Only verified attendance records are rendered; never infer from photos/comments.
+  return '<section class="expedition-detail" aria-label="엑스페디션 완주기념"><div class="expedition-sticker"><img class="expedition-art-'+n+'" src="/assets/expedition/expedition_'+String(n).padStart(2,'0')+([2,3,4,5,9].indexOf(n)>=0?'.jpg':'.png')+'" alt="엑스페디션 '+n+'회 완주기념 스티커"></div><h3>함께한 참가자</h3><div class="expedition-nicknames">'+expeditionParticipantHtml(EXPEDITION_PARTICIPANTS,n)+'</div></section>';
 }
 function courseGpx(course){
   const coords=course&&course.coords;
