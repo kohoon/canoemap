@@ -15,6 +15,11 @@ const CHUNCHEONHO_BAD_SUFFIX = [
 ];
 const CHUNCHEONHO_CORRECTED_KM = 24.61;
 const CHUNCHEONHO_PREVIEW_MIN_VERSION = Date.UTC(2026, 8, 24, 9, 25);
+const BONGYANG_ID = "1783312681276";
+const BONGYANG_NAME = "조양강+동강 - 봉양운치길(1박2일)";
+const BONGYANG_BAD_START = [37.273182, 128.603961];
+const BONGYANG_BAD_END = [37.374795, 128.661318];
+const BONGYANG_PREVIEW_MIN_VERSION = Date.UTC(2026, 9, 5, 8, 15);
 
 function samePoint(a, b) {
   return Array.isArray(a) && Math.abs(Number(a[0]) - b[0]) < 1e-7 && Math.abs(Number(a[1]) - b[1]) < 1e-7;
@@ -38,6 +43,10 @@ export function applyCourseCorrection(course) {
       : course.segments;
     return { ...course, coords, km: CHUNCHEONHO_CORRECTED_KM, segments, correctedAt: "2026-09-24" };
   }
+  if (String(course.id) === BONGYANG_ID && course.name === BONGYANG_NAME && course.coords.length === 157
+    && samePoint(course.coords[0], BONGYANG_BAD_START) && samePoint(course.coords[course.coords.length - 1], BONGYANG_BAD_END)) {
+    return { ...course, coords: [...course.coords].reverse(), correctedAt: "2026-10-05" };
+  }
   return course;
 }
 
@@ -45,5 +54,6 @@ export function coursePreviewVersionIsCurrent(id, version) {
   const key=String(id),stamp=Number.parseInt(String(version || "0"),36);
   if(key==="k"+PAROHO_ID)return stamp>=PAROHO_PREVIEW_MIN_VERSION;
   if(key==="k"+CHUNCHEONHO_ID)return stamp>=CHUNCHEONHO_PREVIEW_MIN_VERSION;
+  if(key==="k"+BONGYANG_ID)return stamp>=BONGYANG_PREVIEW_MIN_VERSION;
   return true;
 }

@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { applyCourseCorrection, coursePreviewVersionIsCurrent } from '../workers/course-corrections.mjs';
+
+const original = JSON.parse(readFileSync(new URL('./fixtures/course_bongyang_original.json', import.meta.url), 'utf8'));
+const unchanged = JSON.stringify(original);
+const fixed = applyCourseCorrection(original);
+assert.equal(fixed.id, original.id);
+assert.equal(fixed.name, original.name);
+assert.equal(fixed.km, original.km);
+assert.equal(fixed.coords.length, 157);
+assert.deepEqual(fixed.coords[0], original.coords.at(-1));
+assert.deepEqual(fixed.coords.at(-1), original.coords[0]);
+assert.deepEqual(fixed.coords, [...original.coords].reverse());
+assert.deepEqual(applyCourseCorrection(fixed), fixed);
+assert.equal(JSON.stringify(original), unchanged);
+assert.equal(applyCourseCorrection({ ...original, name: '다른 코스' }).coords[0][0], original.coords[0][0]);
+assert.equal(coursePreviewVersionIsCurrent('k1783312681276', Date.UTC(2026, 9, 4).toString(36)), false);
+assert.equal(coursePreviewVersionIsCurrent('k1783312681276', Date.UTC(2026, 9, 6).toString(36)), true);
+console.log('Bongyang course direction correction: ok');

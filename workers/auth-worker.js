@@ -371,7 +371,9 @@ export default {
       site.searchParams.set("course", id);
       const round = expeditionNumber(course, id);
       const sticker = round ? _expeditionImage(site, round) : null;
-      const imageUrl = sticker ? sticker.imageUrl : preview
+      const imageUrl = sticker ? sticker.imageUrl : id === "k1783312681276"
+        ? new URL("assets/course-previews/k1783312681276.jpg", site).toString()
+        : preview
         ? url.origin + "/course-preview/" + encodeURIComponent(id) + ".jpg?v=" + encodeURIComponent(preview.v)
         : new URL("og.png", env.SITE_URL || "https://canoe.crowdbase.kr/").toString();
       const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl,
@@ -385,6 +387,7 @@ export default {
       const id = normalizeCourseShareId(coursePreviewMatch[1]);
       const course = await _courseShareRecord(env, id);   // 삭제·숨김 코스는 식별자가 남아도 현재 코스로 보지 않는다.
       if (!course) return new Response("not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
+      if (id === "k1783312681276") return Response.redirect(new URL("assets/course-previews/k1783312681276.jpg", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
       const preview = await _coursePreviewRecord(env.PLACES, id, course.name);
       if (!preview) return Response.redirect(new URL("og.png", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
       const bytes = Uint8Array.from(atob(preview.b64), (c) => c.charCodeAt(0));
@@ -1143,20 +1146,6 @@ export default {
         return J({ ok: true, id });
       }
       return J({ ok: false, error: "method" }, 405);
-    }
-
-    // 배포 데이터의 특정 코스를 교정하기 전 좌표·구간을 확인하는 임시 읽기 전용 진단.
-    if (url.pathname === "/course-bongyang-inspect") {
-      let courses = []; try { courses = JSON.parse((await env.PLACES.get("courses")) || "[]"); } catch (e) {}
-      const matches = (Array.isArray(courses) ? courses : []).filter((course) => String(course && course.name || "").includes("봉양운치길"));
-      return new Response(JSON.stringify(matches.map((course) => ({
-        id: course.id, name: course.name, km: course.km, admin: course.owner === "admin",
-        points: Array.isArray(course.coords) ? course.coords.length : 0,
-        coords: course.coords,
-        start: course.coords && course.coords[0], end: course.coords && course.coords[course.coords.length - 1],
-        first: course.coords && course.coords.slice(0, 3), last: course.coords && course.coords.slice(-3),
-        segments: course.segments,
-      }))), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
     }
 
     // 0-3d) 코스 등록(관리자) — 거리측정 경로를 코스로. KV "courses"
