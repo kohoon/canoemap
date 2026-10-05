@@ -1,4 +1,4 @@
-const { test, expect, chromium } = require('@playwright/test');
+const { test, expect, chromium, webkit } = require('@playwright/test');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
@@ -656,6 +656,20 @@ test('members can change nickname in My Page and see the 14-day lock on desktop 
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
     await page.locator('#mypageA').click();
+    await expect(page.locator('#myModal .my-head')).toBeVisible();
+    if (mobile) {
+      await page.setViewportSize({ width: 390, height: 560 });
+      const layout = await page.evaluate(() => {
+        const modal = document.querySelector('#myModal .pmodal').getBoundingClientRect();
+        const head = document.querySelector('#myModal .my-head').getBoundingClientRect();
+        const close = document.querySelector('#myModal .pmodal-x').getBoundingClientRect();
+        return { modalTop: modal.top, headTop: head.top, closeTop: close.top, closeBottom: close.bottom, viewportHeight: innerHeight };
+      });
+      expect(layout.modalTop).toBeGreaterThan(0);
+      expect(layout.headTop).toBeGreaterThanOrEqual(layout.modalTop);
+      expect(layout.closeTop).toBeGreaterThanOrEqual(0);
+      expect(layout.closeBottom).toBeLessThan(layout.viewportHeight);
+    }
     await expect(page.locator('#myNickEdit')).toBeVisible();
     await expect(page.locator('#myNickForm')).toBeHidden();
     await page.locator('#myNickEdit').click();
@@ -669,6 +683,34 @@ test('members can change nickname in My Page and see the 14-day lock on desktop 
     expect(errors).toEqual([]);
     await context.close();
   }
+  await browser.close();
+});
+
+test('My Page header and close control stay visible in short mobile Safari viewport', async () => {
+  const browser = await webkit.launch({ headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 560 }, isMobile: true, hasTouch: true });
+  await context.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'safari-member', tok: 'test-token', nick: '회원' })));
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/profile')) await route.fulfill({ status: 200, json: { ok: true, profile: { memberId: 'safari-member', nick: '회원', t: Date.now(), mypageTourSeen: 1, onboardingVersion: 1 } } });
+    else if (url.pathname.endsWith('/launch-sites')) await route.fulfill({ status: 200, json: { items: [], truncated: false } });
+    else await route.fulfill({ status: 200, json: [] });
+  });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.locator('#mypageA').click();
+  await expect(page.locator('#myModal .my-head')).toBeVisible();
+  const layout = await page.evaluate(() => {
+    const modal = document.querySelector('#myModal .pmodal').getBoundingClientRect();
+    const head = document.querySelector('#myModal .my-head').getBoundingClientRect();
+    const close = document.querySelector('#myModal .pmodal-x').getBoundingClientRect();
+    return { modalTop: modal.top, headTop: head.top, closeTop: close.top, closeBottom: close.bottom, viewportHeight: innerHeight };
+  });
+  expect(layout.modalTop).toBeGreaterThan(0);
+  expect(layout.headTop).toBeGreaterThanOrEqual(layout.modalTop);
+  expect(layout.closeTop).toBeGreaterThanOrEqual(0);
+  expect(layout.closeBottom).toBeLessThan(layout.viewportHeight);
+  await context.close();
   await browser.close();
 });
 
