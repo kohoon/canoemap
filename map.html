@@ -373,7 +373,7 @@
   .my-actions{display:flex;gap:4px;flex:none}.my-icon-btn{border:1px solid #ccd8dd;background:#fff;color:#52656e;border-radius:6px;min-width:32px;height:32px;padding:0 8px;cursor:pointer;font-size:12px}.my-icon-btn.del{color:#c62828;border-color:#ecc5c5}
   .my-withdraw-note{margin:9px 0 0;color:#64747c;font:12px/1.55 sans-serif;word-break:keep-all}.my-withdraw-note a{color:#087561;text-decoration:underline;text-underline-offset:2px}
   .my-empty{text-align:center;color:#829097;font-size:13px;padding:44px 12px}.my-empty b{display:block;color:#4c6068;margin-bottom:5px;font-size:14px}
-  @media(max-width:620px){#myModal{height:100vh;height:100dvh;bottom:auto}#myModal .pmodal{width:100%;height:90vh;height:min(90dvh,calc(100dvh - env(safe-area-inset-top,0px) - 16px));max-height:none;box-sizing:border-box;border-radius:14px 14px 0 0}#myBody{height:100%}.my-head{padding:17px 16px 12px}.my-tabs{padding:0 7px}.my-tab{padding:12px 11px 10px}.my-pane{padding:14px 15px 24px}.my-stats{grid-template-columns:repeat(2,1fr)}.my-stat:nth-child(2){border-right:0}.my-stat:nth-child(-n+2){border-bottom:1px solid #e3e9eb}.my-stats.compact .my-stat{border-bottom:0}.my-tools{align-items:stretch}.my-toggle{width:100%;margin-left:0}.my-actions .label{display:none}.my-nick-note,.my-nick-form,.my-nick-error{margin-left:0}}
+  @media(max-width:620px){#myModal{height:100vh;height:100dvh;bottom:auto}#myModal .pmodal{width:100%;height:88%;max-height:calc(100% - env(safe-area-inset-top,0px) - 16px);box-sizing:border-box;border-radius:14px 14px 0 0}#myBody{height:100%}.my-head{padding:17px 16px 12px}.my-tabs{padding:0 7px}.my-tab{padding:12px 11px 10px}.my-pane{padding:14px 15px 24px}.my-stats{grid-template-columns:repeat(2,1fr)}.my-stat:nth-child(2){border-right:0}.my-stat:nth-child(-n+2){border-bottom:1px solid #e3e9eb}.my-stats.compact .my-stat{border-bottom:0}.my-tools{align-items:stretch}.my-toggle{width:100%;margin-left:0}.my-actions .label{display:none}.my-nick-note,.my-nick-form,.my-nick-error{margin-left:0}}
   #pmLinks{font-size:13px;margin-bottom:10px}
   .pm-memo{color:#556;font-size:13px;margin-top:6px}
   .pm-note{font-size:12.5px;font-weight:700;line-height:1.45;border-radius:8px;padding:7px 9px;margin:0 0 8px}
@@ -2938,9 +2938,22 @@ function toggleFav(){ const u=getUser(); if(!u||!u.uid){ alert('로그인 후 �
     }).catch(function(){ alert('저장 실패'); });
 }
 // 마이페이지
-function closeMyPage(){ document.getElementById('myModal').classList.remove('open'); }
+function syncMyPageViewport(viewport){
+  const modal=document.getElementById('myModal');if(!modal||!modal.classList.contains('open'))return;
+  if(window.matchMedia('(min-width:621px)').matches){modal.style.cssText='';return;}
+  const vv=viewport||window.visualViewport;
+  if(!vv)return;
+  // iOS Safari에서는 고정 레이어의 기준과 실제 보이는 영역이 달라질 수 있다.
+  modal.style.top=Math.round(vv.offsetTop||0)+'px';modal.style.left=Math.round(vv.offsetLeft||0)+'px';
+  modal.style.width=Math.round(vv.width||window.innerWidth)+'px';modal.style.height=Math.round(vv.height||window.innerHeight)+'px';
+  modal.style.right='auto';modal.style.bottom='auto';
+}
+if(window.visualViewport){window.visualViewport.addEventListener('resize',function(){syncMyPageViewport();});window.visualViewport.addEventListener('scroll',function(){syncMyPageViewport();});}
+window.addEventListener('resize',function(){syncMyPageViewport();});
+function closeMyPage(){ const modal=document.getElementById('myModal');modal.classList.remove('open');modal.style.cssText=''; }
 function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
   document.getElementById('myModal').classList.add('open');
+  syncMyPageViewport();
   const body=document.getElementById('myBody');
   async function loadMyCourses(){
     try{

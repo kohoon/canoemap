@@ -710,6 +710,13 @@ test('My Page header and close control stay visible in short mobile Safari viewp
   expect(layout.headTop).toBeGreaterThanOrEqual(layout.modalTop);
   expect(layout.closeTop).toBeGreaterThanOrEqual(0);
   expect(layout.closeBottom).toBeLessThan(layout.viewportHeight);
+  const shifted = await page.evaluate(() => {
+    syncMyPageViewport({ offsetTop: 70, offsetLeft: 0, width: 390, height: 480 });
+    return { overlayTop: document.querySelector('#myModal').getBoundingClientRect().top,
+      headTop: document.querySelector('#myModal .my-head').getBoundingClientRect().top };
+  });
+  expect(shifted.overlayTop).toBe(70);
+  expect(shifted.headTop).toBeGreaterThan(70);
   await context.close();
   await browser.close();
 });
