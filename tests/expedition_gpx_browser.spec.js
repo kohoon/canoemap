@@ -19,7 +19,14 @@ test('round 8 shared detail loads the smaller sticker on desktop and mobile',asy
 for(const mobile of [false,true])test('expedition details and GPX '+(mobile?'mobile':'desktop'),async()=>{
  const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'}),page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile,hasTouch:mobile});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/comments?*',r=>r.fulfill({json:{comments:[]}}));await page.goto(base+'/index.html');await page.evaluate(()=>{hideGate();openCourseComments('course_k1790337080336',{id:1790337080336,owner:'admin',name:'엑스페디션#11 북한강',km:25.13,coords:[[38.1,127.7],[38.0,127.6]]},'k1790337080336');});
- await expect(page.locator('#pmTitle')).toContainText('엑스페디션 #11 · 북한강 · 구만오월길');await expect(page.locator('.expedition-nickname')).toHaveCount(16);await expect(page.locator('.expedition-date')).toHaveText('📅 2026. 10. 3. ~ 10. 4.');await expect(page.locator('#pmLinks')).toContainText('25.13km');await expect(page.locator('#pmSend')).toBeVisible();await expect(page.locator('.expedition-sticker img')).toBeVisible();expect(await page.locator('.expedition-sticker img').evaluate(i=>i.complete&&i.naturalWidth>0)).toBe(true);
+ await expect(page.locator('#pmTitle')).toContainText('엑스페디션 #11 · 북한강 · 구만오월길');
+ await expect(page.locator('.expedition-nickname')).toHaveCount(17);
+ await expect(page.locator('.expedition-nickname',{hasText:'잠실벗'})).toHaveCount(1);
+ await expect(page.locator('.expedition-date')).toHaveText('📅 2026. 10. 3. ~ 10. 4.');
+ await expect(page.locator('#pmLinks')).toContainText('25.13km');
+ await expect(page.locator('#pmSend')).toBeVisible();
+ await expect(page.locator('.expedition-sticker img')).toBeVisible();
+ expect(await page.locator('.expedition-sticker img').evaluate(i=>i.complete&&i.naturalWidth>0)).toBe(true);
  const download=page.waitForEvent('download');await page.getByRole('button',{name:'↓ GPX 다운로드'}).click();const d=await download;expect(d.suggestedFilename()).toBe('엑스페디션 #11 · 북한강 · 구만오월길.gpx');const xml=fs.readFileSync(await d.path(),'utf8');const parsed=await page.evaluate(xml=>{const doc=new DOMParser().parseFromString(xml,'application/xml');return {error:!!doc.querySelector('parsererror'),version:doc.documentElement.getAttribute('version'),ns:doc.documentElement.namespaceURI,points:[...doc.getElementsByTagName('trkpt')].map(x=>[+x.getAttribute('lat'),+x.getAttribute('lon')]),invented:doc.querySelectorAll('time,ele').length};},xml);expect(parsed).toEqual({error:false,version:'1.1',ns:'http://www.topografix.com/GPX/1/1',points:[[38.1,127.7],[38,127.6]],invented:0});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'/tmp/expedition-'+(mobile?'mobile':'desktop')+'.png',fullPage:true});expect(errors).toEqual([]);await browser.close();
 });

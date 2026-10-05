@@ -888,5 +888,10 @@
     "participantId": "expedition-person-0003",
     "nickname": "용부장",
     "expedition": 11
+  },
+  {
+    "participantId": "expedition-person-0007",
+    "nickname": "잠실벗",
+    "expedition": 11
   }
 ]
