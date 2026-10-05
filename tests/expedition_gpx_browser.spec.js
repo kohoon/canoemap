@@ -3,6 +3,27 @@ const fs=require('fs'),path=require('path'),http=require('http');
 const root=path.resolve(__dirname,'..');let server,base;
 test.beforeAll(async()=>{server=http.createServer((req,res)=>{const file=path.join(root,decodeURIComponent(new URL(req.url,'http://localhost').pathname));if(!file.startsWith(root+'/')||!fs.existsSync(file)){res.writeHead(404).end();return;}res.setHeader('Content-Type',file.endsWith('.svg')?'image/svg+xml':file.endsWith('.html')?'text/html':'application/octet-stream');fs.createReadStream(file).pipe(res);});await new Promise(r=>server.listen(0,'127.0.0.1',r));base='http://127.0.0.1:'+server.address().port;});
 test.afterAll(async()=>server&&await new Promise(r=>server.close(r)));
+for(const mobile of [false,true])test('comment owner controls '+(mobile?'mobile':'desktop'),async()=>{
+ const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+ const page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile,hasTouch:mobile});
+ let own={id:21,nick:'나',text:'원문',t:Date.now(),rev:1,mine:true},submitted=[];
+ await page.route('**/comments?*',r=>r.fulfill({json:{admin:'',list:[own,{id:22,nick:'타인',text:'다른 글',t:Date.now(),mine:false}]}}));
+ await page.route('**/comments',async r=>{const b=r.request().postDataJSON();submitted.push(b);if(b.action==='cmtedit')own={...own,text:b.text,rev:2};if(b.action==='cmtdel')own=null;await r.fulfill({json:{ok:true,comments:{admin:'',list:own?[own]:[]}}});});
+ await page.goto(base+'/index.html');
+ await page.evaluate(()=>{setUser({uid:'owner',tok:'valid-token',nick:'나'});hideGate();openCourseComments('course_c1',{static:true,id:1,name:'코스'},'1');});
+ await expect(page.locator('.pm-cmt')).toHaveCount(2);
+ await expect(page.locator('.pm-cmt').filter({hasText:'원문'}).getByRole('button',{name:'수정'})).toBeVisible();
+ await expect(page.locator('.pm-cmt').filter({hasText:'다른 글'}).getByRole('button')).toHaveCount(0);
+ page.once('dialog',d=>d.accept('수정본'));
+ await page.locator('.pm-cmt').filter({hasText:'원문'}).getByRole('button',{name:'수정'}).click();
+ await expect(page.locator('.pm-cmt').filter({hasText:'수정본'})).toBeVisible();
+ expect(submitted[0]).toMatchObject({action:'cmtedit',cid:21,rev:1,id:'owner',tok:'valid-token',text:'수정본'});
+ page.once('dialog',d=>d.accept());
+ await page.locator('.pm-cmt').filter({hasText:'수정본'}).getByRole('button',{name:'삭제'}).click();
+ await expect(page.locator('.pm-cmt')).toHaveCount(0);
+ expect(submitted[1]).toMatchObject({action:'cmtdel',cid:21,rev:2,id:'owner',tok:'valid-token'});
+ await browser.close();
+});
 test('round 8 shared detail loads the smaller sticker on desktop and mobile',async()=>{
  const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  for(const mobile of [false,true]){

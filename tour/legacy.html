@@ -413,7 +413,7 @@
   .pm-cmt-img{margin-top:5px}
   .pm-cmt-img img{max-width:130px;max-height:130px;border-radius:8px;cursor:pointer;border:1px solid #e3e3e3}
   .pm-cmt-adm{float:right}
-  .pm-cmt-adm a{font-size:11px;cursor:pointer;margin-left:8px}
+  .pm-cmt-adm button{font:inherit;font-size:11px;cursor:pointer;margin-left:8px;border:0;background:none;padding:2px 3px}
   .pm-empty{color:#999;font-size:13px;padding:10px 0}
   .pm-form{display:flex;gap:6px;margin-top:8px;align-items:center}
   .pm-form input[type=text],.pm-form #pmInput{flex:1;min-width:0;padding:9px;border:1px solid #ccc;border-radius:8px;font-size:14px}
@@ -2664,30 +2664,36 @@ async function deleteObstacle(id){ if(!isAdmin()) return; if(!confirm('이 지�
   try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/obstacle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',adminKey:adminKey(),obsId:id})});
     if(r.ok){ if(o&&o._m) obstacleLayer.removeLayer(o._m); delete _obstacles[id]; map.closePopup(); } }catch(e){} }
 async function loadComments(){ if(!WORKER_URL||!_pmSlug) return;
-  try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/comments?place='+encodeURIComponent(_pmSlug),{cache:'no-store'}); renderComments(await r.json()); }
+  try{ const u=getUser(),headers=u&&u.uid&&u.tok?{'X-User-Id':u.uid,'X-Auth-Token':u.tok}:{};
+    const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/comments?place='+encodeURIComponent(_pmSlug),{cache:'no-store',headers:headers}); renderComments(await r.json()); }
   catch(e){ renderComments({}); document.getElementById('pmCmts').innerHTML='<div class="pm-empty">코멘트를 불러오지 못했어요(잠시 후 다시)</div>'; } }
+let _pmCommentRows=new Map();
 function renderComments(d){ d=d||{}; let ah='';
   if(d.admin) ah+='<div class="pm-adminbox"><b>📌 관리자</b><div>'+linkify(d.admin)+'</div></div>';
   if(isAdmin()) ah+='<button class="pm-admedit" onclick="editAdminComment()">관리자 코멘트 '+(d.admin?'수정':'작성')+'</button>';
   document.getElementById('pmAdmin').innerHTML=ah; window._pmAdminCur=d.admin||'';
-  const list=d.list||[]; document.getElementById('pmCnt').textContent='('+list.length+')';
+  const list=d.list||[]; _pmCommentRows=new Map(list.map(function(c){return [Number(c.id),c];})); document.getElementById('pmCnt').textContent='('+list.length+')';
   document.getElementById('pmCmts').innerHTML = list.length? list.slice().reverse().map(function(c){
     const stars=(c.stars>=1&&c.stars<=5)?' <span class="pm-cmt-stars">'+'★'.repeat(c.stars)+'</span>':'';
-    const tm=c.t?' <span class="pm-cmt-t">'+_cmtTime(c.t)+'</span>':'';
+    const tm=c.t?' <span class="pm-cmt-t">'+_cmtTime(c.t)+(c.editedAt?' · 수정됨':'')+'</span>':'';
     const im=c.img?'<div class="pm-cmt-img"><img src="'+imgUrl(c.img)+'" loading="lazy" onclick="openImg(\''+c.img+'\')"></div>':'';
-    const adm=isAdmin()?'<span class="pm-cmt-adm"><a style="color:#1565c0" onclick="editCmt('+c.id+')">수정</a><a style="color:#c62828" onclick="delCmt('+c.id+')">삭제</a></span>':'';
+    const adm=isAdmin()||c.mine?'<span class="pm-cmt-adm"><button type="button" style="color:#1565c0" onclick="editCmt('+c.id+')">수정</button><button type="button" style="color:#c62828" onclick="delCmt('+c.id+')">삭제</button></span>':'';
     return '<div class="pm-cmt"><div class="pm-cmt-h">'+adm+'<b>'+pmEsc(c.nick||'익명')+'</b>'+stars+tm+'</div>'
       +(c.text?'<div class="pm-cmt-b">'+linkify(c.text)+'</div>':'')+im+'</div>';
   }).join('') : '<div class="pm-empty">첫 코멘트를 남겨보세요</div>';
 }
-async function delCmt(cid){ if(!isAdmin()) return; if(!confirm('이 코멘트(첨부 사진 포함)를 삭제할까요?')) return;
+async function delCmt(cid){ const c=_pmCommentRows.get(Number(cid)),u=getUser(); if(!c||!(isAdmin()||c.mine)) return; if(!confirm('이 코멘트(첨부 사진 포함)를 삭제할까요?')) return;
   try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/comments',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'cmtdel',adminKey:adminKey(),place:_pmSlug,cid:cid})});
-    if(r.ok){ const d=await r.json().catch(function(){return {};}); if(d.comments) renderComments(d.comments); else loadComments(); fetchRate((getUser()||{}).uid); } }catch(e){} }
-async function editCmt(cid){ if(!isAdmin()) return; const nt=prompt('코멘트 수정'); if(nt===null) return;
+    body:JSON.stringify({action:'cmtdel',adminKey:isAdmin()?adminKey():'',id:u&&u.uid,tok:u&&u.tok,place:_pmSlug,cid:cid,rev:c.rev||1})});
+    if(r.ok){ const d=await r.json().catch(function(){return {};}); if(d.comments) renderComments(d.comments); else loadComments(); fetchRate((getUser()||{}).uid); }
+    else if(r.status===409){alert('다른 변경이 먼저 반영됐습니다. 코멘트를 새로 불러옵니다.');loadComments();}
+    else alert('삭제할 수 없습니다. 다시 로그인하거나 권한을 확인해 주세요.'); }catch(e){alert('삭제 중 오류가 발생했습니다.');} }
+async function editCmt(cid){ const c=_pmCommentRows.get(Number(cid)),u=getUser(); if(!c||!(isAdmin()||c.mine)) return; const nt=prompt('코멘트 수정',c.text||''); if(nt===null||nt.trim()===(c.text||'')) return;
   try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/comments',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'cmtedit',adminKey:adminKey(),place:_pmSlug,cid:cid,text:nt.slice(0,100)})});
-    if(r.ok){ const d=await r.json().catch(function(){return {};}); if(d.comments) renderComments(d.comments); else loadComments(); } }catch(e){} }
+    body:JSON.stringify({action:'cmtedit',adminKey:isAdmin()?adminKey():'',id:u&&u.uid,tok:u&&u.tok,place:_pmSlug,cid:cid,rev:c.rev||1,text:nt.slice(0,100)})});
+    if(r.ok){ const d=await r.json().catch(function(){return {};}); if(d.comments) renderComments(d.comments); else loadComments(); }
+    else if(r.status===409){alert('다른 변경이 먼저 반영됐습니다. 코멘트를 새로 불러옵니다.');loadComments();}
+    else alert('수정할 수 없습니다. 다시 로그인하거나 권한을 확인해 주세요.'); }catch(e){alert('수정 중 오류가 발생했습니다.');} }
 function _cmtTime(t){ if(!t) return ''; const d=new Date(t), p=function(v){return String(v).padStart(2,'0');}; return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); }
 let _pmPhotoFile=null;
 function _setPhotoPrev(){ const el=document.getElementById('pmPhotoPrev'); const btn=document.getElementById('pmPhotoBtn'); if(!el) return;
