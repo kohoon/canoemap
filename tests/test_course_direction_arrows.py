@@ -14,9 +14,12 @@ class CourseDirectionArrowTests(unittest.TestCase):
         self.assertIn("L.layerGroup([casing,line,directions,hit])", source)
         self.assertIn("ls:[casing,line,directions,hit]", source)
 
-    def test_arrows_are_repeated_but_bounded(self):
+    def test_arrows_are_spaced_every_three_kilometers(self):
         source = (ROOT / "tools" / "build_map.py").read_text(encoding="utf-8")
-        self.assertIn("Math.max(1,Math.min(6,Math.round(total/3500)))", source)
+        self.assertIn("const COURSE_DIRECTION_SPACING_M=3000", source)
+        self.assertIn("target+=COURSE_DIRECTION_SPACING_M", source)
+        self.assertIn("target<total-COURSE_DIRECTION_END_GAP_M", source)
+        self.assertNotIn("Math.min(6,Math.round(total/3500))", source)
         self.assertIn("_courseBearing(s[0],s[1])", source)
         self.assertIn('class="course-dir-arrow"', source)
         self.assertIn('d="M2 15L9 4 16 15"', source)

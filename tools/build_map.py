@@ -2268,15 +2268,18 @@ function _courseBearing(a,b){
   const d=Math.PI/180, p1=a[0]*d, p2=b[0]*d, dl=(b[1]-a[1])*d;
   return (Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl))/d+360)%360;
 }
+const COURSE_DIRECTION_SPACING_M=3000;
+const COURSE_DIRECTION_END_GAP_M=150;
 function courseDirectionLayer(coords){
   const out=L.layerGroup();
   if(!coords||coords.length<2)return out;
   const seg=[], dist=[];let total=0;
   for(let i=1;i<coords.length;i++){const d=map.distance(coords[i-1],coords[i]);if(!isFinite(d)||d<=0)continue;seg.push([coords[i-1],coords[i],d]);total+=d;dist.push(total);}
   if(!seg.length||total<=0)return out;
-  const count=Math.max(1,Math.min(6,Math.round(total/3500)));
-  for(let n=1;n<=count;n++){
-    const target=total*n/(count+1);let i=0;while(i<dist.length-1&&dist[i]<target)i++;
+  // 출발점부터 3·6·9 km…에 표시한다. 도착 마커 바로 아래에는 놓지 않는다.
+  let i=0;
+  for(let target=COURSE_DIRECTION_SPACING_M;target<total-COURSE_DIRECTION_END_GAP_M;target+=COURSE_DIRECTION_SPACING_M){
+    while(i<dist.length-1&&dist[i]<target)i++;
     const prev=i?dist[i-1]:0, s=seg[i], f=Math.max(0,Math.min(1,(target-prev)/s[2]));
     const ll=[s[0][0]+(s[1][0]-s[0][0])*f,s[0][1]+(s[1][1]-s[0][1])*f], angle=_courseBearing(s[0],s[1]);
     const svg='<span class="course-dir-arrow" style="transform:rotate('+angle.toFixed(1)+'deg)"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 15L9 4 16 15" fill="none" stroke="#32134f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".88"/><path d="M2 15L9 4 16 15" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
