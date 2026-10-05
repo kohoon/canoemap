@@ -2,6 +2,7 @@ export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 export const TERMS_VERSION = "2026-09-16";
 export const PRIVACY_VERSION = "2026-09-30";
 export const ONBOARDING_VERSION = 1;
+export const NICK_CHANGE_INTERVAL_MS = 14 * 24 * 60 * 60 * 1000;
 const LEGEND_PREF_KEYS = [
   "protect", "wlz", "waterplay", "courses", "famous", "canoe", "obstacles",
   "roadview", "waterLevel", "damLevel", "cctv", "daiso", "hanaro",
@@ -33,6 +34,8 @@ export function memberProfile(member) {
   return {
     memberId: String(member.memberId || ""),
     nick: String(member.nick || ""),
+    nickChangedAt: Number(member.nickChangedAt) || 0,
+    nickChangeAvailableAt: member.nickChangedAt ? Number(member.nickChangedAt) + NICK_CHANGE_INTERVAL_MS : 0,
     t: Number(member.joinedAt) || 0,
     mypageTourSeen: Number(member.mypageTourSeen) || 0,
     onboardingVersion,

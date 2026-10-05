@@ -32,6 +32,9 @@ jobs:
       - name: Verify comment ownership and audit
         run: node tests/test_comment_ownership.mjs
 
+      - name: Verify nickname change cooldown
+        run: node tests/test_member_nickname.mjs
+
       - name: Deploy Cloudflare Worker
         run: npx --yes wrangler deploy --config wrangler.toml
         env:

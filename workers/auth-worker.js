@@ -7,6 +7,7 @@ import {
   memberProfile,
   normalizeLegendPrefs,
   ONBOARDING_VERSION,
+  NICK_CHANGE_INTERVAL_MS,
   publicMemberSummary,
 } from "./member-security.mjs";
 import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
@@ -571,6 +572,27 @@ export default {
           current.updatedAt = Date.now();
           await _memberPut(env, uid, current);
           return J({ ok: true, profile: memberProfile(current) });
+        }
+        if (b.action === "change-nick") {
+          if (!_allowedOrigin(req, env)) return J({ ok: false, error: "forbidden-origin" }, 403);
+          if (!memberRecordIsActive(current)) return J({ ok: false, error: "inactive-member" }, 403);
+          const ip = req.headers.get("CF-Connecting-IP") || "0";
+          if (await _rateLimited(env, "nick_" + current.memberId, ip, 10)) return J({ ok: false, error: "rate-limit" }, 429);
+          const nick = String(b.nick || "").trim().replace(/\s+/g, " ");
+          if (nick.length < 2 || nick.length > 20 || !/^[\p{L}\p{N}._ -]+$/u.test(nick) || /^(관리자|admin|마이카누|카누맵)$/i.test(nick)) return J({ ok: false, error: "invalid" }, 400);
+          if (nick === current.nick) return J({ ok: false, error: "unchanged" }, 400);
+          const now = Date.now(), availableAt = Number(current.nickChangedAt) + NICK_CHANGE_INTERVAL_MS;
+          if (current.nickChangedAt && now < availableAt) return J({ ok: false, error: "cooldown", availableAt }, 429);
+          const oldKey = "member_nick:" + String(current.nick || "").toLocaleLowerCase("ko-KR");
+          const newKey = "member_nick:" + nick.toLocaleLowerCase("ko-KR");
+          const owner = await KV.get(newKey);
+          if (owner && String(owner) !== current.memberId) return J({ ok: false, error: "duplicate" }, 409);
+          // 같은 정규화 닉네임은 인덱스 이동이 필요 없다.
+          if (newKey !== oldKey) await KV.put(newKey, current.memberId);
+          try { await _memberPut(env, uid, { ...current, nick, nickChangedAt: now, updatedAt: now }); }
+          catch (e) { if (newKey !== oldKey && !owner) await KV.delete(newKey); throw e; }
+          if (newKey !== oldKey && (await KV.get(oldKey)) === current.memberId) await KV.delete(oldKey);
+          return J({ ok: true, profile: memberProfile({ ...current, nick, nickChangedAt: now, updatedAt: now }) });
         }
         if (b.action === "withdraw") {
           if (!memberRecordIsActive(current)) return J({ ok: false, error: "inactive-member" }, 403);
