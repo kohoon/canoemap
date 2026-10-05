@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="카누맵 읽기 전용 시제품" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>가상 예시 · 남한강 이동 트랙</name>
+    <trkseg>
+      <trkpt lat="37.046272" lon="127.872284"><time>2026-10-01T00:00:00Z</time></trkpt>
+      <trkpt lat="37.047111" lon="127.871348"><time>2026-10-01T00:04:00Z</time></trkpt>
+      <trkpt lat="37.047424" lon="127.871971"><time>2026-10-01T00:08:00Z</time></trkpt>
+      <trkpt lat="37.048182" lon="127.873457"><time>2026-10-01T00:12:00Z</time></trkpt>
+      <trkpt lat="37.049055" lon="127.875280"><time>2026-10-01T00:16:00Z</time></trkpt>
+      <trkpt lat="37.049757" lon="127.876707"><time>2026-10-01T00:20:00Z</time></trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="37.050442" lon="127.878006"><time>2026-10-01T00:32:00Z</time></trkpt>
+      <trkpt lat="37.051504" lon="127.880162"><time>2026-10-01T00:36:00Z</time></trkpt>
+      <trkpt lat="37.052266" lon="127.881696"><time>2026-10-01T00:40:00Z</time></trkpt>
+      <trkpt lat="37.053439" lon="127.883584"><time>2026-10-01T00:44:00Z</time></trkpt>
+      <trkpt lat="37.054056" lon="127.884507"><time>2026-10-01T00:48:00Z</time></trkpt>
+      <trkpt lat="37.054621" lon="127.885098"><time>2026-10-01T00:52:00Z</time></trkpt>
+    </trkseg>
+  </trk>
+  <rte>
+    <name>가상 예시 · 계획 경로</name>
+    <rtept lat="37.046272" lon="127.872284"/>
+    <rtept lat="37.049055" lon="127.875280"/>
+    <rtept lat="37.054621" lon="127.885098"/>
+  </rte>
+</gpx>

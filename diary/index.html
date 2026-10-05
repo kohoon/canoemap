@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#073d48">
+  <title>카누잉 다이어리 시제품 · 카누맵</title>
+  <link rel="icon" href="../pwa-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../" aria-label="카누맵 지도로 돌아가기"><span class="brand-icon" aria-hidden="true">🛶</span><span>카누맵</span></a>
+    <div class="topbar-title">카누잉 다이어리 <span class="beta">1단계 시제품</span></div>
+    <a class="back-link" href="../">지도로 돌아가기 <span aria-hidden="true">↗</span></a>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">MY CANOEING DIARY</p>
+        <h1 id="page-title">물 위의 하루를 다시 펼쳐보세요.</h1>
+        <p>내 투어 기록이나 GPX 파일을 한 화면에서 미리봅니다. 경로가 끊긴 곳은 이어 그리지 않고, 계획 경로는 실제 운항 기록과 구분합니다.</p>
+      </div>
+      <div class="read-only"><span class="read-only-dot"></span><strong>읽기 전용</strong><small>파일은 이 기기에서만 열립니다. 서버에 업로드하거나 저장하지 않습니다.</small></div>
+    </section>
+    <div class="workspace">
+      <aside class="sources" aria-label="기록 선택">
+        <div class="panel-head"><span class="section-num">01</span><h2>기록 가져오기</h2></div>
+        <section class="source-group">
+          <h3>내 투어 기록</h3>
+          <p class="subtext">카누맵에 저장된 기록을 읽어옵니다.</p>
+          <div id="tourStatus" class="status" role="status">회원 정보를 확인하는 중…</div>
+          <div id="tourList" class="tour-list"></div>
+        </section>
+        <section class="source-group">
+          <h3>GPX 파일 미리보기</h3>
+          <p class="subtext">기기에서 파일을 선택해 경로를 확인하세요.</p>
+          <label class="file-button" for="gpxFile"><span aria-hidden="true">↑</span> GPX 파일 선택</label>
+          <input id="gpxFile" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml">
+          <p id="fileName" class="file-name"></p>
+          <div id="entryWrap" class="entry-wrap" hidden>
+            <label for="entrySelect">파일에 포함된 경로</label>
+            <select id="entrySelect"></select>
+          </div>
+          <div id="fileStatus" class="status" role="status">GPX의 트랙과 계획 경로를 구별해 표시합니다.</div>
+          <button id="sampleButton" class="sample-button" type="button">예시 경로로 화면 보기 <span aria-hidden="true">→</span></button>
+        </section>
+      </aside>
+      <section class="preview" aria-labelledby="preview-title">
+        <div class="preview-head">
+          <div><span class="section-num">02</span><h2 id="preview-title">다이어리 미리보기</h2></div>
+          <span id="sourceBadge" class="source-badge">기록을 선택해 주세요</span>
+        </div>
+        <div id="emptyState" class="empty-state">
+          <div class="empty-symbol" aria-hidden="true">〰</div>
+          <h3>어떤 물길을 지나왔나요?</h3>
+          <p>왼쪽에서 내 투어 기록을 고르거나 GPX 파일을 선택하면 경로와 기록 요약이 여기에 표시됩니다.</p>
+        </div>
+        <div id="result" hidden>
+          <div class="map-wrap"><div id="routeMap" role="img" aria-label="카누잉 경로 지도"></div><div class="map-key"><span class="key-line"></span><span id="mapKeyLabel">이동 트랙</span> <span class="key-dot start"></span>출발 <span class="key-dot end"></span>도착</div></div>
+          <div class="detail">
+            <div class="detail-top"><div><p class="eyebrow">ROUTE RECORD</p><h3 id="routeTitle"></h3><p id="routeDate" class="route-date"></p></div><span id="routeKind" class="kind-pill"></span></div>
+            <div class="stats"><div><span>이동 거리</span><strong id="distance">—</strong></div><div><span>경과 시간</span><strong id="elapsed">—</strong></div><div><span>경로 점</span><strong id="pointCount">—</strong></div></div>
+            <dl class="details"><div><dt>출발</dt><dd id="startTime">—</dd></div><div><dt>도착</dt><dd id="endTime">—</dd></div><div><dt>경로 구간</dt><dd id="segmentCount">—</dd></div><div><dt>휴식 기록</dt><dd id="restTime">—</dd></div><div><dt>연결 코스</dt><dd id="courseName">—</dd></div></dl>
+            <div id="warnings" class="warnings" hidden></div>
+            <div class="condition-placeholder"><span aria-hidden="true">◌</span><div><b>그날의 수위·날씨</b><p>다음 단계에서 관측시각과 출처를 확인해 연결합니다. 지금은 값을 추정해 채우지 않습니다.</p></div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <p class="footnote">이 페이지는 기록을 읽고 비교하는 시제품입니다. GPX를 서버로 보내거나 다이어리를 새로 저장·공개하지 않습니다.</p>
+  </main>
+</body>
+</html>
