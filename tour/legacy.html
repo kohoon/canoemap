@@ -360,6 +360,7 @@
   .my-section-title{margin:20px 0 9px;font:800 13px sans-serif;color:#37474f}
   .my-info-row,.my-list-row{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid #e2e8eb;min-width:0}
   .my-info-row span:first-child{width:88px;color:#718087;font-size:12px}.my-info-row b{font-size:13px}
+  .my-nick-value{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}.my-nick-value b{overflow-wrap:anywhere}.my-nick-note{margin:7px 0 0 100px;color:#718087;font-size:12px;line-height:1.45}.my-nick-form{display:flex;gap:7px;margin:10px 0 0 100px;flex-wrap:wrap}.my-nick-form[hidden]{display:none}.my-nick-form input{height:34px;min-width:140px;max-width:220px;box-sizing:border-box;border:1px solid #b8cbd1;border-radius:7px;padding:0 9px;font-size:13px}.my-nick-form button{height:34px}.my-nick-error{color:#c62828;font-size:12px;min-height:16px;margin:5px 0 0 100px}
   .my-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid #dce4e7;border-bottom:1px solid #dce4e7;background:#fff}
   .my-stats.compact{grid-template-columns:repeat(2,minmax(0,1fr))}
   .my-stat{padding:15px 8px;text-align:center;border-right:1px solid #e3e9eb}.my-stat:last-child{border-right:0}
@@ -372,7 +373,7 @@
   .my-actions{display:flex;gap:4px;flex:none}.my-icon-btn{border:1px solid #ccd8dd;background:#fff;color:#52656e;border-radius:6px;min-width:32px;height:32px;padding:0 8px;cursor:pointer;font-size:12px}.my-icon-btn.del{color:#c62828;border-color:#ecc5c5}
   .my-withdraw-note{margin:9px 0 0;color:#64747c;font:12px/1.55 sans-serif;word-break:keep-all}.my-withdraw-note a{color:#087561;text-decoration:underline;text-underline-offset:2px}
   .my-empty{text-align:center;color:#829097;font-size:13px;padding:44px 12px}.my-empty b{display:block;color:#4c6068;margin-bottom:5px;font-size:14px}
-  @media(max-width:620px){#myModal .pmodal{width:100%;height:94vh;max-height:94vh;border-radius:14px 14px 0 0}#myBody{height:94vh}.my-head{padding:17px 16px 12px}.my-tabs{padding:0 7px}.my-tab{padding:12px 11px 10px}.my-pane{padding:14px 15px 24px}.my-stats{grid-template-columns:repeat(2,1fr)}.my-stat:nth-child(2){border-right:0}.my-stat:nth-child(-n+2){border-bottom:1px solid #e3e9eb}.my-stats.compact .my-stat{border-bottom:0}.my-tools{align-items:stretch}.my-toggle{width:100%;margin-left:0}.my-actions .label{display:none}}
+  @media(max-width:620px){#myModal .pmodal{width:100%;height:94vh;max-height:94vh;border-radius:14px 14px 0 0}#myBody{height:94vh}.my-head{padding:17px 16px 12px}.my-tabs{padding:0 7px}.my-tab{padding:12px 11px 10px}.my-pane{padding:14px 15px 24px}.my-stats{grid-template-columns:repeat(2,1fr)}.my-stat:nth-child(2){border-right:0}.my-stat:nth-child(-n+2){border-bottom:1px solid #e3e9eb}.my-stats.compact .my-stat{border-bottom:0}.my-tools{align-items:stretch}.my-toggle{width:100%;margin-left:0}.my-actions .label{display:none}.my-nick-note,.my-nick-form,.my-nick-error{margin-left:0}}
   #pmLinks{font-size:13px;margin-bottom:10px}
   .pm-memo{color:#556;font-size:13px;margin-top:6px}
   .pm-note{font-size:12.5px;font-weight:700;line-height:1.45;border-radius:8px;padding:7px 9px;margin:0 0 8px}
@@ -2950,6 +2951,9 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
     try{ const r=await fetch(fapi('/trips?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||''))); return r.ok?await r.json():[]; }
     catch(e){ return []; }
   }
+  async function loadMyProfile(){
+    try{const r=await fetch(fapi('/profile?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||'')));if(!r.ok)return;const d=await r.json();if(d.profile){_appProfile=d.profile;u.nick=d.profile.nick;setUser(u);renderAuth();}}catch(e){}
+  }
   function focusCourseCourse(c){
     if(!c||!c.coords||c.coords.length<2) return;
     _courseFocusId='k'+c.id;
@@ -2970,12 +2974,21 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
   }
   function renderInfo(){
     const p=_appProfile||{}, km=state.trips.reduce(function(s,x){return s+((x.recordVersion===2||!x.estimated)?(+x.distKm||0):0);},0), sec=state.trips.reduce(function(s,x){return s+(+x.durSec||0);},0);
+    const nickAvailableAt=+p.nickChangeAvailableAt||0, nickLocked=nickAvailableAt>Date.now();
     shell('<div class="my-profile"><div class="my-avatar">'+pmEsc((u.nick||'회').charAt(0))+'</div><div><b>'+pmEsc(u.nick||'회원')+'</b><span>카카오 계정 연결됨 · '+(isAdmin()?'관리자':'일반회원')+'</span></div></div>'
-      +'<div class="my-section-title">기본정보</div><div class="my-info-row"><span>가입일</span><b>'+dateText(p.t)+'</b></div><div class="my-info-row"><span>닉네임</span><b>'+pmEsc(u.nick||'회원')+'</b></div><div class="my-info-row"><span>카누맵 사용 방법</span><button id="myTutorial" class="my-icon-btn">튜토리얼 다시보기</button></div>'
+      +'<div class="my-section-title">기본정보</div><div class="my-info-row"><span>가입일</span><b>'+dateText(p.t)+'</b></div><div class="my-info-row"><span>닉네임</span><div class="my-nick-value"><b>'+pmEsc(u.nick||'회원')+'</b><button id="myNickEdit" class="my-icon-btn"'+(nickLocked?' disabled':'')+'>변경</button></div></div><p class="my-nick-note">'+(nickLocked?'다음 변경 가능: '+dateText(nickAvailableAt)+' (마지막 변경 후 14일)':'닉네임은 변경 후 14일이 지나야 다시 바꿀 수 있습니다.')+'</p><form id="myNickForm" class="my-nick-form" hidden><input id="myNickInput" type="text" minlength="2" maxlength="20" autocomplete="nickname" aria-label="새 닉네임" placeholder="새 닉네임 (2~20자)"><button class="my-icon-btn" type="submit">저장</button><button id="myNickCancel" class="my-icon-btn" type="button">취소</button></form><p id="myNickError" class="my-nick-error" role="status"></p><div class="my-info-row"><span>카누맵 사용 방법</span><button id="myTutorial" class="my-icon-btn">튜토리얼 다시보기</button></div>'
       +'<div class="my-section-title">활동통계</div><div class="my-stats"><div class="my-stat"><b>'+_favList.length+'</b><span>즐겨찾기</span></div><div class="my-stat"><b>'+state.mine.length+'</b><span>내 코스</span></div>'
       +'<div class="my-stat"><b>'+state.trips.length+'</b><span>패들링</span></div><div class="my-stat"><b>'+km.toFixed(1)+'</b><span>실측 km</span></div></div>'
       +(state.trips.length?'<div class="my-info-row"><span>누적 시간</span><b>'+durText(sec)+'</b></div>':'')
       +'<div class="my-section-title">회원정보 보호</div><div style="font-size:12px;line-height:1.55;color:#64747c">카카오 ID는 회원 DB에 원문으로 저장하지 않으며, 가명 회원번호와 30일 만료 세션을 사용합니다.</div><button id="myWithdraw" class="my-icon-btn del" style="margin-top:12px">회원 탈퇴</button><p class="my-withdraw-note">탈퇴 후에는 지도를 이용하거나 같은 카카오 계정으로 바로 재가입할 수 없습니다. 재가입을 원하시면 <a href="mailto:crowd@kakao.com">crowd@kakao.com</a>으로 문의해 주세요.</p>');
+    const nickEdit=document.getElementById('myNickEdit'),nickForm=document.getElementById('myNickForm'),nickInput=document.getElementById('myNickInput'),nickError=document.getElementById('myNickError');
+    nickEdit.onclick=function(){nickForm.hidden=false;nickInput.value='';nickError.textContent='';nickInput.focus();};
+    document.getElementById('myNickCancel').onclick=function(){nickForm.hidden=true;nickError.textContent='';};
+    nickForm.onsubmit=async function(e){e.preventDefault();const nick=nickInput.value.trim().replace(/\s+/g,' ');if(nick.length<2||nick.length>20){nickError.textContent='2~20자로 입력해 주세요.';return;}const save=nickForm.querySelector('[type=submit]');save.disabled=true;nickError.textContent='';
+      try{const r=await fetch(fapi('/profile'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'change-nick',id:u.uid,tok:u.tok||'',nick:nick})});const d=await r.json();if(!r.ok){nickError.textContent=d.error==='duplicate'?'이미 사용 중인 닉네임입니다.':d.error==='cooldown'?'14일 후 다시 변경할 수 있습니다.':d.error==='unchanged'?'현재 닉네임과 같습니다.':d.error==='invalid'?'2~20자 한글·영문·숫자와 공백, . _ - 만 사용할 수 있습니다.':d.error==='relogin'?'다시 로그인해 주세요.':'변경하지 못했습니다. 잠시 후 다시 시도해 주세요.';return;}
+        _appProfile=d.profile;u.nick=d.profile.nick;setUser(u);renderAuth();renderInfo();
+      }catch(err){nickError.textContent='연결 오류입니다. 다시 시도해 주세요.';}finally{save.disabled=false;}
+    };
     const tutorial=document.getElementById('myTutorial');if(tutorial)tutorial.onclick=function(){closeMyPage();openOnboardingTutorial('mypage');};
     const withdraw=document.getElementById('myWithdraw'); if(withdraw)withdraw.onclick=async function(){
       if(!confirm('탈퇴하면 지도를 이용하거나 바로 재가입할 수 없습니다. 닉네임·최근 기기정보는 제거되지만 기존 작성 콘텐츠는 자동 삭제되지 않습니다. 탈퇴할까요?'))return;
@@ -3008,7 +3021,7 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
   }
   function render(){if(state.tab==='favs')renderFavs();else if(state.tab==='courses')renderCourses();else if(state.tab==='activity')renderActivity();else renderInfo();}
   body.innerHTML='<div class="pm-empty">불러오는 중…</div>';
-  Promise.all([loadFavs(),loadMyCourses(),loadMyTrips()]).then(function(res){state.mine=res[1]||[];state.trips=res[2]||[];render();});
+  Promise.all([loadFavs(),loadMyCourses(),loadMyTrips(),loadMyProfile()]).then(function(res){state.mine=res[1]||[];state.trips=res[2]||[];render();});
 }
 function gotoFav(x){ if(!x) return; closeMyPage();
   if(x.k==='c'){

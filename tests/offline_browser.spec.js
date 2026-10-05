@@ -630,6 +630,48 @@ test('explicit member registration requires both consents', async () => {
   await browser.close();
 });
 
+test('members can change nickname in My Page and see the 14-day lock on desktop and mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const mobile of [false, true]) {
+    const context = await browser.newContext({ viewport: mobile ? { width: 390, height: 844 } : { width: 1280, height: 900 }, isMobile: mobile, hasTouch: mobile });
+    await context.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'nick-user', tok: 'test-token', nick: '기존이름' })));
+    let profile = { memberId: 'nick-member', nick: '기존이름', t: Date.now(), mypageTourSeen: 1, onboardingVersion: 1, nickChangeAvailableAt: 0 };
+    let requestBody;
+    await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname.endsWith('/profile')) {
+        if (route.request().method() === 'POST') {
+          requestBody = route.request().postDataJSON();
+          profile = { ...profile, nick: requestBody.nick, nickChangeAvailableAt: Date.now() + 14 * 86400000 };
+        }
+        await route.fulfill({ status: 200, json: { ok: true, profile } });
+      } else if (url.pathname.endsWith('/launch-sites')) {
+        await route.fulfill({ status: 200, json: { items: [], truncated: false } });
+      } else await route.fulfill({ status: 200, json: [] });
+    });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.locator('#mypageA').click();
+    await expect(page.locator('#myNickEdit')).toBeVisible();
+    await expect(page.locator('#myNickForm')).toBeHidden();
+    await page.locator('#myNickEdit').click();
+    await page.locator('#myNickInput').fill('새이름');
+    await page.locator('#myNickForm button[type=submit]').click();
+    await expect(page.locator('#mypageA')).toHaveText('새이름');
+    await expect(page.locator('#myNickEdit')).toBeDisabled();
+    await expect(page.locator('.my-nick-note')).toContainText('다음 변경 가능');
+    expect(requestBody).toMatchObject({ action: 'change-nick', nick: '새이름', id: 'nick-user' });
+    expect(await page.locator('#myBody').evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+    expect(errors).toEqual([]);
+    await context.close();
+  }
+  await browser.close();
+});
+
 test('withdrawal immediately hides the map and returning withdrawn members cannot register again', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
