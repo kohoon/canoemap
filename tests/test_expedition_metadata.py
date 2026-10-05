@@ -28,6 +28,18 @@ class ExpeditionMetadataTests(unittest.TestCase):
   self.assertEqual(coords[-1],[127.62041703287937,36.003155387251404])
   self.assertEqual(feature['properties']['km'],22.2)
 
+ def test_sixth_expedition_start_and_finish_follow_reversed_route(self):
+  definitions=json.loads((ROOT/'data/courses_def.json').read_text())
+  course=next(c for c in definitions if c['name']=='엑스페디션#6 (금강)')
+  self.assertEqual(course['points'],['연주리','장계관광지'])
+  features=json.loads((ROOT/'data/courses.geojson').read_text())['features']
+  feature=next(f for f in features if f['properties']['name']==course['name'])
+  coords=feature['geometry']['coordinates']
+  self.assertEqual(len(coords),48)
+  self.assertEqual(coords[0],[127.66456608011299,36.347173048499286])
+  self.assertEqual(coords[-1],[127.63780162082743,36.37801969613553])
+  self.assertEqual(feature['properties']['km'],18.5)
+
  def test_official_rounds_preserve_geometry_distance_and_private_names(self):
   script='''import {normalizeExpedition,EXPEDITIONS} from './workers/expedition.mjs';
 const rows=Object.keys(EXPEDITIONS).map(n=>{const c={id:100+Number(n),owner:'admin',name:'엑스페디션#'+n+' 이전 명칭',km:25.13,coords:[[38,127],[37,126]]};return normalizeExpedition(c,'k'+c.id);});
