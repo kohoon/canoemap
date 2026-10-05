@@ -38,6 +38,9 @@ jobs:
       - name: Verify Bongyang course direction
         run: node tests/test_bongyang_direction.mjs
 
+      - name: Verify Cheongmi course direction
+        run: node tests/test_cheongmi_direction.mjs
+
       - name: Deploy Cloudflare Worker
         run: npx --yes wrangler deploy --config wrangler.toml
         env:

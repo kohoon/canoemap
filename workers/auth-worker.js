@@ -371,7 +371,9 @@ export default {
       site.searchParams.set("course", id);
       const round = expeditionNumber(course, id);
       const sticker = round ? _expeditionImage(site, round) : null;
-      const imageUrl = sticker ? sticker.imageUrl : id === "k1783312681276"
+      const imageUrl = sticker ? sticker.imageUrl : id === "k1789437978827"
+        ? new URL("assets/course-previews/k1789437978827.jpg", site).toString()
+        : id === "k1783312681276"
         ? new URL("assets/course-previews/k1783312681276.jpg", site).toString()
         : preview
         ? url.origin + "/course-preview/" + encodeURIComponent(id) + ".jpg?v=" + encodeURIComponent(preview.v)
@@ -387,6 +389,7 @@ export default {
       const id = normalizeCourseShareId(coursePreviewMatch[1]);
       const course = await _courseShareRecord(env, id);   // 삭제·숨김 코스는 식별자가 남아도 현재 코스로 보지 않는다.
       if (!course) return new Response("not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
+      if (id === "k1789437978827") return Response.redirect(new URL("assets/course-previews/k1789437978827.jpg", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
       if (id === "k1783312681276") return Response.redirect(new URL("assets/course-previews/k1783312681276.jpg", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
       const preview = await _coursePreviewRecord(env.PLACES, id, course.name);
       if (!preview) return Response.redirect(new URL("og.png", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
@@ -1149,13 +1152,6 @@ export default {
     }
 
     // 0-3d) 코스 등록(관리자) — 거리측정 경로를 코스로. KV "courses"
-    if (url.pathname === "/course-cheongmi-inspect" && req.method === "GET") {
-      let courses = []; try { courses = JSON.parse((await env.PLACES.get("courses")) || "[]"); } catch (e) {}
-      const matches = (Array.isArray(courses) ? courses : []).filter((course) => String(course && course.name || "") === "청미천 - 여주 도리 ~ 여주 원부리");
-      return new Response(JSON.stringify(matches.map((course) => ({ id: course.id, name: course.name,
-        km: course.km, coords: course.coords, segments: course.segments }))),
-      { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
-    }
     if (url.pathname.endsWith("/courses") || url.pathname.endsWith("/course")) {
       const origin = req.headers.get("Origin") || "*";
       const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };

@@ -20,6 +20,12 @@ const BONGYANG_NAME = "조양강+동강 - 봉양운치길(1박2일)";
 const BONGYANG_BAD_START = [37.273182, 128.603961];
 const BONGYANG_BAD_END = [37.374795, 128.661318];
 const BONGYANG_PREVIEW_MIN_VERSION = Date.UTC(2026, 9, 5, 8, 15);
+const CHEONGMI_ID = "1789437978827";
+const CHEONGMI_BAD_NAME = "청미천 - 여주 도리 ~ 여주 원부리";
+const CHEONGMI_CORRECTED_NAME = "청미천 - 여주 원부리 ~ 여주 도리";
+const CHEONGMI_BAD_START = [37.225698, 127.726579];
+const CHEONGMI_BAD_END = [37.161783, 127.633426];
+const CHEONGMI_PREVIEW_MIN_VERSION = Date.UTC(2026, 9, 5, 8, 30);
 
 function samePoint(a, b) {
   return Array.isArray(a) && Math.abs(Number(a[0]) - b[0]) < 1e-7 && Math.abs(Number(a[1]) - b[1]) < 1e-7;
@@ -47,6 +53,14 @@ export function applyCourseCorrection(course) {
     && samePoint(course.coords[0], BONGYANG_BAD_START) && samePoint(course.coords[course.coords.length - 1], BONGYANG_BAD_END)) {
     return { ...course, coords: [...course.coords].reverse(), correctedAt: "2026-10-05" };
   }
+  if (String(course.id) === CHEONGMI_ID && course.name === CHEONGMI_BAD_NAME && course.coords.length === 86
+    && samePoint(course.coords[0], CHEONGMI_BAD_START) && samePoint(course.coords[course.coords.length - 1], CHEONGMI_BAD_END)) {
+    const segments = Array.isArray(course.segments) && course.segments.length === 10
+      ? [...course.segments].reverse().map((segment, index) => ({ ...segment,
+        name: index === 0 ? "출발~경유1" : index === 9 ? "경유9~도착" : `경유${index}~경유${index + 1}` }))
+      : course.segments;
+    return { ...course, name: CHEONGMI_CORRECTED_NAME, coords: [...course.coords].reverse(), segments, correctedAt: "2026-10-05" };
+  }
   return course;
 }
 
@@ -55,5 +69,6 @@ export function coursePreviewVersionIsCurrent(id, version) {
   if(key==="k"+PAROHO_ID)return stamp>=PAROHO_PREVIEW_MIN_VERSION;
   if(key==="k"+CHUNCHEONHO_ID)return stamp>=CHUNCHEONHO_PREVIEW_MIN_VERSION;
   if(key==="k"+BONGYANG_ID)return stamp>=BONGYANG_PREVIEW_MIN_VERSION;
+  if(key==="k"+CHEONGMI_ID)return stamp>=CHEONGMI_PREVIEW_MIN_VERSION;
   return true;
 }
