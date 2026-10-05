@@ -1152,6 +1152,7 @@ export default {
       return new Response(JSON.stringify(matches.map((course) => ({
         id: course.id, name: course.name, km: course.km, admin: course.owner === "admin",
         points: Array.isArray(course.coords) ? course.coords.length : 0,
+        coords: course.coords,
         start: course.coords && course.coords[0], end: course.coords && course.coords[course.coords.length - 1],
         first: course.coords && course.coords.slice(0, 3), last: course.coords && course.coords.slice(-3),
         segments: course.segments,
