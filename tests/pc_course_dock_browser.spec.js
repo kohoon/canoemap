@@ -79,3 +79,31 @@ test('tour mode keeps the existing full-map layout', async () => {
   expect(mapBox.width).toBe(1280);
   await browser.close();
 });
+
+test('one official expedition round appears once when static and registered courses overlap', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    hideGate();
+    const original = _courseByCid['3'];
+    renderKVCourse({ id: '1790000000003', owner: 'admin', name: '엑스페디션#3 (평창강)', km: original.km, coords: original.coords });
+  });
+  await expect.poll(() => page.locator('#pcCourseList .pc-course-item').filter({ hasText: '엑스페디션 #3' }).count()).toBe(1);
+  const roundThree = page.locator('#pcCourseList .pc-course-item').filter({ hasText: '엑스페디션 #3' });
+  await expect(roundThree).toHaveAttribute('data-course', 'k1790000000003');
+  const routeVisibility = await page.evaluate(() => {
+    setUser({ uid: 'test-member', tok: 'test-token' });
+    _applyCourseFocus();
+    return {
+      staticVisible: _staticCidLayers['3'].some(({ grp, l }) => grp.hasLayer(l)),
+      registeredVisible: _kvCourseLayers['1790000000003'].ls.some((l) => _kvCourseLayers['1790000000003'].grp.hasLayer(l)),
+    };
+  });
+  expect(routeVisibility).toEqual({ staticVisible: false, registeredVisible: true });
+  await page.evaluate(() => courseCmt('c', '3'));
+  await expect(page.locator('#pmodal')).toBeVisible();
+  await browser.close();
+});

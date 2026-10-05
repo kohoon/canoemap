@@ -3933,6 +3933,9 @@ let _courseFocusFound=false;
 function renderKVCourse(c){
   if(!c||!c.coords||c.coords.length<2) return;
   c.name=normalizeExpedition(c,'k'+c.id).name;
+  const expeditionRound=expeditionNumber(c,'k'+c.id);
+  const oldSelected=_pcDockSelected,oldCourse=oldSelected.charAt(0)==='k'?_kvCourses[oldSelected.slice(1)]:null;
+  if(_pcDockIsActive()&&expeditionRound&&(oldSelected==='c'+expeditionRound||(oldCourse&&expeditionNumber(oldCourse,oldSelected)===expeditionRound)))_pcDockSelected='k'+c.id;
   const focusId=String(_courseFocusId||'').trim();
   if(focusId && focusId === ('k'+c.id)) _courseFocusFound=true;
   _kvCourses[c.id]=c;
@@ -4095,20 +4098,23 @@ function _applyCourseFocus(){
   const kvId=isKv?id.slice(1):'';
   const staticId=isFocused && !isKv?id:'';
   const dockSelected=_pcDockIsActive()?String(_pcDockSelected||''):'';
+  const preferredExpeditions=_pcDockIsActive()?_pcDockExpeditionChoices():null;
   const showAll=!isFocused && isAdmin();
   const member=getUser(), showMemberExpeditions=!isFocused&&!!(member&&member.uid);
   Object.keys(_staticCidLayers).forEach(function(cid){
     const arr=_staticCidLayers[cid]; if(!arr) return;
     const target='course_c'+cid;
     const defaultVisible=showAll || (showMemberExpeditions&&_staticExpeditionCids.has(String(cid)));
-    const keep=!_hiddenStaticCids.has(String(cid)) && ((defaultVisible&&(!_favOnly||_favSet.has(target))) || (!isKv&&String(cid)===staticId) || dockSelected==='c'+cid);
+    const canonical=!preferredExpeditions||!_staticExpeditionCids.has(String(cid))||preferredExpeditions.get(Number(cid))==='c'+cid;
+    const keep=!_hiddenStaticCids.has(String(cid)) && ((defaultVisible&&canonical&&(!_favOnly||_favSet.has(target))) || (!isKv&&String(cid)===staticId) || dockSelected==='c'+cid);
     arr.forEach(function(e){ if(keep) e.grp.addLayer(e.l); else e.grp.removeLayer(e.l); });
   });
   Object.keys(_kvCourseLayers).forEach(function(cid){
     const e=_kvCourseLayers[cid]; if(!e) return;
     const c=_kvCourses[cid]||{}, target='course_k'+cid;
     const defaultVisible=showAll || (showMemberExpeditions&&String(c.owner||'')==='admin'&&courseSubcat(c.name)==='엑스페디션');
-    const keep=(defaultVisible&&(!_favOnly||_favSet.has(target)||_ownedCourseTargets.has(target))) || (isKv&&String(cid)===kvId) || dockSelected==='k'+cid;
+    const round=expeditionNumber(c,'k'+cid),canonical=!preferredExpeditions||!round||preferredExpeditions.get(round)==='k'+cid;
+    const keep=(defaultVisible&&canonical&&(!_favOnly||_favSet.has(target)||_ownedCourseTargets.has(target))) || (isKv&&String(cid)===kvId) || dockSelected==='k'+cid;
     e.ls.forEach(function(l){ if(keep) e.grp.addLayer(l); else e.grp.removeLayer(l); });
   });
 }
@@ -5374,15 +5380,26 @@ map.addControl(new AdminCtl());   // 관리자 인증 뒤에만 접속기록·�
 
 // PC 지도 B안: 검색·코스 목록·선택 상세를 한쪽에 모으고 기존 지도 컨트롤은 재사용한다.
 function _pcDockIsActive(){return document.documentElement.classList.contains('pc-dock-ready');}
+function _pcDockExpeditionChoices(){
+  const preferred=new Map();
+  _staticExpeditionCids.forEach(function(cid){if(!_hiddenStaticCids.has(String(cid)))preferred.set(Number(cid),'c'+cid);});
+  Object.keys(_kvCourses).sort(function(a,b){return Number(a)-Number(b);}).forEach(function(id){
+    const c=_kvCourses[id],round=expeditionNumber(c,'k'+id);
+    if(round&&Array.isArray(c.coords)&&c.coords.length>1)preferred.set(round,'k'+id);
+  });
+  return preferred;
+}
 function _pcDockEntries(){
-  const list=[],admin=isAdmin();
+  const list=[],admin=isAdmin(),preferred=_pcDockExpeditionChoices();
   COURSES.features.forEach(function(f){
     const p=f.properties||{},cid=String(p.cid==null?'':p.cid),c=_courseByCid[cid];
     if(!cid||!c||_hiddenStaticCids.has(cid)||(!admin&&courseSubcat(c.name)!=='엑스페디션'))return;
+    if(_staticExpeditionCids.has(cid)&&preferred.get(Number(cid))!=='c'+cid)return;
     list.push({key:'c'+cid,course:c,source:'운영 코스',rank:1});
   });
   Object.keys(_kvCourses).forEach(function(id){
     const c=_kvCourses[id];if(!c||!Array.isArray(c.coords)||c.coords.length<2)return;
+    const round=expeditionNumber(c,'k'+id);if(round&&preferred.get(round)!=='k'+id)return;
     list.push({key:'k'+id,course:c,source:_isCourseOwner(c)?'내 코스':'공개 코스',rank:_isCourseOwner(c)?0:2});
   });
   return list.sort(function(a,b){return a.rank-b.rank||String(a.course.name||'').localeCompare(String(b.course.name||''),'ko');});
