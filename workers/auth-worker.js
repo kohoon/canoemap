@@ -333,6 +333,23 @@ export default {
       return new Response("forbidden-origin", { status: 403, headers: { "Access-Control-Allow-Origin": req.headers.get("Origin") || "*" } });
     }
 
+    // 일회성 운영 복원. 무작위 토큰의 해시만 배포하며, 기존 숨김 값이 정확히 ["3"]일 때만 쓴다.
+    if (url.pathname === "/ops/restore-expedition-3-20261005" && req.method === "POST") {
+      const token = req.headers.get("X-Restore-Token") || "";
+      const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+      const digest = Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+      if (!_safeEqual(digest, "548ffcde25ec4d6227f7119f1a0542bbfc0e95410ab6549413a9346630596ef1"))
+        return new Response("forbidden", { status: 403 });
+      const KV = env.PLACES;
+      if (!KV) return new Response("storage unavailable", { status: 503 });
+      let hidden;
+      try { hidden = JSON.parse((await KV.get("course_hidden")) || "null"); } catch (e) { hidden = null; }
+      if (!Array.isArray(hidden) || hidden.length !== 1 || String(hidden[0]) !== "3")
+        return new Response("hidden list changed", { status: 409 });
+      await KV.put("course_hidden", "[]");
+      return new Response(JSON.stringify({ restored: "3" }), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+    }
+
     // 회차별 고정 주소: 스티커 미리보기와 코스 상세창으로 이동한다.
     const expeditionShareMatch = url.pathname.match(/^\/e\/([1-9]|10|11)\/?$/);
     if (expeditionShareMatch && req.method === "GET") {
