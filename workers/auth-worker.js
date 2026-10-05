@@ -217,6 +217,18 @@ async function _cacheJson(ctx, key, build, ttl = 60) {
   return resp;
 }
 
+function _publicComments(obj, viewerId = "") {
+  const list = Array.isArray(obj && obj.list) ? obj.list : [];
+  return {
+    admin: String((obj && obj.admin) || ""),
+    name: String((obj && obj.name) || ""),
+    list: list.filter((comment) => comment && typeof comment === "object").map(({ ownerId, ...comment }) => ({
+      ...comment,
+      mine: !!viewerId && !!ownerId && _safeEqual(ownerId, viewerId),
+    })),
+  };
+}
+
 function _launchCat(v, name) {
   if (v === "spot" || v === "명소") return "spot";
   if (v === "candidate" || v === "런칭/랜딩 후보지") return "candidate";
@@ -694,16 +706,23 @@ export default {
       const cors = {
         "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token",
       };
       if (req.method === "OPTIONS") return new Response(null, { headers: cors });
       const KV = env.PLACES;
       const EMPTY = '{"admin":"","list":[]}';
       if (req.method === "GET") {
         const slug = (url.searchParams.get("place") || "").slice(0, 40);
+        const uid = String(req.headers.get("X-User-Id") || "").slice(0, 40);
+        const viewerId = uid && await _memberOk(env, uid, req.headers.get("X-Auth-Token")) ? await _memberId(env, uid) : "";
+        if (viewerId) {
+          let obj = {}; try { obj = JSON.parse((KV && slug && await KV.get("cmt:" + slug)) || EMPTY); } catch (e) {}
+          return new Response(JSON.stringify(_publicComments(obj, viewerId)), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+        }
         return _cacheJson(ctx, url.toString(), async () => {
           const data = KV && slug ? await KV.get("cmt:" + slug) : null;
-          return new Response(data || EMPTY, { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=60" } });
+          let obj = {}; try { obj = JSON.parse(data || EMPTY); } catch (e) {}
+          return new Response(JSON.stringify(_publicComments(obj)), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=60" } });
         }, 60);
       }
       if (req.method === "POST") {
@@ -748,24 +767,56 @@ export default {
         const clearCommentCache = () => caches.default.delete(new Request(url.origin + url.pathname + "?place=" + encodeURIComponent(slug), { method: "GET" }));
         let obj = { admin: "", list: [] };
         try { obj = JSON.parse((await KV.get("cmt:" + slug)) || EMPTY); } catch (e) {}
-        if (b.action === "cmtdel" || b.action === "cmtedit") {   // 어드민: 코멘트 삭제/수정
-          if (!env.ADMIN_KEY || String(b.adminKey) !== String(env.ADMIN_KEY)) return new Response("forbidden", { status: 403, headers: cors });
-          const cid = Number(b.cid);
-          if (b.action === "cmtdel") {
-            const victim = (obj.list || []).find((c) => c.id === cid);
-            if (victim && victim.img) ctx.waitUntil(KV.delete("img:" + victim.img));   // 첨부 사진도 삭제
-            obj.list = (obj.list || []).filter((c) => c.id !== cid);
-          } else {
-            const it = (obj.list || []).find((c) => c.id === cid);
-            if (it) it.text = String(b.text || "").slice(0, 100);
-          }
+        if (!Array.isArray(obj.list)) obj.list = [];
+        const saveWithAudit = async (action, cid, actor, before, after) => {
+          const at = Date.now(), auditKey = "cmt_audit:" + at + ":" + crypto.randomUUID();
+          const event = { action, place: slug, cid, actor, at, before, after, status: "attempted" };
+          await KV.put(auditKey, JSON.stringify(event));
           await KV.put("cmt:" + slug, JSON.stringify(obj));
+          await KV.put(auditKey, JSON.stringify({ ...event, status: "applied" }));
           ctx.waitUntil(clearCommentCache());
-          return new Response(JSON.stringify({ ok: true, comments: obj }), { headers: { ...cors, "Content-Type": "application/json" } });
+          if (env.LOG_WEBHOOK && (action === "edit" || action === "delete")) {
+            const oldText = String((before && before.text) || ""), nextText = String((after && after.text) || "");
+            const oldImage = before && before.img ? url.origin + "/img?k=" + before.img : "";
+            ctx.waitUntil(fetch(env.LOG_WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ type: "comment", cid, place: String(obj.name || slug).slice(0, 60),
+                nick: String((before && before.nick) || ""), text: action === "delete" ? "[삭제] " + oldText : "[수정] " + oldText + " → " + nextText,
+                stars: (before && before.stars) || "", img: oldImage }) }).catch(() => {}));
+          }
+        };
+        if (b.action === "cmtdel" || b.action === "cmtedit") {
+          const cid = Number(b.cid);
+          const victim = obj.list.find((c) => c.id === cid);
+          if (!victim) return new Response("not found", { status: 404, headers: cors });
+          const adminOk = !!env.ADMIN_KEY && _safeEqual(String(b.adminKey || ""), String(env.ADMIN_KEY));
+          const uid = String(b.id || "").slice(0, 40);
+          const memberOk = !adminOk && uid && await _memberOk(env, uid, b.tok);
+          if (!adminOk && !memberOk) return new Response("relogin", { status: 401, headers: cors });
+          const actor = adminOk ? "admin" : await _memberId(env, uid);
+          if (!adminOk && (!victim.ownerId || !_safeEqual(victim.ownerId, actor))) return new Response("forbidden", { status: 403, headers: cors });
+          if (b.rev != null && Number(b.rev) !== (Number(victim.rev) || 1)) return new Response("stale comment", { status: 409, headers: cors });
+          const before = { ...victim };
+          if (b.action === "cmtdel") {
+            obj.list = obj.list.filter((c) => c.id !== cid);
+            await saveWithAudit("delete", cid, actor, before, null);
+            if (victim.img) ctx.waitUntil(KV.delete("img:" + victim.img));
+          } else {
+            const text = String(b.text || "").trim().slice(0, 100);
+            if (!text && !victim.img) return new Response("bad", { status: 400, headers: cors });
+            victim.text = text;
+            victim.editedAt = Date.now();
+            victim.rev = (Number(victim.rev) || 1) + 1;
+            await saveWithAudit("edit", cid, actor, before, { ...victim });
+          }
+          return new Response(JSON.stringify({ ok: true, comments: _publicComments(obj, adminOk ? "" : actor) }), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
         }
+        let audit;
+        let viewerId = "";
         if (b.admin) {
           if (!env.ADMIN_KEY || String(b.adminKey) !== String(env.ADMIN_KEY)) return new Response("forbidden", { status: 403, headers: cors });
+          const previous = String(obj.admin || "");
           obj.admin = String(b.text || "").slice(0, 300);
+          audit = { action: "admin_edit", cid: "admin", actor: "admin", before: { text: previous }, after: { text: obj.admin } };
           // 관리자 코멘트도 시트에 기록(중복 방지)
           if (env.LOG_WEBHOOK && obj.admin) {
             const sig = "cmt:" + slug + "#admin#" + obj.admin, pl = String(b.name || slug).slice(0, 60), txt = obj.admin;
@@ -780,20 +831,23 @@ export default {
         } else {
           if (!b.id) return new Response("forbidden", { status: 403, headers: cors });
           if (!(await _memberOk(env, String(b.id), b.tok))) return new Response("relogin", { status: 401, headers: cors });
+          const member = await _memberGet(env, String(b.id));
+          viewerId = await _memberId(env, String(b.id));
           const text = String(b.text || "").trim().slice(0, 100);
           const imgKey = String(b.img || "").replace(/[^a-zA-Z0-9_]/g, "").slice(0, 40);
           if (!text && !imgKey) return new Response("bad", { status: 400, headers: cors });
-          const cnick = String(b.nick || "익명").slice(0, 20);
+          const cnick = String((member && member.nick) || "익명").slice(0, 20);
           if (b.name) obj.name = String(b.name).slice(0, 60);   // 장소명 저장(백필/표시용)
           let cseq = 0; try { cseq = parseInt((await KV.get("cmt_seq")) || "0", 10) || 0; } catch (e) {}
           cseq++; await KV.put("cmt_seq", String(cseq));   // 코멘트 전역 ID
           const ct = Date.now();
           const stars = Math.round(Number(b.stars));
-          const item = { id: cseq, nick: cnick, text: text, t: ct };
+          const item = { id: cseq, ownerId: viewerId, nick: cnick, text: text, t: ct, rev: 1 };
           if (stars >= 1 && stars <= 5) item.stars = stars;
           if (imgKey) item.img = imgKey;
           obj.list.push(item);
           if (obj.list.length > 500) obj.list = obj.list.slice(-500);
+          audit = { action: "create", cid: cseq, actor: viewerId, before: null, after: { ...item } };
           if (stars >= 1 && stars <= 5) {   // 별점도 함께 반영(평균용 rate_<slug>)
             const rk = "rate_" + slug;
             let rm = {}; try { rm = JSON.parse((await KV.get(rk)) || "{}"); } catch (e) {}
@@ -812,9 +866,8 @@ export default {
             } catch (e) {} })());
           }
         }
-        await KV.put("cmt:" + slug, JSON.stringify(obj));
-        ctx.waitUntil(clearCommentCache());
-        return new Response(JSON.stringify({ ok: true, comments: obj }), { headers: { ...cors, "Content-Type": "application/json" } });
+        await saveWithAudit(audit.action, audit.cid, audit.actor, audit.before, audit.after);
+        return new Response(JSON.stringify({ ok: true, comments: _publicComments(obj, viewerId) }), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
       }
       return new Response("method", { status: 405, headers: cors });
     }

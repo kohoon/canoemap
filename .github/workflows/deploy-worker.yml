@@ -29,6 +29,9 @@ jobs:
       - name: Verify Python tests
         run: python3 -m unittest discover -s tests -p 'test_*.py'
 
+      - name: Verify comment ownership and audit
+        run: node tests/test_comment_ownership.mjs
+
       - name: Deploy Cloudflare Worker
         run: npx --yes wrangler deploy --config wrangler.toml
         env:
