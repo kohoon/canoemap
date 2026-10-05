@@ -186,6 +186,8 @@ def render(course, rivers):
     draw.rounded_rectangle((96, 42, 510, 588), radius=26, fill=COLORS["surface"], outline=COLORS["border"])
 
     title, start, end = labels(course.get("name", ""))
+    start = str(course.get("preview_start") or start)
+    end = str(course.get("preview_end") or end)
     text(draw, (130, 80), "카누맵 · 추천 코스", 346, 20, COLORS["muted"])
     wrapped_text(draw, (130, 119), title, 346, 36, COLORS["ink"], max_lines=2, line_height=40)
     draw.line((130, 203, 476, 203), fill=COLORS["border"], width=1)
