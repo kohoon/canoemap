@@ -350,6 +350,7 @@ test('one world is centered on Korea with the Americas on the right', async () =
         fullWorldVisible: view.getEast()-view.getWest()>=359.9,
         americaOnScreenRight: americaX>centerX&&americaX<=map.getSize().x,
         minZoom: map.getMinZoom(),
+        mapWidth: map.getSize().x,
         zoomSnap: map.options.zoomSnap,
         wheelPxPerZoomLevel: map.options.wheelPxPerZoomLevel,
         centerLng: map.getCenter().lng,
@@ -357,7 +358,7 @@ test('one world is centered on Korea with the Americas on the right', async () =
     });
     expect(result).toMatchObject({ viscosity: 1, west: -30, east: 330, width: 360, asiaOffset: 0, koreaNearCenter: true, americaOnRight: true, fullWorldVisible: true, americaOnScreenRight: true, zoomSnap: 0, wheelPxPerZoomLevel: 30 });
     expect(result.viewportSpan).toBeLessThanOrEqual(360.02);
-    expect(result.minZoom).toBeCloseTo(Math.log2(device.viewport.width / 256), 5);
+    expect(result.minZoom).toBeCloseTo(Math.log2(result.mapWidth / 256), 5);
     expect(result.centerLng).toBeGreaterThanOrEqual(-30);
     expect(result.centerLng).toBeLessThanOrEqual(330);
     expect(errors).toEqual([]);
@@ -1803,9 +1804,14 @@ test('open chat and paddling school shortcuts share a row below the account cont
     expect(bounds.chatRight).toBeLessThan(bounds.schoolLeft);
     expect(Math.abs(bounds.chatTop - bounds.schoolTop)).toBeLessThan(2);
     expect(bounds.schoolRight).toBeLessThanOrEqual(width);
-    expect(bounds.schoolBottom).toBeLessThan(bounds.tourTop);
-    const order = await page.locator('.leaflet-top.leaflet-right > .leaflet-control').evaluateAll((nodes) => nodes.map((node) => node.id));
-    expect(order.indexOf('authbox')).toBeLessThan(order.indexOf('openChatCtl'));
+    if (width >= 1024 && !tour) {
+      expect(await page.locator('#pcTopbar #openChatCtl').count()).toBe(1);
+      expect(await page.locator('#pcTopbar #authbox').count()).toBe(1);
+    } else {
+      expect(bounds.schoolBottom).toBeLessThan(bounds.tourTop);
+      const order = await page.locator('.leaflet-top.leaflet-right > .leaflet-control').evaluateAll((nodes) => nodes.map((node) => node.id));
+      expect(order.indexOf('authbox')).toBeLessThan(order.indexOf('openChatCtl'));
+    }
     await page.close();
   }
   await browser.close();

@@ -543,6 +543,53 @@
   .openchat-btn{background:#FEE500;color:#191600!important;border:0}
   .paddling-school-btn{background:#e1f8ef;color:#075d4c!important;border:1px solid #95d9c2}
   .openchat-btn:hover,.openchat-btn:focus,.paddling-school-btn:hover,.paddling-school-btn:focus{transform:translateY(-1px);box-shadow:0 4px 11px rgba(0,0,0,.32);outline:2px solid #0c7d74;outline-offset:2px}
+  #pcTopbar,#pcDock{display:none}
+  @media(min-width:1024px){
+    html.pc-dock-ready:not(.tour-mode) #map{top:64px;left:296px;width:calc(100% - 296px);height:calc(var(--app-height) - 64px)}
+    html.pc-dock-ready:not(.tour-mode) #pcTopbar{position:fixed;z-index:1400;top:0;left:0;right:0;height:64px;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:0 14px;background:#fff;border-bottom:1px solid #dce8e2;box-shadow:0 2px 8px rgba(12,45,36,.1)}
+    html.pc-dock-ready:not(.tour-mode) #pcDock{position:fixed;z-index:1350;top:64px;bottom:0;left:0;width:296px;box-sizing:border-box;display:flex;flex-direction:column;background:#fff;border-right:1px solid #dce8e2;color:#1b3d35;font:13px/1.45 sans-serif}
+    #pcTopbar .pc-brand{display:flex;align-items:center;gap:7px;flex:none;color:#123b32;text-decoration:none;font:800 18px/1 sans-serif;white-space:nowrap}
+    #pcTopbar .pc-brand-mark{display:block;width:29px;height:29px;border-radius:8px}
+    #pcTopbar .pc-search-slot{flex:0 1 225px;min-width:165px}
+    #pcTopbar .search{position:relative;width:100%;box-sizing:border-box;margin:0;padding:0;background:none;box-shadow:none;font:inherit}
+    #pcTopbar #srchForm{display:flex;align-items:center;gap:4px}
+    #pcTopbar .search input{width:100%;max-width:none;min-width:0;background:#f5f9f7}
+    #pcTopbar .search button{flex:none;margin-left:0}
+    #pcTopbar #srchRes:not(:empty){position:absolute;top:calc(100% + 8px);left:0;width:min(365px,calc(100vw - 24px));max-height:min(60vh,510px);box-sizing:border-box;overflow:auto;padding:10px 12px;background:#fff;border:1px solid #dce8e2;border-radius:12px;box-shadow:0 8px 25px rgba(0,0,0,.2)}
+    #pcTopbar .pc-nav{display:flex;align-items:center;gap:3px;min-width:0;white-space:nowrap}
+    #pcTopbar .pc-nav button{box-sizing:border-box;min-height:40px;padding:0 9px;border:0;border-radius:9px;background:transparent;color:#315a50;font:700 12.5px sans-serif;cursor:pointer;white-space:nowrap}
+    #pcTopbar .pc-nav button.current{background:#e4f5ef;color:#087c71}
+    #pcTopbar #tourEntry{width:auto;min-height:40px;margin:0;padding:0 9px;border-radius:9px;background:transparent;color:#315a50;box-shadow:none;font:700 12.5px sans-serif}
+    #pcTopbar #tourEntry span{display:none}
+    #pcTopbar .pc-right{display:flex;align-items:center;gap:7px;margin-left:auto;min-width:0}
+    #pcTopbar .map-quick-links{gap:5px;max-width:none}
+    #pcTopbar .openchat-btn,#pcTopbar .paddling-school-btn{min-height:40px;padding:7px 9px;border-radius:9px;box-shadow:none;font-size:12px}
+    #pcTopbar #authbox{margin:0;white-space:nowrap;font-size:12px}
+    #pcTopbar #authbox .who{max-width:150px;box-shadow:none;border:1px solid #dce8e2}
+    #pcTopbar #authbox button{box-shadow:none}
+    #pcDock .pc-dock-head{padding:18px 16px 13px;font-size:17px;font-weight:800}
+    #pcDock .pc-filters{display:flex;gap:5px;flex-wrap:wrap;padding:0 16px 13px}
+    #pcDock .pc-filters button{min-height:32px;padding:5px 9px;border:0;border-radius:17px;background:#f1f6f3;color:#526d61;font:700 12px sans-serif;cursor:pointer}
+    #pcDock .pc-filters button[aria-pressed=true]{background:#e0f3ec;color:#087c71}
+    #pcDock .pc-course-list{min-height:0;flex:1;overflow-y:auto;padding:0 10px;overscroll-behavior:contain}
+    #pcDock .pc-course-item{display:block;width:100%;min-height:63px;padding:10px 7px;border:0;border-top:1px solid #e5eee8;background:#fff;color:#173d33;text-align:left;cursor:pointer}
+    #pcDock .pc-course-item[aria-current=true]{background:#eaf7f2;border-radius:8px}
+    #pcDock .pc-course-item b{display:block;font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+    #pcDock .pc-course-item small{display:block;margin-top:4px;color:#71857b;font-size:11px}
+    #pcDock .pc-course-empty{padding:14px 7px;color:#72867e}
+    #pcDock .pc-dock-detail{padding:13px 16px;border-top:1px solid #dce8e2;background:#fbfdfc}
+    #pcDock .pc-dock-detail .pc-detail-label{color:#087c71;font-size:11px;font-weight:700}
+    #pcDock .pc-dock-detail strong{display:block;margin:5px 0 7px;font-size:15px;line-height:1.35;overflow-wrap:anywhere}
+    #pcDock .pc-dock-detail .pc-detail-km{font-size:18px;font-weight:800}
+    #pcDock .pc-dock-detail .pc-detail-actions{display:flex;gap:7px;margin-top:10px}
+    #pcDock .pc-dock-detail button{flex:1;min-height:36px;padding:6px;border:1px solid #b9d8cc;border-radius:8px;background:#fff;color:#176558;font:700 12px sans-serif;cursor:pointer}
+    #pcDock .pc-dock-detail button:first-child{border-color:#087e74;background:#087e74;color:#fff}
+    #pcDock .pc-dock-detail button:disabled{opacity:.45;cursor:default}
+    #pcDock .pc-measure-slot{padding:10px 16px 14px;border-top:1px solid #dce8e2}
+    #pcDock #measBtnBox{width:100%;min-height:42px;box-shadow:none;border:1px solid #087e74;border-radius:9px;background:#087e74;color:#fff}
+    #pcDock #measBtnBox .meas-sub{color:#e0f5ee}
+    #pcDock #measModeBtn{width:100%;margin-top:7px;box-shadow:none;border:1px solid #bad8cd}
+  }
   #gate{position:fixed;inset:0;z-index:3000;display:flex;align-items:flex-end;justify-content:flex-end;overflow:hidden;box-sizing:border-box;padding:24px;
     background:linear-gradient(90deg,rgba(5,27,23,.56) 0%,rgba(5,27,23,.12) 48%,rgba(5,27,23,.3) 100%)}
   #gate::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(5,27,23,.16),transparent 38%,rgba(5,27,23,.22))}
@@ -661,6 +708,19 @@
 <body>
 <script>try{if(localStorage.getItem('mc_user')||localStorage.getItem('mc_withdrawn_v1')==='1')document.body.classList.add('member-blocked');}catch(e){}</script>
 <div id="map"></div>
+<header id="pcTopbar" aria-label="카누맵 PC 탐색">
+  <a class="pc-brand" href="/" aria-label="카누맵 지도 홈"><img class="pc-brand-mark" src="./pwa-icon.svg" alt="">카누맵</a>
+  <div class="pc-search-slot" id="pcSearchSlot"></div>
+  <nav class="pc-nav" aria-label="주요 기능"><button type="button" class="current" aria-current="page">지도 탐색</button><button type="button" id="pcCoursePlan">코스 계획</button><span id="pcTourSlot"></span></nav>
+  <div class="pc-right"><div id="pcLinksSlot"></div><div id="pcAuthSlot"></div></div>
+</header>
+<aside id="pcDock" aria-label="코스 탐색과 상세">
+  <div class="pc-dock-head">코스 탐색</div>
+  <div class="pc-filters" role="group" aria-label="코스 종류"><button type="button" data-filter="all" aria-pressed="true">전체</button><button type="button" data-filter="expedition" aria-pressed="false">엑스페디션</button><button type="button" data-filter="beginner" aria-pressed="false">초심자</button></div>
+  <div class="pc-course-list" id="pcCourseList" aria-live="polite"></div>
+  <div class="pc-dock-detail" id="pcCourseDetail" aria-live="polite"><div class="pc-detail-label">선택한 코스</div><strong>코스를 선택해 주세요</strong></div>
+  <div class="pc-measure-slot" id="pcMeasureSlot"></div>
+</aside>
 <div id="hint"></div>
 <button id="offlineBanner" class="offline-banner" type="button" onclick="openOfflineModal()"></button>
 <div id="gate">
@@ -2229,7 +2289,7 @@ function _renderStaticCourses(){
     // 투명 넓은 탭 영역(어디를 탭/클릭해도 정보)
     const hit=L.geoJSON(fc,{style:function(f){ const p=f.properties||{}; return {color:validCourseColor(p.color)||courseLineColor(sc, p.cid!=null?p.cid:p.name), weight:22, opacity:0}; },
       onEachFeature:(f,l)=>{ const p=f.properties||{};
-        if(p.cid!=null){ l.on('click',function(){ courseCmt('c',p.cid); }); if(!isTouch) l.bindTooltip('<b>'+pmEsc(p.name||'코스')+'</b>'+(p.km?' '+p.km+'km':''),{sticky:true,direction:'auto',opacity:0.95,className:'course-hover-tooltip',pane:'courseTooltipPane'}); }
+        if(p.cid!=null){ l.on('click',function(){ courseCmt('c',p.cid,true); }); if(!isTouch) l.bindTooltip('<b>'+pmEsc(p.name||'코스')+'</b>'+(p.km?' '+p.km+'km':''),{sticky:true,direction:'auto',opacity:0.95,className:'course-hover-tooltip',pane:'courseTooltipPane'}); }
         else { l.bindPopup('<b>'+pmEsc(p.name||'카누잉코스')+'</b>'); }
         reg(f,l,null); }
     });
@@ -2244,6 +2304,7 @@ function _renderStaticCourses(){
   if(_favOnly) applyFavFilter();
   _applyCourseFocus();
   _maybeSyncAdminCourseFavs();
+  _pcDockScheduleRender();
 }
 fetch(courseReadUrl('/course?over=1')).then(function(r){return r.json();}).then(function(o){ Object.assign(_courseOver,o||{}); _renderStaticCourses(); }).catch(function(){ _renderStaticCourses(); });
 
@@ -2531,7 +2592,8 @@ async function toggleCourseAnalysis(){
   box.style.display='block';
   await renderCourseAnalysis(_courseInfoCourse,'courseAnalysisPanel');
 }
-function courseCmt(kind,id){
+function courseCmt(kind,id,fromMap){
+  if(fromMap&&_pcDockIsActive()){_pcDockSelect((kind==='c'?'c':'k')+id,false);return;}
   if(kind==='c'){ const c=_courseByCid[String(id)]; if(c) openCourseComments('course_c'+id, c, id); }
   else { const c=_kvCourses[id]; if(c) openCourseComments('course_k'+id, c, 'k'+id); }
 }
@@ -3860,6 +3922,8 @@ document.addEventListener('keydown',function(e){
 });
 
 // ---- 등록 코스(KV) 로드/렌더 ----
+let _pcDockFilter='all',_pcDockSelected='',_pcDockTimer=0;
+const _pcDockOriginal=[];
 const _kvCourseGrp=L.layerGroup();
 const _kvCourses={};   // id -> 코스(KV 등록 코스, 수정용)
 const _kvCourseLayers={};   // id -> {grp,ls} (라이브 삭제용)
@@ -3877,7 +3941,7 @@ function renderKVCourse(c){
   const casing=L.polyline(coords,{color:'#2a0a4a',weight:8,opacity:.55,interactive:false});
   const line=L.polyline(coords,{color:lineCol,weight:5,opacity:.95,interactive:false});
   const directions=courseDirectionLayer(coords);
-  const hit=L.polyline(coords,{color:lineCol,weight:22,opacity:0}); hit.on('click',function(){ courseCmt('k', c.id); }); if(!isTouch) hit.bindTooltip('<b>'+pmEsc(c.name||'코스')+'</b>'+(c.km?' '+c.km+'km':''),{sticky:true,direction:'auto',className:'course-hover-tooltip',pane:'courseTooltipPane'});
+  const hit=L.polyline(coords,{color:lineCol,weight:22,opacity:0}); hit.on('click',function(){ courseCmt('k', c.id,true); }); if(!isTouch) hit.bindTooltip('<b>'+pmEsc(c.name||'코스')+'</b>'+(c.km?' '+c.km+'km':''),{sticky:true,direction:'auto',className:'course-hover-tooltip',pane:'courseTooltipPane'});
   let grp=courseLayers[sc];
   if(!grp){ grp=L.layerGroup(); courseLayers[sc]=grp; allCoursesGroup.addLayer(grp); }
   casing.addTo(grp); line.addTo(grp); directions.addTo(grp); hit.addTo(grp);
@@ -3887,8 +3951,9 @@ function renderKVCourse(c){
   if(_favOnly) applyFavFilter();
   _applyCourseFocus();
   _maybeSyncAdminCourseFavs();
+  _pcDockScheduleRender();
 }
-function _clearKVCourses(){Object.keys(_kvCourseLayers).forEach(function(id){const e=_kvCourseLayers[id];if(e)e.ls.forEach(function(l){e.grp.removeLayer(l);});_ownedCourseTargets.delete('course_k'+id);delete _kvCourseLayers[id];delete _kvCourses[id];});}
+function _clearKVCourses(){Object.keys(_kvCourseLayers).forEach(function(id){const e=_kvCourseLayers[id];if(e)e.ls.forEach(function(l){e.grp.removeLayer(l);});_ownedCourseTargets.delete('course_k'+id);delete _kvCourseLayers[id];delete _kvCourses[id];});_pcDockScheduleRender();}
 function _ownedCourseRequest(){
   const u=getUser();
   if(!u||!u.uid) return Promise.resolve(null);
@@ -4016,32 +4081,33 @@ async function deleteCourse(id){ const c=_kvCourses[id]; if(!c && !isAdmin()) re
     ?{action:'delete',adminKey:adminKey(),courseId:id}
     :{action:'deleteuser',id:_curUid(),tok:(getUser()||{}).tok||'',courseId:id};
     const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/course',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(r.ok){ const e=_kvCourseLayers[id]; if(e){ e.ls.forEach(function(l){ e.grp.removeLayer(l); }); delete _kvCourseLayers[id]; } delete _kvCourses[id]; closePlaceModal(); map.closePopup(); gaEvent('course_del'); }
+    if(r.ok){ const e=_kvCourseLayers[id]; if(e){ e.ls.forEach(function(l){ e.grp.removeLayer(l); }); delete _kvCourseLayers[id]; } delete _kvCourses[id]; _pcDockScheduleRender(); closePlaceModal(); map.closePopup(); gaEvent('course_del'); }
     else alert('실패(권한 확인)'); }catch(e){ alert('오류'); } }
 async function deleteStaticCourse(cid){ if(!isAdmin()) return; if(!confirm('이 코스를 지도에서 숨길까요? (되돌릴 수 있음)')) return;
   try{ const r=await fetch(fapi('/course'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'hidestatic',adminKey:adminKey(),cid:String(cid)})});
     if(r.ok){ _hideStaticCourse(cid); closePlaceModal(); map.closePopup(); gaEvent('course_hide'); } else alert('실패(권한 확인)'); }catch(e){ alert('오류'); } }
-function _hideStaticCourse(cid){ _hiddenStaticCids.add(String(cid)); const arr=_staticCidLayers[String(cid)]; if(arr) arr.forEach(function(e){ e.grp.removeLayer(e.l); }); }
+function _hideStaticCourse(cid){ _hiddenStaticCids.add(String(cid)); const arr=_staticCidLayers[String(cid)]; if(arr) arr.forEach(function(e){ e.grp.removeLayer(e.l); }); _pcDockScheduleRender(); }
 function _applyCourseFocus(){
   const id=String(_courseFocusId||'').trim();
   const isFocused=!!id;
   const isKv=isFocused && id.charAt(0)==='k';
   const kvId=isKv?id.slice(1):'';
   const staticId=isFocused && !isKv?id:'';
+  const dockSelected=_pcDockIsActive()?String(_pcDockSelected||''):'';
   const showAll=!isFocused && isAdmin();
   const member=getUser(), showMemberExpeditions=!isFocused&&!!(member&&member.uid);
   Object.keys(_staticCidLayers).forEach(function(cid){
     const arr=_staticCidLayers[cid]; if(!arr) return;
     const target='course_c'+cid;
     const defaultVisible=showAll || (showMemberExpeditions&&_staticExpeditionCids.has(String(cid)));
-    const keep=!_hiddenStaticCids.has(String(cid)) && ((defaultVisible&&(!_favOnly||_favSet.has(target))) || (!isKv&&String(cid)===staticId));
+    const keep=!_hiddenStaticCids.has(String(cid)) && ((defaultVisible&&(!_favOnly||_favSet.has(target))) || (!isKv&&String(cid)===staticId) || dockSelected==='c'+cid);
     arr.forEach(function(e){ if(keep) e.grp.addLayer(e.l); else e.grp.removeLayer(e.l); });
   });
   Object.keys(_kvCourseLayers).forEach(function(cid){
     const e=_kvCourseLayers[cid]; if(!e) return;
     const c=_kvCourses[cid]||{}, target='course_k'+cid;
     const defaultVisible=showAll || (showMemberExpeditions&&String(c.owner||'')==='admin'&&courseSubcat(c.name)==='엑스페디션');
-    const keep=(defaultVisible&&(!_favOnly||_favSet.has(target)||_ownedCourseTargets.has(target))) || (isKv&&String(cid)===kvId);
+    const keep=(defaultVisible&&(!_favOnly||_favSet.has(target)||_ownedCourseTargets.has(target))) || (isKv&&String(cid)===kvId) || dockSelected==='k'+cid;
     e.ls.forEach(function(l){ if(keep) e.grp.addLayer(l); else e.grp.removeLayer(l); });
   });
 }
@@ -4184,10 +4250,10 @@ document.getElementById('srchForm').addEventListener('submit', async (ev)=>{
     const pin=showSearchPin(x.lat,x.lng,(x.disp||x.label||q).replace(/^[^가-힣A-Za-z0-9]+/,''));
     if(x.kind==='lake'){ if(x.lake.bounds) map.fitBounds(x.lake.bounds,{padding:[24,24],maxZoom:12}); else map.setView([x.lat,x.lng],11); pin.setPopupContent('<b>'+pmEsc(x.lake.name)+'</b><br><small>'+pmEsc(x.lake.area)+'</small>').openPopup(); }
     else if(x.kind==='place'){ map.setView([x.lat,x.lng],15); openPlaceModal(featPlace(x.feat)); }
-    else if(x.kind==='course'){ const cs=x.feat.geometry.coordinates.map(function(c){return [c[1],c[0]];}); _fitAndPop(cs, x.feat.properties.name, x.feat.properties.km); }
+    else if(x.kind==='course'){ const cid=(x.feat.properties||{}).cid,cs=x.feat.geometry.coordinates.map(function(c){return [c[1],c[0]];}); if(_pcDockIsActive()&&cid!=null)_pcDockSelect('c'+cid,true);else _fitAndPop(cs, x.feat.properties.name, x.feat.properties.km); }
     else if(x.kind==='kvplace'){ map.setView([x.lat,x.lng],15); openPlaceModal(x.pl); }
     else if(x.kind==='obs'){ map.setView([x.lat,x.lng],16); L.popup().setLatLng([x.lat,x.lng]).setContent(obsPopup(x.o)).openOn(map); }
-    else if(x.kind==='kvcourse'){ _fitAndPop(x.c.coords, x.c.name, x.c.km); }
+    else if(x.kind==='kvcourse'){ if(_pcDockIsActive())_pcDockSelect('k'+x.c.id,true);else _fitAndPop(x.c.coords, x.c.name, x.c.km); }
     else { map.setView([x.lat,x.lng],14); pin.setPopupContent('<b>'+(x.disp||q).slice(0,50)+'</b>'+extLinks(x.lat,x.lng,q)).openPopup(); }
   }); });
 });
@@ -5304,6 +5370,73 @@ window.addEventListener('online',function(){_offlineNetworkUi(false);if(typeof f
 
 // ---- 범례는 레이어 패널에 통합됨(위 _layerControl) ----
 map.addControl(new AdminCtl());   // 관리자 인증 뒤에만 접속기록·회원관리 표시
+
+// PC 지도 B안: 검색·코스 목록·선택 상세를 한쪽에 모으고 기존 지도 컨트롤은 재사용한다.
+function _pcDockIsActive(){return document.documentElement.classList.contains('pc-dock-ready');}
+function _pcDockEntries(){
+  const list=[],admin=isAdmin();
+  COURSES.features.forEach(function(f){
+    const p=f.properties||{},cid=String(p.cid==null?'':p.cid),c=_courseByCid[cid];
+    if(!cid||!c||_hiddenStaticCids.has(cid)||(!admin&&courseSubcat(c.name)!=='엑스페디션'))return;
+    list.push({key:'c'+cid,course:c,source:'운영 코스',rank:1});
+  });
+  Object.keys(_kvCourses).forEach(function(id){
+    const c=_kvCourses[id];if(!c||!Array.isArray(c.coords)||c.coords.length<2)return;
+    list.push({key:'k'+id,course:c,source:_isCourseOwner(c)?'내 코스':'공개 코스',rank:_isCourseOwner(c)?0:2});
+  });
+  return list.sort(function(a,b){return a.rank-b.rank||String(a.course.name||'').localeCompare(String(b.course.name||''),'ko');});
+}
+function _pcDockRender(){
+  const listEl=document.getElementById('pcCourseList'),detail=document.getElementById('pcCourseDetail');if(!listEl||!detail)return;
+  const entries=_pcDockEntries(),hasBeginner=entries.some(function(e){return courseSubcat(e.course.name)==='초심자코스';});
+  const beginnerButton=document.querySelector('#pcDock [data-filter="beginner"]');if(beginnerButton)beginnerButton.hidden=!hasBeginner;
+  if(_pcDockFilter==='beginner'&&!hasBeginner){_pcDockFilter='all';document.querySelectorAll('#pcDock [data-filter]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.filter==='all'));});}
+  const visible=entries.filter(function(e){const cat=courseSubcat(e.course.name);return _pcDockFilter==='all'||(_pcDockFilter==='expedition'&&cat==='엑스페디션')||(_pcDockFilter==='beginner'&&cat==='초심자코스');});
+  listEl.innerHTML=visible.length?visible.map(function(e){return '<button class="pc-course-item" type="button" data-course="'+e.key+'" aria-current="'+(e.key===_pcDockSelected?'true':'false')+'"><b>'+pmEsc(e.course.name||'코스')+'</b><small>'+pmEsc(e.source)+(e.course.km?' · '+Number(e.course.km).toFixed(2)+' km':'')+'</small></button>';}).join(''):'<div class="pc-course-empty">표시할 코스가 없습니다.</div>';
+  const selected=entries.find(function(e){return e.key===_pcDockSelected;});
+  if(!selected){detail.innerHTML='<div class="pc-detail-label">선택한 코스</div><strong>코스를 선택해 주세요</strong>';return;}
+  const c=selected.course;
+  detail.innerHTML='<div class="pc-detail-label">선택한 코스 · '+pmEsc(selected.source)+'</div><strong>'+pmEsc(c.name||'코스')+'</strong>'+(c.km?'<div class="pc-detail-km">'+Number(c.km).toFixed(2)+' km</div>':'')+'<div class="pc-detail-actions"><button type="button" data-action="detail">전체 상세</button><button type="button" data-action="share">공유</button></div>';
+}
+function _pcDockScheduleRender(){if(_pcDockTimer)return;_pcDockTimer=setTimeout(function(){_pcDockTimer=0;_pcDockRender();},0);}
+function _pcDockSelect(key,fit){
+  const entry=_pcDockEntries().find(function(e){return e.key===String(key);});if(!entry)return false;
+  _pcDockSelected=entry.key;_applyCourseFocus();_pcDockRender();
+  if(fit&&entry.course.coords&&entry.course.coords.length>1){map.closePopup();map.fitBounds(L.latLngBounds(entry.course.coords).pad(.13),{maxZoom:15});}
+  return true;
+}
+function _pcDockMove(el,target){if(!el||!target)return;_pcDockOriginal.push({el:el,parent:el.parentNode,next:el.nextSibling});target.appendChild(el);}
+function _pcDockLayout(){
+  const active=window.matchMedia('(min-width:1024px)').matches&&!TOUR_MODE;
+  if(active===_pcDockIsActive())return;
+  if(active){
+    _pcDockMove(document.querySelector('.search'),document.getElementById('pcSearchSlot'));
+    _pcDockMove(document.getElementById('tourEntry'),document.getElementById('pcTourSlot'));
+    _pcDockMove(document.getElementById('openChatCtl'),document.getElementById('pcLinksSlot'));
+    _pcDockMove(document.getElementById('authbox'),document.getElementById('pcAuthSlot'));
+    _pcDockMove(document.getElementById('measBtnBox'),document.getElementById('pcMeasureSlot'));
+    _pcDockMove(document.getElementById('measModeBtn'),document.getElementById('pcMeasureSlot'));
+    document.documentElement.classList.add('pc-dock-ready');
+    if(_courseFocusId)_pcDockSelected=(_courseFocusId.charAt(0)==='k'?'k':'c')+(_courseFocusId.charAt(0)==='k'?_courseFocusId.slice(1):_courseFocusId);
+    _pcDockRender();
+  }else{
+    document.documentElement.classList.remove('pc-dock-ready');
+    _pcDockOriginal.splice(0).forEach(function(x){if(x.parent)x.parent.insertBefore(x.el,x.next&&x.next.parentNode===x.parent?x.next:null);});
+  }
+  requestAnimationFrame(function(){map.invalidateSize({pan:false});});
+}
+document.getElementById('pcDock').addEventListener('click',function(e){
+  const filter=e.target.closest('[data-filter]');if(filter){_pcDockFilter=filter.dataset.filter;document.querySelectorAll('#pcDock [data-filter]').forEach(function(b){b.setAttribute('aria-pressed',String(b===filter));});_pcDockRender();return;}
+  const row=e.target.closest('[data-course]');if(row){_pcDockSelect(row.dataset.course,true);return;}
+  const action=e.target.closest('[data-action]');if(!action||!_pcDockSelected)return;
+  const entry=_pcDockEntries().find(function(x){return x.key===_pcDockSelected;});if(!entry)return;
+  const id=entry.key.slice(1),isKv=entry.key.charAt(0)==='k';
+  if(action.dataset.action==='share')shareCourse(isKv?'k'+id:id);
+  else openCourseComments('course_'+entry.key,entry.course,isKv?'k'+id:id);
+});
+document.getElementById('pcCoursePlan').addEventListener('click',function(){const b=document.getElementById('measBtnBox');if(b)b.click();});
+window.addEventListener('resize',_pcDockLayout);
+_pcDockLayout();
 </script>
 </body>
 </html>
