@@ -47,4 +47,14 @@ assert.equal(rejoin.status, 403);
 assert.equal((await rejoin.json()).error, 'withdrawn-member');
 assert.equal(JSON.parse(data.get(memberKey)).status, 'withdrawn');
 
+// An administrator may approve a specific withdrawn record without making it active.
+// The member must still sign in and consent to the current terms to register again.
+data.set(memberKey, JSON.stringify({ ...JSON.parse(data.get(memberKey)), status: 'rejoin_allowed', rejoinApprovedAt: Date.now() }));
+const approvedProfile = await get(uid);
+assert.equal(approvedProfile.status, 200);
+assert.equal((await approvedProfile.json()).registrationRequired, true);
+const approvedRegistration = await post(uid, { nick: '다시가입', termsAgreed: true, privacyAgreed: true });
+assert.equal(approvedRegistration.status, 200);
+assert.equal(JSON.parse(data.get(memberKey)).status, 'active');
+
 console.log('member withdrawal/rejoin regression: ok');

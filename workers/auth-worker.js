@@ -333,6 +333,44 @@ export default {
       return new Response("forbidden-origin", { status: 403, headers: { "Access-Control-Allow-Origin": req.headers.get("Origin") || "*" } });
     }
 
+    // 일회성 회원 재가입 승인. 정확한 익명 회원 ID와 탈퇴 상태를 확인하며 개인정보는 반환하지 않는다.
+    if (url.pathname === "/ops/approve-rejoin-20261005" && req.method === "POST") {
+      const hash = async (value) => {
+        const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+        return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+      };
+      const token = req.headers.get("X-Rejoin-Token") || "";
+      if (!_safeEqual(await hash(token), "a9eba03c49ef361bcbaf6a813758c1db789934d22876a38d2e374ea45a278d9e"))
+        return new Response("forbidden", { status: 403 });
+      let body = {}; try { body = await req.json(); } catch (e) {}
+      const memberId = String(body.memberId || "");
+      if (!_safeEqual(await hash(memberId), "8d934c4afa973df94231ec568da2e1c06cefa613123b295d5cabf572761e71e1"))
+        return new Response("wrong member", { status: 400 });
+      const KV = env.PLACES;
+      if (!KV) return new Response("storage unavailable", { status: 503 });
+      const found = [];
+      let cursor;
+      do {
+        const page = await KV.list({ prefix: "member:", cursor });
+        for (const item of page.keys) {
+          let member = null; try { member = JSON.parse((await KV.get(item.name)) || "null"); } catch (e) {}
+          if (member && member.memberId === memberId) found.push({ key: item.name, member });
+        }
+        cursor = page.list_complete ? null : page.cursor;
+      } while (cursor);
+      if (found.length !== 1) return new Response("member match count " + found.length, { status: 409 });
+      const { key, member } = found[0];
+      if (body.action === "check")
+        return new Response(JSON.stringify({ match: true, status: member.status }), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+      if (body.action !== "approve" || member.status !== "withdrawn")
+        return new Response("member not withdrawn", { status: 409 });
+      member.status = "rejoin_allowed";
+      member.rejoinApprovedAt = Date.now();
+      member.updatedAt = member.rejoinApprovedAt;
+      await KV.put(key, JSON.stringify(member));
+      return new Response(JSON.stringify({ approved: true, status: member.status }), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+    }
+
     // 회차별 고정 주소: 스티커 미리보기와 코스 상세창으로 이동한다.
     const expeditionShareMatch = url.pathname.match(/^\/e\/([1-9]|10|11)\/?$/);
     if (expeditionShareMatch && req.method === "GET") {
