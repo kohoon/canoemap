@@ -1145,6 +1145,19 @@ export default {
       return J({ ok: false, error: "method" }, 405);
     }
 
+    // 배포 데이터의 특정 코스를 교정하기 전 좌표·구간을 확인하는 임시 읽기 전용 진단.
+    if (url.pathname === "/course-bongyang-inspect") {
+      let courses = []; try { courses = JSON.parse((await env.PLACES.get("courses")) || "[]"); } catch (e) {}
+      const matches = (Array.isArray(courses) ? courses : []).filter((course) => String(course && course.name || "").includes("봉양운치길"));
+      return new Response(JSON.stringify(matches.map((course) => ({
+        id: course.id, name: course.name, km: course.km, admin: course.owner === "admin",
+        points: Array.isArray(course.coords) ? course.coords.length : 0,
+        start: course.coords && course.coords[0], end: course.coords && course.coords[course.coords.length - 1],
+        first: course.coords && course.coords.slice(0, 3), last: course.coords && course.coords.slice(-3),
+        segments: course.segments,
+      }))), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+    }
+
     // 0-3d) 코스 등록(관리자) — 거리측정 경로를 코스로. KV "courses"
     if (url.pathname.endsWith("/courses") || url.pathname.endsWith("/course")) {
       const origin = req.headers.get("Origin") || "*";
