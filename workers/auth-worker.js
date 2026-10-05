@@ -1149,6 +1149,13 @@ export default {
     }
 
     // 0-3d) 코스 등록(관리자) — 거리측정 경로를 코스로. KV "courses"
+    if (url.pathname === "/course-cheongmi-inspect" && req.method === "GET") {
+      let courses = []; try { courses = JSON.parse((await env.PLACES.get("courses")) || "[]"); } catch (e) {}
+      const matches = (Array.isArray(courses) ? courses : []).filter((course) => String(course && course.name || "") === "청미천 - 여주 도리 ~ 여주 원부리");
+      return new Response(JSON.stringify(matches.map((course) => ({ id: course.id, name: course.name,
+        km: course.km, coords: course.coords, segments: course.segments }))),
+      { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+    }
     if (url.pathname.endsWith("/courses") || url.pathname.endsWith("/course")) {
       const origin = req.headers.get("Origin") || "*";
       const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
