@@ -60,6 +60,26 @@ test('registered expedition direct link opens its detail after loading the route
   await browser.close();
 });
 
+test('second expedition shows its reversed start and finish on desktop and mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    const page = await browser.newPage({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
+    await page.route('**/comments?*', route => route.fulfill({ json: { comments: [] } }));
+    await page.goto(baseURL + '/?course=2&detail=1', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#pmodal')).toHaveClass(/open/, { timeout: 10000 });
+    const course = await page.evaluate(() => {
+      const c = _courseByCid['2'];
+      return { start: c.coords[0], end: c.coords[c.coords.length - 1], km: c.km };
+    });
+    expect(course).toEqual({ start: [36.95154116554876, 128.11069884126834],
+      end: [36.930608379851996, 128.24650165496178], km: 29.5 });
+    await page.close();
+  }
+  await browser.close();
+});
+
 test('waterplay legend explains both marker colors inline without a duplicate footer', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
