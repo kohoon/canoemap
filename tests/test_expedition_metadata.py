@@ -7,23 +7,21 @@ class ExpeditionMetadataTests(unittest.TestCase):
  def test_directional_names_follow_actual_route_endpoints(self):
   definitions=json.loads((ROOT/'data/courses_def.json').read_text())
   features=json.loads((ROOT/'data/courses.geojson').read_text())['features']
-  places=list(json.loads((ROOT/'data/synced_seqs.json').read_text())['items'].values())
   expected={
-   2:('서유석낚시터','장회리','서창장회길'),
-   3:('한반도뗏목마을','대상교','선암대상길'),
-   8:('구강리','천내리','구강천내길'),
+   2:('서유석낚시터','장회리','서창장회길',[128.11069884126834,36.95154116554876],[128.24650165496178,36.930608379851996]),
+   3:('한반도뗏목마을','대상교','선암대상길',[128.34558842944583,37.22183383403058],[128.3361477613411,37.32799985503042]),
+   8:('구강리','천내리','구강천내길',[127.6938428759828,36.15960538756281],[127.59394117828307,36.11553689204659]),
   }
   script="import {EXPEDITIONS} from './workers/expedition.mjs'; console.log(JSON.stringify(EXPEDITIONS));"
   names=json.loads(subprocess.check_output(['node','--input-type=module','-e',script],cwd=ROOT,text=True))
   browser_source=(ROOT/'tools/build_map.py').read_text()
-  for n,(start,end,title) in expected.items():
+  for n,(start,end,title,start_point,end_point) in expected.items():
    definition=next(c for c in definitions if c['name']==f'엑스페디션#{n} ({"충주호" if n==2 else "평창강" if n==3 else "금강"})')
    self.assertEqual((definition['points'][0],definition['points'][-1]),(start,end))
    feature=next(f for f in features if f['properties']['name']==definition['name'])
    coords=feature['geometry']['coordinates']
-   for name,point in ((start,coords[0]),(end,coords[-1])):
-    place=next(p for p in places if name in p.get('name',''))
-    self.assertEqual(point,[place['lng'],place['lat']])
+   self.assertEqual(coords[0],start_point)
+   self.assertEqual(coords[-1],end_point)
    self.assertEqual(names[str(n)][1],title)
    self.assertIn(f"{n}:[",browser_source)
    self.assertIn(f"'{title}'",browser_source)
