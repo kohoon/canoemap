@@ -5,6 +5,11 @@ export const EXPEDITIONS = Object.freeze({
   7:['금강','방우용화길'],8:['금강','천내구강길'],9:['금강','금정백지길'],
   10:['동강','문산삼옥길'],11:['북한강','구만오월길']
 });
+export const EXPEDITION_STICKERS = Object.freeze({
+  1:['png',700,635],2:['jpg',300,298],3:['jpg',992,992],4:['jpg',617,541],
+  5:['jpg',784,684],6:['png',2288,2108],7:['png',921,878],8:['png',1536,1311],
+  9:['jpg',934,858],10:['png',948,939],11:['png',1260,1216]
+});
 export function expeditionNumber(course, shareId){
   if(!course)return 0;
   const id=String(shareId||'');

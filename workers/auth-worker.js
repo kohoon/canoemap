@@ -13,7 +13,7 @@ import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
 import { MEASURE_SHARE_CORRECTIONS } from "./measure-share-corrections.mjs";
 import { coursePreviewKey, courseShareHtml, normalizeCourseShareId } from "./course-share.mjs";
 import { applyCourseCorrection, coursePreviewVersionIsCurrent } from "./course-corrections.mjs";
-import { normalizeExpedition } from "./expedition.mjs";
+import { EXPEDITIONS, EXPEDITION_STICKERS, expeditionNumber, normalizeExpedition } from "./expedition.mjs";
 import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
 
 /**
@@ -72,6 +72,30 @@ async function _courseShareRecord(env, id) {
     owner: "admin",
     updatedAt: Number(patch.updatedAt) || 0,
     static: true,
+  };
+}
+
+async function _expeditionShareRecord(env, round) {
+  if (!EXPEDITIONS[round]) return null;
+  if (round <= 9) return _courseShareRecord(env, String(round));
+  const KV = env.PLACES;
+  if (!KV) return null;
+  let courses = [];
+  try { courses = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
+  const matches = (Array.isArray(courses) ? courses : []).filter((course) =>
+    expeditionNumber(course, "k" + String(course && course.id)) === round);
+  // 같은 회차의 이전 코스가 남아 있으면 가장 최근 등록본을 사용한다.
+  matches.sort((a, b) => Number(b.updatedAt || b.t || b.id) - Number(a.updatedAt || a.t || a.id));
+  return matches.length ? _courseShareRecord(env, "k" + matches[0].id) : null;
+}
+
+function _expeditionImage(site, round) {
+  const sticker = EXPEDITION_STICKERS[round];
+  if (!sticker) return null;
+  return {
+    imageUrl: new URL("assets/expedition/expedition_" + String(round).padStart(2, "0") + "." + sticker[0], site).toString(),
+    imageType: sticker[0] === "png" ? "image/png" : "image/jpeg",
+    imageWidth: sticker[1], imageHeight: sticker[2],
   };
 }
 
@@ -309,6 +333,20 @@ export default {
       return new Response("forbidden-origin", { status: 403, headers: { "Access-Control-Allow-Origin": req.headers.get("Origin") || "*" } });
     }
 
+    // 회차별 고정 주소: 스티커 미리보기와 코스 상세창으로 이동한다.
+    const expeditionShareMatch = url.pathname.match(/^\/e\/([1-9]|10|11)\/?$/);
+    if (expeditionShareMatch && req.method === "GET") {
+      const round = Number(expeditionShareMatch[1]);
+      const course = await _expeditionShareRecord(env, round);
+      if (!course) return new Response("expedition not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
+      const site = new URL(env.SITE_URL || "https://canoe.crowdbase.kr/");
+      site.searchParams.set("course", course.id);
+      site.searchParams.set("detail", "1");
+      const html = courseShareHtml({ id: course.id, name: course.name, km: course.km,
+        shareUrl: url.toString(), targetUrl: site.toString(), ..._expeditionImage(site, round) });
+      return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60" } });
+    }
+
     // 코스 공유 전용 HTML. 크롤러에는 코스별 OG 메타데이터를 주고 실제 방문자는 지도 URL로 즉시 보낸다.
     const courseShareMatch = url.pathname.match(/^\/c\/(k?[0-9]+)\/?$/);
     if (courseShareMatch && req.method === "GET") {
@@ -318,10 +356,13 @@ export default {
       const preview = await _coursePreviewRecord(env.PLACES, id, course.name);
       const site = new URL(env.SITE_URL || "https://canoe.crowdbase.kr/");
       site.searchParams.set("course", id);
-      const imageUrl = preview
+      const round = expeditionNumber(course, id);
+      const sticker = round ? _expeditionImage(site, round) : null;
+      const imageUrl = sticker ? sticker.imageUrl : preview
         ? url.origin + "/course-preview/" + encodeURIComponent(id) + ".jpg?v=" + encodeURIComponent(preview.v)
         : new URL("og.png", env.SITE_URL || "https://canoe.crowdbase.kr/").toString();
-      const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl });
+      const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl,
+        ...(sticker || {}) });
       return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60" } });
     }
 

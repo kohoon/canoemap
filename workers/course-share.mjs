@@ -17,7 +17,7 @@ function esc(value) {
     .replace(/'/g, "&#39;");
 }
 
-export function courseShareHtml({ id, name, km, shareUrl, targetUrl, imageUrl }) {
+export function courseShareHtml({ id, name, km, shareUrl, targetUrl, imageUrl, imageType = 'image/jpeg', imageWidth = 1200, imageHeight = 630 }) {
   const safeId = normalizeCourseShareId(id);
   if (!safeId) return "";
   const titleName = String(name || "카누맵 코스").trim().slice(0, 100) || "카누맵 코스";
@@ -38,9 +38,9 @@ export function courseShareHtml({ id, name, km, shareUrl, targetUrl, imageUrl })
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:image" content="${esc(imageUrl)}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="${esc(imageWidth)}">
+<meta property="og:image:height" content="${esc(imageHeight)}">
+<meta property="og:image:type" content="${esc(imageType)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">

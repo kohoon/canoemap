@@ -80,6 +80,33 @@ class CourseSharePreviewTests(unittest.TestCase):
         self.assertIn('await _memberOk(env, uid, body.tok)', worker)
         self.assertIn('course.owner === uid', worker)
 
+    def test_expedition_links_use_stickers_and_open_course_details(self):
+        script = textwrap.dedent("""
+            import worker from './workers/auth-worker.js';
+            const courses = [
+              {id: 1790000000010, owner:'admin', name:'엑스페디션#10 동강', km:22, t:1},
+              {id: 1790000000011, owner:'admin', name:'엑스페디션#11 북한강', km:25, t:2},
+            ];
+            const env = {SITE_URL:'https://canoe.crowdbase.kr/', PLACES:{get:async key => key==='courses'?JSON.stringify(courses):null}};
+            const output=[];
+            for(let n=1;n<=11;n++){
+              const response=await worker.fetch(new Request('https://worker.example/e/'+n),env,{});
+              output.push({status:response.status,html:await response.text()});
+            }
+            const direct=await worker.fetch(new Request('https://worker.example/c/k1790000000011'),env,{});
+            console.log(JSON.stringify({output,direct:await direct.text()}));
+        """)
+        result = subprocess.run(["node", "--input-type=module", "-e", script], cwd=ROOT,
+                                check=True, capture_output=True, text=True)
+        payload = json.loads(result.stdout)
+        for n, row in enumerate(payload["output"], 1):
+            self.assertEqual(row["status"], 200, n)
+            extension = "jpg" if n in (2, 3, 4, 5, 9) else "png"
+            self.assertIn(f"assets/expedition/expedition_{n:02d}.{extension}", row["html"])
+            self.assertIn("&amp;detail=1", row["html"])
+        self.assertIn("assets/expedition/expedition_11.png", payload["direct"])
+        self.assertIn('property="og:image:type" content="image/png"', payload["direct"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3943,7 +3943,7 @@ function _showCourseFocusBar(name){
 }
 function clearCourseFocus(){
   _courseFocusId='';_courseFocusFound=false;map.closePopup();const d=document.getElementById('courseFocusBar');if(d)d.classList.remove('on');
-  const u=new URL(location.href);u.searchParams.delete('course');history.replaceState(null,'',u.pathname+(u.searchParams.toString()?'?'+u.searchParams.toString():'')+u.hash);
+  const u=new URL(location.href);u.searchParams.delete('course');u.searchParams.delete('detail');history.replaceState(null,'',u.pathname+(u.searchParams.toString()?'?'+u.searchParams.toString():'')+u.hash);
   _clearKVCourses();_applyCourseFocus();
   const viewer=getUser();if(viewer&&viewer.uid){hideGate();reloadCoursesForViewer();}else showGate();
   gaEvent('course_share_off');
@@ -3959,6 +3959,7 @@ function _findSharedKvCourse(list,kid){
 function focusCourseFromUrl(){
   let id=null; const m=(location.search||'').match(/[?&]course=([^&]+)/); if(m) id=decodeURIComponent(m[1]);
   if(!id) return;
+  const showDetail=new URLSearchParams(location.search).get('detail')==='1';
   _courseFocusId=id;
   _applyCourseFocus();
   if(id.charAt(0)==='k'){ const kid=id.slice(1);   // KV 코스: 별도 조회
@@ -3966,11 +3967,13 @@ function focusCourseFromUrl(){
       renderKVCourse(c);   // 공유 조회는 일반 코스 로드를 건너뛰므로 응답 코스를 직접 그린다.
       hideGate();   // 공개 단건 조회에서 현재 존재하는 코스로 확인된 공유 화면은 로그인 없이 열람한다.
       _showCourseFocusBar(c.name); _courseFocusId='k'+c.id; _courseFocusFound=true; _applyCourseFocus(); _fitAndPop(c.coords, c.name, c.km);
+      if(showDetail){map.closePopup();openCourseComments('course_k'+c.id,c,'k'+c.id);}
       if(String(c.id)!==String(kid)){ const u=new URL(location.href); u.searchParams.set('course','k'+c.id); history.replaceState(null,'',u.pathname+u.search+u.hash); }
     } }).catch(function(){});
     return; }
   const f=COURSES.features.find(function(x){ return String((x.properties||{}).cid)===String(id); });
-  if(f&&!_hiddenStaticCids.has(String(id))){ hideGate();_showCourseFocusBar(f.properties.name);_courseFocusFound=true; _applyCourseFocus(); _fitAndPop(f.geometry.coordinates.map(function(c){return [c[1],c[0]];}), f.properties.name, f.properties.km); } }
+  if(f&&!_hiddenStaticCids.has(String(id))){ hideGate();_showCourseFocusBar(f.properties.name);_courseFocusFound=true; _applyCourseFocus(); _fitAndPop(f.geometry.coordinates.map(function(c){return [c[1],c[0]];}), f.properties.name, f.properties.km);
+    if(showDetail){map.closePopup();const c=_courseByCid[String(id)];if(c)openCourseComments('course_c'+id,c,id);} } }
 setTimeout(focusCourseFromUrl, 1200);
 async function deleteCourse(id){ const c=_kvCourses[id]; if(!c && !isAdmin()) return; if(!confirm('이 등록 코스를 삭제할까요?')) return;
   try{ const body=isAdmin()

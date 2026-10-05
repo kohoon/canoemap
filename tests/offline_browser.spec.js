@@ -29,6 +29,37 @@ test.afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
+test('expedition direct links open the course detail on desktop and mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    const page = await browser.newPage({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
+    await page.route('**/comments?*', route => route.fulfill({ json: { comments: [] } }));
+    await page.goto(baseURL + '/?course=1&detail=1', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#pmodal')).toHaveClass(/open/, { timeout: 10000 });
+    await expect(page.locator('#pmTitle')).toContainText('엑스페디션 #1');
+    await page.close();
+  }
+  await browser.close();
+});
+
+test('registered expedition direct link opens its detail after loading the route', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await page.route('**/courses?shared=1790000000011', route => route.fulfill({ json: [{
+    id: 1790000000011, owner: 'admin', name: '엑스페디션#11 북한강', km: 25.13,
+    coords: [[38.0, 127.7], [37.99, 127.69]],
+  }] }));
+  await page.route('**/comments?*', route => route.fulfill({ json: { comments: [] } }));
+  await page.goto(baseURL + '/?course=k1790000000011&detail=1', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#pmodal')).toHaveClass(/open/, { timeout: 10000 });
+  await expect(page.locator('#pmTitle')).toContainText('엑스페디션 #11');
+  await browser.close();
+});
+
 test('waterplay legend explains both marker colors inline without a duplicate footer', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
