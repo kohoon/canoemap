@@ -2572,9 +2572,9 @@ async function deletePlace(){ if(!isAdmin()||!_pmPlace||_pmPlace.id==null) retur
 // 코스 코멘트 — 장소 모달(#pmodal) 재사용, 코스별 키로 저장
 // Verified official expedition display metadata. No geometry or distance changes.
 const EXPEDITIONS = Object.freeze({
-  1:['남한강','탄금강천길'],2:['남한강','서창장회길'],3:['평창강','선암대상길'],
+  1:['남한강','탄금강천길'],2:['남한강','장회서창길'],3:['평창강','대상선암길'],
   4:['남한강','영월영춘길'],5:['금강','섬바위소이나루길'],6:['금강','연주장계길'],
-  7:['금강','방우용화길'],8:['금강','구강천내길'],9:['금강','금정백지길'],
+  7:['금강','방우용화길'],8:['금강','천내구강길'],9:['금강','금정백지길'],
   10:['동강','문산삼옥길'],11:['북한강','구만오월길']
 });
 function expeditionNumber(course, shareId){

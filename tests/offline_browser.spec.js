@@ -68,9 +68,10 @@ test('reversed expedition routes show the correct start and finish on desktop an
     const page = await browser.newPage({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
     await page.route('**/comments?*', route => route.fulfill({ json: { comments: [] } }));
     for (const [id, expected] of [
-      ['2', { start: [36.95154116554876, 128.11069884126834], end: [36.930608379851996, 128.24650165496178], km: 29.5 }],
+      ['2', { start: [36.930608379851996, 128.24650165496178], end: [36.95154116554876, 128.11069884126834], km: 29.5 }],
       ['5', { start: [35.95299045721784, 127.52921398387444], end: [36.003155387251404, 127.62041703287937], km: 22.2 }],
       ['6', { start: [36.347173048499286, 127.66456608011299], end: [36.37801969613553, 127.63780162082743], km: 18.5 }],
+      ['8', { start: [36.11553689204659, 127.59394117828307], end: [36.15960538756281, 127.6938428759828], km: 16.8 }],
     ]) {
       await page.goto(baseURL + '/?course=' + id + '&detail=1', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('#pmodal')).toHaveClass(/open/, { timeout: 10000 });
