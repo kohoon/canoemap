@@ -70,7 +70,12 @@ if _waf.exists():
     _wpts = [(v["lat"], v["lng"]) for v in items.values() if v.get("lat") is not None]
     try:
         _cgj = json.loads((DATA / "courses.geojson").read_text(encoding="utf-8"))
-        _wpts += [(c[1], c[0]) for f in _cgj["features"] for c in f["geometry"]["coordinates"][::10]]
+        # 거리·방향만 바꾼 코스가 주변 보 선별 결과까지 바꾸지 않도록 샘플 시작점을 고정한다.
+        for _f in _cgj["features"]:
+            _coords = _f["geometry"]["coordinates"]
+            if _coords and _coords[0] < _coords[-1]:
+                _coords = list(reversed(_coords))
+            _wpts += [(c[1], c[0]) for c in _coords[::10]]
     except Exception:
         pass
     weirs = select_weirs(_allw, _wpts)
