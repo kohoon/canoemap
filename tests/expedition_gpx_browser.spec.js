@@ -3,6 +3,19 @@ const fs=require('fs'),path=require('path'),http=require('http');
 const root=path.resolve(__dirname,'..');let server,base;
 test.beforeAll(async()=>{server=http.createServer((req,res)=>{const file=path.join(root,decodeURIComponent(new URL(req.url,'http://localhost').pathname));if(!file.startsWith(root+'/')||!fs.existsSync(file)){res.writeHead(404).end();return;}res.setHeader('Content-Type',file.endsWith('.svg')?'image/svg+xml':file.endsWith('.html')?'text/html':'application/octet-stream');fs.createReadStream(file).pipe(res);});await new Promise(r=>server.listen(0,'127.0.0.1',r));base='http://127.0.0.1:'+server.address().port;});
 test.afterAll(async()=>server&&await new Promise(r=>server.close(r)));
+test('round 8 shared detail loads the smaller sticker on desktop and mobile',async()=>{
+ const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+ for(const mobile of [false,true]){
+  const page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile,hasTouch:mobile});
+  await page.goto(base+'/index.html?course=8&detail=1');
+  const sticker=page.locator('.expedition-sticker img');
+  await expect(sticker).toBeVisible();
+  await expect(sticker).toHaveAttribute('src','/assets/expedition/expedition_08.jpg');
+  await expect.poll(()=>sticker.evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+  await page.close();
+ }
+ await browser.close();
+});
 for(const mobile of [false,true])test('expedition details and GPX '+(mobile?'mobile':'desktop'),async()=>{
  const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'}),page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile,hasTouch:mobile});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/comments?*',r=>r.fulfill({json:{comments:[]}}));await page.goto(base+'/index.html');await page.evaluate(()=>{hideGate();openCourseComments('course_k1790337080336',{id:1790337080336,owner:'admin',name:'엑스페디션#11 북한강',km:25.13,coords:[[38.1,127.7],[38.0,127.6]]},'k1790337080336');});

@@ -2665,7 +2665,7 @@ function expeditionParticipantHtml(records,round){
 function expeditionDetail(course,shareId){
   const n=expeditionNumber(course,shareId);if(!n)return '';
   // Only verified attendance records are rendered; never infer from photos/comments.
-  return '<section class="expedition-detail" aria-label="엑스페디션 완주기념"><div class="expedition-sticker"><img class="expedition-art-'+n+'" src="/assets/expedition/expedition_'+String(n).padStart(2,'0')+([2,3,4,5,9].indexOf(n)>=0?'.jpg':'.png')+'" alt="엑스페디션 '+n+'회 완주기념 스티커"></div><h3>함께한 참가자</h3><div class="expedition-nicknames">'+expeditionParticipantHtml(EXPEDITION_PARTICIPANTS,n)+'</div></section>';
+  return '<section class="expedition-detail" aria-label="엑스페디션 완주기념"><div class="expedition-sticker"><img class="expedition-art-'+n+'" src="/assets/expedition/expedition_'+String(n).padStart(2,'0')+([2,3,4,5,8,9].indexOf(n)>=0?'.jpg':'.png')+'" fetchpriority="high" alt="엑스페디션 '+n+'회 완주기념 스티커"></div><h3>함께한 참가자</h3><div class="expedition-nicknames">'+expeditionParticipantHtml(EXPEDITION_PARTICIPANTS,n)+'</div></section>';
 }
 function courseGpx(course){
   const coords=course&&course.coords;
@@ -4138,7 +4138,7 @@ function focusCourseFromUrl(){
   const f=COURSES.features.find(function(x){ return String((x.properties||{}).cid)===String(id); });
   if(f&&!_hiddenStaticCids.has(String(id))){ hideGate();_showCourseFocusBar(f.properties.name);_courseFocusFound=true; _applyCourseFocus(); _fitAndPop(f.geometry.coordinates.map(function(c){return [c[1],c[0]];}), f.properties.name, f.properties.km);
     if(showDetail){map.closePopup();const c=_courseByCid[String(id)];if(c)openCourseComments('course_c'+id,c,id);} } }
-setTimeout(focusCourseFromUrl, 1200);
+setTimeout(focusCourseFromUrl, 0);
 async function deleteCourse(id){ const c=_kvCourses[id]; if(!c && !isAdmin()) return; if(!confirm('이 등록 코스를 삭제할까요?')) return;
   try{ const body=isAdmin()
     ?{action:'delete',adminKey:adminKey(),courseId:id}
