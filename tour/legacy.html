@@ -546,10 +546,14 @@
   #pcTopbar,#pcDock{display:none}
   @media(min-width:1024px){
     html.pc-dock-ready:not(.tour-mode) #map{top:64px;left:296px;width:calc(100% - 296px);height:calc(var(--app-height) - 64px)}
+    html.pc-dock-ready.pc-dock-collapsed:not(.tour-mode) #map{left:0;width:100%}
     html.pc-dock-ready:not(.tour-mode) #pcTopbar{position:fixed;z-index:1400;top:0;left:0;right:0;height:64px;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:0 14px;background:#fff;border-bottom:1px solid #dce8e2;box-shadow:0 2px 8px rgba(12,45,36,.1)}
     html.pc-dock-ready:not(.tour-mode) #pcDock{position:fixed;z-index:1350;top:64px;bottom:0;left:0;width:296px;box-sizing:border-box;display:flex;flex-direction:column;background:#fff;border-right:1px solid #dce8e2;color:#1b3d35;font:13px/1.45 sans-serif}
+    html.pc-dock-ready.pc-dock-collapsed:not(.tour-mode) #pcDock{display:none}
     #pcTopbar .pc-brand{display:flex;align-items:center;gap:7px;flex:none;color:#123b32;text-decoration:none;font:800 18px/1 sans-serif;white-space:nowrap}
     #pcTopbar .pc-brand-mark{display:block;width:29px;height:29px;border-radius:8px}
+    #pcTopbar .pc-dock-toggle{flex:none;min-height:40px;padding:0 10px;border:1px solid #bfd8ce;border-radius:9px;background:#f7fbf9;color:#176558;font:700 12px sans-serif;cursor:pointer;white-space:nowrap}
+    #pcTopbar .pc-dock-toggle:hover,#pcTopbar .pc-dock-toggle:focus-visible,#pcDock .pc-dock-close:hover,#pcDock .pc-dock-close:focus-visible{background:#e0f3ec;outline:2px solid #087e74;outline-offset:1px}
     #pcTopbar .pc-search-slot{flex:0 1 225px;min-width:165px}
     #pcTopbar .search{position:relative;width:100%;box-sizing:border-box;margin:0;padding:0;background:none;box-shadow:none;font:inherit}
     #pcTopbar #srchForm{display:flex;align-items:center;gap:4px}
@@ -567,7 +571,8 @@
     #pcTopbar #authbox{margin:0;white-space:nowrap;font-size:12px}
     #pcTopbar #authbox .who{max-width:150px;box-shadow:none;border:1px solid #dce8e2}
     #pcTopbar #authbox button{box-shadow:none}
-    #pcDock .pc-dock-head{padding:18px 16px 13px;font-size:17px;font-weight:800}
+    #pcDock .pc-dock-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;font-size:17px;font-weight:800}
+    #pcDock .pc-dock-close{min-height:36px;padding:0 9px;border:1px solid #bfd8ce;border-radius:8px;background:#fff;color:#176558;font:700 12px sans-serif;cursor:pointer}
     #pcDock .pc-filters{display:flex;gap:5px;flex-wrap:wrap;padding:0 16px 13px}
     #pcDock .pc-filters button{min-height:32px;padding:5px 9px;border:0;border-radius:17px;background:#f1f6f3;color:#526d61;font:700 12px sans-serif;cursor:pointer}
     #pcDock .pc-filters button[aria-pressed=true]{background:#e0f3ec;color:#087c71}
@@ -710,12 +715,13 @@
 <div id="map"></div>
 <header id="pcTopbar" aria-label="카누맵 PC 탐색">
   <a class="pc-brand" href="/" aria-label="카누맵 지도 홈"><img class="pc-brand-mark" src="./pwa-icon.svg" alt="">카누맵</a>
+  <button type="button" id="pcDockToggle" class="pc-dock-toggle" aria-controls="pcDock" aria-expanded="true" aria-label="코스 패널 접기">◀ 코스</button>
   <div class="pc-search-slot" id="pcSearchSlot"></div>
   <nav class="pc-nav" aria-label="주요 기능"><button type="button" class="current" aria-current="page">지도 탐색</button><button type="button" id="pcCoursePlan">코스 계획</button><span id="pcTourSlot"></span></nav>
   <div class="pc-right"><div id="pcLinksSlot"></div><div id="pcAuthSlot"></div></div>
 </header>
 <aside id="pcDock" aria-label="코스 탐색과 상세">
-  <div class="pc-dock-head">코스 탐색</div>
+  <div class="pc-dock-head"><span>코스 탐색</span><button type="button" id="pcDockClose" class="pc-dock-close" aria-label="코스 패널 접기">접기 ◀</button></div>
   <div class="pc-filters" role="group" aria-label="코스 종류"><button type="button" data-filter="all" aria-pressed="true">전체</button><button type="button" data-filter="expedition" aria-pressed="false">엑스페디션</button><button type="button" data-filter="beginner" aria-pressed="false">초심자</button></div>
   <div class="pc-course-list" id="pcCourseList" aria-live="polite"></div>
   <div class="pc-dock-detail" id="pcCourseDetail" aria-live="polite"><div class="pc-detail-label">선택한 코스</div><strong>코스를 선택해 주세요</strong></div>
@@ -5418,9 +5424,19 @@ function _pcDockRender(){
 function _pcDockScheduleRender(){if(_pcDockTimer)return;_pcDockTimer=setTimeout(function(){_pcDockTimer=0;_pcDockRender();},0);}
 function _pcDockSelect(key,fit){
   const entry=_pcDockEntries().find(function(e){return e.key===String(key);});if(!entry)return false;
+  if(document.documentElement.classList.contains('pc-dock-collapsed'))_pcDockSetCollapsed(false,true);
   _pcDockSelected=entry.key;_applyCourseFocus();_pcDockRender();
   if(fit&&entry.course.coords&&entry.course.coords.length>1){map.closePopup();map.fitBounds(L.latLngBounds(entry.course.coords).pad(.13),{maxZoom:15});}
   return true;
+}
+function _pcDockSetCollapsed(collapsed,persist){
+  const value=!!collapsed,root=document.documentElement,button=document.getElementById('pcDockToggle');
+  root.classList.toggle('pc-dock-collapsed',value);
+  button.setAttribute('aria-expanded',String(!value));
+  button.setAttribute('aria-label',value?'코스 패널 펼치기':'코스 패널 접기');
+  button.textContent=value?'▶ 코스':'◀ 코스';
+  if(persist){try{localStorage.setItem('mc_pc_dock_collapsed_v1',value?'1':'0');}catch(e){}}
+  if(_pcDockIsActive())requestAnimationFrame(function(){map.invalidateSize({pan:false});});
 }
 function _pcDockMove(el,target){if(!el||!target)return;_pcDockOriginal.push({el:el,parent:el.parentNode,next:el.nextSibling});target.appendChild(el);}
 function _pcDockLayout(){
@@ -5434,6 +5450,8 @@ function _pcDockLayout(){
     _pcDockMove(document.getElementById('measBtnBox'),document.getElementById('pcMeasureSlot'));
     _pcDockMove(document.getElementById('measModeBtn'),document.getElementById('pcMeasureSlot'));
     document.documentElement.classList.add('pc-dock-ready');
+    let collapsed=false;try{collapsed=localStorage.getItem('mc_pc_dock_collapsed_v1')==='1';}catch(e){}
+    _pcDockSetCollapsed(collapsed,false);
     if(_courseFocusId)_pcDockSelected=(_courseFocusId.charAt(0)==='k'?'k':'c')+(_courseFocusId.charAt(0)==='k'?_courseFocusId.slice(1):_courseFocusId);
     _pcDockRender();
   }else{
@@ -5442,6 +5460,8 @@ function _pcDockLayout(){
   }
   requestAnimationFrame(function(){map.invalidateSize({pan:false});});
 }
+document.getElementById('pcDockToggle').addEventListener('click',function(){_pcDockSetCollapsed(!document.documentElement.classList.contains('pc-dock-collapsed'),true);});
+document.getElementById('pcDockClose').addEventListener('click',function(){_pcDockSetCollapsed(true,true);});
 document.getElementById('pcDock').addEventListener('click',function(e){
   const filter=e.target.closest('[data-filter]');if(filter){_pcDockFilter=filter.dataset.filter;document.querySelectorAll('#pcDock [data-filter]').forEach(function(b){b.setAttribute('aria-pressed',String(b===filter));});_pcDockRender();return;}
   const row=e.target.closest('[data-course]');if(row){_pcDockSelect(row.dataset.course,true);return;}

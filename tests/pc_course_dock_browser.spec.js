@@ -80,6 +80,37 @@ test('tour mode keeps the existing full-map layout', async () => {
   await browser.close();
 });
 
+test('PC course panel collapses, restores map width, and remembers the choice', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => hideGate());
+  await expect(page.locator('#pcDock')).toBeVisible();
+  await page.locator('#pcDockClose').click();
+  await expect(page.locator('#pcDock')).toBeHidden();
+  await expect(page.locator('#pcDockToggle')).toHaveAttribute('aria-expanded', 'false');
+  await expect.poll(async () => (await page.locator('#map').boundingBox()).x).toBe(0);
+  expect((await page.locator('#map').boundingBox()).width).toBe(1280);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => hideGate());
+  await expect(page.locator('#pcDock')).toBeHidden();
+  await page.locator('#pcDockToggle').click();
+  await expect(page.locator('#pcDock')).toBeVisible();
+  await expect(page.locator('#pcDockToggle')).toHaveAttribute('aria-expanded', 'true');
+  await expect.poll(async () => (await page.locator('#map').boundingBox()).x).toBe(296);
+  await page.locator('#pcDockClose').click();
+  await page.evaluate(() => _pcDockSelect('c1', true));
+  await expect(page.locator('#pcDock')).toBeVisible();
+  await page.setViewportSize({ width: 1024, height: 768 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect((await page.locator('#pcAuthSlot').boundingBox()).x + (await page.locator('#pcAuthSlot').boundingBox()).width).toBeLessThanOrEqual(1024);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#pcTopbar')).toBeHidden();
+  await browser.close();
+});
+
 test('one official expedition round appears once when static and registered courses overlap', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
