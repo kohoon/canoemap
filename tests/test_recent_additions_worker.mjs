@@ -1,0 +1,48 @@
+import assert from 'node:assert/strict';
+import { createHmac } from 'node:crypto';
+import worker from '../workers/auth-worker.js';
+
+const secret = 'recent-test-secret';
+const uid = 'recent-test-user';
+const hmac = (value) => createHmac('sha256', secret).update(value).digest('hex');
+const exp = Math.floor(Date.now() / 1000) + 3600;
+const tok = `mc2.${exp}.${hmac(`mc2|${uid}|${exp}`).slice(0, 32)}`;
+const now = Date.now();
+const data = new Map();
+data.set(`member:${hmac(`member-key|${uid}`).slice(0, 32)}`, JSON.stringify({ status: 'active', nick: '테스트', memberId: 'recent-test' }));
+data.set('courses', JSON.stringify([
+  { id: now - 3000, t: now - 3000, owner: 'admin', name: '엑스페디션#10', km: 12, coords: [[37, 127], [37.1, 127.1]] },
+  { id: now - 2000, t: now - 2000, owner: uid, name: '개인 비공개 코스', km: 5, coords: [[37, 127], [37.1, 127.1]] },
+  { id: now - 1000, t: now - 1000, owner: 'admin', name: '엑스페디션#11', km: 25, coords: [[38, 127], [38.1, 127.1]] },
+]));
+data.set('placeover', JSON.stringify({
+  ['u' + (now - 500)]: { new: 1, name: '새 런칭지', cat: 'canoe', lat: 38, lng: 127 },
+  ['u' + (now - 400)]: { new: 1, name: '비공개 후보지', cat: 'candidate', lat: 38, lng: 127 },
+  ['u' + (now - 300)]: { new: 1, name: '삭제된 곳', cat: 'canoe', del: 1, lat: 38, lng: 127 },
+  ['u' + (now - 200)]: { new: 1, name: '카누 명소', cat: 'spot', lat: 38, lng: 127 },
+}));
+const env = {
+  ADMIN_KEY: secret,
+  SITE_URL: 'https://canoe.crowdbase.kr/',
+  PLACES: {
+    get: async (key) => data.get(key) ?? null,
+    put: async (key, value) => { data.set(key, value); },
+    delete: async (key) => { data.delete(key); },
+  },
+};
+const ctx = { waitUntil() {} };
+const endpoint = 'https://mycanoe-map.kohoon0140.workers.dev/recent-additions';
+const request = (headers) => worker.fetch(new Request(endpoint, { headers: { Origin: 'https://canoe.crowdbase.kr', ...headers } }), env, ctx);
+
+assert.equal((await request({})).status, 401);
+assert.equal((await worker.fetch(new Request(endpoint, { headers: { Origin: 'https://elsewhere.example', 'X-User-Id': uid, 'X-Auth-Token': tok } }), env, ctx)).status, 403);
+const response = await request({ 'X-User-Id': uid, 'X-Auth-Token': tok });
+assert.equal(response.status, 200);
+assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+const recent = await response.json();
+assert.deepEqual(recent.courses.map((course) => course.id), ['k' + (now - 1000), 'k' + (now - 3000)]);
+assert.deepEqual(recent.places.map((place) => place.name), ['새 런칭지']);
+assert.equal(JSON.stringify(recent).includes('개인 비공개 코스'), false);
+assert.equal(JSON.stringify(recent).includes('비공개 후보지'), false);
+
+console.log('recent additions worker regression: ok');

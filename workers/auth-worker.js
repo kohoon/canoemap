@@ -235,6 +235,32 @@ function _launchCat(v, name) {
   if (v === "candidate" || v === "런칭/랜딩 후보지") return "candidate";
   return "canoe";
 }
+async function _recentAdditions(KV) {
+  let storedCourses = [], placeOverrides = {};
+  try { storedCourses = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
+  try { placeOverrides = JSON.parse((await KV.get("placeover")) || "{}"); } catch (e) {}
+  const recentByRound = new Map();
+  for (const raw of Array.isArray(storedCourses) ? storedCourses : []) {
+    if (!raw || String(raw.owner || "") !== "admin") continue;
+    const course = normalizeExpedition(applyCourseCorrection(raw), "k" + raw.id);
+    const round = expeditionNumber(course, "k" + raw.id);
+    const t = Number(raw.t || raw.createdAt || raw.id);
+    if (!round || !Number.isSafeInteger(t) || t < 1577836800000 || !Array.isArray(course.coords) || course.coords.length < 2) continue;
+    const previous = recentByRound.get(round);
+    if (!previous || Number(raw.updatedAt || t) > previous.versionAt)
+      recentByRound.set(round, { id: "k" + raw.id, name: String(course.name || "코스").slice(0, 100), km: Number(course.km) || 0, t, versionAt: Number(raw.updatedAt || t) });
+  }
+  const courses = Array.from(recentByRound.values()).sort((a, b) => b.t - a.t).slice(0, 4)
+    .map(({ id, name, km, t }) => ({ id, name, km, t }));
+  const places = Object.entries(placeOverrides && typeof placeOverrides === "object" ? placeOverrides : {})
+    .flatMap(([id, p]) => {
+      if (!p || !p.new || p.del || _launchCat(p.cat, p.name) !== "canoe" || !isFinite(Number(p.lat)) || !isFinite(Number(p.lng))) return [];
+      const t = Number(p.createdAt || (/^u\d{13}$/.test(id) ? id.slice(1) : 0));
+      if (!Number.isSafeInteger(t) || t < 1577836800000 || !String(p.name || "").trim()) return [];
+      return [{ id: String(id).slice(0, 30), name: String(p.name).slice(0, 100), t }];
+    }).sort((a, b) => b.t - a.t).slice(0, 4);
+  return { courses, places };
+}
 async function _launchAll(KV, includeCandidates) {
   let base = [], over = {}, cats = {}, legacy = [];
   try { base = JSON.parse((await KV.get("launch_sites_v1")) || "[]"); } catch (e) {}
@@ -638,6 +664,21 @@ export default {
       return J({ ok: false, error: "method" }, 405);
     }
 
+    // 최근 추가된 공개 운영 코스와 런칭·랜딩지 — 회원 세션만 조회
+    if (url.pathname.endsWith("/recent-additions")) {
+      const origin = req.headers.get("Origin") || "";
+      const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Allow-Headers": "X-User-Id, X-Auth-Token" };
+      if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+      if (req.method !== "GET") return new Response("method", { status: 405, headers: cors });
+      if (!origin || !_allowedOrigin(req, env)) return new Response("forbidden-origin", { status: 403, headers: cors });
+      const uid = String(req.headers.get("X-User-Id") || "").slice(0, 40);
+      if (!uid || !(await _memberOk(env, uid, req.headers.get("X-Auth-Token")))) return new Response("unauthorized", { status: 401, headers: cors });
+      const KV = env.PLACES;
+      if (!KV) return new Response("no-store", { status: 500, headers: cors });
+      const result = await _recentAdditions(KV);
+      return new Response(JSON.stringify(result), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
+    }
+
     // 0-1e) 런칭·랜딩 보호 API — 로그인 + bbox/검색 제한 + no-store
     if (url.pathname.endsWith("/launch-sites")) {
       const origin = req.headers.get("Origin") || "";
@@ -947,7 +988,7 @@ export default {
           if (b.memo != null) cur.memo = String(b.memo).slice(0, 500);
           if (b.cat != null) { const c = (b.cat === "spot" || b.cat === "canoe" || b.cat === "candidate") ? b.cat : null; if (c) cur.cat = c; }
           if (b.del != null) cur.del = b.del ? 1 : 0;
-          if (b.new) cur.new = 1;
+          if (b.new) { cur.new = 1; if (!cur.createdAt) cur.createdAt = Date.now(); }
           if (b.lat != null && isFinite(Number(b.lat))) cur.lat = Number(b.lat);
           if (b.lng != null && isFinite(Number(b.lng))) cur.lng = Number(b.lng);
           m[id] = cur;

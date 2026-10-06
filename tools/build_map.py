@@ -628,6 +628,19 @@ __GTAG__
   .map-action-icon{display:block;width:22px;text-align:center;line-height:1}
   .map-action-label{display:block;text-align:left;line-height:1.25}
   .nt-badge{position:absolute;top:-7px;right:-7px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#e53935;color:#fff;font:700 10px/17px sans-serif;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+  .news-tabs{display:flex;gap:7px;margin:0 34px 15px 0}
+  .news-tabs button{flex:1;min-height:40px;border:1px solid #d9e5df;border-radius:9px;background:#fff;color:#526a60;font:700 13px sans-serif;cursor:pointer}
+  .news-tabs button[aria-selected="true"]{border-color:#087e74;background:#e6f5ef;color:#087e74}
+  #noticeModal [hidden]{display:none!important}
+  .recent-section{margin:14px 0 0}
+  .recent-section h4{margin:0 0 7px;color:#456256;font:700 13px sans-serif}
+  .recent-item{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:10px 9px;border:0;border-top:1px solid #e5eee9;background:#fff;color:#1f3e34;text-align:left;cursor:pointer}
+  .recent-item:hover,.recent-item:focus-visible{background:#f0f8f4}
+  .recent-item-icon{display:grid;place-items:center;flex:none;width:33px;height:33px;border-radius:9px;background:#eaf4ef;color:#087e74;font-size:16px}
+  .recent-item-main{min-width:0;flex:1}
+  .recent-item-main b{display:block;font:700 13px/1.35 sans-serif;overflow-wrap:anywhere}
+  .recent-item-main small{display:block;margin-top:3px;color:#71847a;font:11px/1.3 sans-serif}
+  .recent-empty{padding:12px 4px;color:#75877d;font:12px/1.4 sans-serif}
   #ntBody h3{margin:0 30px 10px 0;font-size:18px;color:#1b3a2b}
   .nt-write{background:#f3f7f4;border-radius:10px;padding:11px;margin-bottom:14px}
   .nt-write input,.nt-write textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccd;border-radius:9px;font-size:14px;margin-bottom:7px;font-family:inherit}
@@ -1001,7 +1014,7 @@ __GTAG__
 </div>
 <div id="noticeModal" class="pmodal-wrap">
   <div class="pmodal-bg" onclick="closeNotices()"></div>
-  <div class="pmodal"><button class="pmodal-x" onclick="closeNotices()">✕</button><div id="ntBody"></div></div>
+  <div class="pmodal"><button class="pmodal-x" onclick="closeNotices()">✕</button><div class="news-tabs" role="tablist" aria-label="새소식"><button type="button" id="newsNoticeTab" role="tab" aria-controls="ntBody" aria-selected="true" onclick="openNotices()">공지사항</button><button type="button" id="newsRecentTab" role="tab" aria-controls="recentBody" aria-selected="false" onclick="openRecentAdditions(false)">최근 추가된 곳들</button></div><div id="ntBody" role="tabpanel" aria-labelledby="newsNoticeTab"></div><div id="recentBody" role="tabpanel" aria-labelledby="newsRecentTab" hidden></div></div>
 </div>
 <div id="offlineModal" class="pmodal-wrap">
   <div class="pmodal-bg" onclick="closeOfflineModal()"></div>
@@ -1198,7 +1211,7 @@ function ensureAppProfile(){
       const d=await r.json();
       if(r.status===403&&d.error==='withdrawn-member'){rememberWithdrawal();setUser(null);_appProfile=null;showMemberBlock('withdrawn');return false;}
       if(!r.ok){showMemberBlock('error');return false;}
-      if(d.profile&&d.profile.nick){ clearWithdrawal();hideMemberBlock();_appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); return true; }
+      if(d.profile&&d.profile.nick){ clearWithdrawal();hideMemberBlock();_appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); scheduleRecentAdditions(); return true; }
       hideMemberBlock();return await openNicknameModal(u,d.suggestedNick||'');
     }catch(e){ _profilePromise=null; showMemberBlock('error'); return false; }
   })();
@@ -1212,7 +1225,7 @@ function openNicknameModal(u,suggestedNick){ return new Promise(function(resolve
     ok.disabled=true; msg.style.color='#778'; msg.textContent='확인 중…';
     try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:u.uid,tok:u.tok||'',nick:nick,termsAgreed:true,privacyAgreed:true,dev:devType()})});
       const d=await r.json().catch(function(){return {};});
-      if(r.ok&&d.profile){ clearWithdrawal();hideMemberBlock();_appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); resolve(true); }
+      if(r.ok&&d.profile){ clearWithdrawal();hideMemberBlock();_appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); scheduleRecentAdditions(); resolve(true); }
       else if(r.status===403&&d.error==='withdrawn-member'){m.classList.remove('open');rememberWithdrawal();setUser(null);showMemberBlock('withdrawn');resolve(false);}
       else { msg.style.color='#e53935'; msg.textContent=r.status===409?'이미 사용 중인 닉네임입니다':(r.status===401?'다시 로그인해 주세요':'한글·영문·숫자와 공백, . _ - 만 사용할 수 있습니다'); }
     }catch(e){ msg.style.color='#e53935'; msg.textContent='저장하지 못했습니다. 다시 시도하세요'; }
@@ -1247,6 +1260,7 @@ function _dismissOnboarding(outcome){
   const u=getUser(),profile=_appProfile||{};try{localStorage.setItem(_onboardingStorageKey(profile),String(ONBOARDING_VERSION));}catch(e){}
   gaEvent(outcome==='completed'?'onboarding_complete':'onboarding_skip',{version:ONBOARDING_VERSION,step:_onboardStep+1});
   if(u&&u.uid)fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'onboarding-dismiss',outcome:outcome,id:u.uid,tok:u.tok||''})}).then(function(r){return r.json();}).then(function(d){if(d.profile)_appProfile=d.profile;}).catch(function(){});
+  scheduleRecentAdditions();
 }
 function openOnboardingTutorial(source){
   const el=document.getElementById('onboardingTour');if(!el)return;_onboardStep=0;el.classList.add('open');_renderOnboarding();gaEvent('onboarding_start',{version:ONBOARDING_VERSION});
@@ -5403,13 +5417,58 @@ document.addEventListener('visibilitychange',function(){if(!_trk||document.visib
 
 // ====== 공지사항 게시판 (관리자 글 + 사용자 답글) ======
 const NoticeCtl=L.Control.extend({ options:{position:'topleft'},
-  onAdd:function(){ const d=L.DomUtil.create('div','noticebtn'); d.innerHTML='<span class="map-action-icon">📢</span><span class="map-action-label">공지</span>'; d.title='공지사항';
+  onAdd:function(){ const d=L.DomUtil.create('div','noticebtn'); d.innerHTML='<span class="map-action-icon">📰</span><span class="map-action-label">새소식</span>'; d.title='공지사항과 최근 추가된 곳들';
     L.DomEvent.disableClickPropagation(d); L.DomEvent.on(d,'click',function(e){ L.DomEvent.preventDefault(e); openNotices(); }); return d; } });
 map.addControl(new NoticeCtl());
 map.addControl(new ObstacleCtl());   // 지형지물(관리자) — 공지 아래
 (function(){ const ob=document.getElementById('obsBtnBox'); if(ob&&isAdmin()) ob.style.display='grid'; })();
 function napi(){ return WORKER_URL.replace(/\/+$/,'')+'/notices'; }
 function closeNotices(){ document.getElementById('noticeModal').classList.remove('open'); }
+function _newsTab(kind){
+  const recent=kind==='recent';
+  document.getElementById('newsNoticeTab').setAttribute('aria-selected',String(!recent));
+  document.getElementById('newsRecentTab').setAttribute('aria-selected',String(recent));
+  document.getElementById('ntBody').hidden=recent;
+  document.getElementById('recentBody').hidden=!recent;
+  document.getElementById('noticeModal').classList.add('open');
+}
+function _recentDate(t){const d=new Date(Number(t));return Number.isNaN(d.getTime())?'':(d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.');}
+function _recentSection(title,kind,items){
+  return '<section class="recent-section"><h4>'+title+'</h4>'+(items.length?items.map(function(item,i){return '<button type="button" class="recent-item" data-kind="'+kind+'" data-index="'+i+'"><span class="recent-item-icon" aria-hidden="true">'+(kind==='course'?'〰':'🛶')+'</span><span class="recent-item-main"><b>'+pmEsc(item.name||'이름 없음')+'</b><small>'+_recentDate(item.t)+(kind==='course'&&item.km?' · '+Number(item.km).toFixed(1)+' km':'')+'</small></span><span aria-hidden="true">›</span></button>';}).join(''):'<div class="recent-empty">표시할 최근 등록 항목이 없습니다.</div>')+'</section>';
+}
+let _recentAdditions=null,_recentAutoPending=false;
+async function openRecentAdditions(auto){
+  const u=getUser();if(!u||!u.uid||!u.tok)return;
+  const box=document.getElementById('recentBody');
+  if(!auto){_newsTab('recent');box.innerHTML='<h3>최근 추가된 곳들</h3><div class="recent-empty">불러오는 중…</div>';}
+  try{
+    const r=await fetch(fapi('/recent-additions'),{cache:'no-store',headers:{'X-User-Id':u.uid,'X-Auth-Token':u.tok||''}});
+    if(!r.ok)throw new Error('recent-'+r.status);
+    const data=await r.json();if(getUser()?.uid!==u.uid)return;
+    const courses=Array.isArray(data.courses)?data.courses:[],places=Array.isArray(data.places)?data.places:[];
+    _recentAdditions={course:courses,place:places};
+    if(auto){if(!courses.length&&!places.length)return;_newsTab('recent');}
+    box.innerHTML='<h3>최근 추가된 곳들</h3>'+_recentSection('🛶 런칭·랜딩지','place',places)+_recentSection('〰 코스','course',courses);
+    box.querySelectorAll('[data-kind]').forEach(function(button){button.onclick=function(){
+      const item=(_recentAdditions[button.dataset.kind]||[])[Number(button.dataset.index)];if(!item)return;
+      const next=new URL(location.href);next.searchParams.delete('place');next.searchParams.delete('course');next.searchParams.delete('detail');
+      if(button.dataset.kind==='place')next.searchParams.set('place',item.id);
+      else{next.searchParams.set('course',item.id);next.searchParams.set('detail','1');}
+      location.assign(next.toString());
+    };});
+    gaEvent('recent_additions_open',{automatic:auto?1:0,courses:courses.length,places:places.length});
+  }catch(e){if(!auto)box.innerHTML='<h3>최근 추가된 곳들</h3><div class="recent-empty">목록을 불러오지 못했습니다. 잠시 후 다시 열어 주세요.</div>';}
+}
+function scheduleRecentAdditions(){
+  if(TOUR_MODE||_mapUrlOwnsView()||_recentAutoPending)return;
+  const u=getUser();if(!u||!u.uid)return;
+  const key='mc_recent_session_'+String((_appProfile&&_appProfile.memberId)||u.uid).slice(0,40);
+  try{if(sessionStorage.getItem(key)==='1')return;}catch(e){}
+  _recentAutoPending=true;
+  setTimeout(function(){_recentAutoPending=false;if(document.getElementById('onboardingTour').classList.contains('open')||document.getElementById('nickModal').classList.contains('open'))return;
+    try{sessionStorage.setItem(key,'1');}catch(e){}openRecentAdditions(true);
+  },750);
+}
 function ntDate(t){ try{ const d=new Date(t); return (d.getMonth()+1)+'/'+d.getDate(); }catch(e){ return ''; } }
 async function fetchNotices(){ try{ const ctrl=new AbortController(); const tid=setTimeout(function(){ctrl.abort();},3500);
   const r=await fetch(napi(),{signal:ctrl.signal}); clearTimeout(tid); _notices=(await r.json())||[]; }catch(e){ _notices=[]; } return _notices; }
@@ -5420,7 +5479,7 @@ function updateNoticeBadge(){ const b=document.querySelector('.noticebtn'); if(!
 function markNoticesSeen(){ const top=(_notices||[]).reduce(function(m,n){ return Math.max(m,Number(n.id)||0); },0);
   try{ localStorage.setItem('mc_notice_seen',String(top)); }catch(e){} updateNoticeBadge(); }
 async function openNotices(){
-  document.getElementById('noticeModal').classList.add('open');
+  _newsTab('notice');
   document.getElementById('ntBody').innerHTML='<h3>📢 공지사항</h3><div class="tm-empty">불러오는 중…</div>';
   gaEvent('notice_open');
   try{ const r=await fetch(napi()); _notices=(await r.json())||[]; renderNotices(_notices); markNoticesSeen(); }
