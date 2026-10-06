@@ -618,7 +618,10 @@ __GTAG__
   .cm-color.on{box-shadow:0 0 0 3px #263238}
   .cm-color.on::after{content:'✓';position:absolute;inset:0;color:#fff;font:800 16px/26px sans-serif;text-shadow:0 1px 3px rgba(0,0,0,.7)}
   #cmMsg{font-size:13px;color:#c0392b;margin-top:9px;min-height:18px;text-align:center}
-  .noticebtn{position:relative;cursor:pointer;font:600 13px sans-serif;background:#fff;color:#222;padding:8px 12px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.3);white-space:nowrap;user-select:none;width:104px;box-sizing:border-box;text-align:center}
+  .noticebtn{position:relative;cursor:pointer;font:600 13px/1.25 sans-serif;background:#fff;color:#222;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3);white-space:nowrap;user-select:none}
+  .noticebtn,.obsbtn{display:grid;grid-template-columns:22px 64px;column-gap:4px;align-items:center;justify-content:center;width:112px;min-width:112px;min-height:var(--mc-control-height);padding:7px 10px;box-sizing:border-box}
+  .map-action-icon{display:block;width:22px;text-align:center;line-height:1}
+  .map-action-label{display:block;text-align:left;line-height:1.25}
   .nt-badge{position:absolute;top:-7px;right:-7px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#e53935;color:#fff;font:700 10px/17px sans-serif;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.35)}
   #ntBody h3{margin:0 30px 10px 0;font-size:18px;color:#1b3a2b}
   .nt-write{background:#f3f7f4;border-radius:10px;padding:11px;margin-bottom:14px}
@@ -1125,7 +1128,7 @@ async function openAdminMembers(){
       +(list.length?list.map(function(x){const t=(+x.loginCount||0)+(+x.visitCount||0),dt=x.lastAt?new Date(x.lastAt).toLocaleDateString('ko-KR'):'-';return '<div class="my-list-row"><span class="my-kind">👤</span><div class="my-list-main"><b>'+pmEsc(x.nick||'회원')+'</b><small>#'+pmEsc(String(x.memberId||'').slice(0,8))+' · 최근 '+dt+'</small></div><div style="text-align:right;font-size:12px"><b>'+t+'회</b><br><small>로그인 '+(+x.loginCount||0)+' · 방문 '+(+x.visitCount||0)+'</small></div></div>';}).join(''):'<div class="my-empty"><b>전환 후 가입 회원이 없습니다</b></div>');
   }catch(e){ body.innerHTML='<h3>회원 현황</h3><div class="my-empty"><b>불러오지 못했습니다</b>관리자 인증을 다시 확인해 주세요.</div>'; }
 }
-function _setAdmin(on){ _adminOk=on; _adminBadge(on); _updateAdminActions(on); _updateAdminSheetLink(on); _updateAdminMemberButton(on); const ob=document.getElementById('obsBtnBox'); if(ob) ob.style.display=on?'block':'none'; try{ _refreshObsPopups(); reloadObstaclesForViewer(); }catch(e){} applyPlaceOver(); _applyCourseFocus(); _maybeSyncAdminCourseFavs(); try{_syncAdminRiverLayer(on);_syncAdminRoadLayer(on);reloadSecurePlaces();}catch(e){} try{reloadCoursesForViewer();}catch(e){} if(on)try{focusPlaceFromUrl();}catch(e){} }
+function _setAdmin(on){ _adminOk=on; _adminBadge(on); _updateAdminActions(on); _updateAdminSheetLink(on); _updateAdminMemberButton(on); const ob=document.getElementById('obsBtnBox'); if(ob) ob.style.display=on?'grid':'none'; try{ _refreshObsPopups(); reloadObstaclesForViewer(); }catch(e){} applyPlaceOver(); _applyCourseFocus(); _maybeSyncAdminCourseFavs(); try{_syncAdminRiverLayer(on);_syncAdminRoadLayer(on);reloadSecurePlaces();}catch(e){} try{reloadCoursesForViewer();}catch(e){} if(on)try{focusPlaceFromUrl();}catch(e){} }
 async function exportComments(){
   if(!isAdmin()) return;
   if(!confirm('기존 코멘트를 전부 시트(comments 탭)로 내보낼까요?')) return;
@@ -2829,13 +2832,13 @@ WEIRS.forEach(renderStaticWeir);loadObstacles(false);
 // 지형지물 추가(관리자 전용 버튼 — 거리측정 버튼 옆)
 let obsPlaceMode=false;
 const ObstacleCtl=L.Control.extend({ options:{position:'topleft'},
-  onAdd:function(){ const d=L.DomUtil.create('div','measbtn obsbtn'); d.id='obsBtnBox'; d.innerHTML='🗺️ 지형지물'; d.title='지형지물 추가(관리자)'; d.style.display='none';
+  onAdd:function(){ const d=L.DomUtil.create('div','measbtn obsbtn'); d.id='obsBtnBox'; d.innerHTML='<span class="map-action-icon">🗺️</span><span class="map-action-label">지형지물</span>'; d.title='지형지물 추가(관리자)'; d.style.display='none';
     L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
     L.DomEvent.on(d,'click',function(e){ L.DomEvent.preventDefault(e); toggleObsPlace(); });
     return d; } });
 // (버튼 추가는 공지 버튼 다음 — 거리측정/공지/지형지물 순서)
 function toggleObsPlace(){ obsPlaceMode=!obsPlaceMode; const b=document.getElementById('obsBtnBox');
-  if(b){ b.classList.toggle('on',obsPlaceMode); b.innerHTML=obsPlaceMode?'📍 지점 탭…':'🗺️ 지형지물'; }
+  if(b){ b.classList.toggle('on',obsPlaceMode); b.innerHTML=obsPlaceMode?'<span class="map-action-icon">📍</span><span class="map-action-label">지점 탭…</span>':'<span class="map-action-icon">🗺️</span><span class="map-action-label">지형지물</span>'; }
   map.getContainer().style.cursor=obsPlaceMode?'crosshair':'';
   measHint(obsPlaceMode?'🗺️ 지형지물을 표시할 지점을 지도에서 탭하세요':false); }
 map.on('click', function(e){ if(!obsPlaceMode) return; toggleObsPlace(); openObsModal('add',{lat:e.latlng.lat,lng:e.latlng.lng}); });
@@ -5394,11 +5397,11 @@ document.addEventListener('visibilitychange',function(){if(!_trk||document.visib
 
 // ====== 공지사항 게시판 (관리자 글 + 사용자 답글) ======
 const NoticeCtl=L.Control.extend({ options:{position:'topleft'},
-  onAdd:function(){ const d=L.DomUtil.create('div','noticebtn'); d.innerHTML='📢 공지'; d.title='공지사항';
+  onAdd:function(){ const d=L.DomUtil.create('div','noticebtn'); d.innerHTML='<span class="map-action-icon">📢</span><span class="map-action-label">공지</span>'; d.title='공지사항';
     L.DomEvent.disableClickPropagation(d); L.DomEvent.on(d,'click',function(e){ L.DomEvent.preventDefault(e); openNotices(); }); return d; } });
 map.addControl(new NoticeCtl());
 map.addControl(new ObstacleCtl());   // 지형지물(관리자) — 공지 아래
-(function(){ const ob=document.getElementById('obsBtnBox'); if(ob&&isAdmin()) ob.style.display='block'; })();
+(function(){ const ob=document.getElementById('obsBtnBox'); if(ob&&isAdmin()) ob.style.display='grid'; })();
 function napi(){ return WORKER_URL.replace(/\/+$/,'')+'/notices'; }
 function closeNotices(){ document.getElementById('noticeModal').classList.remove('open'); }
 function ntDate(t){ try{ const d=new Date(t); return (d.getMonth()+1)+'/'+d.getDate(); }catch(e){ return ''; } }

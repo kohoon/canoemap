@@ -63,3 +63,34 @@ for (const size of [
     await browser.close();
   });
 }
+
+test('notice and obstacle controls align icons and labels on desktop and mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const width of [1280, 390]) {
+    const page = await browser.newPage({ viewport: { width, height: 800 }, isMobile: width < 600, hasTouch: width < 600 });
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    const layout = await page.evaluate(() => {
+      hideGate();
+      document.getElementById('obsBtnBox').style.display = 'grid';
+      const rect = (selector) => {
+        const { x, y, width, height } = document.querySelector(selector).getBoundingClientRect();
+        return { x, y, width, height };
+      };
+      return {
+        notice: rect('.noticebtn'), obstacle: rect('#obsBtnBox'),
+        noticeIcon: rect('.noticebtn .map-action-icon'), obstacleIcon: rect('#obsBtnBox .map-action-icon'),
+        noticeLabel: rect('.noticebtn .map-action-label'), obstacleLabel: rect('#obsBtnBox .map-action-label'),
+      };
+    });
+    expect(layout.notice.width).toBe(layout.obstacle.width);
+    expect(layout.notice.height).toBe(layout.obstacle.height);
+    expect(Math.abs(layout.noticeLabel.x - layout.obstacleLabel.x)).toBeLessThan(1);
+    expect(Math.abs(layout.noticeIcon.x - layout.obstacleIcon.x)).toBeLessThan(1);
+    expect(Math.abs((layout.noticeLabel.y + layout.noticeLabel.height / 2) - (layout.notice.y + layout.notice.height / 2))).toBeLessThan(1);
+    expect(Math.abs((layout.obstacleLabel.y + layout.obstacleLabel.height / 2) - (layout.obstacle.y + layout.obstacle.height / 2))).toBeLessThan(1);
+    await page.close();
+  }
+  await browser.close();
+});
