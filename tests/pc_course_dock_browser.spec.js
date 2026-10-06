@@ -48,7 +48,8 @@ test('approved B layout keeps course list and selected detail in one PC panel', 
   const name = await first.locator('b').innerText();
   await first.click();
   await expect(page.locator('#pcCourseDetail strong')).toHaveText(name);
-  await expect(page.locator('#pmodal')).not.toBeVisible();
+  await expect(page.locator('#pmodal')).toBeVisible();
+  await page.evaluate(() => closePlaceModal());
   await page.locator('#pcCourseDetail [data-action="detail"]').click();
   await expect(page.locator('#pmodal')).toBeVisible();
   await page.evaluate(() => closePlaceModal());
@@ -63,6 +64,18 @@ test('approved B layout keeps course list and selected detail in one PC panel', 
   await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains('pc-dock-ready'))).toBe(true);
   expect(await page.evaluate(() => document.querySelector('#srchQ').closest('#pcTopbar') !== null)).toBe(true);
   expect(errors).toEqual([]);
+  await browser.close();
+});
+
+test('clicking a course line on the PC map opens its full detail', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => { hideGate(); courseCmt('c', '1', true); });
+  await expect(page.locator('#pmodal')).toBeVisible();
+  await expect(page.locator('#pcCourseDetail strong')).toContainText('엑스페디션');
   await browser.close();
 });
 

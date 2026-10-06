@@ -2603,7 +2603,7 @@ async function toggleCourseAnalysis(){
   await renderCourseAnalysis(_courseInfoCourse,'courseAnalysisPanel');
 }
 function courseCmt(kind,id,fromMap){
-  if(fromMap&&_pcDockIsActive()){_pcDockSelect((kind==='c'?'c':'k')+id,false);return;}
+  if(fromMap&&_pcDockIsActive())_pcDockSelect((kind==='c'?'c':'k')+id,false);
   if(kind==='c'){ const c=_courseByCid[String(id)]; if(c) openCourseComments('course_c'+id, c, id); }
   else { const c=_kvCourses[id]; if(c) openCourseComments('course_k'+id, c, 'k'+id); }
 }
@@ -5468,7 +5468,13 @@ document.getElementById('pcDockToggle').addEventListener('click',function(){_pcD
 document.getElementById('pcDockClose').addEventListener('click',function(){_pcDockSetCollapsed(true,true);});
 document.getElementById('pcDock').addEventListener('click',function(e){
   const filter=e.target.closest('[data-filter]');if(filter){_pcDockFilter=filter.dataset.filter;document.querySelectorAll('#pcDock [data-filter]').forEach(function(b){b.setAttribute('aria-pressed',String(b===filter));});_pcDockRender();return;}
-  const row=e.target.closest('[data-course]');if(row){_pcDockSelect(row.dataset.course,true);return;}
+  const row=e.target.closest('[data-course]');if(row){
+    if(_pcDockSelect(row.dataset.course,true)){
+      const entry=_pcDockEntries().find(function(x){return x.key===row.dataset.course;});
+      if(entry)openCourseComments('course_'+entry.key,entry.course,entry.key);
+    }
+    return;
+  }
   const action=e.target.closest('[data-action]');if(!action||!_pcDockSelected)return;
   const entry=_pcDockEntries().find(function(x){return x.key===_pcDockSelected;});if(!entry)return;
   const id=entry.key.slice(1),isKv=entry.key.charAt(0)==='k';
