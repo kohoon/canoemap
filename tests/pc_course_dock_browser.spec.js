@@ -79,6 +79,29 @@ test('clicking a course line on the PC map opens its full detail', async () => {
   await browser.close();
 });
 
+test('course connection method is a labeled, persistent two-choice control on PC and mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => hideGate());
+  await page.locator('#measBtnBox').click();
+  await expect(page.locator('#measModeBtn')).toContainText('코스 연결 방식');
+  await expect(page.locator('#measModeBtn [data-mode="water"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('#measModeBtn [data-mode="straight"]').click();
+  await expect(page.locator('#measModeBtn [data-mode="straight"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#measModeBtn [data-mode="water"]')).toHaveAttribute('aria-pressed', 'false');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#measModeBtn')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => hideGate());
+  await page.locator('#measBtnBox').click();
+  await expect(page.locator('#measModeBtn [data-mode="straight"]')).toHaveAttribute('aria-pressed', 'true');
+  await browser.close();
+});
+
 test('tour mode keeps the existing full-map layout', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

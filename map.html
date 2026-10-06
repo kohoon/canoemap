@@ -73,7 +73,12 @@
   .measbtn .meas-sub{font-size:11px;font-weight:500;color:#667}
   .measbtn.on{width:auto}
   .measbtn.on{background:#ff7043;color:#fff}
-  .measmode{font-size:12.5px;padding:7px 11px;display:none;width:auto}
+  .measmode{display:none;box-sizing:border-box;width:min(236px,calc(100vw - 24px));padding:10px;background:#fff;border:1px solid #c8ddd4;border-radius:11px;box-shadow:0 2px 9px rgba(0,0,0,.16);font:600 12px/1.3 sans-serif;color:#24453a}
+  .meas-mode-label{display:block;margin-bottom:7px;text-align:left}
+  .meas-mode-options{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .meas-mode-options button{min-width:0;min-height:38px;padding:6px 5px;border:1px solid #cadfd5;border-radius:8px;background:#fff;color:#44665a;font:600 12px/1.2 sans-serif;cursor:pointer;white-space:nowrap}
+  .meas-mode-options button[aria-pressed="true"]{border-color:#087e74;background:#087e74;color:#fff}
+  .meas-mode-options button:focus-visible{outline:2px solid #e96933;outline-offset:2px}
   .measbtn .mx{margin-left:8px;background:rgba(255,255,255,.35);border-radius:8px;padding:1px 7px;cursor:pointer}
   .obsbtn.on{background:#e53935;color:#fff}
   .obs-ic{display:inline-flex;align-items:center;gap:3px;padding:3px 8px 3px 6px;border-radius:12px;font:700 12px sans-serif;color:#fff;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.35);border:2px solid #fff}
@@ -596,7 +601,7 @@
     #pcDock .pc-measure-slot{padding:10px 16px 14px;border-top:1px solid #dce8e2}
     #pcDock #measBtnBox{width:100%;min-height:42px;box-shadow:none;border:1px solid #087e74;border-radius:9px;background:#087e74;color:#fff}
     #pcDock #measBtnBox .meas-sub{color:#e0f5ee}
-    #pcDock #measModeBtn{width:100%;margin-top:7px;box-shadow:none;border:1px solid #bad8cd}
+    #pcDock #measModeBtn{width:100%;margin-top:7px;box-shadow:none}
   }
   #gate{position:fixed;inset:0;z-index:3000;display:flex;align-items:flex-end;justify-content:flex-end;overflow:hidden;box-sizing:border-box;padding:24px;
     background:linear-gradient(90deg,rgba(5,27,23,.56) 0%,rgba(5,27,23,.12) 48%,rgba(5,27,23,.3) 100%)}
@@ -4289,17 +4294,18 @@ const MeasureCtl = L.Control.extend({ options:{position:'topleft'},
   }
 });
 map.addControl(new MeasureCtl());
-// 측정 모드 토글(물길/직선)
+// 코스 연결 방식 선택(물길/직선)
 const MeasModeCtl=L.Control.extend({ options:{position:'topleft'},
-  onAdd:function(){ const d=L.DomUtil.create('div','measbtn measmode'); d.id='measModeBtn'; d.title='측정 방식 전환(물길/직선)';
-    L.DomEvent.disableClickPropagation(d);
-    L.DomEvent.on(d,'click',function(e){ L.DomEvent.preventDefault(e);
-      measMode=(measMode==='water'?'straight':'water'); try{localStorage.setItem('mc_measmode',measMode);}catch(e){} updateMeasModeBtn();
+  onAdd:function(){ const d=L.DomUtil.create('div','measmode'); d.id='measModeBtn';
+    d.innerHTML='<span class="meas-mode-label">코스 연결 방식</span><div class="meas-mode-options" role="group" aria-label="코스 연결 방식"><button type="button" data-mode="water">🌊 물길 따라</button><button type="button" data-mode="straight">📏 직선 연결</button></div>';
+    L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+    L.DomEvent.on(d,'click',function(e){ const button=e.target.closest('button[data-mode]');if(!button)return;L.DomEvent.preventDefault(e);
+      measMode=button.dataset.mode; try{localStorage.setItem('mc_measmode',measMode);}catch(e){} updateMeasModeBtn();
       if(measureMode) measHint('이후 구간은 '+(measMode==='water'?'🌊물길(실선)':'📏직선(점선)')+'으로 측정 — 모드 섞어 써도 됩니다');
     });
     updateMeasModeBtn(d); return d; } });
 map.addControl(new MeasModeCtl());
-function updateMeasModeBtn(d){ d=d||document.getElementById('measModeBtn'); if(!d) return; d.innerHTML=(measMode==='water'?'🌊 물길':'📏 직선'); }
+function updateMeasModeBtn(d){ d=d||document.getElementById('measModeBtn'); if(!d) return; d.querySelectorAll('button[data-mode]').forEach(function(button){const selected=button.dataset.mode===measMode;button.setAttribute('aria-pressed',String(selected));button.textContent=(selected?'✓ ':'')+(button.dataset.mode==='water'?'🌊 물길 따라':'📏 직선 연결');}); }
 function updateMeasBtn(){
   const b=document.getElementById('measBtnBox'); if(!b) return;
   b.classList.toggle('on', measureMode);
