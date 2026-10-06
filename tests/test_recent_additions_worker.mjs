@@ -14,6 +14,7 @@ data.set('courses', JSON.stringify([
   { id: now - 3000, t: now - 3000, owner: 'admin', name: '엑스페디션#10', km: 12, coords: [[37, 127], [37.1, 127.1]] },
   { id: now - 2000, t: now - 2000, owner: uid, name: '개인 비공개 코스', km: 5, coords: [[37, 127], [37.1, 127.1]] },
   { id: now - 1000, t: now - 1000, owner: 'admin', name: '엑스페디션#11', km: 25, coords: [[38, 127], [38.1, 127.1]] },
+  { id: now - 100, t: now - 100, owner: 'admin', name: '번버리 픽 춘천호', km: 8, coords: [[38, 127], [38.1, 127.1]] },
 ]));
 data.set('placeover', JSON.stringify({
   ['u' + (now - 500)]: { new: 1, name: '새 런칭지', cat: 'canoe', lat: 38, lng: 127 },
@@ -40,9 +41,44 @@ const response = await request({ 'X-User-Id': uid, 'X-Auth-Token': tok });
 assert.equal(response.status, 200);
 assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
 const recent = await response.json();
-assert.deepEqual(recent.courses.map((course) => course.id), ['k' + (now - 1000), 'k' + (now - 3000)]);
+assert.deepEqual(recent.courses.map((course) => course.id), ['k' + (now - 100), 'k' + (now - 1000), 'k' + (now - 3000)]);
 assert.deepEqual(recent.places.map((place) => place.name), ['새 런칭지']);
 assert.equal(JSON.stringify(recent).includes('개인 비공개 코스'), false);
 assert.equal(JSON.stringify(recent).includes('비공개 후보지'), false);
+
+const featuredUrl = 'https://mycanoe-map.kohoon0140.workers.dev/courses?featured=1&uid=' + encodeURIComponent(uid) + '&tok=' + encodeURIComponent(tok);
+const featuredResponse = await worker.fetch(new Request(featuredUrl, { headers: { Origin: 'https://canoe.crowdbase.kr' } }), env, ctx);
+assert.equal(featuredResponse.status, 200);
+const featured = await featuredResponse.json();
+assert.deepEqual(featured.map((course) => course.id).sort(), [now - 3000, now - 1000, now - 100].sort());
+assert.equal(featured.some((course) => course.name === '번버리 픽 춘천호'), true);
+
+for (const body of [
+  { action: 'adduser', id: uid, tok, name: '번버리 픽 개인 코스', coords: [[37, 127], [37.1, 127.1]] },
+  { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '번버리 픽 개인 코스' },
+]) {
+  const denied = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/course', {
+    method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  }), env, ctx);
+  assert.equal(denied.status, 403);
+}
+
+globalThis.caches = { default: { delete: async () => true } };
+const created = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/course', {
+  method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' },
+  body: JSON.stringify({ action: 'add', adminKey: secret, name: '번버리 픽 테스트', waterType: 'flowing', travelMode: 'downriver', coords: [[37, 127], [37.1, 127.1]] }),
+}), env, ctx);
+assert.equal(created.status, 200);
+const saved = (await created.json()).course;
+assert.equal(saved.waterType, 'flowing');
+assert.equal(saved.travelMode, 'downriver');
+
+const staticUpdated = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/course', {
+  method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' },
+  body: JSON.stringify({ action: 'editstatic', adminKey: secret, cid: '1', name: '정적 코스', km: 2, waterType: 'flat', travelMode: 'traverse' }),
+}), env, ctx);
+assert.equal(staticUpdated.status, 200);
+assert.equal(JSON.parse(data.get('course_over'))['1'].waterType, 'flat');
+assert.equal(JSON.parse(data.get('course_over'))['1'].travelMode, 'traverse');
 
 console.log('recent additions worker regression: ok');

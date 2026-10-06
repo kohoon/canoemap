@@ -67,6 +67,48 @@ test('approved B layout keeps course list and selected detail in one PC panel', 
   await browser.close();
 });
 
+test('B layout offers an admin-only Bunbury Pick category and course filter', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    hideGate();
+    setUser({ uid: 'test-admin', tok: 'test-token', nick: '운영자' });
+    _adminOk = true;
+    _lastCourse = { km: 1.2, coords: [[37, 127], [37.01, 127.01]], segments: [] };
+    openCourseModal('add');
+  });
+  await page.locator('#cmBody [data-cat="번버리 픽"]').click();
+  await expect(page.locator('#cmNoRow')).toBeHidden();
+  await page.locator('#cmName').fill('춘천호');
+  await expect(page.locator('#cmPrev')).toHaveText('번버리 픽 춘천호');
+  await page.locator('#cmBody [data-character="water"][data-value="flowing"]').click();
+  await page.locator('#cmBody [data-character="travel"][data-value="downriver"]').click();
+  await expect(page.locator('#cmBody [data-character="water"][data-value="flowing"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#cmBody [data-character="travel"][data-value="downriver"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.locator('#cmBody .seg').evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.evaluate(() => {
+    closeCourseModal();
+    renderKVCourse({ id: '1790000000900', owner: 'admin', name: '번버리 픽 춘천호', waterType: 'flowing', travelMode: 'downriver', km: 1.2, coords: [[37, 127], [37.01, 127.01]] });
+    _adminOk = false;
+    _pcDockRender();
+  });
+  await expect(page.locator('#pcDock [data-filter="bunbury"]')).toBeVisible();
+  await page.locator('#pcDock [data-filter="bunbury"]').click();
+  await expect(page.locator('#pcCourseList .pc-course-item')).toHaveCount(1);
+  await expect(page.locator('#pcCourseList .pc-course-item')).toContainText('번버리 픽 춘천호');
+  await expect(page.locator('#pcCourseList .pc-course-item')).toContainText('유수 · ↘ 다운리버');
+  await expect(page.locator('#pcCourseList .course-character-icon')).toHaveText('〰');
+  await page.evaluate(() => openCourseModal('add'));
+  await expect(page.locator('#cmBody [data-cat="번버리 픽"]')).toHaveCount(0);
+  await browser.close();
+});
+
 test('clicking a course line on the PC map opens its full detail', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

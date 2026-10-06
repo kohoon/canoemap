@@ -235,22 +235,29 @@ function _launchCat(v, name) {
   if (v === "candidate" || v === "런칭/랜딩 후보지") return "candidate";
   return "canoe";
 }
+function _courseWaterValue(value) { return ["flat", "flowing", "rapid"].includes(String(value || "")) ? String(value) : ""; }
+function _courseTravelValue(value) { return ["roundtrip", "downriver", "traverse"].includes(String(value || "")) ? String(value) : ""; }
 async function _recentAdditions(KV) {
   let storedCourses = [], placeOverrides = {};
   try { storedCourses = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
   try { placeOverrides = JSON.parse((await KV.get("placeover")) || "{}"); } catch (e) {}
-  const recentByRound = new Map();
+  const recentByRound = new Map(), recentPicks = [];
   for (const raw of Array.isArray(storedCourses) ? storedCourses : []) {
     if (!raw || String(raw.owner || "") !== "admin") continue;
     const course = normalizeExpedition(applyCourseCorrection(raw), "k" + raw.id);
     const round = expeditionNumber(course, "k" + raw.id);
     const t = Number(raw.t || raw.createdAt || raw.id);
-    if (!round || !Number.isSafeInteger(t) || t < 1577836800000 || !Array.isArray(course.coords) || course.coords.length < 2) continue;
+    if (!Number.isSafeInteger(t) || t < 1577836800000 || !Array.isArray(course.coords) || course.coords.length < 2) continue;
+    if (!round) {
+      if (/^번버리 픽(?:\s|$)/.test(String(course.name || "")))
+        recentPicks.push({ id: "k" + raw.id, name: String(course.name).slice(0, 100), km: Number(course.km) || 0, t });
+      continue;
+    }
     const previous = recentByRound.get(round);
     if (!previous || Number(raw.updatedAt || t) > previous.versionAt)
       recentByRound.set(round, { id: "k" + raw.id, name: String(course.name || "코스").slice(0, 100), km: Number(course.km) || 0, t, versionAt: Number(raw.updatedAt || t) });
   }
-  const courses = Array.from(recentByRound.values()).sort((a, b) => b.t - a.t).slice(0, 4)
+  const courses = [...recentByRound.values(), ...recentPicks].sort((a, b) => b.t - a.t).slice(0, 4)
     .map(({ id, name, km, t }) => ({ id, name, km, t }));
   const places = Object.entries(placeOverrides && typeof placeOverrides === "object" ? placeOverrides : {})
     .flatMap(([id, p]) => {
@@ -1210,11 +1217,14 @@ export default {
           const shared = arr.find((x) => String(x.id) === sharedId);
           return new Response(JSON.stringify(shared ? [shared] : []), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "public, max-age=60" } });
         }
-        if (url.searchParams.get("expedition")) {
+        if (url.searchParams.get("expedition") || url.searchParams.get("featured")) {
           const uid = (url.searchParams.get("uid") || "").slice(0, 40);
           const userOk = !!uid && await _memberOk(env, uid, url.searchParams.get("tok"));
           if (!userOk) return J("[]");
-          arr = arr.filter((x) => String(x.owner || "") === "admin" && String(x.name || "").startsWith("엑스페디션"));
+          arr = arr.filter((x) => String(x.owner || "") === "admin" && (
+            String(x.name || "").startsWith("엑스페디션") ||
+            (!!url.searchParams.get("featured") && /^번버리 픽(?:\s|$)/.test(String(x.name || "")))
+          ));
           return new Response(JSON.stringify(arr), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
         }
         if (url.searchParams.get("mine")) {
@@ -1272,6 +1282,8 @@ export default {
             if (name) over[cid].name = name;
             if (Number.isFinite(km)) over[cid].km = km;
             if (color) over[cid].color = color;
+            if (b.waterType != null) over[cid].waterType = _courseWaterValue(b.waterType);
+            if (b.travelMode != null) over[cid].travelMode = _courseTravelValue(b.travelMode);
             over[cid].updatedAt = Date.now();
           }
           await KV.put("course_over", JSON.stringify(over));
@@ -1296,9 +1308,12 @@ export default {
           const it = arr.find((x) => String(x.id) === String(b.courseId));
           if (!it) return new Response("notfound", { status: 404, headers: cors });
           if (!adminOk && !(uid && String(it.owner || "") === uid && tokOk)) return new Response("forbidden", { status: 403, headers: cors });
+          if (!adminOk && /^번버리 픽(?:\s|$)/.test(String(b.name || ""))) return new Response("admin-category", { status: 403, headers: cors });
           it.name = String(b.name || it.name || "코스").slice(0, 80);
           if (b.km != null) it.km = Number(b.km) || 0;
           if (/^#[0-9a-f]{6}$/i.test(String(b.color || ""))) it.color = String(b.color).toLowerCase();
+          if (b.waterType != null) it.waterType = _courseWaterValue(b.waterType);
+          if (b.travelMode != null) it.travelMode = _courseTravelValue(b.travelMode);
           if (b.coords != null) {
             const coords = Array.isArray(b.coords) ? b.coords.slice(0, 5000).map((p) => [Number(p && p[0]), Number(p && p[1])]) : [];
             if (coords.length < 2 || coords.some((p) => !Number.isFinite(p[0]) || !Number.isFinite(p[1]) || Math.abs(p[0]) > 90 || Math.abs(p[1]) > 180)) return new Response("bad", { status: 400, headers: cors });
@@ -1315,6 +1330,7 @@ export default {
           const coords = Array.isArray(b.coords) ? b.coords.slice(0, 5000) : [];
           if (coords.length < 2) return new Response("bad", { status: 400, headers: cors });
           if (!adminOk && !(uid && tokOk)) return new Response("relogin", { status: 401, headers: cors });
+          if (!adminOk && /^번버리 픽(?:\s|$)/.test(String(b.name || ""))) return new Response("admin-category", { status: 403, headers: cors });
           const clientId = String(b.clientId || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64);
           const owner = adminOk ? "admin" : uid;
           const existing = clientId ? arr.find((x) => String(x.owner || "") === String(owner) && String(x.clientId || "") === clientId) : null;
@@ -1326,7 +1342,7 @@ export default {
           })) : [];
           const now = Date.now();
           const color = /^#[0-9a-f]{6}$/i.test(String(b.color || "")) ? String(b.color).toLowerCase() : "";
-          savedCourse = { id: now, name: String(b.name || "코스").slice(0, 80), color: color, coords: coords, km: Number(b.km) || 0, segments: segments, t: now, owner: owner, nick: String(b.nick || "").slice(0, 20), clientId: clientId };
+          savedCourse = { id: now, name: String(b.name || "코스").slice(0, 80), color: color, waterType: _courseWaterValue(b.waterType), travelMode: _courseTravelValue(b.travelMode), coords: coords, km: Number(b.km) || 0, segments: segments, t: now, owner: owner, nick: String(b.nick || "").slice(0, 20), clientId: clientId };
           arr.unshift(savedCourse);
           if (arr.length > 200) arr = arr.slice(0, 200);
         } else {
