@@ -367,6 +367,26 @@ test('one world is centered on Korea with the Americas on the right', async () =
   await browser.close();
 });
 
+test('member place suggestions omit the administrator-only candidate category', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    const page = await browser.newPage({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => {
+      hideGate();
+      setUser({ uid: 'test-member', tok: 'test-token' });
+      window._curAddr = { lat: 37.5, lng: 127.5, name: '제안 위치' };
+      suggestPlace();
+    });
+    await expect(page.locator('#sgSeg .seg-b')).toHaveCount(3);
+    expect(await page.locator('#sgSeg .seg-b').evaluateAll(nodes => nodes.map(node => node.dataset.v))).toEqual(['런칭/랜딩', '지형지물', '기타']);
+    await page.close();
+  }
+  await browser.close();
+});
+
 test('candidate promotion persists in the unified place override', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

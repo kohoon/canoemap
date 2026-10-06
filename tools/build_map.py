@@ -2108,7 +2108,7 @@ function suggestPlace(){
     '<h3>제안하기</h3>'
     +'<div class="sg-addr">📍 '+pmEsc(a.name||'선택한 위치')+'</div>'
     +'<div class="sg-label">유형 선택</div>'
-    +'<div class="seg" id="sgSeg"><button type="button" class="seg-b on" data-v="런칭/랜딩">🛶 런칭/랜딩</button><button type="button" class="seg-b" data-v="런칭/랜딩 후보지">🟠 후보지</button><button type="button" class="seg-b" data-v="지형지물">🗺️ 지형지물</button><button type="button" class="seg-b" data-v="기타">📍 기타</button></div>'
+    +'<div class="seg" id="sgSeg"><button type="button" class="seg-b on" data-v="런칭/랜딩">🛶 런칭/랜딩</button><button type="button" class="seg-b" data-v="지형지물">🗺️ 지형지물</button><button type="button" class="seg-b" data-v="기타">📍 기타</button></div>'
     +'<textarea id="sgText" rows="3" maxlength="200" placeholder="설명/코멘트 (예: 진입로·주차 정보 / 보·징검다리 등 주의사항)"></textarea>'
     +'<label class="sg-photo" id="sgPhotoBtn">📷 사진 첨부<input type="file" id="sgPhoto" accept="image/*"></label><div id="sgPhotoPrev"></div>'
     +'<button class="sg-submit" id="sgSave">제안 보내기</button><div id="sgMsg"></div>';
