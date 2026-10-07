@@ -49,6 +49,9 @@ for (const width of [1280, 390]) {
     await expect(page.locator('#coursePanel')).toBeVisible();
     await expect(page.locator('#courseSummary')).toContainText('2');
     await expect(page.locator('#courseList .course-card')).toHaveCount(2);
+    await expect(page.locator('#courseList .course-card').first().locator('.course-url')).toHaveAttribute('href', `${baseURL}/?course=k1810000000002&detail=1`);
+    await expect(page.locator('#courseList .course-card').first().locator('.course-url')).toHaveAttribute('target', '_blank');
+    await expect(page.locator('#courseList .course-card').nth(1).locator('.course-url')).toHaveAttribute('href', `${baseURL}/?course=k1810000000003&detail=1`);
     await page.locator('#courseSearch').fill('다른 회원');
     await page.locator('#courseSearchBtn').click();
     await expect(page.locator('#courseList .course-card')).toHaveCount(1);
