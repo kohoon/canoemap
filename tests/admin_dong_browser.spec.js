@@ -42,13 +42,19 @@ for (const width of [390, 1280]) {
       if (rows.length !== 1) return { rows };
       await highlightAdministrativeArea(rows[0]);
       return { rows, bounds: _adminAreaLayer && _adminAreaLayer.getBounds().isValid(),
-        focus: document.querySelector('#adminFocusBar .admin-focus-name').textContent };
+        focus: document.querySelector('#adminFocusBar .admin-focus-name').textContent,
+        sourceLink: document.querySelector('#adminFocusBar .admin-focus-source').getAttribute('href'),
+        sourceVisible: !document.querySelector('#adminFocusBar .admin-focus-source').hidden,
+        footer: document.querySelector('.leaflet-control-attribution').textContent };
     });
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0].adminLevel).toBe('HJD');
     expect(result.rows[0].sub).toContain('행정동');
     expect(result.bounds).toBe(true);
-    expect(result.focus).toContain('SGIS·admdongkor');
+    expect(result.focus).toBe('서울특별시 종로구 청운효자동');
+    expect(result.sourceLink).toBe('/admin_dong/ATTRIBUTION.md');
+    expect(result.sourceVisible).toBe(true);
+    expect(result.footer).not.toContain('행정동 경계');
     expect(errors).toEqual([]);
     await browser.close();
   });

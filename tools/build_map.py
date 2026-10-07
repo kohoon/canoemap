@@ -208,6 +208,7 @@ __GTAG__
   .admin-focus-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .admin-focus-x{display:flex;align-items:center;justify-content:center;flex:none;width:var(--mc-icon-target);height:var(--mc-icon-target);padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font:700 18px/1 sans-serif;cursor:pointer}
   .admin-focus-x:hover,.admin-focus-x:focus{background:rgba(255,255,255,.32);outline:none}
+  .admin-focus-source{flex:none;color:#fff;font:700 12px/1 sans-serif;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
   .search-pin{font-size:30px;line-height:30px;text-align:center;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
   .course-share{color:#1565c0;cursor:pointer;text-decoration:none;font-weight:600}
   .river-focus-bar{display:none;align-items:center;gap:8px;max-width:min(260px,65vw);box-sizing:border-box;background:#087fa9;color:#fff;padding:8px 8px 8px 11px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.38);font:700 13px/1.2 sans-serif}
@@ -1910,7 +1911,6 @@ function _loadHjdIndex(){
   if(_hjdIndexLoading)return _hjdIndexLoading;
   _hjdIndexLoading=fetch('./admin_dong_index.json?v='+DATAVER.hjd).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();}).then(function(d){
     _hjdIndex=d;
-    map.attributionControl.addAttribution('행정동 경계: <a href="https://sgis.mods.go.kr/" target="_blank" rel="noopener">통계청 SGIS</a> · <a href="https://github.com/vuski/admdongkor" target="_blank" rel="noopener">admdongkor</a> (CC BY 4.0)');
     return d;
   }).finally(function(){_hjdIndexLoading=null;});
   return _hjdIndexLoading;
@@ -4369,11 +4369,11 @@ function clearAdministrativeArea(){
   if(_adminAreaLayer){try{map.removeLayer(_adminAreaLayer);}catch(e){}_adminAreaLayer=null;}
   const d=document.getElementById('adminFocusBar');if(d)d.classList.remove('on');
 }
-function _showAdminFocusBar(name){
+function _showAdminFocusBar(name,showSource){
   if(!_adminFocusCtl){
-    const C=L.Control.extend({options:{position:'topleft'},onAdd:function(){const d=L.DomUtil.create('div','admin-focus-bar');d.id='adminFocusBar';d.innerHTML='<span aria-hidden="true">🗺️</span><span class="admin-focus-name"></span><button class="admin-focus-x" type="button" title="행정구역 강조 해제" aria-label="행정구역 강조 해제">×</button>';L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);d.querySelector('button').onclick=clearAdministrativeArea;return d;}});_adminFocusCtl=new C();map.addControl(_adminFocusCtl);
+    const C=L.Control.extend({options:{position:'topleft'},onAdd:function(){const d=L.DomUtil.create('div','admin-focus-bar');d.id='adminFocusBar';d.innerHTML='<span aria-hidden="true">🗺️</span><span class="admin-focus-name"></span><a class="admin-focus-source" href="/admin_dong/ATTRIBUTION.md" target="_blank" rel="noopener" aria-label="행정동 경계 자료 출처와 라이선스" hidden>ⓘ 출처</a><button class="admin-focus-x" type="button" title="행정구역 강조 해제" aria-label="행정구역 강조 해제">×</button>';L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);d.querySelector('button').onclick=clearAdministrativeArea;return d;}});_adminFocusCtl=new C();map.addControl(_adminFocusCtl);
   }
-  const d=document.getElementById('adminFocusBar');if(!d)return;d.querySelector('.admin-focus-name').textContent=name;d.classList.add('on');
+  const d=document.getElementById('adminFocusBar');if(!d)return;d.querySelector('.admin-focus-name').textContent=name;d.querySelector('.admin-focus-source').hidden=!showSource;d.classList.add('on');
 }
 async function highlightAdministrativeArea(x){
   const data=x.adminLevel==='L1'?'LT_C_ADSIDO_INFO':((x.adminLevel==='L2'||x.adminLevel==='L2GROUP')?'LT_C_ADSIGG_INFO':(x.adminLevel==='L3'?'LT_C_ADEMD_INFO':'LT_C_ADRI_INFO'));
@@ -4392,7 +4392,7 @@ async function highlightAdministrativeArea(x){
     L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#fff',weight:10,opacity:.92,fill:false,lineJoin:'round',lineCap:'round',smoothFactor:1.5}}).addTo(_adminAreaLayer);
     L.geoJSON(boundary,{pane:'adminAreaPane',interactive:false,style:{color:'#00a8b5',weight:4,opacity:1,fill:false,lineJoin:'round',lineCap:'round',smoothFactor:1.5}}).addTo(_adminAreaLayer);
     const b=_adminAreaLayer.getBounds(),maxZoom=x.adminLevel==='L1'?8:((x.adminLevel==='L2'||x.adminLevel==='L2GROUP')?11:((x.adminLevel==='L3'||x.adminLevel==='HJD')?13:14));if(b&&b.isValid())map.fitBounds(b,{padding:[32,32],maxZoom:maxZoom});
-    _showAdminFocusBar(x.disp+(x.adminLevel==='HJD'?' · 행정동 (SGIS·admdongkor)':''));gaEvent('admin_area_highlight',{level:x.adminLevel,name:String(x.disp||'').slice(0,50)});
+    _showAdminFocusBar(x.disp,x.adminLevel==='HJD');gaEvent('admin_area_highlight',{level:x.adminLevel,name:String(x.disp||'').slice(0,50)});
   }catch(e){_offToast('행정구역 경계를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');}
 }
 map.on('click', function(){ closeSearchPreview(true); });
