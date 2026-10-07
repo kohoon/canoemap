@@ -67,7 +67,7 @@ test('approved B layout keeps course list and selected detail in one PC panel', 
   await browser.close();
 });
 
-test('B layout offers an admin-only Bunbury Pick category and course filter', async () => {
+test('B layout offers an admin-only BunburyPick category and keeps older course names', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -80,10 +80,10 @@ test('B layout offers an admin-only Bunbury Pick category and course filter', as
     _lastCourse = { km: 1.2, coords: [[37, 127], [37.01, 127.01]], segments: [] };
     openCourseModal('add');
   });
-  await page.locator('#cmBody [data-cat="번버리 픽"]').click();
+  await page.locator('#cmBody [data-cat="번버리Pick"]').click();
   await expect(page.locator('#cmNoRow')).toBeHidden();
   await page.locator('#cmName').fill('춘천호');
-  await expect(page.locator('#cmPrev')).toHaveText('번버리 픽 춘천호');
+  await expect(page.locator('#cmPrev')).toHaveText('번버리Pick 춘천호');
   await page.locator('#cmBody [data-character="water"][data-value="flowing"]').click();
   await page.locator('#cmBody [data-character="travel"][data-value="downriver"]').click();
   await expect(page.locator('#cmBody [data-character="water"][data-value="flowing"]')).toHaveAttribute('aria-pressed', 'true');
@@ -98,14 +98,15 @@ test('B layout offers an admin-only Bunbury Pick category and course filter', as
     _adminOk = false;
     _pcDockRender();
   });
+  await expect(page.locator('#pcDock [data-filter="bunbury"]')).toHaveText('번버리Pick');
   await expect(page.locator('#pcDock [data-filter="bunbury"]')).toBeVisible();
   await page.locator('#pcDock [data-filter="bunbury"]').click();
   await expect(page.locator('#pcCourseList .pc-course-item')).toHaveCount(1);
-  await expect(page.locator('#pcCourseList .pc-course-item')).toContainText('번버리 픽 춘천호');
+  await expect(page.locator('#pcCourseList .pc-course-item')).toContainText('번버리Pick 춘천호');
   await expect(page.locator('#pcCourseList .pc-course-item')).toContainText('유수 · ↘ 다운리버');
   await expect(page.locator('#pcCourseList .course-character-icon')).toHaveText('〰');
   await page.evaluate(() => openCourseModal('add'));
-  await expect(page.locator('#cmBody [data-cat="번버리 픽"]')).toHaveCount(0);
+  await expect(page.locator('#cmBody [data-cat="번버리Pick"]')).toHaveCount(0);
   await browser.close();
 });
 

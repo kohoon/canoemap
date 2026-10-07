@@ -20,6 +20,7 @@ export function expeditionNumber(course, shareId){
   return EXPEDITIONS[n]?n:0;
 }
 export function normalizeExpedition(course, shareId){
+  if(!course)return course;
   const n=expeditionNumber(course,shareId),meta=EXPEDITIONS[n];
-  return meta?{...course,name:'엑스페디션 #'+n+' · '+meta[0]+' · '+meta[1]}:course;
+  return meta?{...course,name:'엑스페디션 #'+n+' · '+meta[0]+' · '+meta[1]}:{...course,name:String(course.name||'').replace(/^번버리(?: 픽|Pick)(?=\s|$)/,'번버리Pick')};
 }

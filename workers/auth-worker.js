@@ -249,7 +249,7 @@ async function _recentAdditions(KV, seen = new Set(), limit = 4) {
     const t = Number(raw.t || raw.createdAt || raw.id);
     if (!Number.isSafeInteger(t) || t < 1577836800000 || !Array.isArray(course.coords) || course.coords.length < 2) continue;
     if (!round) {
-      if (/^번버리 픽(?:\s|$)/.test(String(course.name || "")))
+      if (/^번버리(?: 픽|Pick)(?=\s|$)/.test(String(course.name || "")))
         recentPicks.push({ id: "k" + raw.id, name: String(course.name).slice(0, 100), km: Number(course.km) || 0, t });
       continue;
     }
@@ -1239,7 +1239,7 @@ export default {
           if (!userOk) return J("[]");
           arr = arr.filter((x) => String(x.owner || "") === "admin" && (
             String(x.name || "").startsWith("엑스페디션") ||
-            (!!url.searchParams.get("featured") && /^번버리 픽(?:\s|$)/.test(String(x.name || "")))
+            (!!url.searchParams.get("featured") && /^번버리(?: 픽|Pick)(?=\s|$)/.test(String(x.name || "")))
           ));
           return new Response(JSON.stringify(arr), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
         }
@@ -1324,7 +1324,7 @@ export default {
           const it = arr.find((x) => String(x.id) === String(b.courseId));
           if (!it) return new Response("notfound", { status: 404, headers: cors });
           if (!adminOk && !(uid && String(it.owner || "") === uid && tokOk)) return new Response("forbidden", { status: 403, headers: cors });
-          if (!adminOk && /^번버리 픽(?:\s|$)/.test(String(b.name || ""))) return new Response("admin-category", { status: 403, headers: cors });
+          if (!adminOk && /^번버리(?: 픽|Pick)(?=\s|$)/.test(String(b.name || ""))) return new Response("admin-category", { status: 403, headers: cors });
           it.name = String(b.name || it.name || "코스").slice(0, 80);
           if (b.km != null) it.km = Number(b.km) || 0;
           if (/^#[0-9a-f]{6}$/i.test(String(b.color || ""))) it.color = String(b.color).toLowerCase();
@@ -1346,7 +1346,7 @@ export default {
           const coords = Array.isArray(b.coords) ? b.coords.slice(0, 5000) : [];
           if (coords.length < 2) return new Response("bad", { status: 400, headers: cors });
           if (!adminOk && !(uid && tokOk)) return new Response("relogin", { status: 401, headers: cors });
-          if (!adminOk && /^번버리 픽(?:\s|$)/.test(String(b.name || ""))) return new Response("admin-category", { status: 403, headers: cors });
+          if (!adminOk && /^번버리(?: 픽|Pick)(?=\s|$)/.test(String(b.name || ""))) return new Response("admin-category", { status: 403, headers: cors });
           const clientId = String(b.clientId || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64);
           const owner = adminOk ? "admin" : uid;
           const existing = clientId ? arr.find((x) => String(x.owner || "") === String(owner) && String(x.clientId || "") === clientId) : null;

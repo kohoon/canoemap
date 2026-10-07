@@ -42,6 +42,7 @@ assert.equal(response.status, 200);
 assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
 const recent = await response.json();
 assert.deepEqual(recent.courses.map((course) => course.id), ['k' + (now - 100), 'k' + (now - 1000), 'k' + (now - 3000)]);
+assert.equal(recent.courses[0].name, '번버리Pick 춘천호');
 assert.deepEqual(recent.places.map((place) => place.name), ['새 런칭지']);
 assert.equal(JSON.stringify(recent).includes('개인 비공개 코스'), false);
 assert.equal(JSON.stringify(recent).includes('비공개 후보지'), false);
@@ -71,11 +72,13 @@ const featuredResponse = await worker.fetch(new Request(featuredUrl, { headers: 
 assert.equal(featuredResponse.status, 200);
 const featured = await featuredResponse.json();
 assert.deepEqual(featured.map((course) => course.id).sort(), [now - 3000, now - 1000, now - 100].sort());
-assert.equal(featured.some((course) => course.name === '번버리 픽 춘천호'), true);
+assert.equal(featured.some((course) => course.name === '번버리Pick 춘천호'), true);
 
 for (const body of [
   { action: 'adduser', id: uid, tok, name: '번버리 픽 개인 코스', coords: [[37, 127], [37.1, 127.1]] },
   { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '번버리 픽 개인 코스' },
+  { action: 'adduser', id: uid, tok, name: '번버리Pick 개인 코스', coords: [[37, 127], [37.1, 127.1]] },
+  { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '번버리Pick 개인 코스' },
 ]) {
   const denied = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/course', {
     method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' }, body: JSON.stringify(body),
@@ -86,7 +89,7 @@ for (const body of [
 globalThis.caches = { default: { delete: async () => true } };
 const created = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/course', {
   method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' },
-  body: JSON.stringify({ action: 'add', adminKey: secret, name: '번버리 픽 테스트', waterType: 'flowing', travelMode: 'downriver', coords: [[37, 127], [37.1, 127.1]] }),
+  body: JSON.stringify({ action: 'add', adminKey: secret, name: '번버리Pick 테스트', waterType: 'flowing', travelMode: 'downriver', coords: [[37, 127], [37.1, 127.1]] }),
 }), env, ctx);
 assert.equal(created.status, 200);
 const saved = (await created.json()).course;
