@@ -46,6 +46,26 @@ assert.deepEqual(recent.places.map((place) => place.name), ['새 런칭지']);
 assert.equal(JSON.stringify(recent).includes('개인 비공개 코스'), false);
 assert.equal(JSON.stringify(recent).includes('비공개 후보지'), false);
 
+const seenIds = [...recent.courses.map((course) => 'course:' + course.id), ...recent.places.map((place) => 'place:' + place.id)];
+const acknowledged = await worker.fetch(new Request(endpoint, {
+  method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json', 'X-User-Id': uid, 'X-Auth-Token': tok },
+  body: JSON.stringify({ ids: seenIds }),
+}), env, ctx);
+assert.equal(acknowledged.status, 200);
+assert.deepEqual(await (await request({ 'X-User-Id': uid, 'X-Auth-Token': tok })).json(), { courses: [], places: [] });
+assert.equal(JSON.parse(data.get('recent_seen:' + hmac(`member-id|${uid}`).slice(0, 16))).length, seenIds.length);
+const otherUid = 'another-recent-member';
+data.set(`member:${hmac(`member-key|${otherUid}`).slice(0, 32)}`, JSON.stringify({ status: 'active', nick: '다른 회원' }));
+const otherTok = `mc2.${exp}.${hmac(`mc2|${otherUid}|${exp}`).slice(0, 32)}`;
+const otherResponse = await request({ 'X-User-Id': otherUid, 'X-Auth-Token': otherTok });
+assert.equal((await otherResponse.json()).courses.length, recent.courses.length);
+
+const forged = await worker.fetch(new Request(endpoint, {
+  method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json', 'X-User-Id': uid, 'X-Auth-Token': tok },
+  body: JSON.stringify({ ids: ['place:some-made-up-id'] }),
+}), env, ctx);
+assert.equal(forged.status, 400);
+
 const featuredUrl = 'https://mycanoe-map.kohoon0140.workers.dev/courses?featured=1&uid=' + encodeURIComponent(uid) + '&tok=' + encodeURIComponent(tok);
 const featuredResponse = await worker.fetch(new Request(featuredUrl, { headers: { Origin: 'https://canoe.crowdbase.kr' } }), env, ctx);
 assert.equal(featuredResponse.status, 200);
@@ -72,6 +92,7 @@ assert.equal(created.status, 200);
 const saved = (await created.json()).course;
 assert.equal(saved.waterType, 'flowing');
 assert.equal(saved.travelMode, 'downriver');
+assert.deepEqual((await (await request({ 'X-User-Id': uid, 'X-Auth-Token': tok })).json()).courses.map((course) => course.id), ['k' + saved.id]);
 
 const staticUpdated = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/course', {
   method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' },

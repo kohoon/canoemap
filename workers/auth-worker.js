@@ -237,7 +237,7 @@ function _launchCat(v, name) {
 }
 function _courseWaterValue(value) { return ["flat", "flowing", "rapid"].includes(String(value || "")) ? String(value) : ""; }
 function _courseTravelValue(value) { return ["roundtrip", "downriver", "traverse"].includes(String(value || "")) ? String(value) : ""; }
-async function _recentAdditions(KV) {
+async function _recentAdditions(KV, seen = new Set(), limit = 4) {
   let storedCourses = [], placeOverrides = {};
   try { storedCourses = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
   try { placeOverrides = JSON.parse((await KV.get("placeover")) || "{}"); } catch (e) {}
@@ -257,7 +257,7 @@ async function _recentAdditions(KV) {
     if (!previous || Number(raw.updatedAt || t) > previous.versionAt)
       recentByRound.set(round, { id: "k" + raw.id, name: String(course.name || "코스").slice(0, 100), km: Number(course.km) || 0, t, versionAt: Number(raw.updatedAt || t) });
   }
-  const courses = [...recentByRound.values(), ...recentPicks].sort((a, b) => b.t - a.t).slice(0, 4)
+  const courses = [...recentByRound.values(), ...recentPicks].filter((item) => !seen.has("course:" + item.id)).sort((a, b) => b.t - a.t).slice(0, limit)
     .map(({ id, name, km, t }) => ({ id, name, km, t }));
   const places = Object.entries(placeOverrides && typeof placeOverrides === "object" ? placeOverrides : {})
     .flatMap(([id, p]) => {
@@ -265,7 +265,7 @@ async function _recentAdditions(KV) {
       const t = Number(p.createdAt || (/^u\d{13}$/.test(id) ? id.slice(1) : 0));
       if (!Number.isSafeInteger(t) || t < 1577836800000 || !String(p.name || "").trim()) return [];
       return [{ id: String(id).slice(0, 30), name: String(p.name).slice(0, 100), t }];
-    }).sort((a, b) => b.t - a.t).slice(0, 4);
+    }).filter((item) => !seen.has("place:" + item.id)).sort((a, b) => b.t - a.t).slice(0, limit);
   return { courses, places };
 }
 async function _launchAll(KV, includeCandidates) {
@@ -671,18 +671,34 @@ export default {
       return J({ ok: false, error: "method" }, 405);
     }
 
-    // 최근 추가된 공개 운영 코스와 런칭·랜딩지 — 회원 세션만 조회
+    // 최근 추가된 공개 운영 코스와 런칭·랜딩지 — 회원별 1회 안내
     if (url.pathname.endsWith("/recent-additions")) {
       const origin = req.headers.get("Origin") || "";
-      const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Allow-Headers": "X-User-Id, X-Auth-Token" };
+      const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token" };
       if (req.method === "OPTIONS") return new Response(null, { headers: cors });
-      if (req.method !== "GET") return new Response("method", { status: 405, headers: cors });
+      if (req.method !== "GET" && req.method !== "POST") return new Response("method", { status: 405, headers: cors });
       if (!origin || !_allowedOrigin(req, env)) return new Response("forbidden-origin", { status: 403, headers: cors });
       const uid = String(req.headers.get("X-User-Id") || "").slice(0, 40);
       if (!uid || !(await _memberOk(env, uid, req.headers.get("X-Auth-Token")))) return new Response("unauthorized", { status: 401, headers: cors });
       const KV = env.PLACES;
       if (!KV) return new Response("no-store", { status: 500, headers: cors });
-      const result = await _recentAdditions(KV);
+      const key = "recent_seen:" + (await _memberId(env, uid));
+      let saved = []; try { saved = JSON.parse((await KV.get(key)) || "[]"); } catch (e) {}
+      const seen = new Set((Array.isArray(saved) ? saved : []).filter((id) => typeof id === "string"));
+      if (req.method === "POST") {
+        const ip = req.headers.get("CF-Connecting-IP") || "0";
+        if (await _rateLimited(env, "recent_" + (await _uidHash(env, uid)), ip, 30)) return new Response("rate-limit", { status: 429, headers: cors });
+        let body = {}; try { body = await req.json(); } catch (e) {}
+        const ids = Array.isArray(body.ids) ? body.ids.slice(0, 8) : [];
+        const available = await _recentAdditions(KV, seen, Infinity);
+        const allowed = new Set([...seen, ...available.courses.map((item) => "course:" + item.id), ...available.places.map((item) => "place:" + item.id)]);
+        const valid = ids.filter((id) => typeof id === "string" && /^(?:course:k\d{13}|place:[A-Za-z0-9_-]{1,30})$/.test(id) && allowed.has(id));
+        if (!valid.length) return new Response("bad", { status: 400, headers: cors });
+        for (const id of valid) seen.add(id);
+        await KV.put(key, JSON.stringify([...seen]));
+        return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
+      }
+      const result = await _recentAdditions(KV, seen);
       return new Response(JSON.stringify(result), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
     }
 

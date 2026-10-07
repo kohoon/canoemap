@@ -5461,6 +5461,9 @@ function _recentSection(title,kind,items){
   return '<section class="recent-section"><h4>'+title+'</h4>'+(items.length?items.map(function(item,i){return '<button type="button" class="recent-item" data-kind="'+kind+'" data-index="'+i+'"><span class="recent-item-icon" aria-hidden="true">'+(kind==='course'?'〰':'🛶')+'</span><span class="recent-item-main"><b>'+pmEsc(item.name||'이름 없음')+'</b><small>'+_recentDate(item.t)+(kind==='course'&&item.km?' · '+Number(item.km).toFixed(1)+' km':'')+'</small></span><span aria-hidden="true">›</span></button>';}).join(''):'<div class="recent-empty">표시할 최근 등록 항목이 없습니다.</div>')+'</section>';
 }
 let _recentAdditions=null,_recentAutoPending=false;
+function _recentLocalKey(u){return 'mc_recent_seen_v1_'+String((_appProfile&&_appProfile.memberId)||u.uid).slice(0,40);}
+function _recentLocalSeen(u){try{const ids=JSON.parse(localStorage.getItem(_recentLocalKey(u))||'[]');return new Set(Array.isArray(ids)?ids:[]);}catch(e){return new Set();}}
+function _recentRemember(u,ids){try{const seen=_recentLocalSeen(u);ids.forEach(function(id){seen.add(id);});localStorage.setItem(_recentLocalKey(u),JSON.stringify([...seen].slice(-1000)));}catch(e){}}
 async function openRecentAdditions(auto){
   const u=getUser();if(!u||!u.uid||!u.tok)return;
   const box=document.getElementById('recentBody');
@@ -5469,10 +5472,14 @@ async function openRecentAdditions(auto){
     const r=await fetch(fapi('/recent-additions'),{cache:'no-store',headers:{'X-User-Id':u.uid,'X-Auth-Token':u.tok||''}});
     if(!r.ok)throw new Error('recent-'+r.status);
     const data=await r.json();if(getUser()?.uid!==u.uid)return;
-    const courses=Array.isArray(data.courses)?data.courses:[],places=Array.isArray(data.places)?data.places:[];
+    const seen=_recentLocalSeen(u);
+    const courses=(Array.isArray(data.courses)?data.courses:[]).filter(function(item){return !seen.has('course:'+item.id);});
+    const places=(Array.isArray(data.places)?data.places:[]).filter(function(item){return !seen.has('place:'+item.id);});
     _recentAdditions={course:courses,place:places};
     if(auto){if(!courses.length&&!places.length)return;_newsTab('recent');}
-    box.innerHTML='<h3>최근 추가된 곳들</h3>'+_recentSection('🛶 런칭·랜딩지','place',places)+_recentSection('〰 코스','course',courses);
+    box.innerHTML='<h3>새로 추가된 곳들</h3>'+(places.length?_recentSection('🛶 런칭·랜딩지','place',places):'')+(courses.length?_recentSection('〰 코스','course',courses):'')+(!courses.length&&!places.length?'<div class="recent-empty">새로 추가된 항목이 없습니다. 새 항목이 등록되면 접속할 때 한 번 안내해 드립니다.</div>':'');
+    const shownIds=[...courses.map(function(item){return 'course:'+item.id;}),...places.map(function(item){return 'place:'+item.id;})];
+    if(shownIds.length){_recentRemember(u,shownIds);fetch(fapi('/recent-additions'),{method:'POST',keepalive:true,headers:{'Content-Type':'application/json','X-User-Id':u.uid,'X-Auth-Token':u.tok||''},body:JSON.stringify({ids:shownIds})}).catch(function(){});}
     box.querySelectorAll('[data-kind]').forEach(function(button){button.onclick=function(){
       const item=(_recentAdditions[button.dataset.kind]||[])[Number(button.dataset.index)];if(!item)return;
       const next=new URL(location.href);next.searchParams.delete('place');next.searchParams.delete('course');next.searchParams.delete('detail');
