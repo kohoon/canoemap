@@ -135,6 +135,30 @@ test('courses without a water character show no placeholder icon or metadata', a
   await browser.close();
 });
 
+test('course hover spells out water type and travel mode when available', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(() => {
+    hideGate();
+    renderKVCourse({ id: '1790000000902', owner: 'admin', name: '평수 코스', km: 1.2,
+      waterType: 'flat', travelMode: 'downriver', coords: [[37, 127], [37.01, 127.01]] });
+    renderKVCourse({ id: '1790000000903', owner: 'admin', name: '유수 코스', km: 1.2,
+      waterType: 'flowing', coords: [[37, 127], [37.01, 127.01]] });
+    return { flat: _kvCourseLayers['1790000000902'].ls[3].getTooltip().getContent(),
+      flowing: _kvCourseLayers['1790000000903'].ls[3].getTooltip().getContent(),
+      empty: courseHoverHtml({ name: '미분류 코스' }),
+      static: courseHoverHtml({ name: '공식 코스', waterType: 'flowing', travelMode: 'downriver' }) };
+  });
+  expect(result.flat).toContain('평수 · ↘ 다운리버');
+  expect(result.flowing).toContain('유수');
+  expect(result.static).toContain('유수 · ↘ 다운리버');
+  expect(result.empty).not.toContain('course-hover-meta');
+  await browser.close();
+});
+
 test('clicking a course line on the PC map opens its full detail', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

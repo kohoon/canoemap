@@ -69,6 +69,7 @@
         font:12px/1.35 sans-serif;transition:opacity .6s;pointer-events:none}
   html.tour-mode #hint{z-index:1250}
   .course-hover-tooltip{box-sizing:border-box;width:max-content;max-width:min(320px,calc(100vw - 32px));white-space:normal;word-break:keep-all;overflow-wrap:break-word;line-height:1.35;box-shadow:0 2px 9px rgba(0,0,0,.24)}
+  .course-hover-meta{display:block;margin-top:3px;color:#405c57;font-size:12px;font-weight:700}
   .leaflet-control-zoom a{width:40px;height:40px;line-height:40px;font-size:22px}
   .measbtn{cursor:pointer;font:600 13px/1.25 sans-serif;background:#fff;color:#222;padding:7px 10px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3);white-space:nowrap;user-select:none;min-width:112px;min-height:var(--mc-control-height);box-sizing:border-box;text-align:center}
   .measbtn .meas-sub{font-size:11px;font-weight:500;color:#667}
@@ -2211,6 +2212,7 @@ function courseWaterInfo(course){const key=String(course&&course.waterType||'');
 function courseTravelInfo(course){const key=String(course&&course.travelMode||'');return Object.prototype.hasOwnProperty.call(COURSE_TRAVEL,key)?COURSE_TRAVEL[key]:null;}
 function courseWaterIcon(course){const water=courseWaterInfo(course);return water?'<span class="course-character-icon" data-water="'+course.waterType+'" aria-label="'+water.label+'">'+water.icon+'</span>':'';}
 function courseCharacterText(course){const water=courseWaterInfo(course),travel=courseTravelInfo(course);return [water&&water.label,travel&&travel.icon+' '+travel.label].filter(Boolean).join(' · ');}
+function courseHoverHtml(course){const character=courseCharacterText(course);return courseWaterIcon(course)+'<b>'+pmEsc(course.name||'코스')+'</b>'+(course.km?' '+pmEsc(String(course.km))+'km':'')+(character?'<span class="course-hover-meta">'+pmEsc(character)+'</span>':'');}
 function _hashStr(s){ s=String(s||''); let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0); }
 function courseLineColor(sc, seed){
   const base = sc==='엑스페디션'?265 : sc==='번버리Pick'?25 : sc==='초심자코스'?300 : 170;
@@ -2417,7 +2419,7 @@ function _renderStaticCourses(){
     // 투명 넓은 탭 영역(어디를 탭/클릭해도 정보)
     const hit=L.geoJSON(fc,{style:function(f){ const p=f.properties||{}; return {color:validCourseColor(p.color)||courseLineColor(sc, p.cid!=null?p.cid:p.name), weight:22, opacity:0}; },
       onEachFeature:(f,l)=>{ const p=f.properties||{};
-        if(p.cid!=null){ l.on('click',function(){ courseCmt('c',p.cid,true); }); if(!isTouch) l.bindTooltip(courseWaterIcon(p)+'<b>'+pmEsc(p.name||'코스')+'</b>'+(p.km?' '+p.km+'km':''),{sticky:true,direction:'auto',opacity:0.95,className:'course-hover-tooltip',pane:'courseTooltipPane'}); }
+        if(p.cid!=null){ l.on('click',function(){ courseCmt('c',p.cid,true); }); if(!isTouch) l.bindTooltip(courseHoverHtml(p),{sticky:true,direction:'auto',opacity:0.95,className:'course-hover-tooltip',pane:'courseTooltipPane'}); }
         else { l.bindPopup('<b>'+pmEsc(p.name||'카누잉코스')+'</b>'); }
         reg(f,l,null); }
     });
@@ -4075,7 +4077,7 @@ function renderKVCourse(c){
   const casing=L.polyline(coords,{color:'#2a0a4a',weight:8,opacity:.55,interactive:false});
   const line=L.polyline(coords,{color:lineCol,weight:5,opacity:.95,interactive:false});
   const directions=courseDirectionLayer(coords);
-  const hit=L.polyline(coords,{color:lineCol,weight:22,opacity:0}); hit.on('click',function(){ courseCmt('k', c.id,true); }); if(!isTouch) hit.bindTooltip(courseWaterIcon(c)+'<b>'+pmEsc(c.name||'코스')+'</b>'+(c.km?' '+c.km+'km':''),{sticky:true,direction:'auto',className:'course-hover-tooltip',pane:'courseTooltipPane'});
+  const hit=L.polyline(coords,{color:lineCol,weight:22,opacity:0}); hit.on('click',function(){ courseCmt('k', c.id,true); }); if(!isTouch) hit.bindTooltip(courseHoverHtml(c),{sticky:true,direction:'auto',className:'course-hover-tooltip',pane:'courseTooltipPane'});
   let grp=courseLayers[sc];
   if(!grp){ grp=L.layerGroup(); courseLayers[sc]=grp; allCoursesGroup.addLayer(grp); }
   casing.addTo(grp); line.addTo(grp); directions.addTo(grp); hit.addTo(grp);
