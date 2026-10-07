@@ -125,7 +125,10 @@ for (const width of [1280, 390]) {
       ] : [{ memberId: 'member-3', nick: '어제 회원', at: Date.now() - 86400000, type: 'visit', device: 'mobile' }];
       route.fulfill({ json: { ok: true, day: body.day, today, oldest: '2026-09-07', total: rows.length, items: rows, nextOffset: null } });
     });
-    await page.route('**/admin-sheet-link', (route) => route.fulfill({ json: { ok: true, url: 'https://docs.google.com/spreadsheets/d/example/edit' } }));
+    await page.route('**/admin-sheet-link', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      await route.fulfill({ json: { ok: true, url: 'https://docs.google.com/spreadsheets/d/example/edit' } });
+    });
     await page.goto(baseURL + '/admin/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#accessPanel')).toBeHidden();
     await page.locator('#adminKey').fill('test-key');
@@ -134,13 +137,13 @@ for (const width of [1280, 390]) {
     await expect(page.locator('#accessList .access-row')).toHaveCount(2);
     await expect(page.locator('#accessList .access-row').first()).toContainText('첫 번째');
     await expect(page.locator('#accessList')).toContainText('패들링 스쿨 방문');
-    await expect(page.locator('#accessSheet')).toHaveAttribute('href', 'https://docs.google.com/spreadsheets/d/example/edit');
     await expect(page.locator('#accessDay')).toHaveValue(today);
     await expect(page.locator('#accessNext')).toBeDisabled();
     await page.locator('#accessPrev').click();
     await expect(page.locator('#accessDay')).toHaveValue(yesterday);
     await expect(page.locator('#accessList')).toContainText('어제 회원');
     await expect(page.locator('#accessList')).not.toContainText('첫 번째');
+    await expect(page.locator('#accessSheet')).toHaveAttribute('href', 'https://docs.google.com/spreadsheets/d/example/edit');
     await page.locator('#accessNext').click();
     await expect(page.locator('#accessList .access-row')).toHaveCount(2);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

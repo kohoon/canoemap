@@ -602,8 +602,13 @@ export default {
       const members = []; let cursor;
       do {
         const page = await KV.list({ prefix: "member:", cursor });
-        for (const item of page.keys) {
-          try { const member = JSON.parse((await KV.get(item.name)) || "null"); if (member) members.push(member); } catch (e) {}
+        // KV.get을 회원마다 순차 대기하면 회원 수에 비례해 느려진다. 과도한 동시 요청은 피한다.
+        for (let i = 0; i < page.keys.length && members.length < 5000; i += 25) {
+          const batch = page.keys.slice(i, i + Math.min(25, 5000 - members.length));
+          const found = await Promise.all(batch.map(async (item) => {
+            try { return JSON.parse((await KV.get(item.name)) || "null"); } catch (e) { return null; }
+          }));
+          for (const member of found) if (member) members.push(member);
         }
         cursor = page.list_complete ? null : page.cursor;
       } while (cursor && members.length < 5000);

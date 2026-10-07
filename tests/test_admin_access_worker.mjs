@@ -69,4 +69,22 @@ assert.equal(after.nextOffset, 1);
 const next = await (await request({ key: secret, day: today, offset: 1, limit: 1 })).json();
 assert.equal(next.items[0].type, 'login');
 assert.equal(next.nextOffset, null);
+
+let activeGets = 0, peakGets = 0;
+const manyEnv = { ...env, PLACES: {
+  list: async () => ({ keys: Array.from({ length: 60 }, (_, i) => ({ name: `member:test-${i}` })), list_complete: true }),
+  get: async (key) => {
+    activeGets++;
+    peakGets = Math.max(peakGets, activeGets);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    activeGets--;
+    return JSON.stringify({ memberId: key, nick: '회원', accessHistory: [{ at: now, type: 'visit', device: 'pc' }] });
+  },
+} };
+const many = await worker.fetch(new Request(endpoint, {
+  method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' },
+  body: JSON.stringify({ key: secret, day: today }),
+}), manyEnv, ctx);
+assert.equal((await many.json()).total, 60);
+assert.ok(peakGets > 1 && peakGets <= 25, `bounded parallel KV reads expected, got ${peakGets}`);
 console.log('admin daily access regression: ok');

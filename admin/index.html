@@ -59,7 +59,7 @@ const types=['보','징검다리','잠수교','용치','낮은바닥','여울','
 const $=id=>document.getElementById(id);
 let key='',items=[],cursor='',filter='pending',busy=false;
 let courseItems=[],courseOffset=0,courseNext=null,courseBusy=false,coursePending=false,courseSummary=null,courseOwners=[];
-let accessLoaded=false,accessBusy=false,accessOffset=0,accessNext=null,accessRows=[],accessDay='';
+let accessLoaded=false,accessBusy=false,accessSheetBusy=false,accessOffset=0,accessNext=null,accessRows=[],accessDay='';
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function date(ms){const d=new Date(Number(ms));return Number.isNaN(d.getTime())?'':d.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});}
 async function api(body){const r=await fetch(API+'/suggest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'요청 실패');return data;}
@@ -72,17 +72,18 @@ function renderAccess(){
   $('accessList').innerHTML=accessRows.length?accessRows.map(m=>'<div class="access-row"><div><strong>'+esc(m.nick||'회원')+'</strong><small>회원 ID '+esc(m.memberId||'')+'</small></div><div>'+esc(accessType(m.type))+'<br><small>'+(m.device==='mobile'?'모바일':'PC')+'</small></div><div class="access-time meta">'+esc(date(m.at))+'</div></div>').join(''):'<div class="empty">이 날짜의 접속 기록이 없습니다.</div>';
   $('accessMore').hidden=accessNext==null;
 }
+async function loadAccessSheet(requestedKey){if(accessSheetBusy||$('accessSheet').hasAttribute('href'))return;accessSheetBusy=true;try{
+  const sheet=await fetch(API+'/admin-sheet-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:requestedKey}),cache:'no-store'}).then(x=>x.json()).catch(()=>({}));
+  if(key!==requestedKey)return;const link=$('accessSheet');let url=null;try{url=new URL(sheet.url);}catch(e){}
+  if(url&&url.protocol==='https:'&&url.hostname==='docs.google.com'&&url.pathname.startsWith('/spreadsheets/')){link.href=url.href;link.hidden=false;}
+}finally{accessSheetBusy=false;}}
 async function loadAccess(more=false){if(!key||accessBusy)return;if(!accessDay)accessDay=kstDay();accessBusy=true;const requestedKey=key,requestedDay=accessDay;$('accessMsg').textContent='접속 기록을 불러오는 중…';try{
   const r=await fetch(API+'/admin-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,day:requestedDay,offset:more?accessOffset:0,limit:100}),cache:'no-store'}),d=await r.json().catch(()=>({}));
   if(!r.ok||!d.ok)throw new Error('load-failed');if(key!==requestedKey||accessDay!==requestedDay)return;
   accessRows=more?accessRows.concat(d.items||[]):(d.items||[]);accessNext=d.nextOffset;accessOffset=d.nextOffset||0;accessLoaded=true;
   $('accessCount').textContent=requestedDay+' · '+Number(d.total||0)+'건';$('accessDay').value=requestedDay;$('accessDay').min=d.oldest;$('accessDay').max=d.today;
   $('accessPrev').disabled=requestedDay<=d.oldest;$('accessNext').disabled=requestedDay>=d.today;renderAccess();$('accessMsg').textContent=accessRows.length+'건 표시';
-  if(!$('accessSheet').hasAttribute('href')){
-    const sheet=await fetch(API+'/admin-sheet-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key}),cache:'no-store'}).then(x=>x.json()).catch(()=>({}));
-    if(key!==requestedKey)return;const link=$('accessSheet');let url=null;try{url=new URL(sheet.url);}catch(e){}
-    if(url&&url.protocol==='https:'&&url.hostname==='docs.google.com'&&url.pathname.startsWith('/spreadsheets/')){link.href=url.href;link.hidden=false;}
-  }
+  loadAccessSheet(requestedKey);
 }catch(e){if(key===requestedKey)$('accessMsg').textContent='접속 기록을 불러오지 못했습니다. 다시 시도해 주세요.';}finally{accessBusy=false;}}
 function selectAccessDay(day){if(accessBusy||!day||day===accessDay)return;accessDay=day;accessLoaded=false;accessRows=[];accessNext=null;accessOffset=0;$('accessList').replaceChildren();loadAccess();}
 async function courseApi(body){const r=await fetch(API+'/admin-courses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,...body}),cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok||!data.ok)throw new Error(data.error||'요청 실패');return data;}
