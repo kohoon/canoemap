@@ -109,6 +109,31 @@ test('B layout offers an admin-only Bunbury Pick category and course filter', as
   await browser.close();
 });
 
+test('courses without a water character show no placeholder icon or metadata', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    hideGate();
+    renderKVCourse({ id: '1790000000901', owner: 'admin', name: '분류 전 코스', km: 1.2, coords: [[37, 127], [37.01, 127.01]] });
+    _pcDockSelect('k1790000000901', false);
+  });
+  const item = page.locator('#pcCourseList [data-course="k1790000000901"]');
+  await expect(item.locator('.course-character-icon')).toHaveCount(0);
+  await expect(item.locator('small')).toHaveText('공개 코스 · 1.20 km');
+  await expect(page.locator('#pcCourseDetail .course-character-icon')).toHaveCount(0);
+  await expect(page.locator('#pcCourseDetail .course-character-meta')).toHaveCount(0);
+  await page.locator('#pcCourseDetail [data-action="detail"]').click();
+  await expect(page.locator('#pmTitle')).toHaveText('분류 전 코스');
+  await expect(page.locator('#pmLinks .course-character-meta')).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#pmTitle')).toHaveText('분류 전 코스');
+  await expect(page.locator('#pmLinks .course-character-meta')).toHaveCount(0);
+  await browser.close();
+});
+
 test('clicking a course line on the PC map opens its full detail', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

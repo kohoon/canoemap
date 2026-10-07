@@ -449,7 +449,6 @@
   .course-character-icon{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:6px;border-radius:7px;background:#e9f4f6;color:#216780;font:800 16px/1 sans-serif;vertical-align:middle}
   .course-character-icon[data-water="flowing"]{background:#eaf0ff;color:#4b61a5}
   .course-character-icon[data-water="rapid"]{background:#fff1e8;color:#ae542e}
-  .course-character-icon[data-water="unknown"]{background:#f0f2f0;color:#748078}
   .course-character-meta{color:#5c7169;font:600 12px/1.4 sans-serif}
   @media(max-width:600px){#cmBody .seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#cmBody .seg-b{min-width:0}}
   #sgText{width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccd;border-radius:11px;font-size:14px;resize:vertical;font-family:inherit}
@@ -2195,8 +2194,8 @@ const COURSE_WATER={flat:{icon:'≋',label:'평수'},flowing:{icon:'〰',label:'
 const COURSE_TRAVEL={roundtrip:{icon:'↔',label:'왕복'},downriver:{icon:'↘',label:'다운리버'},traverse:{icon:'↗',label:'종주·횡단'}};
 function courseWaterInfo(course){const key=String(course&&course.waterType||'');return Object.prototype.hasOwnProperty.call(COURSE_WATER,key)?COURSE_WATER[key]:null;}
 function courseTravelInfo(course){const key=String(course&&course.travelMode||'');return Object.prototype.hasOwnProperty.call(COURSE_TRAVEL,key)?COURSE_TRAVEL[key]:null;}
-function courseWaterIcon(course){const water=courseWaterInfo(course),key=water?course.waterType:'unknown';return '<span class="course-character-icon" data-water="'+key+'" aria-label="'+(water?water.label:'수면 환경 미확인')+'">'+(water?water.icon:'?')+'</span>';}
-function courseCharacterText(course){const water=courseWaterInfo(course),travel=courseTravelInfo(course);return (water?water.label:'수면 환경 미확인')+(travel?' · '+travel.icon+' '+travel.label:'');}
+function courseWaterIcon(course){const water=courseWaterInfo(course);return water?'<span class="course-character-icon" data-water="'+course.waterType+'" aria-label="'+water.label+'">'+water.icon+'</span>':'';}
+function courseCharacterText(course){const water=courseWaterInfo(course),travel=courseTravelInfo(course);return [water&&water.label,travel&&travel.icon+' '+travel.label].filter(Boolean).join(' · ');}
 function _hashStr(s){ s=String(s||''); let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0); }
 function courseLineColor(sc, seed){
   const base = sc==='엑스페디션'?265 : sc==='번버리 픽'?25 : sc==='초심자코스'?300 : 170;
@@ -2561,7 +2560,8 @@ function openCourseComments(key,course,shareId){
   const name=course.name||'코스', km=course.km||0;
   _pmPlace={name:name}; _pmSlug=key;
   _pmTarget=key; _pmKind='c'; _pmName=name||'코스'; _pmLL=null;
-  document.getElementById('pmTitle').textContent=(courseWaterInfo(course)?.icon||'?')+' '+(name||'코스');
+  const water=courseWaterInfo(course),character=courseCharacterText(course);
+  document.getElementById('pmTitle').textContent=(water?water.icon+' ':'')+(name||'코스');
   document.getElementById('pmCat').innerHTML='';
   _clearPhoto(); renderRateRow();
   const canAnalyze=!!(course.coords && course.coords.length>=2);
@@ -2577,7 +2577,7 @@ function openCourseComments(key,course,shareId){
     if(String(shareId).charAt(0)==='k'){ const kid=String(shareId).slice(1);
       _cadm='<div class="pm-padmin"><a class="course-btn ghost" onclick="editCourse(\''+kid+'\')">✏️ 수정</a><a class="course-btn danger" onclick="deleteCourse(\''+kid+'\')">🗑 삭제</a></div>'; }
     else { _cadm='<div class="pm-padmin"><a class="course-btn ghost" onclick="editStaticCourse(\''+shareId+'\')">✏️ 수정</a><a class="course-btn danger" onclick="deleteStaticCourse(\''+shareId+'\')">🗑 삭제</a></div>'; } }
-  document.getElementById('pmLinks').innerHTML=expeditionDateHtml(course,shareId)+'<div class="course-character-meta">'+courseCharacterText(course)+'</div>'+(km?'<div class="pm-memo">약 '+km+'km</div>':'')
+  document.getElementById('pmLinks').innerHTML=expeditionDateHtml(course,shareId)+(character?'<div class="course-character-meta">'+character+'</div>':'')+(km?'<div class="pm-memo">약 '+km+'km</div>':'')
     +((actions||_cadm)?'<div class="course-actions">'+actions+'</div>':'')
     +_cadm
     +'<div id="courseAnalysisPanel" class="cm-analysis" style="display:none"></div>'
@@ -5516,11 +5516,12 @@ function _pcDockRender(){
   const bunburyButton=document.querySelector('#pcDock [data-filter="bunbury"]');if(bunburyButton)bunburyButton.hidden=!hasBunbury;
   if((_pcDockFilter==='beginner'&&!hasBeginner)||(_pcDockFilter==='bunbury'&&!hasBunbury)){_pcDockFilter='all';document.querySelectorAll('#pcDock [data-filter]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.filter==='all'));});}
   const visible=entries.filter(function(e){const cat=courseSubcat(e.course.name);return _pcDockFilter==='all'||(_pcDockFilter==='expedition'&&cat==='엑스페디션')||(_pcDockFilter==='bunbury'&&cat==='번버리 픽')||(_pcDockFilter==='beginner'&&cat==='초심자코스');});
-  listEl.innerHTML=visible.length?visible.map(function(e){return '<button class="pc-course-item" type="button" data-course="'+e.key+'" aria-current="'+(e.key===_pcDockSelected?'true':'false')+'"><b>'+courseWaterIcon(e.course)+pmEsc(e.course.name||'코스')+'</b><small>'+pmEsc(courseCharacterText(e.course))+' · '+pmEsc(e.source)+(e.course.km?' · '+Number(e.course.km).toFixed(2)+' km':'')+'</small></button>';}).join(''):'<div class="pc-course-empty">표시할 코스가 없습니다.</div>';
+  listEl.innerHTML=visible.length?visible.map(function(e){const character=courseCharacterText(e.course);return '<button class="pc-course-item" type="button" data-course="'+e.key+'" aria-current="'+(e.key===_pcDockSelected?'true':'false')+'"><b>'+courseWaterIcon(e.course)+pmEsc(e.course.name||'코스')+'</b><small>'+(character?pmEsc(character)+' · ':'')+pmEsc(e.source)+(e.course.km?' · '+Number(e.course.km).toFixed(2)+' km':'')+'</small></button>';}).join(''):'<div class="pc-course-empty">표시할 코스가 없습니다.</div>';
   const selected=entries.find(function(e){return e.key===_pcDockSelected;});
   if(!selected){detail.innerHTML='<div class="pc-detail-label">선택한 코스</div><strong>코스를 선택해 주세요</strong>';return;}
   const c=selected.course;
-  detail.innerHTML='<div class="pc-detail-label">선택한 코스 · '+pmEsc(selected.source)+'</div><strong>'+courseWaterIcon(c)+pmEsc(c.name||'코스')+'</strong><div class="course-character-meta">'+pmEsc(courseCharacterText(c))+'</div>'+(c.km?'<div class="pc-detail-km">'+Number(c.km).toFixed(2)+' km</div>':'')+'<div class="pc-detail-actions"><button type="button" data-action="detail">전체 상세</button><button type="button" data-action="share">공유</button></div>';
+  const character=courseCharacterText(c);
+  detail.innerHTML='<div class="pc-detail-label">선택한 코스 · '+pmEsc(selected.source)+'</div><strong>'+courseWaterIcon(c)+pmEsc(c.name||'코스')+'</strong>'+(character?'<div class="course-character-meta">'+pmEsc(character)+'</div>':'')+(c.km?'<div class="pc-detail-km">'+Number(c.km).toFixed(2)+' km</div>':'')+'<div class="pc-detail-actions"><button type="button" data-action="detail">전체 상세</button><button type="button" data-action="share">공유</button></div>';
 }
 function _pcDockScheduleRender(){if(_pcDockTimer)return;_pcDockTimer=setTimeout(function(){_pcDockTimer=0;_pcDockRender();},0);}
 function _pcDockSelect(key,fit){
