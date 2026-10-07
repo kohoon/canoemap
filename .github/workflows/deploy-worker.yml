@@ -50,6 +50,9 @@ jobs:
       - name: Verify admin-only passage marker
         run: node tests/test_passage_obstacle_worker.mjs
 
+      - name: Verify recent additions seven-day window
+        run: node tests/test_recent_additions_worker.mjs
+
       - name: Deploy Cloudflare Worker
         run: npx --yes wrangler deploy --config wrangler.toml
         env:

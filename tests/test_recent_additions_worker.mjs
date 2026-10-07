@@ -8,6 +8,7 @@ const hmac = (value) => createHmac('sha256', secret).update(value).digest('hex')
 const exp = Math.floor(Date.now() / 1000) + 3600;
 const tok = `mc2.${exp}.${hmac(`mc2|${uid}|${exp}`).slice(0, 32)}`;
 const now = Date.now();
+const day = 24 * 60 * 60 * 1000;
 const data = new Map();
 data.set(`member:${hmac(`member-key|${uid}`).slice(0, 32)}`, JSON.stringify({ status: 'active', nick: '테스트', memberId: 'recent-test' }));
 data.set('courses', JSON.stringify([
@@ -15,14 +16,20 @@ data.set('courses', JSON.stringify([
   { id: now - 2000, t: now - 2000, owner: uid, name: '개인 비공개 코스', km: 5, coords: [[37, 127], [37.1, 127.1]] },
   { id: now - 1000, t: now - 1000, owner: 'admin', name: '엑스페디션#11', km: 25, coords: [[38, 127], [38.1, 127.1]] },
   { id: now - 100, t: now - 100, owner: 'admin', name: '번버리 픽 춘천호', km: 8, coords: [[38, 127], [38.1, 127.1]] },
+  { id: now - 6 * day - 23 * 60 * 60 * 1000, t: now - 6 * day - 23 * 60 * 60 * 1000, owner: 'admin', name: '엑스페디션#9', km: 15, coords: [[38, 127], [38.1, 127.1]] },
+  { id: now - 8 * day, t: now - 8 * day, updatedAt: now, owner: 'admin', name: '엑스페디션#11 오래된 코스', km: 20, coords: [[38, 127], [38.1, 127.1]] },
+  { id: now - 9 * day, t: now - 9 * day, owner: 'admin', name: '번버리 픽 오래된 코스', km: 8, coords: [[38, 127], [38.1, 127.1]] },
 ]));
 data.set('placeover', JSON.stringify({
   ['u' + (now - 500)]: { new: 1, name: '새 런칭지', cat: 'canoe', lat: 38, lng: 127 },
   ['u' + (now - 400)]: { new: 1, name: '비공개 후보지', cat: 'candidate', lat: 38, lng: 127 },
   ['u' + (now - 300)]: { new: 1, name: '삭제된 곳', cat: 'canoe', del: 1, lat: 38, lng: 127 },
   ['u' + (now - 200)]: { new: 1, name: '카누 명소', cat: 'spot', lat: 38, lng: 127 },
+  ['u' + (now - 6 * day - 23 * 60 * 60 * 1000)]: { new: 1, name: '일주일 안쪽 런칭지', cat: 'canoe', lat: 38, lng: 127 },
+  ['u' + (now - 8 * day)]: { new: 1, name: '오래된 런칭지', cat: 'canoe', lat: 38, lng: 127 },
 }));
 data.set('launch_sites_v1', JSON.stringify([{ id: 'base1', name: '기존 런칭지', cat: 'canoe', lat: 36, lng: 129 }]));
+data.set('launch_recent_v1', JSON.stringify({ base1: now - 8 * day }));
 const env = {
   ADMIN_KEY: secret,
   SITE_URL: 'https://canoe.crowdbase.kr/',
@@ -42,9 +49,9 @@ const response = await request({ 'X-User-Id': uid, 'X-Auth-Token': tok });
 assert.equal(response.status, 200);
 assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
 const recent = await response.json();
-assert.deepEqual(recent.courses.map((course) => course.id), ['k' + (now - 100), 'k' + (now - 1000), 'k' + (now - 3000)]);
+assert.deepEqual(recent.courses.map((course) => course.id), ['k' + (now - 100), 'k' + (now - 1000), 'k' + (now - 3000), 'k' + (now - 6 * day - 23 * 60 * 60 * 1000)]);
 assert.equal(recent.courses[0].name, '번버리Pick 춘천호');
-assert.deepEqual(recent.places.map((place) => place.name), ['새 런칭지']);
+assert.deepEqual(recent.places.map((place) => place.name), ['새 런칭지', '일주일 안쪽 런칭지']);
 assert.equal(JSON.stringify(recent).includes('개인 비공개 코스'), false);
 assert.equal(JSON.stringify(recent).includes('비공개 후보지'), false);
 
@@ -56,7 +63,7 @@ const acknowledged = await worker.fetch(new Request(endpoint, {
 assert.equal(acknowledged.status, 200);
 assert.deepEqual(await (await request({ 'X-User-Id': uid, 'X-Auth-Token': tok })).json(), { courses: [], places: [] });
 const history = await worker.fetch(new Request(endpoint + '?history=1', { headers: { Origin: 'https://canoe.crowdbase.kr', 'X-User-Id': uid, 'X-Auth-Token': tok } }), env, ctx);
-assert.deepEqual((await history.json()).places.map((place) => place.name), ['새 런칭지']);
+assert.deepEqual((await history.json()).places.map((place) => place.name), ['새 런칭지', '일주일 안쪽 런칭지']);
 assert.equal(JSON.parse(data.get('recent_seen:' + hmac(`member-id|${uid}`).slice(0, 16))).length, seenIds.length);
 const otherUid = 'another-recent-member';
 data.set(`member:${hmac(`member-key|${otherUid}`).slice(0, 32)}`, JSON.stringify({ status: 'active', nick: '다른 회원' }));
@@ -86,7 +93,7 @@ const featuredUrl = 'https://mycanoe-map.kohoon0140.workers.dev/courses?featured
 const featuredResponse = await worker.fetch(new Request(featuredUrl, { headers: { Origin: 'https://canoe.crowdbase.kr' } }), env, ctx);
 assert.equal(featuredResponse.status, 200);
 const featured = await featuredResponse.json();
-assert.deepEqual(featured.map((course) => course.id).sort(), [now - 3000, now - 1000, now - 100].sort());
+assert.deepEqual(featured.map((course) => course.id).sort(), [now - 3000, now - 1000, now - 100, now - 6 * day - 23 * 60 * 60 * 1000, now - 8 * day, now - 9 * day].sort());
 assert.equal(featured.some((course) => course.name === '번버리Pick 춘천호'), true);
 
 for (const body of [

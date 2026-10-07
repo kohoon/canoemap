@@ -238,6 +238,8 @@ function _launchCat(v, name) {
 function _courseWaterValue(value) { return ["flat", "flowing", "rapid"].includes(String(value || "")) ? String(value) : ""; }
 function _courseTravelValue(value) { return ["roundtrip", "downriver", "traverse"].includes(String(value || "")) ? String(value) : ""; }
 async function _recentAdditions(KV, seen = new Set(), limit = 4) {
+  const now = Date.now(), cutoff = now - 7 * 24 * 60 * 60 * 1000;
+  const withinWeek = (t) => Number.isSafeInteger(t) && t >= cutoff && t <= now;
   let storedCourses = [], placeOverrides = {}, syncedPlaces = [], syncedRecent = {};
   try { storedCourses = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
   try { placeOverrides = JSON.parse((await KV.get("placeover")) || "{}"); } catch (e) {}
@@ -249,7 +251,7 @@ async function _recentAdditions(KV, seen = new Set(), limit = 4) {
     const course = normalizeExpedition(applyCourseCorrection(raw), "k" + raw.id);
     const round = expeditionNumber(course, "k" + raw.id);
     const t = Number(raw.t || raw.createdAt || raw.id);
-    if (!Number.isSafeInteger(t) || t < 1577836800000 || !Array.isArray(course.coords) || course.coords.length < 2) continue;
+    if (!withinWeek(t) || !Array.isArray(course.coords) || course.coords.length < 2) continue;
     if (!round) {
       if (/^번버리(?: 픽|Pick)(?=\s|$)/.test(String(course.name || "")))
         recentPicks.push({ id: "k" + raw.id, name: String(course.name).slice(0, 100), km: Number(course.km) || 0, t });
@@ -265,7 +267,7 @@ async function _recentAdditions(KV, seen = new Set(), limit = 4) {
     .flatMap(([id, p]) => {
       if (!p || !p.new || p.del || _launchCat(p.cat, p.name) !== "canoe" || !isFinite(Number(p.lat)) || !isFinite(Number(p.lng))) return [];
       const t = Number(p.createdAt || (/^u\d{13}$/.test(id) ? id.slice(1) : 0));
-      if (!Number.isSafeInteger(t) || t < 1577836800000 || !String(p.name || "").trim()) return [];
+      if (!withinWeek(t) || !String(p.name || "").trim()) return [];
       return [{ id: String(id).slice(0, 30), name: String(p.name).slice(0, 100), t }];
     });
   const syncedById = new Map((Array.isArray(syncedPlaces) ? syncedPlaces : []).filter((p) => p && p.id != null).map((p) => [String(p.id), p]));
@@ -275,7 +277,7 @@ async function _recentAdditions(KV, seen = new Set(), limit = 4) {
     const lat = Number(over.lat != null ? over.lat : raw.lat), lng = Number(over.lng != null ? over.lng : raw.lng);
     const name = String(over.name != null ? over.name : raw.name || "").trim();
     const t = Number(timestamp);
-    if (!isFinite(lat) || !isFinite(lng) || !name || !Number.isSafeInteger(t) || t < 1577836800000) return [];
+    if (!isFinite(lat) || !isFinite(lng) || !name || !withinWeek(t)) return [];
     return [{ id: id.slice(0, 30), name: name.slice(0, 100), t }];
   });
   const places = [...new Map([...basePlaces, ...overridePlaces].map((item) => [item.id, item])).values()]
