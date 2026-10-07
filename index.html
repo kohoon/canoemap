@@ -4841,9 +4841,6 @@ async function doSaveCourse(){
   if(['기타','번버리Pick'].includes(cat) && !desc){ msg.style.color='#c0392b'; msg.textContent='코스 이름을 입력하세요'; return; }
   if(!['기타','번버리Pick'].includes(cat) && !no && !desc){ msg.style.color='#c0392b'; msg.textContent='번호 또는 코스 설명을 입력하세요'; return; }
   const name=_joinCourse(cat, no, desc);
-  if(!isAdmin() && /^(?:엑스페디션|번버리\s*(?:픽|Pick)|초심자\s*코스|초보\s*추천\s*코스)(?=\s|#|$)/i.test(name) && !(_cmMode==='edit'&&_cmCourse&&name===_cmCourse.name)){
-    msg.style.color='#c0392b'; msg.textContent='운영 코스 분류명은 사용할 수 없습니다. 다른 이름을 입력해 주세요.'; return;
-  }
   msg.style.color='#888'; msg.textContent='저장 중…';
   const base=WORKER_URL.replace(/\/+$/,'')+'/course';
   try{

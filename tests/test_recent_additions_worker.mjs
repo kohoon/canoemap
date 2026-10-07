@@ -96,23 +96,18 @@ const featured = await featuredResponse.json();
 assert.deepEqual(featured.map((course) => course.id).sort(), [now - 3000, now - 1000, now - 100, now - 6 * day - 23 * 60 * 60 * 1000, now - 8 * day, now - 9 * day].sort());
 assert.equal(featured.some((course) => course.name === '번버리Pick 춘천호'), true);
 
+globalThis.caches = { default: { delete: async () => true } };
 for (const body of [
-  { action: 'adduser', id: uid, tok, name: '번버리 픽 개인 코스', coords: [[37, 127], [37.1, 127.1]] },
-  { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '번버리 픽 개인 코스' },
   { action: 'adduser', id: uid, tok, name: '번버리Pick 개인 코스', coords: [[37, 127], [37.1, 127.1]] },
-  { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '번버리Pick 개인 코스' },
-  { action: 'adduser', id: uid, tok, name: '엑스페디션 #12 개인 코스', coords: [[37, 127], [37.1, 127.1]] },
   { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '엑스페디션 #12 개인 코스' },
-  { action: 'adduser', id: uid, tok, name: '초심자코스#1', coords: [[37, 127], [37.1, 127.1]] },
-  { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '초보 추천코스 개인 코스' },
 ]) {
-  const denied = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/course', {
+  const savedPrivate = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/course', {
     method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   }), env, ctx);
-  assert.equal(denied.status, 403);
+  assert.equal(savedPrivate.status, 200);
+  assert.equal((await savedPrivate.json()).course.name, body.name);
 }
 
-globalThis.caches = { default: { delete: async () => true } };
 const created = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/course', {
   method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' },
   body: JSON.stringify({ action: 'add', adminKey: secret, name: '번버리Pick 테스트', waterType: 'flowing', travelMode: 'downriver', coords: [[37, 127], [37.1, 127.1]] }),
