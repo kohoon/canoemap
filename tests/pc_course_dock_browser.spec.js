@@ -134,6 +134,31 @@ test('ordinary members name their course without operational categories on PC an
   await browser.close();
 });
 
+test('admin obstacle button starts a fresh location selection after saving', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.route('**/obstacle', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, obstacle: { id: 'test-obstacle', lat: 37, lng: 127, type: '보' } }) }));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => { hideGate(); _adminOk = true; document.getElementById('obsBtnBox').style.display = 'grid'; });
+  await page.locator('#obsBtnBox').click();
+  expect(await page.evaluate(() => obsPlaceMode)).toBe(true);
+  await page.evaluate(() => map.fire('click', { latlng: L.latLng(37, 127) }));
+  await expect(page.locator('#obsModal')).toHaveClass(/open/);
+  await page.locator('#obSave').click();
+  await expect(page.locator('#obsModal')).not.toHaveClass(/open/);
+  await page.locator('#obsBtnBox').click();
+  expect(await page.evaluate(() => obsPlaceMode)).toBe(true);
+  await expect(page.locator('#obsModal')).not.toHaveClass(/open/);
+  await page.evaluate(() => setObsPlaceMode(false));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('#obsBtnBox').click();
+  expect(await page.evaluate(() => obsPlaceMode)).toBe(true);
+  await expect(page.locator('#obsModal')).not.toHaveClass(/open/);
+  await browser.close();
+});
+
 test('courses without a water character show no placeholder icon or metadata', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

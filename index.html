@@ -2841,14 +2841,17 @@ let obsPlaceMode=false;
 const ObstacleCtl=L.Control.extend({ options:{position:'topleft'},
   onAdd:function(){ const d=L.DomUtil.create('div','measbtn obsbtn'); d.id='obsBtnBox'; d.innerHTML='<span class="map-action-icon">🗺️</span><span class="map-action-label">지형지물</span>'; d.title='지형지물 추가(관리자)'; d.style.display='none';
     L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
-    L.DomEvent.on(d,'click',function(e){ L.DomEvent.preventDefault(e); toggleObsPlace(); });
+    L.DomEvent.on(d,'click',function(e){ L.DomEvent.stop(e); toggleObsPlace(); });
     return d; } });
 // (버튼 추가는 공지 버튼 다음 — 거리측정/공지/지형지물 순서)
-function toggleObsPlace(){ obsPlaceMode=!obsPlaceMode; const b=document.getElementById('obsBtnBox');
+function setObsPlaceMode(on){ obsPlaceMode=!!on; const b=document.getElementById('obsBtnBox');
   if(b){ b.classList.toggle('on',obsPlaceMode); b.innerHTML=obsPlaceMode?'<span class="map-action-icon">📍</span><span class="map-action-label">지점 탭…</span>':'<span class="map-action-icon">🗺️</span><span class="map-action-label">지형지물</span>'; }
   map.getContainer().style.cursor=obsPlaceMode?'crosshair':'';
   measHint(obsPlaceMode?'🗺️ 지형지물을 표시할 지점을 지도에서 탭하세요':false); }
-map.on('click', function(e){ if(!obsPlaceMode) return; toggleObsPlace(); openObsModal('add',{lat:e.latlng.lat,lng:e.latlng.lng}); });
+function toggleObsPlace(){ setObsPlaceMode(!obsPlaceMode); }
+map.on('click', function(e){ if(!obsPlaceMode) return;
+  if(e.originalEvent&&e.originalEvent.target&&e.originalEvent.target.closest&&e.originalEvent.target.closest('#obsBtnBox')) return;
+  setObsPlaceMode(false); openObsModal('add',{lat:e.latlng.lat,lng:e.latlng.lng}); });
 // 지형지물 모달
 let _obMode='add', _obCur=null, _obLL=null;
 function closeObsModal(){ document.getElementById('obsModal').classList.remove('open'); }
@@ -2889,7 +2892,7 @@ async function doSaveObs(){ if(!isAdmin()||!_obLL) return;
     if(_obMode==='edit'&&_obCur){ body={action:'edit',adminKey:adminKey(),obsId:_obCur.id,type:type,note:note,name:name,kakaoUrl:kakaoUrl}; }
     else { body={action:'add',adminKey:adminKey(),lat:_obLL.lat,lng:_obLL.lng,type:type,note:note,name:name,kakaoUrl:kakaoUrl}; }
     const r=await fetch(base,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(r.ok){ const d=await r.json().catch(function(){return {};}); gaEvent('obstacle_'+_obMode); closeObsModal();
+    if(r.ok){ const d=await r.json().catch(function(){return {};}); gaEvent('obstacle_'+_obMode); setObsPlaceMode(false); closeObsModal();
       const saved=(d&&d.obstacle)||{id:Date.now(),lat:_obLL.lat,lng:_obLL.lng,type:type,note:note,name:name,kakaoUrl:kakaoUrl};
       if(_obMode==='edit'&&_obCur){ if(_obCur._m) obstacleLayer.removeLayer(_obCur._m); renderObstacle(Object.assign({},_obCur,saved,{_m:null})); }
       else renderObstacle(saved);
