@@ -69,6 +69,13 @@
         font:12px/1.35 sans-serif;transition:opacity .6s;pointer-events:none}
   html.tour-mode #hint{z-index:1250}
   .course-hover-tooltip{box-sizing:border-box;width:max-content;max-width:min(320px,calc(100vw - 32px));white-space:normal;word-break:keep-all;overflow-wrap:break-word;line-height:1.35;box-shadow:0 2px 9px rgba(0,0,0,.24)}
+  .course-picker{width:min(290px,calc(100vw - 76px));max-height:min(48vh,360px);overflow-y:auto;color:#173a34}
+  .course-picker h3{margin:0 0 8px;font-size:15px;line-height:1.35}
+  .course-picker-list{display:grid;gap:6px}
+  .course-picker-item{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;padding:8px 10px;border:1px solid #d8e5e2;border-radius:10px;background:#fff;color:#173a34;text-align:left;font:inherit;cursor:pointer}
+  .course-picker-item:hover,.course-picker-item:focus-visible{background:#edf8f5;border-color:#138477;outline:none}
+  .course-picker-swatch{flex:none;width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #9bb7b0;background:var(--course-color)}
+  .course-picker-text{min-width:0;display:grid;gap:1px}.course-picker-text b{font-size:13px;line-height:1.35;overflow-wrap:anywhere}.course-picker-text small{font-size:11px;color:#61746f}
   .course-hover-meta{display:block;margin-top:3px;color:#405c57;font-size:12px;font-weight:700}
   .leaflet-control-zoom a{width:40px;height:40px;line-height:40px;font-size:22px}
   .measbtn{cursor:pointer;font:600 13px/1.25 sans-serif;background:#fff;color:#222;padding:7px 10px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3);white-space:nowrap;user-select:none;min-width:112px;min-height:var(--mc-control-height);box-sizing:border-box;text-align:center}
@@ -2305,12 +2312,50 @@ function _visibleCourseStripeRoutes(){
     const layers=_staticCidLayers[id]||[];
     if(!layers.some(function(e){return e.l.options&&e.l.options.weight===5&&e.grp.hasLayer(e.l);}))return;
     const coords=(f.geometry&&f.geometry.coordinates||[]).map(function(c){return [c[1],c[0]];});
-    if(coords.length>1)routes.push({id:'c'+id,coords,color:validCourseColor(p.color)||courseLineColor(courseSubcat(p.name),id)});
+    if(coords.length>1)routes.push({id:'c'+id,name:p.name||'코스',km:Number(p.km)||0,coords,color:validCourseColor(p.color)||courseLineColor(courseSubcat(p.name),id)});
   });
   Object.keys(_kvCourseLayers).forEach(function(id){const e=_kvCourseLayers[id],c=_kvCourses[id];if(!e||!c||!e.grp.hasLayer(e.ls[1])||!Array.isArray(c.coords))return;
-    routes.push({id:'k'+id,coords:c.coords,color:validCourseColor(c.color)||courseLineColor(courseSubcat(c.name),id)});
+    routes.push({id:'k'+id,name:c.name||'코스',km:Number(c.km)||0,coords:c.coords,color:validCourseColor(c.color)||courseLineColor(courseSubcat(c.name),id)});
   });
   return routes;
+}
+function _courseClickDistancePx(coords,point){
+  let best=Infinity;
+  for(let i=1;i<coords.length;i++){
+    const a=map.latLngToContainerPoint(coords[i-1]),b=map.latLngToContainerPoint(coords[i]);
+    if(point.x<Math.min(a.x,b.x)-12||point.x>Math.max(a.x,b.x)+12||point.y<Math.min(a.y,b.y)-12||point.y>Math.max(a.y,b.y)+12)continue;
+    const dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy;
+    const t=len2?Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.y-a.y)*dy)/len2)):0;
+    best=Math.min(best,Math.hypot(point.x-a.x-t*dx,point.y-a.y-t*dy));
+  }
+  return best;
+}
+function _courseClickChoices(latlng,clickedId){
+  const point=map.latLngToContainerPoint(latlng),found=new Map();
+  _visibleCourseStripeRoutes().forEach(function(route){
+    const distance=_courseClickDistancePx(route.coords,point);
+    if(distance<=11&&!found.has(route.id))found.set(route.id,{...route,distance});
+  });
+  return [...found.values()].sort(function(a,b){
+    if(a.id===clickedId)return -1;if(b.id===clickedId)return 1;return a.distance-b.distance;
+  });
+}
+function _courseLineClicked(e,kind,id){
+  if(e.originalEvent)L.DomEvent.stopPropagation(e.originalEvent);
+  const clickedId=kind+id,choices=e.latlng?_courseClickChoices(e.latlng,clickedId):[];
+  if(choices.length<2){courseCmt(kind,id,true);return;}
+  const box=L.DomUtil.create('div','course-picker'),heading=L.DomUtil.create('h3','',box),list=L.DomUtil.create('div','course-picker-list',box);
+  heading.textContent='겹친 코스 '+choices.length+'개 · 선택해 주세요';
+  choices.forEach(function(course){
+    const button=L.DomUtil.create('button','course-picker-item',list);button.type='button';
+    button.setAttribute('aria-label',course.name+' 상세보기');
+    const swatch=L.DomUtil.create('span','course-picker-swatch',button);swatch.style.setProperty('--course-color',course.color);
+    const label=L.DomUtil.create('span','course-picker-text',button),name=L.DomUtil.create('b','',label),meta=L.DomUtil.create('small','',label);
+    name.textContent=course.name;meta.textContent=(course.km?course.km.toFixed(1)+' km · ':'')+'코스 상세보기';
+    button.onclick=function(){map.closePopup();courseCmt(course.id.charAt(0),course.id.slice(1),true);};
+  });
+  L.DomEvent.disableClickPropagation(box);L.DomEvent.disableScrollPropagation(box);
+  L.popup({maxWidth:320,minWidth:230,autoPan:true,className:'course-picker-popup'}).setLatLng(e.latlng).setContent(box).openOn(map);
 }
 function _refreshCourseStripes(){
   _courseStripeGroup.clearLayers();const routes=_visibleCourseStripeRoutes();if(routes.length<2)return;
@@ -2419,7 +2464,7 @@ function _renderStaticCourses(){
     // 투명 넓은 탭 영역(어디를 탭/클릭해도 정보)
     const hit=L.geoJSON(fc,{style:function(f){ const p=f.properties||{}; return {color:validCourseColor(p.color)||courseLineColor(sc, p.cid!=null?p.cid:p.name), weight:22, opacity:0}; },
       onEachFeature:(f,l)=>{ const p=f.properties||{};
-        if(p.cid!=null){ l.on('click',function(){ courseCmt('c',p.cid,true); }); if(!isTouch) l.bindTooltip(courseHoverHtml(p),{sticky:true,direction:'auto',opacity:0.95,className:'course-hover-tooltip',pane:'courseTooltipPane'}); }
+        if(p.cid!=null){ l.on('click',function(e){ _courseLineClicked(e,'c',p.cid); }); if(!isTouch) l.bindTooltip(courseHoverHtml(p),{sticky:true,direction:'auto',opacity:0.95,className:'course-hover-tooltip',pane:'courseTooltipPane'}); }
         else { l.bindPopup('<b>'+pmEsc(p.name||'카누잉코스')+'</b>'); }
         reg(f,l,null); }
     });
@@ -4077,7 +4122,7 @@ function renderKVCourse(c){
   const casing=L.polyline(coords,{color:'#2a0a4a',weight:8,opacity:.55,interactive:false});
   const line=L.polyline(coords,{color:lineCol,weight:5,opacity:.95,interactive:false});
   const directions=courseDirectionLayer(coords);
-  const hit=L.polyline(coords,{color:lineCol,weight:22,opacity:0}); hit.on('click',function(){ courseCmt('k', c.id,true); }); if(!isTouch) hit.bindTooltip(courseHoverHtml(c),{sticky:true,direction:'auto',className:'course-hover-tooltip',pane:'courseTooltipPane'});
+  const hit=L.polyline(coords,{color:lineCol,weight:22,opacity:0}); hit.on('click',function(e){ _courseLineClicked(e,'k',c.id); }); if(!isTouch) hit.bindTooltip(courseHoverHtml(c),{sticky:true,direction:'auto',className:'course-hover-tooltip',pane:'courseTooltipPane'});
   let grp=courseLayers[sc];
   if(!grp){ grp=L.layerGroup(); courseLayers[sc]=grp; allCoursesGroup.addLayer(grp); }
   casing.addTo(grp); line.addTo(grp); directions.addTo(grp); hit.addTo(grp);
