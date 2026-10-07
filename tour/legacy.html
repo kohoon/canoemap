@@ -317,11 +317,12 @@
   .loc-transport-in.person svg{width:30px}
   @keyframes locbob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
   .admin-actions{display:none;align-items:stretch;gap:6px}
-  .admin-sheet-card,.admin-members-card{align-items:center;gap:8px;box-sizing:border-box;min-height:var(--mc-control-height);background:#fff;padding:7px 12px 7px 7px;border:0;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.2);text-decoration:none;cursor:pointer}
-  .admin-sheet-card .cf-t,.admin-members-card .cf-t{font:800 13px sans-serif;color:#1f2d25;white-space:nowrap}
-  .admin-sheet-card,.admin-members-card{display:none;width:112px}
-  .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge{width:30px;height:30px;flex:none;border-radius:8px;background:#188038;color:#fff;display:flex;align-items:center;justify-content:center;font:800 19px/1 sans-serif}
+  .admin-sheet-card,.admin-members-card,.admin-suggest-card{align-items:center;gap:8px;box-sizing:border-box;min-height:var(--mc-control-height);background:#fff;padding:7px 12px 7px 7px;border:0;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.2);text-decoration:none;cursor:pointer}
+  .admin-sheet-card .cf-t,.admin-members-card .cf-t,.admin-suggest-card .cf-t{font:800 13px sans-serif;color:#1f2d25;white-space:nowrap}
+  .admin-sheet-card,.admin-members-card,.admin-suggest-card{display:none;width:112px}
+  .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge,.admin-suggest-card .sheet-badge{width:30px;height:30px;flex:none;border-radius:8px;background:#188038;color:#fff;display:flex;align-items:center;justify-content:center;font:800 19px/1 sans-serif}
   .admin-members-card .sheet-badge{background:#1565c0}
+  .admin-suggest-card .sheet-badge{background:#ae542e}
   .jp-lake-label{background:transparent!important;border:0!important;pointer-events:none!important}
   .jp-lake-label span{display:inline-block;transform:translate(-50%,-50%);white-space:nowrap;color:#dff6ff;font:800 12px/1.1 sans-serif;letter-spacing:-.2px;text-shadow:-1px -1px 0 #07547a,1px -1px 0 #07547a,-1px 1px 0 #07547a,1px 1px 0 #07547a,0 1px 4px rgba(0,0,0,.95)}
   .legend-c{width:150px;box-sizing:border-box}
@@ -452,6 +453,7 @@
   .course-character-meta{color:#5c7169;font:600 12px/1.4 sans-serif}
   @media(max-width:600px){#cmBody .seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#cmBody .seg-b{min-width:0}}
   #sgText{width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccd;border-radius:11px;font-size:14px;resize:vertical;font-family:inherit}
+  #sgName,#sgType{width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccd;border-radius:11px;font-size:14px;margin-bottom:14px;background:#fff}
   .sg-submit{width:100%;margin-top:13px;background:#1565c0;color:#fff;border:0;border-radius:11px;padding:14px;font:700 15px sans-serif;cursor:pointer}
   .sg-submit:active{transform:translateY(1px)}
   #sgMsg{font-size:13px;color:#1b8a5a;margin-top:9px;min-height:18px;text-align:center}
@@ -713,9 +715,9 @@
     .map-quick-links{gap:6px}
     .openchat-btn,.paddling-school-btn{padding:9px 10px;font-size:12px}
     .cafe-actions{justify-content:flex-end}
-    .admin-sheet-card,.admin-members-card{width:var(--mc-control-height);height:var(--mc-control-height);padding:6px;justify-content:center;gap:0}
-    .admin-sheet-card .cf-t,.admin-members-card .cf-t{display:none}
-    .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge{width:27px;height:27px;font-size:17px}
+    .admin-sheet-card,.admin-members-card,.admin-suggest-card{width:var(--mc-control-height);height:var(--mc-control-height);padding:6px;justify-content:center;gap:0}
+    .admin-sheet-card .cf-t,.admin-members-card .cf-t,.admin-suggest-card .cf-t{display:none}
+    .admin-sheet-card .sheet-badge,.admin-members-card .sheet-badge,.admin-suggest-card .sheet-badge{width:27px;height:27px;font-size:17px}
     .legend-c{width:138px;font-size:12px}
     .leaflet-control-layers:not(.lc-collapsed){position:fixed;z-index:1200;left:12px;right:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px));width:auto!important;max-width:none;max-height:min(72dvh,620px,max(80px,calc(var(--app-height) - var(--legend-top-clearance,190px) - 32px)));margin:0!important;padding:10px 12px 14px!important;border-radius:17px!important;box-shadow:0 12px 34px rgba(20,43,55,.32)!important}
     .leaflet-control-layers:not(.lc-collapsed) .lc-title{font-size:15px;padding:11px 2px 8px;border-bottom:1px solid #e5eaec}
@@ -977,7 +979,7 @@ async function _updateAdminSheetLink(on){
     const d=await r.json(); if(r.ok&&d&&/^https:\/\/docs\.google\.com\/spreadsheets\//.test(d.url||'')){ a.href=d.url; a.style.display='flex'; }
   }catch(e){}
 }
-function _updateAdminMemberButton(on){ const b=document.getElementById('adminMembersBtn'); if(b)b.style.display=on?'flex':'none'; }
+function _updateAdminMemberButton(on){ ['adminMembersBtn','adminSuggestionsBtn'].forEach(function(id){const b=document.getElementById(id);if(b)b.style.display=on?'flex':'none';}); }
 function _updateAdminActions(on){ const d=document.getElementById('adminActions'); if(d)d.style.display=on?'flex':'none'; }
 function closeAdminMembers(){ const m=document.getElementById('memberAdminModal'); if(m)m.classList.remove('open'); }
 async function openAdminMembers(){
@@ -1228,9 +1230,12 @@ const AdminCtl=L.Control.extend({ options:{position:'topright'},
     sheet.innerHTML='<span class="sheet-badge">▦</span><span class="cf-t">접속기록</span>';
     const members=L.DomUtil.create('button','admin-members-card',d); members.id='adminMembersBtn'; members.type='button'; members.title='회원 현황';
     members.innerHTML='<span class="sheet-badge">👥</span><span class="cf-t">회원관리</span>';
+    const suggestions=L.DomUtil.create('button','admin-suggest-card',d); suggestions.id='adminSuggestionsBtn'; suggestions.type='button'; suggestions.title='장소 제안 검토';
+    suggestions.innerHTML='<span class="sheet-badge">📥</span><span class="cf-t">제안 검토</span>';
     L.DomEvent.disableClickPropagation(d);
     L.DomEvent.on(sheet,'click',function(){ gaEvent('admin_sheet_click'); });
     L.DomEvent.on(members,'click',function(){ openAdminMembers(); });
+    L.DomEvent.on(suggestions,'click',function(){ location.href=location.origin+'/admin/'; });
     setTimeout(function(){ _updateAdminActions(isAdmin()); _updateAdminSheetLink(isAdmin()); _updateAdminMemberButton(isAdmin()); },0);
     return d; } });
 
@@ -1971,24 +1976,29 @@ function suggestPlace(){
   map.closePopup();
   let _sgPhoto=null;
   document.getElementById('sgBody').innerHTML=
-    '<h3>제안하기</h3>'
+    '<h3>새 장소 제안</h3>'
     +'<div class="sg-addr">📍 '+pmEsc(a.name||'선택한 위치')+'</div>'
+    +'<div class="sg-label">장소 이름</div><input id="sgName" maxlength="80" placeholder="예: 강변 선착장" value="'+String(a.name||'').replace(/[&"<>]/g,function(c){return {'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[c];})+'">'
     +'<div class="sg-label">유형 선택</div>'
-    +'<div class="seg" id="sgSeg"><button type="button" class="seg-b on" data-v="런칭/랜딩">🛶 런칭/랜딩</button><button type="button" class="seg-b" data-v="지형지물">🗺️ 지형지물</button><button type="button" class="seg-b" data-v="기타">📍 기타</button></div>'
-    +'<textarea id="sgText" rows="3" maxlength="200" placeholder="설명/코멘트 (예: 진입로·주차 정보 / 보·징검다리 등 주의사항)"></textarea>'
+    +'<div class="seg" id="sgSeg"><button type="button" class="seg-b on" data-v="launch">🛶 런칭지</button><button type="button" class="seg-b" data-v="landing">🛶 랜딩지</button><button type="button" class="seg-b" data-v="landmark">🗺️ 지형지물</button></div>'
+    +'<div id="sgTypeRow" hidden><div class="sg-label">지형지물 종류</div><select id="sgType"><option>보</option><option>징검다리</option><option>잠수교</option><option>용치</option><option>낮은바닥</option><option>여울</option><option>유명지</option><option>강풍지대</option><option>식당/카페</option><option>캠핑사이트</option></select></div>'
+    +'<textarea id="sgText" rows="3" maxlength="200" placeholder="현장 정보 (예: 진입로·주차 / 보·징검다리 주의사항)"></textarea>'
     +'<label class="sg-photo" id="sgPhotoBtn">📷 사진 첨부<input type="file" id="sgPhoto" accept="image/*"></label><div id="sgPhotoPrev"></div>'
-    +'<button class="sg-submit" id="sgSave">제안 보내기</button><div id="sgMsg"></div>';
+    +'<button class="sg-submit" id="sgSave">검토 요청 보내기</button><div id="sgMsg"></div>';
   document.getElementById('sgmodal').classList.add('open');
   const seg=document.getElementById('sgSeg');
   seg.onclick=function(e){ const t=e.target.closest('.seg-b'); if(!t) return;
-    Array.prototype.forEach.call(seg.children,function(c){c.classList.remove('on');}); t.classList.add('on'); };
+    Array.prototype.forEach.call(seg.children,function(c){c.classList.remove('on');}); t.classList.add('on'); document.getElementById('sgTypeRow').hidden=t.dataset.v!=='landmark'; };
   document.getElementById('sgPhoto').addEventListener('change',function(){ const f=this.files&&this.files[0];
     _sgPhoto=(f&&f.type.indexOf('image')===0)?f:null;
     const pv=document.getElementById('sgPhotoPrev'), bt=document.getElementById('sgPhotoBtn');
     if(_sgPhoto){ pv.innerHTML='<span class="pm-prev"><img src="'+URL.createObjectURL(_sgPhoto)+'"> 사진 1장</span>'; bt.classList.add('on'); }
     else { pv.innerHTML=''; bt.classList.remove('on'); } });
   document.getElementById('sgSave').onclick=async function(){
-    const on=seg.querySelector('.seg-b.on'); const cat=on?on.getAttribute('data-v'):'런칭/랜딩';
+    const on=seg.querySelector('.seg-b.on'); const kind=on?on.getAttribute('data-v'):'launch';
+    const name=(document.getElementById('sgName').value||'').trim();
+    if(!name){document.getElementById('sgMsg').textContent='장소 이름을 입력해 주세요';return;}
+    const type=kind==='landmark'?document.getElementById('sgType').value:'';
     const text=(document.getElementById('sgText').value||'').trim().slice(0,200);
     const msg=document.getElementById('sgMsg'); msg.textContent=_sgPhoto?'사진 올리는 중…':'보내는 중…';
     try{
@@ -1996,8 +2006,8 @@ function suggestPlace(){
       if(_sgPhoto){ const k=await uploadImg(_sgPhoto); imgU=imgUrl(k); }
       msg.textContent='보내는 중…';
       const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/suggest',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({id:u.uid,tok:u.tok||'',nick:u.nick||'',cat:cat,text:text,addr:a.name||'',lat:a.lat,lng:a.lng,img:imgU})});
-      if(r.ok){ msg.textContent='✅ 감사합니다! 제안이 접수됐어요'; gaEvent('place_suggest',{cat:cat,photo:imgU?1:0}); setTimeout(closeSg,1100); }
+      body:JSON.stringify({id:u.uid,tok:u.tok||'',kind:kind,type:type,name:name,text:text,addr:a.name||'',lat:a.lat,lng:a.lng,img:imgU})});
+      if(r.ok){ msg.textContent='✅ 검토 요청이 접수됐어요. 관리자 확인 전에는 지도에 표시되지 않습니다.'; gaEvent('place_suggest',{cat:kind,photo:imgU?1:0}); setTimeout(closeSg,1900); }
       else if(r.status===401){ msg.textContent='재로그인이 필요해요'; }
       else msg.textContent='전송 실패'; }
     catch(e){ msg.textContent=(typeof e==='string'?e:'오류'); } };

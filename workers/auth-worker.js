@@ -1153,30 +1153,84 @@ export default {
     }
 
     if (url.pathname.endsWith("/suggest")) {
-      const origin = req.headers.get("Origin") || "*";
-      const cors = {
-        "Access-Control-Allow-Origin": origin,
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-      };
+      const origin = req.headers.get("Origin") || "";
+      const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+      const J = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
       if (req.method === "OPTIONS") return new Response(null, { headers: cors });
-      if (req.method === "POST") {
-        let b = {};
-        try { b = await req.json(); } catch (e) {}
-        if (!b.id) return new Response("forbidden", { status: 403, headers: cors });
-        if (!(await _memberOk(env, String(b.id), b.tok))) return new Response("relogin", { status: 401, headers: cors });
-        if (env.LOG_WEBHOOK) ctx.waitUntil(fetch(env.LOG_WEBHOOK, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "suggest", notify: true, cat: String(b.cat || "기타").slice(0, 10),
-            place: String(b.addr || "").slice(0, 80), nick: String(b.nick || "").slice(0, 20),
-            text: String(b.text || "").slice(0, 200), lat: Number(b.lat) || "", lng: Number(b.lng) || "",
-            img: String(b.img || "").slice(0, 200),
-          }),
-        }).catch(function () {}));
-        return new Response("ok", { headers: cors });
+      if (req.method !== "POST") return J({ error: "method" }, 405);
+      if (origin && !_allowedOrigin(req, env)) return J({ error: "origin" }, 403);
+      const KV = env.PLACES; if (!KV) return J({ error: "no-store" }, 500);
+      let b = {}; try { b = await req.json(); } catch (e) {}
+      const action = String(b.action || "submit");
+      if (action === "list" || action === "approve" || action === "reject") {
+        if (!env.ADMIN_KEY || String(b.adminKey || "") !== String(env.ADMIN_KEY)) return J({ error: "forbidden" }, 403);
+        if (action === "list") {
+          const cursor = String(b.cursor || "").slice(0, 200);
+          const page = await KV.list({ prefix: "place_suggestion:", limit: 30, ...(cursor ? { cursor } : {}) });
+          const items = (await Promise.all(page.keys.map((key) => KV.get(key.name, "json")))).filter(Boolean);
+          return J({ items, cursor: page.list_complete ? "" : page.cursor });
+        }
+        const id = String(b.suggestionId || "");
+        if (!/^s[0-9]{13}[a-f0-9]{8}$/.test(id)) return J({ error: "bad-id" }, 400);
+        const key = "place_suggestion:" + id;
+        let item = null; try { item = JSON.parse((await KV.get(key)) || "null"); } catch (e) {}
+        if (!item) return J({ error: "not-found" }, 404);
+        if (item.status !== "pending") return J({ error: "already-reviewed", item }, 409);
+        const reviewNote = String(b.reviewNote || "").trim().slice(0, 300);
+        let published = null;
+        if (action === "approve") {
+          const name = String(b.name || item.name || "").trim().slice(0, 80);
+          const note = String(b.note == null ? item.text : b.note).trim().slice(0, 500);
+          const kind = String(b.kind || item.kind);
+          const lat = Number(b.lat == null ? item.lat : b.lat), lng = Number(b.lng == null ? item.lng : b.lng);
+          if (!name || !Number.isFinite(lat) || !Number.isFinite(lng) || lat < 32 || lat > 40 || lng < 123 || lng > 132 || !["launch", "landing", "landmark"].includes(kind)) return J({ error: "bad-data" }, 400);
+          if (kind === "landmark") {
+            const types = ["보", "징검다리", "잠수교", "용치", "낮은바닥", "여울", "유명지", "강풍지대", "식당/카페", "캠핑사이트"];
+            const type = String(b.type || item.type || "");
+            if (!types.includes(type)) return J({ error: "bad-type" }, 400);
+            let arr = []; try { arr = JSON.parse((await KV.get("obstacles")) || "[]"); } catch (e) {}
+            const obsId = "suggestion:" + id;
+            published = { id: obsId, lat, lng, type, name: name.slice(0, 40), note: note.slice(0, 200), img: item.img || "", suggestionId: id, t: Date.now() };
+            arr = (Array.isArray(arr) ? arr : []).filter((x) => String(x.id) !== obsId);
+            arr.unshift(published); if (arr.length > 500) arr.length = 500;
+            await KV.put("obstacles", JSON.stringify(arr));
+          } else {
+            let over = {}; try { over = JSON.parse((await KV.get("placeover")) || "{}"); } catch (e) {}
+            const placeId = "u" + id;
+            published = { new: 1, name, memo: note, cat: "canoe", placeRole: kind, lat, lng, img: item.img || "", suggestionId: id, createdAt: Date.now() };
+            over[placeId] = published;
+            await KV.put("placeover", JSON.stringify(over));
+            published = { id: placeId, ...published };
+          }
+        }
+        item.status = action === "approve" ? "approved" : "rejected";
+        item.review = { at: Date.now(), note: reviewNote, name: published && published.name || "", publicationId: published && published.id || "", lat: published && published.lat, lng: published && published.lng, kind: published && (published.placeRole || "landmark"), type: published && published.type || "" };
+        await KV.put(key, JSON.stringify(item));
+        return J({ ok: true, item, published });
       }
-      return new Response("method", { status: 405, headers: cors });
+      if (action !== "submit") return J({ error: "bad-action" }, 400);
+      const uid = String(b.id || "").slice(0, 40);
+      if (!uid || !(await _memberOk(env, uid, b.tok))) return J({ error: "relogin" }, 401);
+      const ip = req.headers.get("CF-Connecting-IP") || "0";
+      if (await _rateLimited(env, "suggest_" + (await _uidHash(env, uid)), ip, 5)) return J({ error: "rate-limit" }, 429);
+      const legacyCat = String(b.cat || "");
+      const kind = String(b.kind || (legacyCat === "런칭/랜딩" ? "launch" : (legacyCat === "지형지물" || legacyCat === "기타") ? "landmark" : ""));
+      const type = String(b.type || (legacyCat && kind === "landmark" ? "유명지" : ""));
+      const lat = Number(b.lat), lng = Number(b.lng);
+      const name = String(b.name || b.addr || "").trim().slice(0, 80);
+      if (!name || !["launch", "landing", "landmark"].includes(kind) || !Number.isFinite(lat) || !Number.isFinite(lng) || lat < 32 || lat > 40 || lng < 123 || lng > 132) return J({ error: "bad-data" }, 400);
+      if (kind === "landmark" && !["보", "징검다리", "잠수교", "용치", "낮은바닥", "여울", "유명지", "강풍지대", "식당/카페", "캠핑사이트"].includes(type)) return J({ error: "bad-type" }, 400);
+      const member = await _memberGet(env, uid);
+      const imageUrl = String(b.img || "").slice(0, 200);
+      const img = new RegExp("^" + url.origin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "/img\\?k=[A-Za-z0-9_]{1,40}$").test(imageUrl) ? imageUrl : "";
+      const id = "s" + String(9999999999999 - Date.now()).padStart(13, "0") + crypto.randomUUID().replace(/-/g, "").slice(0, 8);
+      const item = { id, status: "pending", kind, type: kind === "landmark" ? type : "", name, addr: String(b.addr || "").slice(0, 80), text: String(b.text || "").trim().slice(0, 200), lat, lng, img, nick: String(member && member.nick || "회원").slice(0, 20), actorId: await _memberId(env, uid), t: Date.now() };
+      await KV.put("place_suggestion:" + id, JSON.stringify(item));
+      if (env.LOG_WEBHOOK) ctx.waitUntil(fetch(env.LOG_WEBHOOK, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "suggest", notify: true, cat: kind === "landmark" ? type : kind === "launch" ? "런칭지" : "랜딩지", place: name, nick: item.nick, text: item.text, lat, lng, img }),
+      }).catch(function () {}));
+      return J({ ok: true, id, status: "pending" });
     }
 
     // 0-3c-2) 거리측정 공유 — 인증된 생성자만 저장, 짧은 해시는 공개 조회

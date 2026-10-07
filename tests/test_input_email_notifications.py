@@ -20,7 +20,7 @@ class InputEmailNotificationTests(unittest.TestCase):
             source,
         )
         self.assertIn(
-            'type: "suggest", notify: true, cat: String(b.cat || "기타")',
+            'type: "suggest", notify: true, cat: kind === "landmark" ? type : kind === "launch" ? "런칭지" : "랜딩지"',
             source,
         )
         self.assertNotIn(

@@ -242,3 +242,61 @@ test('one official expedition round appears once when static and registered cour
   await expect(page.locator('#pmodal')).toBeVisible();
   await browser.close();
 });
+
+test('member place suggestion enters review instead of publishing immediately', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  let submitted;
+  await page.route('**/suggest', async (route) => {
+    submitted = route.request().postDataJSON();
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, id: 's1000000000000abcdef12', status: 'pending' }) });
+  });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    hideGate();
+    setUser({ uid: 'test-member', tok: 'test-token', nick: '카누인' });
+    window._curAddr = { lat: 37.9, lng: 127.7, name: '강원도 춘천시' };
+    suggestPlace();
+  });
+  await page.locator('#sgSeg [data-v="landmark"]').click();
+  await expect(page.locator('#sgTypeRow')).toBeVisible();
+  await page.locator('#sgName').fill('작은 여울');
+  await page.locator('#sgType').selectOption('여울');
+  await page.locator('#sgText').fill('우안으로 통과');
+  await page.locator('#sgSave').click();
+  await expect(page.locator('#sgMsg')).toContainText('관리자 확인 전에는 지도에 표시되지 않습니다');
+  expect(submitted).toMatchObject({ kind: 'landmark', type: '여울', name: '작은 여울', lat: 37.9, lng: 127.7 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await browser.close();
+});
+
+test('dedicated admin page reviews a suggestion and stays usable on mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  let reviewed;
+  await page.route('**/admincheck', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }));
+  await page.route('**/suggest', async (route) => {
+    const body = route.request().postDataJSON();
+    if (body.action === 'list') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [{ id: 's1000000000000abcdef12', status: 'pending', kind: 'landing', type: '', name: '테스트 랜딩지', addr: '춘천시', text: '진입로 확인', lat: 37.9, lng: 127.7, nick: '제안자', t: Date.now() }], cursor: '' }) });
+    reviewed = body;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, item: { id: body.suggestionId, status: 'approved', kind: body.kind, name: body.name, lat: 37.9, lng: 127.7, review: { at: Date.now(), note: '' } } }) });
+  });
+  page.on('dialog', dialog => dialog.accept());
+  await page.goto(baseURL + '/admin/index.html', { waitUntil: 'domcontentloaded' });
+  await page.locator('#adminKey').fill('test-admin-key');
+  await page.locator('#loginBtn').click();
+  await expect(page.locator('#list .card')).toHaveCount(1);
+  await page.locator('[data-field="name"]').fill('확인된 랜딩지');
+  await page.locator('[data-action="approve"]').click();
+  await expect(page.locator('#listMsg')).toContainText('승인했습니다');
+  expect(reviewed).toMatchObject({ action: 'approve', name: '확인된 랜딩지', kind: 'landing' });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(page.locator('header')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await browser.close();
+});

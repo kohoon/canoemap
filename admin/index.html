@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>장소 제안 검토 · 카누맵 관리자</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#173530;background:#f3f8f6}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:#086b91}
+header{background:#103d39;color:#fff;padding:18px max(20px,calc((100vw - 1000px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+header strong{font-size:20px}header a{color:#fff;text-decoration:none;font-weight:700}main{max-width:1000px;margin:auto;padding:25px 20px 60px}
+h1{font-size:27px;margin:0 0 6px}h2{font-size:18px;margin:0 0 14px}.lead{color:#536a66;margin:0 0 22px;line-height:1.6}
+.panel,.card{background:#fff;border:1px solid #d9e6e2;border-radius:17px;box-shadow:0 3px 12px rgba(19,64,57,.06)}.panel{padding:22px;margin-bottom:17px}
+#loginPanel{max-width:450px}.field{display:grid;gap:5px;font-size:12px;color:#526b65;font-weight:750}.field input,.field select,.field textarea{width:100%;min-width:0;background:#fff;color:#183932;border:1px solid #cbdad5;border-radius:10px;padding:10px 11px;font-size:14px}.field textarea{resize:vertical}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.primary,.secondary,.danger{border-radius:10px;border:1px solid #0d8074;padding:10px 15px;font-weight:800;min-height:42px}.primary{background:#0d8074;color:#fff}.secondary{background:#fff;color:#17665e;border-color:#bed6d0}.danger{background:#fff;color:#a23729;border-color:#dfc8c4}button:disabled{opacity:.5;cursor:not-allowed}
+#authMsg,#listMsg{min-height:22px;color:#9b3c31;font-size:13px;margin-top:9px}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}.toolbar small{color:#5e726d}.tabs{display:flex;gap:7px}.tabs button{border:1px solid #c6dad3;background:#fff;color:#44625a;border-radius:999px;padding:7px 13px;font-weight:750}.tabs button[aria-pressed=true]{background:#0d8074;color:#fff;border-color:#0d8074}
+.card{padding:18px;margin-bottom:13px}.card.resolved{background:#f7faf9}.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.card h3{margin:0;font-size:18px}.badge{border-radius:999px;padding:4px 9px;background:#fff0da;color:#8d510b;font-size:12px;font-weight:800;white-space:nowrap}.badge.approved{background:#def5e8;color:#187248}.badge.rejected{background:#f8e8e4;color:#ad3d2a}
+.meta{color:#667a75;font-size:12px;margin:8px 0}.note{white-space:pre-wrap;color:#314c45;font-size:14px;line-height:1.6;margin:9px 0}.photo{display:block;max-width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid #e4ece9;margin:10px 0}.fields{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:16px 0 12px}.wide{grid-column:1/-1}.card .row{margin-top:10px}.review-note{color:#57716a;font-size:13px}.empty{padding:28px;text-align:center;color:#677c75;border:1px dashed #c7d9d1;border-radius:12px;background:#fff}
+@media(max-width:600px){header{padding:14px 16px}header strong{font-size:18px}main{padding:20px 13px 40px}h1{font-size:23px}.panel,.card{padding:15px}.fields{grid-template-columns:1fr}.wide{grid-column:auto}.card .row button{flex:1}#listMsg{font-size:12px}}
+</style>
+</head>
+<body>
+<header><strong>🛶 카누맵 관리자</strong><a href="/">← 지도로 돌아가기</a></header>
+<main>
+  <h1>장소 제안 검토</h1>
+  <p class="lead">위치 확인 링크에서 기존 장소와 중복 여부를 확인한 뒤, 이름·유형·좌표·설명을 다듬어 승인하면 지도에 반영됩니다. 검토 전에는 공개되지 않습니다. 기존 구글시트 접수분은 이 목록에 자동으로 옮겨지지 않습니다.</p>
+  <section class="panel" id="loginPanel"><h2>관리자 인증</h2><label class="field">관리자 키<input id="adminKey" type="password" autocomplete="off" placeholder="관리자 키"></label><div class="row" style="margin-top:14px"><button id="loginBtn" class="primary" type="button">인증하고 제안함 열기</button></div><div id="authMsg" role="status"></div></section>
+  <section id="reviewPanel" hidden>
+    <div class="toolbar"><div><h2 style="margin:0">제안함</h2><small id="countText">불러오는 중…</small></div><div class="row"><div class="tabs"><button data-filter="pending" aria-pressed="true" type="button">검토 대기</button><button data-filter="all" aria-pressed="false" type="button">전체</button></div><button id="refreshBtn" class="secondary" type="button">새로고침</button><button id="logoutBtn" class="secondary" type="button">관리자 해제</button></div></div>
+    <div id="list" aria-live="polite"></div><div id="listMsg" role="status"></div><button id="moreBtn" class="secondary" type="button" hidden>이전 제안 더 보기</button>
+  </section>
+</main>
+<script>
+const API='https://mycanoe-map.kohoon0140.workers.dev';
+const types=['보','징검다리','잠수교','용치','낮은바닥','여울','유명지','강풍지대','식당/카페','캠핑사이트'];
+const $=id=>document.getElementById(id);
+let key='',items=[],cursor='',filter='pending',busy=false;
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function date(ms){const d=new Date(Number(ms));return Number.isNaN(d.getTime())?'':d.toLocaleString('ko-KR');}
+async function api(body){const r=await fetch(API+'/suggest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'요청 실패');return data;}
+async function login(value){$('authMsg').textContent='확인 중…';try{const r=await fetch(API+'/admincheck',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:value})});const d=await r.json();if(!r.ok||!d.ok)throw 0;key=value;localStorage.setItem('mc_admin',value);$('loginPanel').hidden=true;$('reviewPanel').hidden=false;await load(true);}catch(e){$('authMsg').textContent='관리자 키를 확인해 주세요.';}}
+function kindLabel(x){return x.kind==='launch'?'런칭지':x.kind==='landing'?'랜딩지':'지형지물 · '+(x.type||'');}
+function card(x){const pending=x.status==='pending',lat=Number(x.lat),lng=Number(x.lng),mapUrl='https://www.openstreetmap.org/?mlat='+lat+'&mlon='+lng+'#map=16/'+lat+'/'+lng;
+  const select=(value,options)=>options.map(([v,label])=>'<option value="'+esc(v)+'"'+(v===value?' selected':'')+'>'+esc(label)+'</option>').join('');
+  return '<article class="card'+(pending?'':' resolved')+'" data-id="'+esc(x.id)+'"><div class="card-top"><h3>'+esc(x.name||'이름 없음')+'</h3><span class="badge '+esc(x.status)+'">'+(pending?'검토 대기':x.status==='approved'?'승인':'반려')+'</span></div>'
+  +'<div class="meta">'+esc(kindLabel(x))+' · '+esc(x.nick||'회원')+' · '+esc(date(x.t))+'</div><div class="meta">'+esc(x.addr||'')+' · '+lat.toFixed(5)+', '+lng.toFixed(5)+' · <a href="'+esc(mapUrl)+'" target="_blank" rel="noopener">지도에서 위치 확인 ↗</a></div>'
+  +(x.text?'<p class="note">'+esc(x.text)+'</p>':'')+(x.img?'<img class="photo" src="'+esc(x.img)+'" alt="제안자가 첨부한 현장 사진" loading="lazy">':'')
+  +(pending?'<div class="fields"><label class="field wide">게시할 장소 이름<input data-field="name" maxlength="80" value="'+esc(x.name)+'"></label>'
+    +'<label class="field">게시 유형<select data-field="kind">'+select(x.kind,[['launch','런칭지'],['landing','랜딩지'],['landmark','지형지물']])+'</select></label>'
+    +'<label class="field" data-type-row'+(x.kind==='landmark'?'':' hidden')+'>지형지물 종류<select data-field="type">'+select(x.type||'보',types.map(t=>[t,t]))+'</select></label>'
+    +'<label class="field">위도<input data-field="lat" type="number" step="any" min="32" max="40" value="'+lat+'"></label><label class="field">경도<input data-field="lng" type="number" step="any" min="123" max="132" value="'+lng+'"></label>'
+    +'<label class="field wide">게시할 설명<textarea data-field="note" maxlength="500" rows="3">'+esc(x.text||'')+'</textarea></label>'
+    +'<label class="field wide">검토 메모 (선택)<input data-field="reviewNote" maxlength="300" placeholder="반려 사유 또는 확인 사항"></label></div>'
+    +'<div class="row"><button class="primary" data-action="approve" type="button">지도에 반영</button><button class="danger" data-action="reject" type="button">반려</button></div>':'<p class="review-note">'+(x.status==='approved'?'지도 반영: '+esc(x.review&&x.review.name||x.name)+' · ':'')+esc(x.review&&x.review.note||'검토 완료')+(x.review&&x.review.at?' · '+esc(date(x.review.at)):'')+'</p>')+'</article>';}
+function render(){const shown=filter==='pending'?items.filter(x=>x.status==='pending'):items;$('countText').textContent='불러온 제안 '+items.length+'건 · 검토 대기 '+items.filter(x=>x.status==='pending').length+'건';$('list').innerHTML=shown.length?shown.map(card).join(''):'<div class="empty">'+(filter==='pending'?'현재 검토 대기 중인 제안이 없습니다.':'제안 내역이 없습니다.')+'</div>';$('moreBtn').hidden=!cursor;}
+async function load(reset){if(busy)return;busy=true;$('listMsg').textContent='제안 목록을 불러오는 중…';try{const d=await api({action:'list',adminKey:key,cursor:reset?'':cursor});if(reset)items=[];items.push(...(d.items||[]));cursor=d.cursor||'';render();$('listMsg').textContent='';}catch(e){$('listMsg').textContent='목록을 불러오지 못했습니다. 관리자 인증과 네트워크를 확인해 주세요.';}finally{busy=false;}}
+async function review(article,action){if(busy)return;const id=article.dataset.id,x=items.find(v=>v.id===id);if(!x)return;const val=name=>article.querySelector('[data-field="'+name+'"]')?.value||'';const name=val('name').trim();if(action==='approve'&&!name){$('listMsg').textContent='게시할 장소 이름을 입력해 주세요.';return;}if(!confirm(action==='approve'?'이 제안을 지도에 반영할까요?':'이 제안을 반려할까요?'))return;
+  busy=true;article.querySelectorAll('button').forEach(b=>b.disabled=true);$('listMsg').textContent='처리 중…';try{const d=await api({action,adminKey:key,suggestionId:id,name,kind:val('kind'),type:val('type'),lat:val('lat'),lng:val('lng'),note:val('note'),reviewNote:val('reviewNote')});Object.assign(x,d.item);render();$('listMsg').textContent=action==='approve'?'승인했습니다. 지도에서 새로고침하면 반영된 장소를 볼 수 있습니다.':'반려했습니다.';}catch(e){$('listMsg').textContent='처리하지 못했습니다: '+e.message;article.querySelectorAll('button').forEach(b=>b.disabled=false);}finally{busy=false;}}
+$('loginBtn').onclick=()=>login($('adminKey').value.trim());$('adminKey').onkeydown=e=>{if(e.key==='Enter')$('loginBtn').click();};$('refreshBtn').onclick=()=>load(true);$('moreBtn').onclick=()=>load(false);
+$('logoutBtn').onclick=()=>{key='';localStorage.removeItem('mc_admin');items=[];cursor='';$('reviewPanel').hidden=true;$('loginPanel').hidden=false;$('adminKey').value='';$('authMsg').textContent='관리자 인증이 해제됐습니다.';};
+document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(t=>t.setAttribute('aria-pressed',String(t===b)));render();});
+$('list').onchange=e=>{if(e.target.matches('[data-field="kind"]'))e.target.closest('.card').querySelector('[data-type-row]').hidden=e.target.value!=='landmark';};
+$('list').onclick=e=>{const btn=e.target.closest('[data-action]');if(btn)review(btn.closest('.card'),btn.dataset.action);};
+const saved=localStorage.getItem('mc_admin');if(saved)login(saved);
+</script>
+</body>
+</html>
