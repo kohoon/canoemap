@@ -16,6 +16,7 @@ import { coursePreviewKey, courseShareHtml, normalizeCourseShareId } from "./cou
 import { applyCourseCorrection, coursePreviewVersionIsCurrent } from "./course-corrections.mjs";
 import { EXPEDITIONS, EXPEDITION_STICKERS, expeditionNumber, normalizeExpedition } from "./expedition.mjs";
 import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
+import { accessDayWindow, appendMemberAccess, dailyMemberAccess } from "./access-history.mjs";
 
 /**
  * Cloudflare Worker — 카카오 로그인 OAuth 콜백.
@@ -180,6 +181,7 @@ async function _recordMemberAccess(env, uid, type, dev, member) {
   current.lastAccessType = logType;
   current.lastDevice = dev === "모바일" ? "mobile" : "pc";
   current.updatedAt = now;
+  appendMemberAccess(current, now, logType, current.lastDevice);
   await _memberPut(env, uid, current);
   if (env.LOG_WEBHOOK) {
     await fetch(env.LOG_WEBHOOK, {
@@ -580,6 +582,36 @@ export default {
       } while (cursor && members.length < 5000);
       members.sort((a, b2) => b2.lastAt - a.lastAt);
       return J({ ok: true, active: members.filter((m) => m.status === "active"), withdrawnCount: members.filter((m) => m.status !== "active").length });
+    }
+
+    // 날짜별 접속 사건. 기존 회원 레코드에 최근 이력만 함께 저장하므로 추가 KV 쓰기는 없다.
+    if (url.pathname.endsWith("/admin-access")) {
+      const origin = req.headers.get("Origin") || "*";
+      const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+      const J = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
+      if (!_allowedOrigin(req, env)) return J({ ok: false }, 403);
+      if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+      if (req.method !== "POST") return J({ ok: false }, 405);
+      const ip = req.headers.get("CF-Connecting-IP") || "0";
+      if (await _rateLimited(env, "admin_access", ip, 60)) return J({ ok: false, error: "rate-limit" }, 429);
+      let b = {}; try { b = await req.json(); } catch (e) {}
+      if (!env.ADMIN_KEY || !_safeEqual(String(b.key || ""), String(env.ADMIN_KEY))) return J({ ok: false }, 403);
+      const window = accessDayWindow(b.day);
+      if (!window) return J({ ok: false, error: "invalid-day" }, 400);
+      const KV = env.PLACES; if (!KV) return J({ ok: false, error: "no-store" }, 500);
+      const members = []; let cursor;
+      do {
+        const page = await KV.list({ prefix: "member:", cursor });
+        for (const item of page.keys) {
+          try { const member = JSON.parse((await KV.get(item.name)) || "null"); if (member) members.push(member); } catch (e) {}
+        }
+        cursor = page.list_complete ? null : page.cursor;
+      } while (cursor && members.length < 5000);
+      const rows = dailyMemberAccess(members, window);
+      const offset = Math.min(100000, Math.max(0, Math.floor(Number(b.offset) || 0)));
+      const limit = Math.min(200, Math.max(1, Math.floor(Number(b.limit) || 100)));
+      return J({ ok: true, day: b.day, today: window.today, oldest: window.oldest,
+        total: rows.length, items: rows.slice(offset, offset + limit), nextOffset: offset + limit < rows.length ? offset + limit : null });
     }
 
     // 0-1d) 명시적 회원가입/회원상태. 원본 카카오 ID는 KV 키·회원 레코드에 저장하지 않는다.

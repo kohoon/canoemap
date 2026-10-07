@@ -21,6 +21,7 @@ h1{font-size:27px;margin:0 0 6px}h2{font-size:18px;margin:0 0 14px}.lead{color:#
 .admin-nav{display:flex;gap:8px;margin:0 0 18px}.admin-nav button{min-height:44px;border:1px solid #bdd7d0;border-radius:10px;background:#fff;color:#315d54;padding:9px 15px;font-weight:800}.admin-nav button[aria-selected=true]{background:#0d8074;border-color:#0d8074;color:#fff}
 .course-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0}.course-stat{background:#eef8f5;border-radius:11px;padding:11px}.course-stat b{display:block;font-size:21px}.course-stat small{color:#547068}.course-controls{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin:16px 0}.course-controls .field{flex:1 1 165px}.course-controls .field:first-child{flex:0 1 155px}.course-card{padding:14px 16px}.course-card h3{font-size:15px;overflow-wrap:anywhere}.course-card .meta{line-height:1.5}.course-owners{margin:12px 0 18px}.course-owners summary{cursor:pointer;font-weight:800}.course-owner-row{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #e3eeea;padding:8px 2px;font-size:13px}.course-owner-row small{color:#627b73}.course-note{color:#5d746d;font-size:12px;line-height:1.55}
 .access-list{display:grid;gap:9px}.access-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.4fr);align-items:center;gap:10px;padding:12px 14px;border:1px solid #e1ebe7;border-radius:11px;background:#fff}.access-row strong{display:block;overflow-wrap:anywhere}.access-row small{color:#667a75}.access-row .meta{margin:0}.access-note{font-size:12px;line-height:1.55;color:#5d746d;margin:8px 0 16px}
+.access-pager{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 15px}.access-pager .field{flex:1 1 150px;max-width:210px}.access-pager button{white-space:nowrap}
 @media(max-width:600px){header{padding:14px 16px}header strong{font-size:18px}main{padding:20px 13px 40px}h1{font-size:23px}.panel,.card{padding:15px}.fields{grid-template-columns:1fr}.wide{grid-column:auto}.card .row button{flex:1}#listMsg{font-size:12px}}
 @media(max-width:600px){.course-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.course-controls .field{flex-basis:100%}.course-controls .field:first-child{flex-basis:100%}.course-controls button{flex:1}.admin-nav button{flex:1;padding:9px 7px}.access-row{grid-template-columns:1fr auto}.access-row .access-time{grid-column:1/-1}}
 </style>
@@ -45,9 +46,10 @@ h1{font-size:27px;margin:0 0 6px}h2{font-size:18px;margin:0 0 14px}.lead{color:#
     <div id="courseList" aria-live="polite"></div><div id="courseMsg" role="status"></div><button id="courseMore" class="secondary" type="button" hidden>코스 더 보기</button>
   </section>
   <section class="panel" id="accessPanel" hidden>
-    <div class="toolbar"><div><h2 style="margin:0">최근 접속 현황</h2><small id="accessCount">불러오는 중…</small></div><div class="row"><button class="secondary" id="accessRefresh" type="button">새로고침</button><a class="secondary" id="accessSheet" target="_blank" rel="noopener noreferrer" hidden>접속 건별 전체 로그 ↗</a></div></div>
-    <p class="access-note">최근 접속한 회원 최대 50명, 회원마다 가장 최근 1건을 보여줍니다. 접속 건별 기록은 운영 시트의 logins 탭에서 확인할 수 있습니다. 접속 시각은 한국 시간입니다.</p>
-    <div class="access-list" id="accessList" aria-live="polite"></div><div id="accessMsg" role="status"></div>
+    <div class="toolbar"><div><h2 style="margin:0">최근 회원 접속 기록</h2><small id="accessCount">불러오는 중…</small></div><div class="row"><button class="secondary" id="accessRefresh" type="button">새로고침</button><a class="secondary" id="accessSheet" target="_blank" rel="noopener noreferrer" hidden>접속 건별 전체 로그 ↗</a></div></div>
+    <p class="access-note">날짜별 회원 접속 건을 최신순으로 표시합니다. 이 화면의 건별 이력은 2026년 10월 7일부터 기록하며 오늘과 이전 30일을 조회할 수 있습니다. 그 이전 기록과 비회원 접속 기록은 운영 시트의 logins 탭에서 확인할 수 있습니다. 날짜와 시각은 한국 시간입니다.</p>
+    <div class="access-pager"><button class="secondary" id="accessPrev" type="button" aria-label="전날 접속 기록">← 전날</button><label class="field">조회 날짜<input id="accessDay" type="date"></label><button class="secondary" id="accessNext" type="button" aria-label="다음날 접속 기록">다음날 →</button></div>
+    <div class="access-list" id="accessList" aria-live="polite"></div><div id="accessMsg" role="status"></div><button id="accessMore" class="secondary" type="button" hidden>이 날짜의 기록 더 보기</button>
   </section>
 </main>
 <script>
@@ -56,25 +58,32 @@ const types=['보','징검다리','잠수교','용치','낮은바닥','여울','
 const $=id=>document.getElementById(id);
 let key='',items=[],cursor='',filter='pending',busy=false;
 let courseItems=[],courseOffset=0,courseNext=null,courseBusy=false,coursePending=false,courseSummary=null,courseOwners=[];
-let accessLoaded=false,accessBusy=false;
+let accessLoaded=false,accessBusy=false,accessOffset=0,accessNext=null,accessRows=[],accessDay='';
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function date(ms){const d=new Date(Number(ms));return Number.isNaN(d.getTime())?'':d.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});}
 async function api(body){const r=await fetch(API+'/suggest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'요청 실패');return data;}
 async function login(value){$('authMsg').textContent='확인 중…';try{const r=await fetch(API+'/admincheck',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:value})});const d=await r.json();if(!r.ok||!d.ok)throw 0;key=value;localStorage.setItem('mc_admin',value);$('loginPanel').hidden=true;$('adminNav').hidden=false;showAdminTab('review');await load(true);}catch(e){$('authMsg').textContent='관리자 키를 확인해 주세요.';}}
 function showAdminTab(tab){$('reviewPanel').hidden=tab!=='review';$('coursePanel').hidden=tab!=='courses';$('accessPanel').hidden=tab!=='access';document.querySelectorAll('[data-admin-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.adminTab===tab)));if(tab==='courses'&&!courseSummary)loadCourses(true);if(tab==='access'&&!accessLoaded)loadAccess();}
 function accessType(type){return type==='login'?'로그인':type==='paddling_visit'?'패들링 스쿨 방문':type==='visit'?'카누맵 방문':'접속';}
-async function loadAccess(){if(!key||accessBusy)return;accessBusy=true;const requestedKey=key;$('accessMsg').textContent='최근 접속을 불러오는 중…';try{
-  const r=await fetch(API+'/admin-members',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key}),cache:'no-store'}),d=await r.json().catch(()=>({}));
-  if(!r.ok||!d.ok)throw new Error('load-failed');if(key!==requestedKey)return;
-  const all=(d.active||[]).filter(m=>Number(m.lastAt)>0).sort((a,b)=>Number(b.lastAt)-Number(a.lastAt));
-  const recent=all.slice(0,50),day=24*60*60*1000,now=Date.now();
-  $('accessCount').textContent='최근 24시간 '+all.filter(m=>now-Number(m.lastAt)<day).length+'명 · 최근 7일 '+all.filter(m=>now-Number(m.lastAt)<7*day).length+'명 · 전체 '+all.length+'명';
-  $('accessList').innerHTML=recent.length?recent.map(m=>'<div class="access-row"><div><strong>'+esc(m.nick||'회원')+'</strong><small>회원 ID '+esc(m.memberId||'')+'</small></div><div>'+esc(accessType(m.lastAccessType))+'<br><small>'+(m.device==='mobile'?'모바일':'PC')+' · 로그인 '+Number(m.loginCount||0)+'회 · 방문 '+Number(m.visitCount||0)+'회</small></div><div class="access-time meta">'+esc(date(m.lastAt))+'</div></div>').join(''):'<div class="empty">접속 기록이 있는 회원이 없습니다.</div>';
-  accessLoaded=true;$('accessMsg').textContent='회원별 최근 1건을 표시합니다.';
-  const sheet=await fetch(API+'/admin-sheet-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key}),cache:'no-store'}).then(x=>x.json()).catch(()=>({}));
-  if(key!==requestedKey)return;const link=$('accessSheet');let url=null;try{url=new URL(sheet.url);}catch(e){}
-  if(url&&url.protocol==='https:'&&url.hostname==='docs.google.com'&&url.pathname.startsWith('/spreadsheets/')){link.href=url.href;link.hidden=false;}else{link.removeAttribute('href');link.hidden=true;}
-}catch(e){if(key===requestedKey)$('accessMsg').textContent='접속 현황을 불러오지 못했습니다. 다시 시도해 주세요.';}finally{accessBusy=false;}}
+function kstDay(){return new Date(Date.now()+9*60*60*1000).toISOString().slice(0,10);}
+function shiftDay(day,amount){const d=new Date(day+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+amount);return d.toISOString().slice(0,10);}
+function renderAccess(){
+  $('accessList').innerHTML=accessRows.length?accessRows.map(m=>'<div class="access-row"><div><strong>'+esc(m.nick||'회원')+'</strong><small>회원 ID '+esc(m.memberId||'')+'</small></div><div>'+esc(accessType(m.type))+'<br><small>'+(m.device==='mobile'?'모바일':'PC')+'</small></div><div class="access-time meta">'+esc(date(m.at))+'</div></div>').join(''):'<div class="empty">이 날짜의 접속 기록이 없습니다.</div>';
+  $('accessMore').hidden=accessNext==null;
+}
+async function loadAccess(more=false){if(!key||accessBusy)return;if(!accessDay)accessDay=kstDay();accessBusy=true;const requestedKey=key,requestedDay=accessDay;$('accessMsg').textContent='접속 기록을 불러오는 중…';try{
+  const r=await fetch(API+'/admin-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,day:requestedDay,offset:more?accessOffset:0,limit:100}),cache:'no-store'}),d=await r.json().catch(()=>({}));
+  if(!r.ok||!d.ok)throw new Error('load-failed');if(key!==requestedKey||accessDay!==requestedDay)return;
+  accessRows=more?accessRows.concat(d.items||[]):(d.items||[]);accessNext=d.nextOffset;accessOffset=d.nextOffset||0;accessLoaded=true;
+  $('accessCount').textContent=requestedDay+' · '+Number(d.total||0)+'건';$('accessDay').value=requestedDay;$('accessDay').min=d.oldest;$('accessDay').max=d.today;
+  $('accessPrev').disabled=requestedDay<=d.oldest;$('accessNext').disabled=requestedDay>=d.today;renderAccess();$('accessMsg').textContent=accessRows.length+'건 표시';
+  if(!$('accessSheet').hasAttribute('href')){
+    const sheet=await fetch(API+'/admin-sheet-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key}),cache:'no-store'}).then(x=>x.json()).catch(()=>({}));
+    if(key!==requestedKey)return;const link=$('accessSheet');let url=null;try{url=new URL(sheet.url);}catch(e){}
+    if(url&&url.protocol==='https:'&&url.hostname==='docs.google.com'&&url.pathname.startsWith('/spreadsheets/')){link.href=url.href;link.hidden=false;}
+  }
+}catch(e){if(key===requestedKey)$('accessMsg').textContent='접속 기록을 불러오지 못했습니다. 다시 시도해 주세요.';}finally{accessBusy=false;}}
+function selectAccessDay(day){if(accessBusy||!day||day===accessDay)return;accessDay=day;accessLoaded=false;accessRows=[];accessNext=null;accessOffset=0;$('accessList').replaceChildren();loadAccess();}
 async function courseApi(body){const r=await fetch(API+'/admin-courses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,...body}),cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok||!data.ok)throw new Error(data.error||'요청 실패');return data;}
 function renderCourses(){const s=courseSummary||{total:0,admin:0,member:0,memberOwners:0};$('courseSummary').innerHTML=[['전체',s.total],['회원 코스',s.member],['저장 회원',s.memberOwners],['운영 코스',s.admin]].map(([name,count])=>'<div class="course-stat"><b>'+Number(count||0)+'</b><small>'+name+'</small></div>').join('');
   $('courseOwnerSummary').textContent='회원별 건수 · '+courseOwners.length+'명';$('courseOwners').innerHTML=courseOwners.length?courseOwners.map(o=>'<div class="course-owner-row"><span>'+esc(o.nickname)+' <small>('+esc(o.ownerId)+')</small></span><b>'+Number(o.count||0)+'개</b></div>').join(''):'<div class="empty">저장 코스가 있는 일반 회원이 없습니다.</div>';
@@ -103,10 +112,12 @@ async function load(reset){if(busy)return;busy=true;$('listMsg').textContent='�
 async function review(article,action){if(busy)return;const id=article.dataset.id,x=items.find(v=>v.id===id);if(!x)return;const val=name=>article.querySelector('[data-field="'+name+'"]')?.value||'';const name=val('name').trim();if(action==='approve'&&!name){$('listMsg').textContent='게시할 장소 이름을 입력해 주세요.';return;}if(!confirm(action==='approve'?'이 제안을 지도에 반영할까요?':'이 제안을 반려할까요?'))return;
   busy=true;article.querySelectorAll('button').forEach(b=>b.disabled=true);$('listMsg').textContent='처리 중…';try{const d=await api({action,adminKey:key,suggestionId:id,name,kind:val('kind'),type:val('type'),lat:val('lat'),lng:val('lng'),note:val('note'),reviewNote:val('reviewNote')});Object.assign(x,d.item);render();$('listMsg').textContent=action==='approve'?'승인했습니다. 지도에서 새로고침하면 반영된 장소를 볼 수 있습니다.':'반려했습니다.';}catch(e){$('listMsg').textContent='처리하지 못했습니다: '+e.message;article.querySelectorAll('button').forEach(b=>b.disabled=false);}finally{busy=false;}}
 $('loginBtn').onclick=()=>login($('adminKey').value.trim());$('adminKey').onkeydown=e=>{if(e.key==='Enter')$('loginBtn').click();};$('refreshBtn').onclick=()=>load(true);$('moreBtn').onclick=()=>load(false);
-$('logoutBtn').onclick=()=>{key='';localStorage.removeItem('mc_admin');items=[];cursor='';courseItems=[];courseSummary=null;courseOwners=[];coursePending=false;accessLoaded=false;$('courseList').replaceChildren();$('courseOwners').replaceChildren();$('courseSummary').replaceChildren();$('accessList').replaceChildren();$('accessSheet').hidden=true;$('accessSheet').removeAttribute('href');$('reviewPanel').hidden=true;$('coursePanel').hidden=true;$('accessPanel').hidden=true;$('adminNav').hidden=true;$('loginPanel').hidden=false;$('adminKey').value='';$('authMsg').textContent='관리자 인증이 해제됐습니다.';};
+$('logoutBtn').onclick=()=>{key='';localStorage.removeItem('mc_admin');items=[];cursor='';courseItems=[];courseSummary=null;courseOwners=[];coursePending=false;accessLoaded=false;accessRows=[];accessDay='';accessNext=null;accessOffset=0;$('courseList').replaceChildren();$('courseOwners').replaceChildren();$('courseSummary').replaceChildren();$('accessList').replaceChildren();$('accessSheet').hidden=true;$('accessSheet').removeAttribute('href');$('reviewPanel').hidden=true;$('coursePanel').hidden=true;$('accessPanel').hidden=true;$('adminNav').hidden=true;$('loginPanel').hidden=false;$('adminKey').value='';$('authMsg').textContent='관리자 인증이 해제됐습니다.';};
 document.querySelectorAll('[data-admin-tab]').forEach(b=>b.onclick=()=>showAdminTab(b.dataset.adminTab));
 $('courseRefresh').onclick=()=>loadCourses(true);$('courseMore').onclick=()=>loadCourses(false);$('courseScope').onchange=()=>loadCourses(true);$('courseSearchBtn').onclick=()=>loadCourses(true);$('courseSearch').onkeydown=e=>{if(e.key==='Enter')loadCourses(true);};
-$('accessRefresh').onclick=()=>loadAccess();
+$('accessRefresh').onclick=()=>loadAccess();$('accessMore').onclick=()=>loadAccess(true);
+$('accessPrev').onclick=()=>selectAccessDay(shiftDay(accessDay,-1));$('accessNext').onclick=()=>selectAccessDay(shiftDay(accessDay,1));
+$('accessDay').onchange=e=>selectAccessDay(e.target.value);
 $('courseList').onclick=e=>{const button=e.target.closest('[data-transfer-course]');if(button)transferExpedition12(button.dataset.transferCourse);};
 document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(t=>t.setAttribute('aria-pressed',String(t===b)));render();});
 $('list').onchange=e=>{if(e.target.matches('[data-field="kind"]'))e.target.closest('.card').querySelector('[data-type-row]').hidden=e.target.value!=='landmark';};

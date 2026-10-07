@@ -111,12 +111,16 @@ for (const width of [1280, 390]) {
     page.on('pageerror', (error) => errors.push(error.message));
     await page.route('**/admincheck', (route) => route.fulfill({ json: { ok: true } }));
     await page.route('**/suggest', (route) => route.fulfill({ json: { ok: true, items: [], cursor: '' } }));
-    await page.route('**/admin-members', (route) => {
-      expect(route.request().postDataJSON().key).toBe('test-key');
-      route.fulfill({ json: { ok: true, active: [
-        { memberId: 'member-2', nick: '두 번째', lastAt: Date.now() - 60000, lastAccessType: 'paddling_visit', device: 'mobile', loginCount: 2, visitCount: 5 },
-        { memberId: 'member-1', nick: '첫 번째', lastAt: Date.now() - 1000, lastAccessType: 'login', device: 'pc', loginCount: 3, visitCount: 7 },
-      ] } });
+    const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const yesterday = new Date(Date.parse(today + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
+    await page.route('**/admin-access', (route) => {
+      const body = route.request().postDataJSON();
+      expect(body.key).toBe('test-key');
+      const rows = body.day === today ? [
+        { memberId: 'member-1', nick: '첫 번째', at: Date.now() - 1000, type: 'login', device: 'pc' },
+        { memberId: 'member-2', nick: '두 번째', at: Date.now() - 60000, type: 'paddling_visit', device: 'mobile' },
+      ] : [{ memberId: 'member-3', nick: '어제 회원', at: Date.now() - 86400000, type: 'visit', device: 'mobile' }];
+      route.fulfill({ json: { ok: true, day: body.day, today, oldest: '2026-09-07', total: rows.length, items: rows, nextOffset: null } });
     });
     await page.route('**/admin-sheet-link', (route) => route.fulfill({ json: { ok: true, url: 'https://docs.google.com/spreadsheets/d/example/edit' } }));
     await page.goto(baseURL + '/admin/', { waitUntil: 'domcontentloaded' });
@@ -128,6 +132,14 @@ for (const width of [1280, 390]) {
     await expect(page.locator('#accessList .access-row').first()).toContainText('첫 번째');
     await expect(page.locator('#accessList')).toContainText('패들링 스쿨 방문');
     await expect(page.locator('#accessSheet')).toHaveAttribute('href', 'https://docs.google.com/spreadsheets/d/example/edit');
+    await expect(page.locator('#accessDay')).toHaveValue(today);
+    await expect(page.locator('#accessNext')).toBeDisabled();
+    await page.locator('#accessPrev').click();
+    await expect(page.locator('#accessDay')).toHaveValue(yesterday);
+    await expect(page.locator('#accessList')).toContainText('어제 회원');
+    await expect(page.locator('#accessList')).not.toContainText('첫 번째');
+    await page.locator('#accessNext').click();
+    await expect(page.locator('#accessList .access-row')).toHaveCount(2);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.locator('[data-admin-tab="review"]').click();
     await page.locator('#logoutBtn').click();
