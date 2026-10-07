@@ -1362,6 +1362,7 @@ test('obstacles use icon-only markers with hover names except famous places', as
   const obstacles = [
     { id: 'food-icon', lat: 36.3, lng: 127.8, type: '식당/카페', name: '강변 식당', note: '' },
     { id: 'rapid-icon', lat: 36.31, lng: 127.81, type: '여울', name: '돌개 여울', note: '' },
+    { id: 'pass-icon', lat: 36.315, lng: 127.815, type: '통과지점', name: '수로 입구', note: '우측 통과' },
     { id: 'spot-label', lat: 36.32, lng: 127.82, type: '유명지', name: '절벽 전망대', note: '' },
   ];
   await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
@@ -1383,13 +1384,46 @@ test('obstacles use icon-only markers with hover names except famous places', as
   await expect(page.locator('.obs-yeoul')).toHaveText('🌊');
   await expect(page.locator('.obs-food')).toHaveClass(/obs-icon-only/);
   await expect(page.locator('.obs-yeoul')).toHaveClass(/obs-icon-only/);
+  await expect(page.locator('.obs-pass')).toHaveText('↓');
+  await expect(page.locator('.obs-pass')).toHaveClass(/obs-icon-only/);
   await expect(page.locator('.obs-spot')).toHaveText('⭐ 절벽 전망대');
   await expect(page.locator('.obs-spot')).not.toHaveClass(/obs-icon-only/);
   await page.locator('.obs-food').hover({ timeout: 3000 });
   await expect(page.getByRole('tooltip', { name: '강변 식당' })).toBeVisible({ timeout: 3000 });
   await page.locator('.obs-yeoul').hover({ timeout: 3000 });
   await expect(page.getByRole('tooltip', { name: '돌개 여울' })).toBeVisible({ timeout: 3000 });
+  await page.locator('.obs-pass').click();
+  await expect(page.locator('.leaflet-popup-content')).toContainText('수로 입구');
+  await expect(page.locator('.leaflet-popup-content')).toContainText('우측 통과');
   expect(errors).toEqual([]);
+  await context.close();
+  await browser.close();
+});
+
+test('passage marker details open for a non-admin mobile viewer', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith('/obstacles')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([
+        { id: 'pass-mobile', lat: 36.31, lng: 127.81, type: '통과지점', name: '수로 입구', note: '우측 통과' },
+      ]) });
+    } else {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+    }
+  });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => !!_obstacles['pass-mobile']);
+  await page.evaluate(() => hideGate());
+  await page.evaluate(() => map.setView([36.31, 127.81], 14, { animate: false }));
+  await expect(page.locator('.obs-pass')).toBeVisible();
+  await page.locator('.obs-pass').click();
+  await expect(page.locator('.leaflet-popup-content')).toContainText('수로 입구');
+  await expect(page.locator('.leaflet-popup-content')).toContainText('우측 통과');
   await context.close();
   await browser.close();
 });

@@ -102,6 +102,8 @@
   .obs-dragons{background:#455a64}
   .obs-food{background:#00897b}
   .obs-camp{background:#33691e}
+  .obs-pass{background:#087e8b}
+  .obs-pass.obs-icon-only{font-size:20px;font-weight:900;line-height:1}
   .leaflet-div-icon.wp-div{background:transparent;border:0}
   .wp-ring{display:block;width:18px;height:18px;box-sizing:border-box;border:5px solid #1976d2;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5),0 0 0 2px rgba(255,255,255,.9)}
   .wp-ring.risk{width:20px;height:20px;border-color:#d32f2f;box-shadow:0 1px 5px rgba(0,0,0,.55),0 0 0 2px #fff}
@@ -2788,7 +2790,7 @@ function _zoomPaneGate(){ const on=map.getZoom()>=13?'':'none';
   map.getPane('damPane').style.display=map.getZoom()>=10?'':'none';
   map.getPane('obsPane').style.display=map.getZoom()>=13?'':'none'; }
 map.on('zoomend', _zoomPaneGate);
-const OBS_TYPES={'보':{c:'obs-bo',e:'🚧',label:'보'},'징검다리':{c:'obs-jing',e:'🪨',label:'징검다리'},'잠수교':{c:'obs-lowbridge',e:'🌉',label:'잠수교'},'용치':{c:'obs-dragons',e:'🔺',label:'용치'},'낮은바닥':{c:'obs-shal',e:'〰️',label:'얕음'},'여울':{c:'obs-yeoul',e:'🌊',label:'여울'},'유명지':{c:'obs-spot',e:'⭐',label:'유명지'},'강풍지대':{c:'obs-wind',e:'💨',label:'강풍지대'},'식당/카페':{c:'obs-food',e:'🍽️',label:'식당/카페'},'캠핑사이트':{c:'obs-camp',e:'🏕️',label:'캠핑사이트'}};
+const OBS_TYPES={'보':{c:'obs-bo',e:'🚧',label:'보'},'징검다리':{c:'obs-jing',e:'🪨',label:'징검다리'},'잠수교':{c:'obs-lowbridge',e:'🌉',label:'잠수교'},'용치':{c:'obs-dragons',e:'🔺',label:'용치'},'낮은바닥':{c:'obs-shal',e:'〰️',label:'얕음'},'여울':{c:'obs-yeoul',e:'🌊',label:'여울'},'통과지점':{c:'obs-pass',e:'↓',label:'통과지점'},'유명지':{c:'obs-spot',e:'⭐',label:'유명지'},'강풍지대':{c:'obs-wind',e:'💨',label:'강풍지대'},'식당/카페':{c:'obs-food',e:'🍽️',label:'식당/카페'},'캠핑사이트':{c:'obs-camp',e:'🏕️',label:'캠핑사이트'}};
 function _obHasName(ty){ return !!OBS_TYPES[ty]; }
 function _obHasKakao(ty){ return ty==='식당/카페'; }
 function _obAdminOnly(o){ return !!o&&o.type==='캠핑사이트'; }
@@ -2817,12 +2819,12 @@ function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; const t=OBS_TYPE
 function renderObstacle(o){ if(!o||o.lat==null||o.del||(_obAdminOnly(o)&&!isAdmin())) return; _obstacles[o.id]=o;
   const m=L.marker([o.lat,o.lng],{icon:obsIcon(o.type,o.name),pane:'obsPane'});
   if(!isTouch&&o.type!=='유명지')m.bindTooltip(pmEsc(_obDisplayName(o)),{direction:'top',opacity:.95});
-  if(isAdmin()||o.type==='식당/카페') m.bindPopup(obsPopup(o));   // 식당/카페 상세는 일반 사용자에게도 공개
+  if(isAdmin()||o.type==='식당/카페'||o.type==='통과지점') m.bindPopup(obsPopup(o));   // 통과지점은 모바일에서도 모든 회원이 이름·메모 확인
   m.addTo(obstacleLayer); o._m=m; }
 function renderStaticWeir(w){ if(!w||w.lat==null) return; renderObstacle({id:staticWeirId(w),lat:w.lat,lng:w.lng,type:'보',note:'',name:w.nm}); }
 // 관리자 인증이 로드 뒤에 될 수 있어, 관리자 활성 시 지형지물 팝업 재바인딩
 function _refreshObsPopups(){ const on=isAdmin(); Object.keys(_obstacles).forEach(function(id){ const o=_obstacles[id]; if(!o||!o._m) return;
-  if(on||o.type==='식당/카페') o._m.bindPopup(obsPopup(o)); else o._m.unbindPopup(); }); }
+  if(on||o.type==='식당/카페'||o.type==='통과지점') o._m.bindPopup(obsPopup(o)); else o._m.unbindPopup(); }); }
 let _obstacleLoadSeq=0;
 function _clearStoredObstacles(){Object.keys(_obstacles).forEach(function(id){if(String(id).indexOf('weir:')===0)return;const o=_obstacles[id];if(o&&o._m)obstacleLayer.removeLayer(o._m);delete _obstacles[id];});}
 function _removeAdminOnlyObstacles(){Object.keys(_obstacles).forEach(function(id){const o=_obstacles[id];if(!_obAdminOnly(o))return;if(o&&o._m)obstacleLayer.removeLayer(o._m);delete _obstacles[id];});}
@@ -2861,7 +2863,7 @@ function openObsModal(mode,data){ if(!isAdmin()) return;
     if(data.kakaoPlaceId) kakaoAuto='현재 자동 연결: '+pmEsc(data.kakaoPlaceName||name)+(isFinite(Number(data.kakaoMatchDistance))?' · '+Math.round(Number(data.kakaoMatchDistance))+'m':'')+' (저장 시 다시 검색)';
     else kakaoUrl=data.kakaoUrl||''; }
   else { _obCur=null; _obLL={lat:data.lat,lng:data.lng}; }
-  const tys=['보','징검다리','잠수교','용치','낮은바닥','여울','유명지','강풍지대','식당/카페','캠핑사이트'];
+  const tys=['보','징검다리','잠수교','용치','낮은바닥','여울','통과지점','유명지','강풍지대','식당/카페','캠핑사이트'];
   let seg=''; for(let i=0;i<tys.length;i++){ const t=tys[i],info=OBS_TYPES[t]; seg+='<button class="seg-b'+(t===ty?' on':'')+'" data-ty="'+t+'" onclick="obPick(this)">'+info.e+' '+t+'</button>'; }
   document.getElementById('obBody').innerHTML=
     '<h3>'+(mode==='edit'?'✏️ 지형지물 수정':'🗺️ 지형지물 추가')+'</h3>'

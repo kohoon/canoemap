@@ -47,6 +47,9 @@ jobs:
       - name: Verify admin course ownership transfer
         run: node tests/test_admin_courses_worker.mjs
 
+      - name: Verify admin-only passage marker
+        run: node tests/test_passage_obstacle_worker.mjs
+
       - name: Deploy Cloudflare Worker
         run: npx --yes wrangler deploy --config wrangler.toml
         env:

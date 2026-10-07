@@ -1642,7 +1642,7 @@ export default {
       return new Response(JSON.stringify(out), { headers: { ...cors, "Content-Type": "application/json" } });
     }
 
-    // 0-3e) 지형지물(보/징검다리/잠수교/용치/낮은바닥/여울/유명지/강풍지대/식당·카페/캠핑사이트) — 관리자. KV "obstacles"
+    // 0-3e) 지형지물(보/징검다리/잠수교/용치/낮은바닥/여울/통과지점/유명지/강풍지대/식당·카페/캠핑사이트) — 관리자. KV "obstacles"
     if (url.pathname.endsWith("/obstacles") || url.pathname.endsWith("/obstacle")) {
       const origin = req.headers.get("Origin") || "*";
       const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
@@ -1657,7 +1657,7 @@ export default {
       if (req.method === "POST") {
         let b = {}; try { b = await req.json(); } catch (e) {}
         if (!KV) return new Response("no-store", { status: 500, headers: cors });
-        const TYPES = ["보", "징검다리", "잠수교", "용치", "낮은바닥", "여울", "유명지", "강풍지대", "식당/카페", "캠핑사이트"];
+        const TYPES = ["보", "징검다리", "잠수교", "용치", "낮은바닥", "여울", "통과지점", "유명지", "강풍지대", "식당/카페", "캠핑사이트"];
         const cleanKakaoUrl = (value) => {
           const raw = String(value || "").trim(); if (!raw) return "";
           try {
