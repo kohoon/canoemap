@@ -1295,6 +1295,46 @@ export default {
       return J({ ok: false, error: "method" }, 405);
     }
 
+    // 0-3d-0) 관리자 전용 코스 현황 — 목록에는 경로 좌표·원본 회원 ID를 내보내지 않는다.
+    if (url.pathname.endsWith("/admin-courses")) {
+      const origin = req.headers.get("Origin") || "";
+      const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+      const J = (value, status = 200) => new Response(JSON.stringify(value), { status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
+      if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+      if (req.method !== "POST") return J({ ok: false, error: "method" }, 405);
+      if (!origin || !_allowedOrigin(req, env)) return J({ ok: false, error: "origin" }, 403);
+      const ip = req.headers.get("CF-Connecting-IP") || "0";
+      if (await _rateLimited(env, "admin_courses", ip, 20)) return J({ ok: false, error: "rate-limit" }, 429);
+      let b = {}; try { b = await req.json(); } catch (e) {}
+      if (!env.ADMIN_KEY || !_safeEqual(String(b.key || ""), String(env.ADMIN_KEY))) return J({ ok: false, error: "forbidden" }, 403);
+      const KV = env.PLACES; if (!KV) return J({ ok: false, error: "no-store" }, 500);
+      let stored = []; try { stored = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
+      const courses = (Array.isArray(stored) ? stored : []).filter((c) => c && typeof c === "object");
+      const owners = new Map();
+      const rows = await Promise.all(courses.map(async (raw) => {
+        const owner = String(raw.owner || ""), isAdmin = owner === "admin";
+        const ownerId = isAdmin ? "admin" : owner ? await _memberId(env, owner) : "unknown";
+        const nickname = String(raw.nick || "").trim().slice(0, 20);
+        const entry = owners.get(ownerId) || { ownerId, nickname: nickname || (isAdmin ? "관리자" : "이름 없음"), count: 0, lastAt: 0, role: isAdmin ? "admin" : owner ? "member" : "unknown" };
+        entry.count++;
+        if (Number(raw.t || raw.id) > entry.lastAt) { entry.lastAt = Number(raw.t || raw.id) || 0; if (nickname) entry.nickname = nickname; }
+        owners.set(ownerId, entry);
+        return { id: String(raw.id || "").slice(0, 24), name: String(raw.name || "코스").slice(0, 80), km: Number(raw.km) || 0,
+          ownerId, nickname: nickname || (isAdmin ? "관리자" : "이름 없음"), role: entry.role,
+          createdAt: Number(raw.t || raw.id) || 0, updatedAt: Number(raw.updatedAt || raw.t || raw.id) || 0 };
+      }));
+      const scope = ["all", "member", "admin"].includes(String(b.scope)) ? String(b.scope) : "all";
+      const query = String(b.q || "").trim().toLocaleLowerCase("ko-KR").slice(0, 50);
+      const matching = rows.filter((row) => (scope === "all" || row.role === scope) && (!query || [row.name, row.nickname, row.ownerId].some((value) => value.toLocaleLowerCase("ko-KR").includes(query))));
+      matching.sort((a, b2) => b2.updatedAt - a.updatedAt || b2.createdAt - a.createdAt);
+      const offset = Math.min(100000, Math.max(0, Math.floor(Number(b.offset) || 0)));
+      const limit = Math.min(50, Math.max(1, Math.floor(Number(b.limit) || 30)));
+      const ownerList = [...owners.values()].filter((x) => x.role === "member").sort((a, b2) => b2.count - a.count || b2.lastAt - a.lastAt);
+      return J({ ok: true, summary: { total: rows.length, admin: rows.filter((x) => x.role === "admin").length,
+        member: rows.filter((x) => x.role === "member").length, memberOwners: ownerList.length, unknown: rows.filter((x) => x.role === "unknown").length },
+        owners: ownerList, matched: matching.length, items: matching.slice(offset, offset + limit), nextOffset: offset + limit < matching.length ? offset + limit : null });
+    }
+
     // 0-3d) 코스 등록(관리자) — 거리측정 경로를 코스로. KV "courses"
     if (url.pathname.endsWith("/courses") || url.pathname.endsWith("/course")) {
       const origin = req.headers.get("Origin") || "*";
