@@ -2250,6 +2250,74 @@ const _staticCidLayers={};   // 정적 코스 cid -> [{grp,l}] (삭제/숨김용
 const _staticExpeditionCids=new Set();   // 모든 회원에게 기본 표시할 운영 엑스페디션
 const _hiddenStaticCids=new Set();
 const allCoursesGroup=L.layerGroup().addTo(map);   // 코스 전체 토글(단일 레이어 항목)
+// 실제로 함께 표시 중인 코스의 공통 물길만 두 색 이상이 번갈아 보이도록 덮는다.
+const _courseStripePane=map.createPane('courseStripePane');_courseStripePane.style.zIndex='450';_courseStripePane.style.pointerEvents='none';
+const _courseStripeRenderer=L.svg({pane:'courseStripePane',padding:.4});
+const _courseStripeGroup=L.layerGroup().addTo(map);
+let _courseStripeTimer=0;
+function _courseStripeSamples(route,step){
+  const coords=route.coords||[],segs=[];let total=0;
+  for(let i=1;i<coords.length;i++){
+    const a=coords[i-1],b=coords[i];if(!a||!b)continue;
+    const p=L.CRS.EPSG3857.project(L.latLng(a)),q=L.CRS.EPSG3857.project(L.latLng(b));
+    const dx=q.x-p.x,dy=q.y-p.y,len=Math.hypot(dx,dy);if(!isFinite(len)||len<.01)continue;
+    segs.push({a,b,p,dx,dy,len,start:total,end:total+len,ux:dx/len,uy:dy/len});total+=len;
+  }
+  if(!segs.length)return [];
+  const out=[];let j=0;
+  for(let d=0;d<=total+step*.25;d+=step){
+    const at=Math.min(d,total);while(j<segs.length-1&&segs[j].end<at)j++;
+    const s=segs[j],f=Math.max(0,Math.min(1,(at-s.start)/s.len));
+    out.push({ll:[s.a[0]+(s.b[0]-s.a[0])*f,s.a[1]+(s.b[1]-s.a[1])*f],x:s.p.x+s.dx*f,y:s.p.y+s.dy*f,ux:s.ux,uy:s.uy,d:at});
+    if(at===total)break;
+  }
+  if(out[out.length-1].d<total-step*.25){const s=segs[segs.length-1];out.push({ll:s.b,x:s.p.x+s.dx,y:s.p.y+s.dy,ux:s.ux,uy:s.uy,d:total});}
+  return out;
+}
+function _courseOverlapRuns(routes){
+  const step=24,cell=36,tolerance=20,minLength=72,buckets=new Map();
+  const sampled=routes.map(function(route,i){return {route,i,points:_courseStripeSamples(route,step)};});
+  sampled.forEach(function(r){r.points.forEach(function(p){const key=Math.floor(p.x/cell)+','+Math.floor(p.y/cell);if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push({i:r.i,p});});});
+  const runs=[];
+  sampled.forEach(function(r){
+    const marks=r.points.map(function(p){const near=new Set([r.i]),cx=Math.floor(p.x/cell),cy=Math.floor(p.y/cell);
+      for(let x=cx-1;x<=cx+1;x++)for(let y=cy-1;y<=cy+1;y++)(buckets.get(x+','+y)||[]).forEach(function(other){
+        if(other.i===r.i||near.has(other.i))return;
+        const q=other.p;if(Math.hypot(p.x-q.x,p.y-q.y)<=tolerance&&Math.abs(p.ux*q.ux+p.uy*q.uy)>=.82)near.add(other.i);
+      });
+      const ids=Array.from(near).sort(function(a,b){return a-b;});return ids.length>1&&ids[0]===r.i?{key:ids.join(','),ids}:null;
+    });
+    // 한 표본의 GPS/스무딩 차이로 생긴 작은 틈은 잇되, 교차만 하는 지점은 최소 길이에서 제외한다.
+    for(let i=1;i<marks.length-1;i++)if(!marks[i]&&marks[i-1]&&marks[i+1]&&marks[i-1].key===marks[i+1].key)marks[i]=marks[i-1];
+    for(let start=0;start<marks.length;){if(!marks[start]){start++;continue;}let end=start;while(end+1<marks.length&&marks[end+1]&&marks[end+1].key===marks[start].key)end++;
+      if(r.points[end].d-r.points[start].d>=minLength)runs.push({coords:r.points.slice(start,end+1).map(function(p){return p.ll;}),colors:marks[start].ids.map(function(i){return routes[i].color;}),ids:marks[start].ids.map(function(i){return routes[i].id;})});
+      start=end+1;
+    }
+  });
+  return runs;
+}
+function _visibleCourseStripeRoutes(){
+  if(!map.hasLayer(allCoursesGroup))return [];
+  const routes=[];
+  COURSES.features.forEach(function(f){const p=f.properties||{},id=String(p.cid||'');if(!id||_hiddenStaticCids.has(id))return;
+    const layers=_staticCidLayers[id]||[];
+    if(!layers.some(function(e){return e.l.options&&e.l.options.weight===5&&e.grp.hasLayer(e.l);}))return;
+    const coords=(f.geometry&&f.geometry.coordinates||[]).map(function(c){return [c[1],c[0]];});
+    if(coords.length>1)routes.push({id:'c'+id,coords,color:validCourseColor(p.color)||courseLineColor(courseSubcat(p.name),id)});
+  });
+  Object.keys(_kvCourseLayers).forEach(function(id){const e=_kvCourseLayers[id],c=_kvCourses[id];if(!e||!c||!e.grp.hasLayer(e.ls[1])||!Array.isArray(c.coords))return;
+    routes.push({id:'k'+id,coords:c.coords,color:validCourseColor(c.color)||courseLineColor(courseSubcat(c.name),id)});
+  });
+  return routes;
+}
+function _refreshCourseStripes(){
+  _courseStripeGroup.clearLayers();const routes=_visibleCourseStripeRoutes();if(routes.length<2)return;
+  _courseOverlapRuns(routes).forEach(function(run){const count=run.colors.length,unit=13,pattern=unit+' '+(unit*(count-1));
+    run.colors.forEach(function(color,i){L.polyline(run.coords,{renderer:_courseStripeRenderer,color,weight:5.5,opacity:1,dashArray:pattern,dashOffset:String(-unit*i),lineCap:'butt',lineJoin:'round',interactive:false}).addTo(_courseStripeGroup);});
+  });
+}
+function _scheduleCourseStripes(){clearTimeout(_courseStripeTimer);_courseStripeTimer=setTimeout(_refreshCourseStripes,70);}
+map.on('overlayadd overlayremove',function(e){if(e.layer===allCoursesGroup)_scheduleCourseStripes();});
 const _favLayerIdx={};   // 즐겨찾기 필터용: target -> [{l,parent}]
 const _ownedCourseTargets=new Set();
 function _favReg(target,l,parent){ (_favLayerIdx[target]=_favLayerIdx[target]||[]).push({l:l,parent:parent}); }
@@ -3008,6 +3076,7 @@ function applyFavFilter(){
       if(keep){ if(!e.parent.hasLayer(e.l)) e.parent.addLayer(e.l); }
       else { if(e.parent.hasLayer(e.l)) e.parent.removeLayer(e.l); } });
   });
+  _scheduleCourseStripes();
 }
 function setFavOnly(on){ _favOnly=!!on; try{ localStorage.setItem('mc_favonly',_favOnly?'1':'0'); }catch(e){} applyFavFilter(); }
 // 별점/하트 줄 — 장소·코스 모달 공용
@@ -4018,7 +4087,7 @@ function renderKVCourse(c){
   _maybeSyncAdminCourseFavs();
   _pcDockScheduleRender();
 }
-function _clearKVCourses(){Object.keys(_kvCourseLayers).forEach(function(id){const e=_kvCourseLayers[id];if(e)e.ls.forEach(function(l){e.grp.removeLayer(l);});_ownedCourseTargets.delete('course_k'+id);delete _kvCourseLayers[id];delete _kvCourses[id];});_pcDockScheduleRender();}
+function _clearKVCourses(){Object.keys(_kvCourseLayers).forEach(function(id){const e=_kvCourseLayers[id];if(e)e.ls.forEach(function(l){e.grp.removeLayer(l);});_ownedCourseTargets.delete('course_k'+id);delete _kvCourseLayers[id];delete _kvCourses[id];});_scheduleCourseStripes();_pcDockScheduleRender();}
 function _ownedCourseRequest(){
   const u=getUser();
   if(!u||!u.uid) return Promise.resolve(null);
@@ -4146,12 +4215,12 @@ async function deleteCourse(id){ const c=_kvCourses[id]; if(!c && !isAdmin()) re
     ?{action:'delete',adminKey:adminKey(),courseId:id}
     :{action:'deleteuser',id:_curUid(),tok:(getUser()||{}).tok||'',courseId:id};
     const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/course',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(r.ok){ const e=_kvCourseLayers[id]; if(e){ e.ls.forEach(function(l){ e.grp.removeLayer(l); }); delete _kvCourseLayers[id]; } delete _kvCourses[id]; _pcDockScheduleRender(); closePlaceModal(); map.closePopup(); gaEvent('course_del'); }
+    if(r.ok){ const e=_kvCourseLayers[id]; if(e){ e.ls.forEach(function(l){ e.grp.removeLayer(l); }); delete _kvCourseLayers[id]; } delete _kvCourses[id]; _scheduleCourseStripes();_pcDockScheduleRender(); closePlaceModal(); map.closePopup(); gaEvent('course_del'); }
     else alert('실패(권한 확인)'); }catch(e){ alert('오류'); } }
 async function deleteStaticCourse(cid){ if(!isAdmin()) return; if(!confirm('이 코스를 지도에서 숨길까요? (되돌릴 수 있음)')) return;
   try{ const r=await fetch(fapi('/course'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'hidestatic',adminKey:adminKey(),cid:String(cid)})});
     if(r.ok){ _hideStaticCourse(cid); closePlaceModal(); map.closePopup(); gaEvent('course_hide'); } else alert('실패(권한 확인)'); }catch(e){ alert('오류'); } }
-function _hideStaticCourse(cid){ _hiddenStaticCids.add(String(cid)); const arr=_staticCidLayers[String(cid)]; if(arr) arr.forEach(function(e){ e.grp.removeLayer(e.l); }); _pcDockScheduleRender(); }
+function _hideStaticCourse(cid){ _hiddenStaticCids.add(String(cid)); const arr=_staticCidLayers[String(cid)]; if(arr) arr.forEach(function(e){ e.grp.removeLayer(e.l); }); _scheduleCourseStripes();_pcDockScheduleRender(); }
 function _applyCourseFocus(){
   const id=String(_courseFocusId||'').trim();
   const isFocused=!!id;
@@ -4178,6 +4247,7 @@ function _applyCourseFocus(){
     const keep=(defaultVisible&&canonical&&(!_favOnly||_favSet.has(target)||_ownedCourseTargets.has(target))) || (isKv&&String(cid)===kvId) || dockSelected==='k'+cid;
     e.ls.forEach(function(l){ if(keep) e.grp.addLayer(l); else e.grp.removeLayer(l); });
   });
+  _scheduleCourseStripes();
 }
 
 // ---- 장소 검색 (Nominatim) ----

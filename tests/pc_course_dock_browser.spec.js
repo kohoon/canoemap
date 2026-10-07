@@ -318,3 +318,40 @@ test('suggestion location link centers the map and marks the exact clicked point
   expect(errors).toEqual([]);
   await browser.close();
 });
+
+test('shared course waterway alternates course colors without striping a crossing', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(() => {
+    const routes = [
+      { id: 'a', color: '#7c4dff', coords: [[37.9, 127.7], [37.9, 127.72]] },
+      { id: 'b', color: '#e65100', coords: [[37.9, 127.705], [37.9, 127.715]] },
+      { id: 'cross', color: '#00897b', coords: [[37.895, 127.71], [37.905, 127.71]] },
+    ];
+    const runs = _courseOverlapRuns(routes);
+    const threeWay = _courseOverlapRuns(routes.concat({ id: 'reverse', color: '#00838f', coords: [[37.9, 127.715], [37.9, 127.705]] }));
+    const separate = _courseOverlapRuns([routes[0], { id: 'far', color: '#00897b', coords: [[37.91, 127.7], [37.91, 127.72]] }]);
+    window._visibleCourseStripeRoutes = () => routes;
+    map.setView([37.9, 127.71], 12);
+    _refreshCourseStripes();
+    return { runs: runs.map(r => ({ colors: r.colors, ids: r.ids, length: r.coords.length })),
+      threeWay: threeWay.some(r => r.colors.length === 3), separate: separate.length,
+      paths: [...document.querySelectorAll('.leaflet-courseStripe-pane path')].map(p => ({
+        color: p.getAttribute('stroke'), dash: p.getAttribute('stroke-dasharray'), offset: p.getAttribute('stroke-dashoffset'),
+      })) };
+  });
+  expect(result.runs.length).toBeGreaterThan(0);
+  expect(result.runs.every(r => r.colors.length === 2 && r.colors.includes('#7c4dff') && r.colors.includes('#e65100'))).toBe(true);
+  expect(result.runs.every(r => !r.ids.includes('cross'))).toBe(true);
+  expect(result.threeWay).toBe(true);
+  expect(result.separate).toBe(0);
+  expect(result.paths.some(p => p.color === '#7c4dff' && p.dash === '13 13')).toBe(true);
+  expect(result.paths.some(p => p.color === '#e65100' && p.dash === '13 13' && p.offset === '-13')).toBe(true);
+  expect(errors).toEqual([]);
+  await browser.close();
+});
