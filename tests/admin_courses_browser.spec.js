@@ -62,3 +62,41 @@ for (const width of [1280, 390]) {
     await browser.close();
   });
 }
+
+for (const width of [1280, 390]) {
+  test(`only Bunbury Expedition 12 can be transferred on ${width}px`, async () => {
+    const browser = await chromium.launch(process.platform === 'darwin'
+      ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+      : { headless: true });
+    const page = await browser.newPage({ viewport: { width, height: 844 } });
+    let submitted = null;
+    let transferred = false;
+    page.on('dialog', (dialog) => dialog.accept());
+    await page.route('**/admincheck', (route) => route.fulfill({ json: { ok: true } }));
+    await page.route('**/suggest', (route) => route.fulfill({ json: { ok: true, items: [], cursor: '' } }));
+    await page.route('**/admin-courses', (route) => route.fulfill({ json: {
+      ok: true, summary: { total: 2, admin: transferred ? 1 : 0, member: transferred ? 1 : 2, memberOwners: 1, unknown: 0 },
+      owners: [{ ownerId: 'aaaaaaaaaaaaaaaa', nickname: '번버리', count: transferred ? 1 : 2 }],
+      matched: transferred ? 1 : 2, nextOffset: null,
+      items: [
+        { id: '1810000000021', name: '엑스페디션#12 · 소양호', nickname: '번버리', ownerId: 'aaaaaaaaaaaaaaaa', role: transferred ? 'admin' : 'member', km: 12 },
+        { id: '1810000000022', name: '번버리의 다른 코스', nickname: '번버리', ownerId: 'aaaaaaaaaaaaaaaa', role: 'member', km: 5 },
+      ].filter((item) => !transferred || item.role === 'member'),
+    } }));
+    await page.route('**/course', (route) => {
+      submitted = route.request().postDataJSON();
+      transferred = true;
+      route.fulfill({ json: { ok: true, courseId: submitted.courseId, count: 1 } });
+    });
+    await page.goto(baseURL + '/admin/', { waitUntil: 'domcontentloaded' });
+    await page.locator('#adminKey').fill('test-key');
+    await page.locator('#loginBtn').click();
+    await page.locator('[data-admin-tab="courses"]').click();
+    await expect(page.locator('[data-transfer-course]')).toHaveCount(1);
+    await page.locator('[data-transfer-course]').click();
+    await expect(page.locator('#courseMsg')).toContainText('한 건을 관리자로 이관했습니다');
+    expect(submitted).toMatchObject({ action: 'transfer-expedition12', courseId: '1810000000021', ownerId: 'aaaaaaaaaaaaaaaa', expectedName: '엑스페디션#12 · 소양호' });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await browser.close();
+  });
+}
