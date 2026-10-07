@@ -23,6 +23,8 @@ class InputEmailNotificationTests(unittest.TestCase):
             'type: "suggest", notify: true, cat: kind === "landmark" ? type : kind === "launch" ? "런칭지" : "랜딩지"',
             source,
         )
+        self.assertIn('"https://canoe.crowdbase.kr/?pin=" + lat.toFixed(6) + "," + lng.toFixed(6)', source)
+        self.assertIn('카누맵에서 찍은 지점: " + mapUrl', source)
         self.assertNotIn(
             'type: "suggest", notify: true,\n          cat: "소양호종주"',
             source,
@@ -88,6 +90,8 @@ class InputEmailNotificationTests(unittest.TestCase):
             if (!mails[0].subject.includes("새 건의·정보 추가")) throw new Error("wrong subject");
             if (!mails[0].htmlBody.includes("&lt;새 정보&gt;")) throw new Error("HTML not escaped");
             if (!mails[0].htmlBody.includes("운영 시트에서 확인")) throw new Error("sheet link missing");
+            if (!mails[0].htmlBody.includes("https://canoe.crowdbase.kr/?pin=37.900000,127.700000")) throw new Error("exact map link missing");
+            if (!mails[0].body.includes("제안자가 찍은 지점: https://canoe.crowdbase.kr/?pin=37.900000,127.700000")) throw new Error("plain location link missing");
 
             post(suggestion);
             if (mails.length !== 1) throw new Error("duplicate email was not suppressed");

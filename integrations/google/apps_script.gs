@@ -99,6 +99,9 @@ function notifyNewInput_(ss, d, kind) {
     if (d.lat !== "" && d.lat != null && d.lng !== "" && d.lng != null) {
       rows.push(["좌표", cleanText_(d.lat, 24) + ", " + cleanText_(d.lng, 24)]);
     }
+    var lat = Number(d.lat), lng = Number(d.lng);
+    var mapUrl = isSuggest && isFinite(lat) && lat >= 32 && lat <= 40 && isFinite(lng) && lng >= 123 && lng <= 132
+      ? "https://canoe.crowdbase.kr/?pin=" + lat.toFixed(6) + "," + lng.toFixed(6) : "";
 
     var plain = label + "이 등록되었습니다.\n\n";
     var htmlRows = "";
@@ -106,10 +109,12 @@ function notifyNewInput_(ss, d, kind) {
       plain += rows[i][0] + ": " + rows[i][1] + "\n";
       htmlRows += "<tr><th style=\"padding:8px 12px;text-align:left;vertical-align:top;color:#65747a;white-space:nowrap\">" + htmlEscape_(rows[i][0]) + "</th><td style=\"padding:8px 12px;color:#16342f;white-space:pre-wrap\">" + htmlEscape_(rows[i][1]) + "</td></tr>";
     }
+    if (mapUrl) { plain += "\n제안자가 찍은 지점: " + mapUrl + "\n"; }
     plain += "\n운영 시트: " + sheetUrl;
     var html = "<div style=\"font-family:Arial,'Apple SD Gothic Neo',sans-serif;max-width:640px;color:#16342f\">"
       + "<h2 style=\"margin:0 0 16px\">" + htmlEscape_(label) + "</h2>"
       + "<table style=\"width:100%;border-collapse:collapse;background:#f3f8f6;border-radius:12px\">" + htmlRows + "</table>"
+      + (mapUrl ? "<p style=\"margin:20px 0 0\"><a href=\"" + htmlEscape_(mapUrl) + "\" style=\"display:inline-block;padding:10px 16px;border-radius:8px;background:#c7442b;color:#fff;text-decoration:none;font-weight:700\">📍 카누맵에서 찍은 지점 확인</a></p>" : "")
       + "<p style=\"margin:20px 0 0\"><a href=\"" + htmlEscape_(sheetUrl) + "\" style=\"display:inline-block;padding:10px 16px;border-radius:8px;background:#087f6b;color:#fff;text-decoration:none;font-weight:700\">운영 시트에서 확인</a></p>"
       + "</div>";
 

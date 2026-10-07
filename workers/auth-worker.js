@@ -1226,9 +1226,10 @@ export default {
       const id = "s" + String(9999999999999 - Date.now()).padStart(13, "0") + crypto.randomUUID().replace(/-/g, "").slice(0, 8);
       const item = { id, status: "pending", kind, type: kind === "landmark" ? type : "", name, addr: String(b.addr || "").slice(0, 80), text: String(b.text || "").trim().slice(0, 200), lat, lng, img, nick: String(member && member.nick || "회원").slice(0, 20), actorId: await _memberId(env, uid), t: Date.now() };
       await KV.put("place_suggestion:" + id, JSON.stringify(item));
+      const mapUrl = "https://canoe.crowdbase.kr/?pin=" + lat.toFixed(6) + "," + lng.toFixed(6);
       if (env.LOG_WEBHOOK) ctx.waitUntil(fetch(env.LOG_WEBHOOK, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "suggest", notify: true, cat: kind === "landmark" ? type : kind === "launch" ? "런칭지" : "랜딩지", place: name, nick: item.nick, text: item.text, lat, lng, img }),
+        body: JSON.stringify({ type: "suggest", notify: true, cat: kind === "landmark" ? type : kind === "launch" ? "런칭지" : "랜딩지", place: name, nick: item.nick, text: item.text + "\n카누맵에서 찍은 지점: " + mapUrl, mapUrl, lat, lng, img }),
       }).catch(function () {}));
       return J({ ok: true, id, status: "pending" });
     }

@@ -440,6 +440,8 @@
   #pmMsg{font-size:12px;color:#888;margin-top:6px;min-height:14px}
   #sgBody h3{margin:0 30px 8px 0;font-size:18px;color:#1b3a2b}
   .sg-addr{font-size:13px;color:#445;background:#f3f7f4;border-radius:9px;padding:9px 12px;margin:4px 0 14px;word-break:break-all}
+  .review-location-pin{display:grid;place-items:center;width:30px;height:30px;border:3px solid #fff;border-radius:50%;background:#e24631;color:#fff;box-shadow:0 2px 9px #0009;font-size:19px;font-weight:900}
+  .review-location-tip{background:#fff;border:2px solid #e24631;border-radius:8px;box-shadow:0 2px 9px #0005;color:#173530;font-size:12px;font-weight:800;white-space:nowrap}
   .sg-label{font-size:12.5px;color:#778;font-weight:700;margin-bottom:6px}
   .seg{display:flex;gap:8px;margin-bottom:14px}
   .seg-b{flex:1;padding:12px;border:1.5px solid #d6dee2;background:#fff;border-radius:11px;font:600 14px sans-serif;cursor:pointer;color:#456}
@@ -1188,7 +1190,9 @@ const ua = navigator.userAgent;
 const isiOS = /iphone|ipad|ipod/i.test(ua);
 const isAndroid = /android/i.test(ua);
 
-function _mapUrlOwnsView(){ const q=new URLSearchParams(location.search); return q.has('course')||q.has('measure')||q.has('place')||q.has('river')||q.get('view')==='roadview'; }
+function _reviewPinFromUrl(){const raw=new URLSearchParams(location.search).get('pin');if(!raw)return null;const parts=raw.split(',');if(parts.length!==2)return null;const lat=Number(parts[0]),lng=Number(parts[1]);return Number.isFinite(lat)&&lat>=32&&lat<=40&&Number.isFinite(lng)&&lng>=123&&lng<=132?{lat,lng}:null;}
+const _reviewPin=_reviewPinFromUrl();
+function _mapUrlOwnsView(){ const q=new URLSearchParams(location.search); return !!_reviewPin||q.has('course')||q.has('measure')||q.has('place')||q.has('river')||q.get('view')==='roadview'; }
 function _savedMapView(){
   if(_mapUrlOwnsView())return null;
   try{const v=JSON.parse(localStorage.getItem('mc_map_view_v1')||'null'),lat=Number(v&&v.lat),lng=Number(v&&v.lng),zoom=Number(v&&v.zoom);
@@ -1199,8 +1203,9 @@ const _initialMapView=_savedMapView();
 // 한국이 포함된 동아시아를 한 세계의 중앙에 두고, 아메리카는 날짜변경선을 넘어 오른쪽에 배치한다.
 const ASIA_WORLD_CENTER=150,WORLD_WEST=ASIA_WORLD_CENTER-180,WORLD_EAST=ASIA_WORLD_CENTER+180;
 const WORLD_BOUNDS=L.latLngBounds([[-85.05112878,WORLD_WEST],[85.05112878,WORLD_EAST]]);
-const map = L.map('map', {preferCanvas:true,zoomControl:false,zoomSnap:0,wheelPxPerZoomLevel:30,maxBounds:WORLD_BOUNDS,maxBoundsViscosity:1}).setView(_initialMapView?[_initialMapView.lat,_initialMapView.lng]:[36.3,127.8],_initialMapView?_initialMapView.zoom:7);
+const map = L.map('map', {preferCanvas:true,zoomControl:false,zoomSnap:0,wheelPxPerZoomLevel:30,maxBounds:WORLD_BOUNDS,maxBoundsViscosity:1}).setView(_reviewPin?[_reviewPin.lat,_reviewPin.lng]:_initialMapView?[_initialMapView.lat,_initialMapView.lng]:[36.3,127.8],_reviewPin?17:_initialMapView?_initialMapView.zoom:7);
 window.map = map;
+if(_reviewPin){const pinIcon=L.divIcon({className:'review-location-pin',html:'<span aria-hidden="true">✚</span>',iconSize:[30,30],iconAnchor:[15,15]});L.marker([_reviewPin.lat,_reviewPin.lng],{icon:pinIcon,interactive:true,zIndexOffset:1000}).addTo(map).bindTooltip('제안자가 찍은 지점 · '+_reviewPin.lat.toFixed(6)+', '+_reviewPin.lng.toFixed(6),{permanent:true,direction:'top',offset:[0,-13],className:'review-location-tip'});}
 map.createPane('courseTooltipPane');map.getPane('courseTooltipPane').style.zIndex='720';
 // 긴 코스명은 내용 폭을 유지하고, 커서가 화면 가장자리에 있어도 말풍선만 안쪽으로 이동한다.
 let _courseTipFrame=0;
@@ -1977,7 +1982,7 @@ function suggestPlace(){
   let _sgPhoto=null;
   document.getElementById('sgBody').innerHTML=
     '<h3>새 장소 제안</h3>'
-    +'<div class="sg-addr">📍 '+pmEsc(a.name||'선택한 위치')+'</div>'
+    +'<div class="sg-addr">📍 '+pmEsc(a.name||'선택한 위치')+'<br>찍은 지점: '+Number(a.lat).toFixed(6)+', '+Number(a.lng).toFixed(6)+'<br><small>관리자가 이 좌표를 기준으로 검토합니다.</small></div>'
     +'<div class="sg-label">장소 이름</div><input id="sgName" maxlength="80" placeholder="예: 강변 선착장" value="'+String(a.name||'').replace(/[&"<>]/g,function(c){return {'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[c];})+'">'
     +'<div class="sg-label">유형 선택</div>'
     +'<div class="seg" id="sgSeg"><button type="button" class="seg-b on" data-v="launch">🛶 런칭지</button><button type="button" class="seg-b" data-v="landing">🛶 랜딩지</button><button type="button" class="seg-b" data-v="landmark">🗺️ 지형지물</button></div>'

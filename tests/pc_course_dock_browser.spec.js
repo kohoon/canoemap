@@ -290,6 +290,8 @@ test('dedicated admin page reviews a suggestion and stays usable on mobile', asy
   await page.locator('#adminKey').fill('test-admin-key');
   await page.locator('#loginBtn').click();
   await expect(page.locator('#list .card')).toHaveCount(1);
+  await expect(page.locator('.location-check')).toContainText('37.900000, 127.700000');
+  await expect(page.locator('.location-check a')).toHaveAttribute('href', baseURL + '/?pin=37.900000,127.700000');
   await page.locator('[data-field="name"]').fill('확인된 랜딩지');
   await page.locator('[data-action="approve"]').click();
   await expect(page.locator('#listMsg')).toContainText('승인했습니다');
@@ -298,5 +300,21 @@ test('dedicated admin page reviews a suggestion and stays usable on mobile', asy
   await page.setViewportSize({ width: 1280, height: 800 });
   await expect(page.locator('header')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await browser.close();
+});
+
+test('suggestion location link centers the map and marks the exact clicked point', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(baseURL + '/?pin=37.900000,127.700000', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.review-location-pin')).toBeVisible();
+  await expect(page.locator('.review-location-tip')).toContainText('37.900000, 127.700000');
+  expect(await page.evaluate(() => ({ lat: map.getCenter().lat, lng: map.getCenter().lng, zoom: map.getZoom() })))
+    .toMatchObject({ lat: 37.9, lng: 127.7, zoom: 17 });
+  expect(errors).toEqual([]);
   await browser.close();
 });
