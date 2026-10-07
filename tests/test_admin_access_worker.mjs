@@ -86,5 +86,12 @@ const many = await worker.fetch(new Request(endpoint, {
   body: JSON.stringify({ key: secret, day: today }),
 }), manyEnv, ctx);
 assert.equal((await many.json()).total, 60);
-assert.ok(peakGets > 1 && peakGets <= 25, `bounded parallel KV reads expected, got ${peakGets}`);
+assert.ok(peakGets > 1 && peakGets <= 6, `bounded parallel KV reads expected, got ${peakGets}`);
+const failingEnv = { ...manyEnv, PLACES: { ...manyEnv.PLACES, get: async () => { throw new Error('KV unavailable'); } } };
+const failed = await worker.fetch(new Request(endpoint, {
+  method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' },
+  body: JSON.stringify({ key: secret, day: today }),
+}), failingEnv, ctx);
+assert.equal(failed.status, 503);
+assert.equal((await failed.json()).error, 'member-read-failed');
 console.log('admin daily access regression: ok');

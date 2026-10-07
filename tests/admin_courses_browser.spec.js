@@ -116,7 +116,9 @@ for (const width of [1280, 390]) {
     await page.route('**/suggest', (route) => route.fulfill({ json: { ok: true, items: [], cursor: '' } }));
     const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const yesterday = new Date(Date.parse(today + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
+    let accessFail = false;
     await page.route('**/admin-access', (route) => {
+      if (accessFail) return route.fulfill({ status: 503, json: { ok: false, error: 'member-read-failed' } });
       const body = route.request().postDataJSON();
       expect(body.key).toBe('test-key');
       const rows = body.day === today ? [
@@ -125,6 +127,9 @@ for (const width of [1280, 390]) {
       ] : [{ memberId: 'member-3', nick: '어제 회원', at: Date.now() - 86400000, type: 'visit', device: 'mobile' }];
       route.fulfill({ json: { ok: true, day: body.day, today, oldest: '2026-09-07', total: rows.length, items: rows, nextOffset: null } });
     });
+    await page.route('**/admin-members', (route) => route.fulfill({ json: { ok: true, active: [
+      { memberId: 'member-1', nick: '첫 번째', lastAt: Date.now() - 1000, lastAccessType: 'login', device: 'pc' },
+    ] } }));
     await page.route('**/admin-sheet-link', async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 800));
       await route.fulfill({ json: { ok: true, url: 'https://docs.google.com/spreadsheets/d/example/edit' } });
@@ -146,6 +151,11 @@ for (const width of [1280, 390]) {
     await expect(page.locator('#accessSheet')).toHaveAttribute('href', 'https://docs.google.com/spreadsheets/d/example/edit');
     await page.locator('#accessNext').click();
     await expect(page.locator('#accessList .access-row')).toHaveCount(2);
+    accessFail = true;
+    await page.locator('#accessRefresh').click();
+    await expect(page.locator('#accessMsg')).toContainText('회원별 최신 기록만 임시 표시합니다');
+    await expect(page.locator('#accessList .access-row')).toHaveCount(1);
+    await expect(page.locator('#accessDay')).toBeDisabled();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.locator('[data-admin-tab="review"]').click();
     await page.locator('#logoutBtn').click();

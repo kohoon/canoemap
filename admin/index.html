@@ -77,14 +77,22 @@ async function loadAccessSheet(requestedKey){if(accessSheetBusy||$('accessSheet'
   if(key!==requestedKey)return;const link=$('accessSheet');let url=null;try{url=new URL(sheet.url);}catch(e){}
   if(url&&url.protocol==='https:'&&url.hostname==='docs.google.com'&&url.pathname.startsWith('/spreadsheets/')){link.href=url.href;link.hidden=false;}
 }finally{accessSheetBusy=false;}}
-async function loadAccess(more=false){if(!key||accessBusy)return;if(!accessDay)accessDay=kstDay();accessBusy=true;const requestedKey=key,requestedDay=accessDay;$('accessMsg').textContent='접속 기록을 불러오는 중…';try{
-  const r=await fetch(API+'/admin-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,day:requestedDay,offset:more?accessOffset:0,limit:100}),cache:'no-store'}),d=await r.json().catch(()=>({}));
-  if(!r.ok||!d.ok)throw new Error('load-failed');if(key!==requestedKey||accessDay!==requestedDay)return;
+async function loadAccessFallback(requestedKey,reason){
+  const r=await fetch(API+'/admin-members',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:requestedKey}),cache:'no-store'}),d=await r.json().catch(()=>({}));
+  if(!r.ok||!d.ok)throw new Error('fallback-'+r.status);if(key!==requestedKey)return;
+  const members=(d.active||[]).filter(m=>Number(m.lastAt)>0).sort((a,b)=>Number(b.lastAt)-Number(a.lastAt)).slice(0,50);
+  accessRows=members.map(m=>({memberId:m.memberId,nick:m.nick,at:m.lastAt,type:m.lastAccessType,device:m.device}));accessNext=null;accessOffset=0;accessLoaded=true;
+  $('accessCount').textContent='회원별 마지막 접속 · '+members.length+'명';$('accessDay').disabled=true;$('accessPrev').disabled=true;$('accessNext').disabled=true;renderAccess();
+  $('accessMsg').textContent='일별 조회에 실패해 회원별 최신 기록만 임시 표시합니다 ('+reason+'). 새로고침하면 일별 조회를 다시 시도합니다.';
+}
+async function loadAccess(more=false){if(!key||accessBusy)return;if(!accessDay)accessDay=kstDay();accessBusy=true;const requestedKey=key,requestedDay=accessDay;$('accessMsg').textContent='접속 기록을 불러오는 중…';loadAccessSheet(requestedKey);try{
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);let r,d;
+  try{r=await fetch(API+'/admin-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,day:requestedDay,offset:more?accessOffset:0,limit:100}),cache:'no-store',signal:controller.signal});d=await r.json().catch(()=>({}));}finally{clearTimeout(timer);}
+  if(!r.ok||!d.ok)throw new Error('HTTP '+r.status);if(key!==requestedKey||accessDay!==requestedDay)return;
   accessRows=more?accessRows.concat(d.items||[]):(d.items||[]);accessNext=d.nextOffset;accessOffset=d.nextOffset||0;accessLoaded=true;
-  $('accessCount').textContent=requestedDay+' · '+Number(d.total||0)+'건';$('accessDay').value=requestedDay;$('accessDay').min=d.oldest;$('accessDay').max=d.today;
+  $('accessCount').textContent=requestedDay+' · '+Number(d.total||0)+'건';$('accessDay').disabled=false;$('accessDay').value=requestedDay;$('accessDay').min=d.oldest;$('accessDay').max=d.today;
   $('accessPrev').disabled=requestedDay<=d.oldest;$('accessNext').disabled=requestedDay>=d.today;renderAccess();$('accessMsg').textContent=accessRows.length+'건 표시';
-  loadAccessSheet(requestedKey);
-}catch(e){if(key===requestedKey)$('accessMsg').textContent='접속 기록을 불러오지 못했습니다. 다시 시도해 주세요.';}finally{accessBusy=false;}}
+}catch(e){if(key===requestedKey){try{await loadAccessFallback(requestedKey,e.name==='AbortError'?'시간 초과':e.message);}catch(fallbackError){$('accessMsg').textContent='접속 기록을 불러오지 못했습니다 ('+e.message+', '+fallbackError.message+'). 다시 시도해 주세요.';}}}finally{accessBusy=false;}}
 function selectAccessDay(day){if(accessBusy||!day||day===accessDay)return;accessDay=day;accessLoaded=false;accessRows=[];accessNext=null;accessOffset=0;$('accessList').replaceChildren();loadAccess();}
 async function courseApi(body){const r=await fetch(API+'/admin-courses',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,...body}),cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok||!data.ok)throw new Error(data.error||'요청 실패');return data;}
 function courseDetailUrl(id){const raw=String(id||'');if(!/^\d{8,24}$/.test(raw))return '';const url=new URL('/',location.origin);url.searchParams.set('course','k'+raw);url.searchParams.set('detail','1');return url.toString();}
