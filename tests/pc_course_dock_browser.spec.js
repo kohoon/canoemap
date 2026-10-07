@@ -110,6 +110,30 @@ test('B layout offers an admin-only BunburyPick category and keeps older course 
   await browser.close();
 });
 
+test('ordinary members name their course without operational categories on PC and mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    hideGate();
+    setUser({ uid: 'test-member', tok: 'test-token', nick: '회원' });
+    _adminOk = false;
+    _lastCourse = { km: 1.2, coords: [[37, 127], [37.01, 127.01]], segments: [] };
+    openCourseModal('add');
+  });
+  await expect(page.locator('#cmBody .seg-b')).toHaveCount(0);
+  await expect(page.locator('#cmNoRow')).toHaveCount(0);
+  await expect(page.locator('#cmBody')).toContainText('코스 이름');
+  await page.locator('#cmName').fill('춘천호 한 바퀴');
+  await expect(page.locator('#cmPrev')).toHaveText('춘천호 한 바퀴');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#cmName')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await browser.close();
+});
+
 test('courses without a water character show no placeholder icon or metadata', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

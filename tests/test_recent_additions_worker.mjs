@@ -101,6 +101,10 @@ for (const body of [
   { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '번버리 픽 개인 코스' },
   { action: 'adduser', id: uid, tok, name: '번버리Pick 개인 코스', coords: [[37, 127], [37.1, 127.1]] },
   { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '번버리Pick 개인 코스' },
+  { action: 'adduser', id: uid, tok, name: '엑스페디션 #12 개인 코스', coords: [[37, 127], [37.1, 127.1]] },
+  { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '엑스페디션 #12 개인 코스' },
+  { action: 'adduser', id: uid, tok, name: '초심자코스#1', coords: [[37, 127], [37.1, 127.1]] },
+  { action: 'edituser', id: uid, tok, courseId: now - 2000, name: '초보 추천코스 개인 코스' },
 ]) {
   const denied = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/course', {
     method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' }, body: JSON.stringify(body),

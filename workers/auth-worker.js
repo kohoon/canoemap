@@ -237,6 +237,7 @@ function _launchCat(v, name) {
 }
 function _courseWaterValue(value) { return ["flat", "flowing", "rapid"].includes(String(value || "")) ? String(value) : ""; }
 function _courseTravelValue(value) { return ["roundtrip", "downriver", "traverse"].includes(String(value || "")) ? String(value) : ""; }
+function _adminCourseName(value) { return /^(?:엑스페디션|번버리\s*(?:픽|Pick)|초심자\s*코스|초보\s*추천\s*코스)(?=\s|#|$)/i.test(String(value || "").trim()); }
 async function _recentAdditions(KV, seen = new Set(), limit = 4) {
   const now = Date.now(), cutoff = now - 7 * 24 * 60 * 60 * 1000;
   const withinWeek = (t) => Number.isSafeInteger(t) && t >= cutoff && t <= now;
@@ -1464,7 +1465,7 @@ export default {
           const it = arr.find((x) => String(x.id) === String(b.courseId));
           if (!it) return new Response("notfound", { status: 404, headers: cors });
           if (!adminOk && !(uid && String(it.owner || "") === uid && tokOk)) return new Response("forbidden", { status: 403, headers: cors });
-          if (!adminOk && /^번버리(?: 픽|Pick)(?=\s|$)/.test(String(b.name || ""))) return new Response("admin-category", { status: 403, headers: cors });
+          if (!adminOk && _adminCourseName(b.name) && String(b.name || "").trim() !== String(it.name || "").trim()) return new Response("admin-category", { status: 403, headers: cors });
           it.name = String(b.name || it.name || "코스").slice(0, 80);
           if (b.km != null) it.km = Number(b.km) || 0;
           if (/^#[0-9a-f]{6}$/i.test(String(b.color || ""))) it.color = String(b.color).toLowerCase();
@@ -1486,7 +1487,7 @@ export default {
           const coords = Array.isArray(b.coords) ? b.coords.slice(0, 5000) : [];
           if (coords.length < 2) return new Response("bad", { status: 400, headers: cors });
           if (!adminOk && !(uid && tokOk)) return new Response("relogin", { status: 401, headers: cors });
-          if (!adminOk && /^번버리(?: 픽|Pick)(?=\s|$)/.test(String(b.name || ""))) return new Response("admin-category", { status: 403, headers: cors });
+          if (!adminOk && _adminCourseName(b.name)) return new Response("admin-category", { status: 403, headers: cors });
           const clientId = String(b.clientId || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64);
           const owner = adminOk ? "admin" : uid;
           const existing = clientId ? arr.find((x) => String(x.owner || "") === String(owner) && String(x.clientId || "") === clientId) : null;

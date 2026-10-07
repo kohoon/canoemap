@@ -4759,7 +4759,7 @@ function _joinCourse(cat,no,desc){
   no=_courseNo(no);
   return cat+(no?(cat==='엑스페디션'?' #':'#')+no:'')+(desc?' '+desc:'');
 }
-function _cmCat(){ const e=document.querySelector('#cmBody .seg-b.on'); return e?e.getAttribute('data-cat'):'초심자코스'; }
+function _cmCat(){ const e=document.querySelector('#cmBody .seg-b.on'); return e?e.getAttribute('data-cat'):'기타'; }
 function _cmNo(){ const e=document.getElementById('cmNo'); return e?_courseNo(e.value):''; }
 function _cmColor(){ const e=document.querySelector('#cmPalette .cm-color.on'); return e?validCourseColor(e.getAttribute('data-color')):''; }
 function _cmCharacter(kind){const e=document.querySelector('#cmBody [data-character="'+kind+'"][aria-pressed="true"]');return e?e.dataset.value:'';}
@@ -4795,9 +4795,11 @@ function openCourseModal(mode, course){
   if(mode==='add' && !canAdd && !isAdmin()) return;
   if((mode==='edit' || mode==='editstatic') && !(_canEditCourse(course, course&&course.id!=null?('k'+course.id):''))) return;
   _cmMode=mode; _cmCourse=course||null;
+  const adminForm=isAdmin();
   let cat='초심자코스', no='', desc='', km=0, npts=0, color='',waterType='',travelMode='';
   if((mode==='edit'||mode==='editstatic')&&course){ const s=_splitCourse(course.name); cat=s.cat; no=s.no; desc=s.desc; km=course.km||0; npts=(course.coords||[]).length; color=validCourseColor(course.color); waterType=course.waterType||''; travelMode=course.travelMode||''; }
   else { if(!_lastCourse) return; km=_lastCourse.km; npts=_lastCourse.coords.length; }
+  if(!adminForm){ cat='기타'; no=''; desc=(mode==='edit'&&course)?String(course.name||''):''; }
   if(!color) color=subcatColor(cat);
   const segs=((mode==='add'&&_lastCourse&&_lastCourse.segments)?_lastCourse.segments:((course&&course.segments)||[]));
   const segHtml=segs&&segs.length?'<div class="cm-note">'+segs.map(function(s){return pmEsc(s.name||'구간')+' '+Number(s.km||0).toFixed(2)+'km';}).join(' · ')+'</div>':'';
@@ -4807,14 +4809,14 @@ function openCourseModal(mode, course){
     '<h3>'+((mode==='edit'||mode==='editstatic')?'✏️ 코스 수정':'💾 코스 등록')+'</h3>'
     +(km?'<div class="cm-stat"><b>'+km.toFixed(2)+'</b> km · '+npts+'개 점</div>':'')
     +segHtml
-    +'<div class="sg-label">카테고리 (색상 분류)</div><div class="seg">'+seg+'</div>'
+    +(adminForm?'<div class="sg-label">카테고리 (색상 분류)</div><div class="seg">'+seg+'</div>':'')
     +'<div class="sg-label">코스 색상</div><div class="cm-palette" id="cmPalette">'+palette+'</div>'
     +'<div class="sg-label">수면 환경 · 코스명 앞 아이콘</div>'+_cmCharacterButtons('water',[['','? 미확인'],['flat','≋ 평수'],['flowing','〰 유수'],['rapid','≈ 급류']],waterType)
     +'<div class="sg-label">진행 방식 · 보조 표시</div>'+_cmCharacterButtons('travel',[['','미분류'],['roundtrip','↔ 왕복'],['downriver','↘ 다운리버'],['traverse','↗ 종주·횡단']],travelMode)
     +'<div class="cm-note">수면 환경은 일반적인 분류이며, 실제 유속·위험도는 수위와 날씨에 따라 달라집니다.</div>'
-    +'<div id="cmNoRow" style="display:'+(['기타','번버리Pick'].includes(cat)?'none':'block')+'"><div class="sg-label"># 번호</div>'
-    +'<input id="cmNo" placeholder="예: 2" maxlength="12" oninput="cmPreview()"></div>'
-    +'<div class="sg-label">코스 설명/이름</div>'
+    +(adminForm?'<div id="cmNoRow" style="display:'+(['기타','번버리Pick'].includes(cat)?'none':'block')+'"><div class="sg-label"># 번호</div>'
+    +'<input id="cmNo" placeholder="예: 2" maxlength="12" oninput="cmPreview()"></div>':'')
+    +'<div class="sg-label">'+(adminForm?'코스 설명/이름':'코스 이름')+'</div>'
     +'<input id="cmName" placeholder="예: 섬진강 - 곡성 두가리 ~ 구례 죽마리" maxlength="80" oninput="_cmNameTouched=true;cmPreview()">'
     +'<div class="cm-note">최종 이름: <b id="cmPrev">—</b></div>'
     +'<button class="sg-submit" id="cmSave">'+((mode==='edit'||mode==='editstatic')?'수정 완료':'코스 등록')+'</button><div id="cmMsg"></div>';
@@ -4839,6 +4841,9 @@ async function doSaveCourse(){
   if(['기타','번버리Pick'].includes(cat) && !desc){ msg.style.color='#c0392b'; msg.textContent='코스 이름을 입력하세요'; return; }
   if(!['기타','번버리Pick'].includes(cat) && !no && !desc){ msg.style.color='#c0392b'; msg.textContent='번호 또는 코스 설명을 입력하세요'; return; }
   const name=_joinCourse(cat, no, desc);
+  if(!isAdmin() && /^(?:엑스페디션|번버리\s*(?:픽|Pick)|초심자\s*코스|초보\s*추천\s*코스)(?=\s|#|$)/i.test(name) && !(_cmMode==='edit'&&_cmCourse&&name===_cmCourse.name)){
+    msg.style.color='#c0392b'; msg.textContent='운영 코스 분류명은 사용할 수 없습니다. 다른 이름을 입력해 주세요.'; return;
+  }
   msg.style.color='#888'; msg.textContent='저장 중…';
   const base=WORKER_URL.replace(/\/+$/,'')+'/course';
   try{
