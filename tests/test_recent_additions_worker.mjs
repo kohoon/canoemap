@@ -22,6 +22,7 @@ data.set('placeover', JSON.stringify({
   ['u' + (now - 300)]: { new: 1, name: '삭제된 곳', cat: 'canoe', del: 1, lat: 38, lng: 127 },
   ['u' + (now - 200)]: { new: 1, name: '카누 명소', cat: 'spot', lat: 38, lng: 127 },
 }));
+data.set('launch_sites_v1', JSON.stringify([{ id: 'base1', name: '기존 런칭지', cat: 'canoe', lat: 36, lng: 129 }]));
 const env = {
   ADMIN_KEY: secret,
   SITE_URL: 'https://canoe.crowdbase.kr/',
@@ -54,12 +55,26 @@ const acknowledged = await worker.fetch(new Request(endpoint, {
 }), env, ctx);
 assert.equal(acknowledged.status, 200);
 assert.deepEqual(await (await request({ 'X-User-Id': uid, 'X-Auth-Token': tok })).json(), { courses: [], places: [] });
+const history = await worker.fetch(new Request(endpoint + '?history=1', { headers: { Origin: 'https://canoe.crowdbase.kr', 'X-User-Id': uid, 'X-Auth-Token': tok } }), env, ctx);
+assert.deepEqual((await history.json()).places.map((place) => place.name), ['새 런칭지']);
 assert.equal(JSON.parse(data.get('recent_seen:' + hmac(`member-id|${uid}`).slice(0, 16))).length, seenIds.length);
 const otherUid = 'another-recent-member';
 data.set(`member:${hmac(`member-key|${otherUid}`).slice(0, 32)}`, JSON.stringify({ status: 'active', nick: '다른 회원' }));
 const otherTok = `mc2.${exp}.${hmac(`mc2|${otherUid}|${exp}`).slice(0, 32)}`;
 const otherResponse = await request({ 'X-User-Id': otherUid, 'X-Auth-Token': otherTok });
 assert.equal((await otherResponse.json()).courses.length, recent.courses.length);
+
+const synced = await worker.fetch(new Request('https://mycanoe-map.kohoon0140.workers.dev/launch-sites-admin', {
+  method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json' },
+  body: JSON.stringify({ action: 'sync', adminKey: secret, source: { version: 2, items: {} }, records: [
+    { id: 'base1', name: '기존 런칭지', cat: 'canoe', lat: 36, lng: 129 },
+    { id: 'base2', name: '도천리 새 런칭지', cat: 'canoe', lat: 36.9, lng: 128.8 },
+  ] }),
+}), env, ctx);
+assert.equal(synced.status, 200);
+assert.ok(Number(JSON.parse(data.get('launch_recent_v1')).base2) >= now);
+const afterSync = await request({ 'X-User-Id': uid, 'X-Auth-Token': tok });
+assert.deepEqual((await afterSync.json()).places.map((place) => place.name), ['도천리 새 런칭지']);
 
 const forged = await worker.fetch(new Request(endpoint, {
   method: 'POST', headers: { Origin: 'https://canoe.crowdbase.kr', 'Content-Type': 'application/json', 'X-User-Id': uid, 'X-Auth-Token': tok },

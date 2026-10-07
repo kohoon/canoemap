@@ -39,14 +39,15 @@ for (const width of [1280, 390]) {
       places: [{ id: 'u1790000000000', name: '새 런칭지', t: Date.now() - 20000 }],
     };
     const seen = new Set();
-    await page.route('**/recent-additions', (route) => {
+    await page.route('**/recent-additions*', (route) => {
       if (route.request().method() === 'POST') {
         for (const id of route.request().postDataJSON().ids || []) seen.add(id);
         return route.fulfill({ json: { ok: true } });
       }
+      const history = new URL(route.request().url()).searchParams.get('history') === '1';
       return route.fulfill({ json: {
-        courses: items.courses.filter((item) => !seen.has('course:' + item.id)),
-        places: items.places.filter((item) => !seen.has('place:' + item.id)),
+        courses: items.courses.filter((item) => history || !seen.has('course:' + item.id)),
+        places: items.places.filter((item) => history || !seen.has('place:' + item.id)),
       } });
     });
     await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
@@ -60,16 +61,17 @@ for (const width of [1280, 390]) {
     await expect(page.locator('#recentBody')).toBeHidden();
     await page.locator('#newsRecentTab').click();
     await expect(page.locator('#recentBody')).toBeVisible();
-    await expect(page.locator('#recentBody .recent-item')).toHaveCount(0);
-    await expect(page.locator('#recentBody')).toContainText('새로 추가된 항목이 없습니다');
+    await expect(page.locator('#recentBody .recent-item')).toHaveCount(2);
+    await expect(page.locator('#recentBody')).toContainText('최근 등록된 곳들');
     await page.evaluate(() => { closeNotices(); sessionStorage.removeItem('mc_recent_session_recent-browser-member'); scheduleRecentAdditions(); });
     await page.waitForTimeout(900);
     await expect(page.locator('#noticeModal')).toBeHidden();
     items.places.push({ id: 'u1790000000001', name: '나중에 추가된 런칭지', t: Date.now() });
     await page.locator('.noticebtn').click();
     await page.locator('#newsRecentTab').click();
-    await expect(page.locator('#recentBody .recent-item')).toHaveCount(1);
-    await page.locator('#recentBody [data-kind="place"]').click();
+    await expect(page.locator('#recentBody .recent-item')).toHaveCount(3);
+    await expect(page.locator('#recentBody')).toContainText('나중에 추가된 런칭지');
+    await page.locator('#recentBody [data-kind="place"]').last().click();
     await expect(page).toHaveURL(/place=u1790000000001/);
     expect(errors).toEqual([]);
     await browser.close();

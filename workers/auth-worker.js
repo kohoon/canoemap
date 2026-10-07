@@ -238,9 +238,11 @@ function _launchCat(v, name) {
 function _courseWaterValue(value) { return ["flat", "flowing", "rapid"].includes(String(value || "")) ? String(value) : ""; }
 function _courseTravelValue(value) { return ["roundtrip", "downriver", "traverse"].includes(String(value || "")) ? String(value) : ""; }
 async function _recentAdditions(KV, seen = new Set(), limit = 4) {
-  let storedCourses = [], placeOverrides = {};
+  let storedCourses = [], placeOverrides = {}, syncedPlaces = [], syncedRecent = {};
   try { storedCourses = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
   try { placeOverrides = JSON.parse((await KV.get("placeover")) || "{}"); } catch (e) {}
+  try { syncedPlaces = JSON.parse((await KV.get("launch_sites_v1")) || "[]"); } catch (e) {}
+  try { syncedRecent = JSON.parse((await KV.get("launch_recent_v1")) || "{}"); } catch (e) {}
   const recentByRound = new Map(), recentPicks = [];
   for (const raw of Array.isArray(storedCourses) ? storedCourses : []) {
     if (!raw || String(raw.owner || "") !== "admin") continue;
@@ -259,13 +261,25 @@ async function _recentAdditions(KV, seen = new Set(), limit = 4) {
   }
   const courses = [...recentByRound.values(), ...recentPicks].filter((item) => !seen.has("course:" + item.id)).sort((a, b) => b.t - a.t).slice(0, limit)
     .map(({ id, name, km, t }) => ({ id, name, km, t }));
-  const places = Object.entries(placeOverrides && typeof placeOverrides === "object" ? placeOverrides : {})
+  const overridePlaces = Object.entries(placeOverrides && typeof placeOverrides === "object" ? placeOverrides : {})
     .flatMap(([id, p]) => {
       if (!p || !p.new || p.del || _launchCat(p.cat, p.name) !== "canoe" || !isFinite(Number(p.lat)) || !isFinite(Number(p.lng))) return [];
       const t = Number(p.createdAt || (/^u\d{13}$/.test(id) ? id.slice(1) : 0));
       if (!Number.isSafeInteger(t) || t < 1577836800000 || !String(p.name || "").trim()) return [];
       return [{ id: String(id).slice(0, 30), name: String(p.name).slice(0, 100), t }];
-    }).filter((item) => !seen.has("place:" + item.id)).sort((a, b) => b.t - a.t).slice(0, limit);
+    });
+  const syncedById = new Map((Array.isArray(syncedPlaces) ? syncedPlaces : []).filter((p) => p && p.id != null).map((p) => [String(p.id), p]));
+  const basePlaces = Object.entries(syncedRecent && typeof syncedRecent === "object" ? syncedRecent : {}).flatMap(([id, timestamp]) => {
+    const raw = syncedById.get(id), over = placeOverrides[id] || {};
+    if (!raw || over.del || _launchCat(over.cat || raw.cat, over.name || raw.name) !== "canoe") return [];
+    const lat = Number(over.lat != null ? over.lat : raw.lat), lng = Number(over.lng != null ? over.lng : raw.lng);
+    const name = String(over.name != null ? over.name : raw.name || "").trim();
+    const t = Number(timestamp);
+    if (!isFinite(lat) || !isFinite(lng) || !name || !Number.isSafeInteger(t) || t < 1577836800000) return [];
+    return [{ id: id.slice(0, 30), name: name.slice(0, 100), t }];
+  });
+  const places = [...new Map([...basePlaces, ...overridePlaces].map((item) => [item.id, item])).values()]
+    .filter((item) => !seen.has("place:" + item.id)).sort((a, b) => b.t - a.t).slice(0, limit);
   return { courses, places };
 }
 async function _launchAll(KV, includeCandidates) {
@@ -698,7 +712,8 @@ export default {
         await KV.put(key, JSON.stringify([...seen]));
         return new Response(JSON.stringify({ ok: true }), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
       }
-      const result = await _recentAdditions(KV, seen);
+      const history = url.searchParams.get("history") === "1";
+      const result = await _recentAdditions(KV, history ? new Set() : seen, history ? 20 : 4);
       return new Response(JSON.stringify(result), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
     }
 
@@ -755,6 +770,16 @@ export default {
         const records = Array.isArray(b.records) ? b.records.slice(0, 1000) : null;
         const source = b.source && typeof b.source === "object" ? b.source : null;
         if (!records || !source || records.some((x) => !x || !x.id || !isFinite(Number(x.lat)) || !isFinite(Number(x.lng)))) return new Response("bad", { status: 400, headers: cors });
+        let previous = [], recent = {};
+        try { previous = JSON.parse((await KV.get("launch_sites_v1")) || "[]"); } catch (e) {}
+        try { recent = JSON.parse((await KV.get("launch_recent_v1")) || "{}"); } catch (e) {}
+        if (Array.isArray(previous) && previous.length) {
+          const oldIds = new Set(previous.map((item) => String(item && item.id || "")));
+          const addedAt = Date.now();
+          for (const item of records) if (!oldIds.has(String(item.id))) recent[String(item.id)] = addedAt;
+          recent = Object.fromEntries(Object.entries(recent).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 200));
+          await KV.put("launch_recent_v1", JSON.stringify(recent));
+        }
         await KV.put("launch_sites_v1", JSON.stringify(records)); await KV.put("launch_source_v1", JSON.stringify(source));
         return new Response(JSON.stringify({ ok: true, count: records.length }), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
       }

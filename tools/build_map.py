@@ -5559,16 +5559,16 @@ async function openRecentAdditions(auto){
   const box=document.getElementById('recentBody');
   if(!auto){_newsTab('recent');box.innerHTML='<h3>최근 추가된 곳들</h3><div class="recent-empty">불러오는 중…</div>';}
   try{
-    const r=await fetch(fapi('/recent-additions'),{cache:'no-store',headers:{'X-User-Id':u.uid,'X-Auth-Token':u.tok||''}});
+    const r=await fetch(fapi('/recent-additions'+(auto?'':'?history=1')),{cache:'no-store',headers:{'X-User-Id':u.uid,'X-Auth-Token':u.tok||''}});
     if(!r.ok)throw new Error('recent-'+r.status);
     const data=await r.json();if(getUser()?.uid!==u.uid)return;
     const seen=_recentLocalSeen(u);
-    const courses=(Array.isArray(data.courses)?data.courses:[]).filter(function(item){return !seen.has('course:'+item.id);});
-    const places=(Array.isArray(data.places)?data.places:[]).filter(function(item){return !seen.has('place:'+item.id);});
+    const courses=(Array.isArray(data.courses)?data.courses:[]).filter(function(item){return !auto||!seen.has('course:'+item.id);});
+    const places=(Array.isArray(data.places)?data.places:[]).filter(function(item){return !auto||!seen.has('place:'+item.id);});
     _recentAdditions={course:courses,place:places};
     if(auto){if(!courses.length&&!places.length)return;_newsTab('recent');}
-    box.innerHTML='<h3>새로 추가된 곳들</h3>'+(places.length?_recentSection('🛶 런칭·랜딩지','place',places):'')+(courses.length?_recentSection('〰 코스','course',courses):'')+(!courses.length&&!places.length?'<div class="recent-empty">새로 추가된 항목이 없습니다. 새 항목이 등록되면 접속할 때 한 번 안내해 드립니다.</div>':'');
-    const shownIds=[...courses.map(function(item){return 'course:'+item.id;}),...places.map(function(item){return 'place:'+item.id;})];
+    box.innerHTML='<h3>'+(auto?'새로 추가된 곳들':'최근 등록된 곳들')+'</h3>'+(places.length?_recentSection('🛶 런칭·랜딩지','place',places):'')+(courses.length?_recentSection('〰 코스','course',courses):'')+(!courses.length&&!places.length?'<div class="recent-empty">'+(auto?'새로 추가된 항목이 없습니다.':'최근 등록된 항목이 없습니다.')+'</div>':'');
+    const shownIds=auto?[...courses.map(function(item){return 'course:'+item.id;}),...places.map(function(item){return 'place:'+item.id;})].filter(function(id){return !seen.has(id);}):[];
     if(shownIds.length){_recentRemember(u,shownIds);fetch(fapi('/recent-additions'),{method:'POST',keepalive:true,headers:{'Content-Type':'application/json','X-User-Id':u.uid,'X-Auth-Token':u.tok||''},body:JSON.stringify({ids:shownIds})}).catch(function(){});}
     box.querySelectorAll('[data-kind]').forEach(function(button){button.onclick=function(){
       const item=(_recentAdditions[button.dataset.kind]||[])[Number(button.dataset.index)];if(!item)return;
