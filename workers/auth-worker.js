@@ -177,6 +177,7 @@ async function _recordMemberAccess(env, uid, type, dev, member) {
   current.visitCount = Math.max(0, Number(current.visitCount) || 0) + (isLogin ? 0 : 1);
   current.lastAt = now;
   current[isLogin ? "lastLoginAt" : "lastVisitAt"] = now;
+  current.lastAccessType = logType;
   current.lastDevice = dev === "모바일" ? "mobile" : "pc";
   current.updatedAt = now;
   await _memberPut(env, uid, current);

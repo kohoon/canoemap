@@ -100,3 +100,40 @@ for (const width of [1280, 390]) {
     await browser.close();
   });
 }
+
+for (const width of [1280, 390]) {
+  test(`admin can inspect recent member access on ${width}px`, async () => {
+    const browser = await chromium.launch(process.platform === 'darwin'
+      ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+      : { headless: true });
+    const page = await browser.newPage({ viewport: { width, height: 844 } });
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.route('**/admincheck', (route) => route.fulfill({ json: { ok: true } }));
+    await page.route('**/suggest', (route) => route.fulfill({ json: { ok: true, items: [], cursor: '' } }));
+    await page.route('**/admin-members', (route) => {
+      expect(route.request().postDataJSON().key).toBe('test-key');
+      route.fulfill({ json: { ok: true, active: [
+        { memberId: 'member-2', nick: '두 번째', lastAt: Date.now() - 60000, lastAccessType: 'paddling_visit', device: 'mobile', loginCount: 2, visitCount: 5 },
+        { memberId: 'member-1', nick: '첫 번째', lastAt: Date.now() - 1000, lastAccessType: 'login', device: 'pc', loginCount: 3, visitCount: 7 },
+      ] } });
+    });
+    await page.route('**/admin-sheet-link', (route) => route.fulfill({ json: { ok: true, url: 'https://docs.google.com/spreadsheets/d/example/edit' } }));
+    await page.goto(baseURL + '/admin/', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#accessPanel')).toBeHidden();
+    await page.locator('#adminKey').fill('test-key');
+    await page.locator('#loginBtn').click();
+    await page.locator('[data-admin-tab="access"]').click();
+    await expect(page.locator('#accessList .access-row')).toHaveCount(2);
+    await expect(page.locator('#accessList .access-row').first()).toContainText('첫 번째');
+    await expect(page.locator('#accessList')).toContainText('패들링 스쿨 방문');
+    await expect(page.locator('#accessSheet')).toHaveAttribute('href', 'https://docs.google.com/spreadsheets/d/example/edit');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.locator('[data-admin-tab="review"]').click();
+    await page.locator('#logoutBtn').click();
+    await expect(page.locator('#accessList .access-row')).toHaveCount(0);
+    await expect(page.locator('#accessPanel')).toBeHidden();
+    expect(errors).toEqual([]);
+    await browser.close();
+  });
+}

@@ -15,13 +15,15 @@ class MemberSecurityTest(unittest.TestCase):
               memberRecordIsActive, memberProfile, publicMemberSummary, sessionExpiryIsValid, normalizeLegendPrefs,
               ONBOARDING_VERSION, SESSION_TTL_SECONDS
             } from './workers/member-security.mjs';
-            const active = {memberId:'abc123', providerId:'4936913088', nick:'회원', status:'active', loginCount:2, visitCount:3};
+            const active = {memberId:'abc123', providerId:'4936913088', nick:'회원', status:'active', loginCount:2, visitCount:3,
+              lastAt:1000,lastLoginAt:900,lastVisitAt:1000,lastAccessType:'paddling_visit'};
             const withdrawn = {...active, status:'withdrawn'};
             if (!memberRecordIsActive(active)) throw new Error('active member rejected');
             // Negative regression: a retained identifier/record must not imply current membership.
             if (memberRecordIsActive(withdrawn)) throw new Error('withdrawn member accepted');
             const out = publicMemberSummary(active);
             if ('providerId' in out || JSON.stringify(out).includes('4936913088')) throw new Error('provider id leaked');
+            if (out.lastAccessType !== 'paddling_visit' || out.lastAt !== 1000 || out.lastVisitAt !== 1000) throw new Error('last access projection missing');
             if (memberProfile(active).onboardingVersion !== ONBOARDING_VERSION) throw new Error('legacy member incorrectly onboarded');
             if (memberProfile({...active, onboardingVersion:0}).onboardingVersion !== 0) throw new Error('new member tutorial suppressed');
             const prefs = normalizeLegendPrefs({hanaro:false,cctv:true,adminRoad:true,broken:'yes'});

@@ -54,6 +54,11 @@ export function publicMemberSummary(member) {
     status: member.status === "active" ? "active" : "withdrawn",
     joinedAt: Number(member.joinedAt) || 0,
     lastAt: Number(member.lastAt) || 0,
+    lastLoginAt: Number(member.lastLoginAt) || 0,
+    lastVisitAt: Number(member.lastVisitAt) || 0,
+    lastAccessType: ["login", "visit", "paddling_visit"].includes(member.lastAccessType)
+      ? member.lastAccessType : (Number(member.lastLoginAt) > 0 && Number(member.lastLoginAt) >= Number(member.lastVisitAt)
+        ? "login" : (Number(member.lastVisitAt) > 0 ? "visit" : "unknown")),
     loginCount: Math.max(0, Number(member.loginCount) || 0),
     visitCount: Math.max(0, Number(member.visitCount) || 0),
     device: member.lastDevice === "mobile" ? "mobile" : "pc",
