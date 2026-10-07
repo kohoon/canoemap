@@ -144,6 +144,13 @@ for (const width of [1280, 390]) {
     await expect(page.locator('#accessList')).toContainText('패들링 스쿨 방문');
     await expect(page.locator('#accessDay')).toHaveValue(today);
     await expect(page.locator('#accessNext')).toBeDisabled();
+    const pagerBounds = await page.locator('#accessPrev, #accessDay, #accessNext').evaluateAll((elements) => elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom };
+    }));
+    expect(Math.max(...pagerBounds.map((box) => box.top)) - Math.min(...pagerBounds.map((box) => box.top))).toBeLessThanOrEqual(1);
+    expect(Math.max(...pagerBounds.map((box) => box.bottom)) - Math.min(...pagerBounds.map((box) => box.bottom))).toBeLessThanOrEqual(1);
+    expect(await page.locator('#accessDay').evaluate((element) => element.labels?.[0]?.textContent.trim())).toBe('조회 날짜');
     await page.locator('#accessPrev').click();
     await expect(page.locator('#accessDay')).toHaveValue(yesterday);
     await expect(page.locator('#accessList')).toContainText('어제 회원');
