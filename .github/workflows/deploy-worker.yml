@@ -44,6 +44,9 @@ jobs:
       - name: Verify place suggestion review workflow
         run: node tests/test_place_suggestions_worker.mjs
 
+      - name: Verify admin course ownership transfer
+        run: node tests/test_admin_courses_worker.mjs
+
       - name: Deploy Cloudflare Worker
         run: npx --yes wrangler deploy --config wrangler.toml
         env:

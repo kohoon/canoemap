@@ -1315,8 +1315,9 @@ export default {
         const owner = String(raw.owner || ""), isAdmin = owner === "admin";
         const ownerId = isAdmin ? "admin" : owner ? await _memberId(env, owner) : "unknown";
         const nickname = String(raw.nick || "").trim().slice(0, 20);
-        const entry = owners.get(ownerId) || { ownerId, nickname: nickname || (isAdmin ? "관리자" : "이름 없음"), count: 0, lastAt: 0, role: isAdmin ? "admin" : owner ? "member" : "unknown" };
+        const entry = owners.get(ownerId) || { ownerId, nickname: nickname || (isAdmin ? "관리자" : "이름 없음"), count: 0, courseIds: [], lastAt: 0, role: isAdmin ? "admin" : owner ? "member" : "unknown" };
         entry.count++;
+        entry.courseIds.push(String(raw.id || "").slice(0, 24));
         if (Number(raw.t || raw.id) > entry.lastAt) { entry.lastAt = Number(raw.t || raw.id) || 0; if (nickname) entry.nickname = nickname; }
         owners.set(ownerId, entry);
         return { id: String(raw.id || "").slice(0, 24), name: String(raw.name || "코스").slice(0, 80), km: Number(raw.km) || 0,
@@ -1427,9 +1428,33 @@ export default {
           return J(JSON.stringify({ ok: true }));
         }
         let arr = []; try { arr = JSON.parse((await KV.get("courses")) || "[]"); } catch (e) {}
-        arr = (Array.isArray(arr) ? arr : []).map(applyCourseCorrection);
+        arr = Array.isArray(arr) ? arr : [];
+        if (b.action !== "transfer-owner") arr = arr.map(applyCourseCorrection);
         let savedCourse = null;
-        if (b.action === "listmine") {
+        if (b.action === "transfer-owner") {
+          if (!adminOk || !_safeEqual(String(b.adminKey || ""), String(env.ADMIN_KEY || ""))) return new Response("forbidden", { status: 403, headers: cors });
+          if (!req.headers.get("Origin") || !_allowedOrigin(req, env)) return new Response("origin", { status: 403, headers: cors });
+          const ownerId = String(b.ownerId || "");
+          const expectedIds = Array.isArray(b.courseIds) ? b.courseIds.map(String).sort() : [];
+          if (!/^[0-9a-f]{16}$/.test(ownerId) || !expectedIds.length || expectedIds.length > 200 || new Set(expectedIds).size !== expectedIds.length) return new Response("bad", { status: 400, headers: cors });
+          const sourceOwners = new Set();
+          for (const it of arr) {
+            const owner = String(it && it.owner || "");
+            if (owner && owner !== "admin" && await _memberId(env, owner) === ownerId) sourceOwners.add(owner);
+          }
+          if (sourceOwners.size !== 1) return new Response("owner-conflict", { status: 409, headers: cors });
+          const sourceOwner = [...sourceOwners][0];
+          const selected = arr.filter((it) => String(it.owner || "") === sourceOwner);
+          const actualIds = selected.map((it) => String(it.id || "")).sort();
+          if (JSON.stringify(actualIds) !== JSON.stringify(expectedIds)) return new Response("course-conflict", { status: 409, headers: cors });
+          const at = Date.now();
+          const auditKey = "course_transfer:" + at + ":" + ownerId;
+          await KV.put(auditKey, JSON.stringify({ at, ownerId, sourceOwner, courseIds: actualIds, before: selected }));
+          for (const it of selected) it.owner = "admin";
+          await KV.put("courses", JSON.stringify(arr));
+          ctx.waitUntil(clearCourseCache());
+          return new Response(JSON.stringify({ ok: true, count: selected.length, courseIds: actualIds, auditKey }), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
+        } else if (b.action === "listmine") {
           if (!adminOk) return new Response("forbidden", { status: 403, headers: cors });
           const userOk = !!uid && tokOk;
           arr = arr.filter((x) => {
