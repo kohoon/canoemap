@@ -75,6 +75,14 @@ process.stdout.write(JSON.stringify({rows,privateCourse:normalizeExpedition(priv
   self.assertEqual(d['privateCourse']['name'],'엑스페디션#1 개인 코스')
   self.assertEqual(d['staticCourse']['name'],'엑스페디션 #2 · 남한강 · 장회서창길')
 
+ def test_twelfth_expedition_name_has_space_before_number(self):
+  script="import {normalizeExpedition} from './workers/expedition.mjs'; console.log(normalizeExpedition({id:12,owner:'admin',name:'엑스페디션#12 소양호'},'k12').name);"
+  actual=subprocess.check_output(['node','--input-type=module','-e',script],cwd=ROOT,text=True).strip()
+  self.assertEqual(actual,'엑스페디션 #12 소양호')
+  browser_source=(ROOT/'tools/build_map.py').read_text()
+  self.assertIn("(cat==='엑스페디션'?' #':'#')+no",browser_source)
+  self.assertIn("'엑스페디션 #12'",browser_source)
+
  def test_korean_date_punctuation_and_ranges(self):
   source=(ROOT/'tools/build_map.py').read_text()
   metadata=source[source.index('const EXPEDITIONS ='):source.index('const _courseByCid=')]+source[source.index('const EXPEDITION_DATES ='):source.index('function _isCourseOwner(')]

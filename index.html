@@ -2204,7 +2204,7 @@ const COURSE_PALETTE=[
 const KNOWN_CATS=['엑스페디션','번버리Pick','초심자코스'];
 function subcatColor(sc){ return COURSE_COLORS[sc]||COURSE_COLORS['기타']; }
 function validCourseColor(v){ return /^#[0-9a-f]{6}$/i.test(String(v||''))?String(v).toLowerCase():''; }
-function canonicalCourseName(name){return String(name||'').replace(/^번버리(?: 픽|Pick)(?=\s|$)/,'번버리Pick');}
+function canonicalCourseName(name){return String(name||'').replace(/^엑스페디션\s*#\s*12(?=\D|$)/,'엑스페디션 #12').replace(/^번버리(?: 픽|Pick)(?=\s|$)/,'번버리Pick');}
 function courseSubcat(name){ name=canonicalCourseName(name); if(/^번버리Pick(?:\s|$)/.test(name))return '번버리Pick'; for(var i=0;i<KNOWN_CATS.length;i++){ if(KNOWN_CATS[i]!=='번버리Pick'&&name.indexOf(KNOWN_CATS[i])===0) return KNOWN_CATS[i]; } return '기타'; }
 const COURSE_WATER={flat:{icon:'≋',label:'평수'},flowing:{icon:'〰',label:'유수'},rapid:{icon:'≈',label:'급류'}};
 const COURSE_TRAVEL={roundtrip:{icon:'↔',label:'왕복'},downriver:{icon:'↘',label:'다운리버'},traverse:{icon:'↗',label:'종주·횡단'}};
@@ -4638,7 +4638,7 @@ function _joinCourse(cat,no,desc){
   if(cat==='기타') return desc;
   if(cat==='번버리Pick') return cat+(desc?' '+desc:'');
   no=_courseNo(no);
-  return cat+(no?'#'+no:'')+(desc?' '+desc:'');
+  return cat+(no?(cat==='엑스페디션'?' #':'#')+no:'')+(desc?' '+desc:'');
 }
 function _cmCat(){ const e=document.querySelector('#cmBody .seg-b.on'); return e?e.getAttribute('data-cat'):'초심자코스'; }
 function _cmNo(){ const e=document.getElementById('cmNo'); return e?_courseNo(e.value):''; }
