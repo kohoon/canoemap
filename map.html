@@ -1571,6 +1571,10 @@ function _clearRoadviewUrl(){
   history.replaceState(null,'',u.pathname+(u.searchParams.toString()?'?'+u.searchParams.toString():'')+u.hash);
 }
 function closeRvModal(){ document.getElementById('rvModal').classList.remove('open');_clearRoadviewUrl(); }
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape'||!document.getElementById('rvModal').classList.contains('open'))return;
+  e.preventDefault();e.stopImmediatePropagation();closeRvModal();
+},true);
 function _validRvCoord(lat,lng){return isFinite(lat)&&isFinite(lng)&&lat>=32&&lat<=40&&lng>=123&&lng<=132;}
 function _rvCurrentState(){
   const s=Object.assign({},_rvShareState||{});
