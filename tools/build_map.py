@@ -303,6 +303,11 @@ __GTAG__
   .lc-section:first-child{margin-top:0;padding-top:0;border-top:0}
   .lc-section-title{margin:0 0 1px;color:#718087;font:800 10px/1.2 sans-serif;letter-spacing:.02em}
   .lc-section-body>label{display:block}
+  .lc-course-options{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px;margin:4px 0 2px 19px;padding:6px 0 0;border-top:1px solid #e5eaec}
+  .lc-course-options label{display:flex;align-items:center;gap:5px;min-width:0;font:600 11px/1.35 sans-serif;color:#284a4a;cursor:pointer}
+  .lc-course-options input{margin:0;accent-color:#078578}
+  .lc-course-options.is-disabled{opacity:.55}
+  .lc-course-options.is-disabled label{cursor:default}
   .lc-water-row{display:grid;grid-template-columns:.88fr 1.12fr 1fr;gap:4px}
   .lc-water-row label{display:flex;align-items:center;min-width:0;box-sizing:border-box;margin:0;padding:4px 3px;border:1px solid #dbe4e8;border-radius:8px;background:#f7fafb;font-size:10.5px;line-height:1;white-space:nowrap;overflow:hidden}
   .lc-water-row label>span{display:flex;align-items:center;gap:2px;width:100%;min-width:0}
@@ -1230,11 +1235,11 @@ function ensureAppProfile(){
     const u=getUser(); if(!u||!u.uid) return false;
     try{
       const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||''),{cache:'no-store'});
-      if(r.status===401){ setUser(null); if(hadWithdrawal())showMemberBlock('error');else{hideMemberBlock();showGate();} return false; }
+      if(r.status===401){ setUser(null); setTimeout(_resetCourseViewerState,0); if(hadWithdrawal())showMemberBlock('error');else{hideMemberBlock();showGate();} return false; }
       const d=await r.json();
-      if(r.status===403&&d.error==='withdrawn-member'){rememberWithdrawal();setUser(null);_appProfile=null;showMemberBlock('withdrawn');return false;}
+      if(r.status===403&&d.error==='withdrawn-member'){rememberWithdrawal();setUser(null);setTimeout(_resetCourseViewerState,0);_appProfile=null;showMemberBlock('withdrawn');return false;}
       if(!r.ok){showMemberBlock('error');return false;}
-      if(d.profile&&d.profile.nick){ clearWithdrawal();hideMemberBlock();_appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); scheduleRecentAdditions(); return true; }
+      if(d.profile&&d.profile.nick){ clearWithdrawal();hideMemberBlock();_appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); _receiveServerCourseHidden(d.profile.courseHiddenIds); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); scheduleRecentAdditions(); return true; }
       hideMemberBlock();return await openNicknameModal(u,d.suggestedNick||'');
     }catch(e){ _profilePromise=null; showMemberBlock('error'); return false; }
   })();
@@ -1248,7 +1253,7 @@ function openNicknameModal(u,suggestedNick){ return new Promise(function(resolve
     ok.disabled=true; msg.style.color='#778'; msg.textContent='확인 중…';
     try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:u.uid,tok:u.tok||'',nick:nick,termsAgreed:true,privacyAgreed:true,dev:devType()})});
       const d=await r.json().catch(function(){return {};});
-      if(r.ok&&d.profile){ clearWithdrawal();hideMemberBlock();_appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); scheduleRecentAdditions(); resolve(true); }
+      if(r.ok&&d.profile){ clearWithdrawal();hideMemberBlock();_appProfile=d.profile; u.nick=d.profile.nick; setUser(u); _receiveServerLegendPrefs(d.profile.legendPrefs); _receiveServerCourseHidden(d.profile.courseHiddenIds); if(window.gtag&&d.profile.memberId)gtag('set',{user_id:d.profile.memberId}); m.classList.remove('open'); renderAuth(); logVisit(); showNewMemberTutorial(d.profile); scheduleRecentAdditions(); resolve(true); }
       else if(r.status===403&&d.error==='withdrawn-member'){m.classList.remove('open');rememberWithdrawal();setUser(null);showMemberBlock('withdrawn');resolve(false);}
       else { msg.style.color='#e53935'; msg.textContent=r.status===409?'이미 사용 중인 닉네임입니다':(r.status===401?'다시 로그인해 주세요':'한글·영문·숫자와 공백, . _ - 만 사용할 수 있습니다'); }
     }catch(e){ msg.style.color='#e53935'; msg.textContent='저장하지 못했습니다. 다시 시도하세요'; }
@@ -1340,7 +1345,7 @@ function renderAuth(){
   if(u&&u.uid){
     d.innerHTML='<span class="who"><span class="dot"></span><a id="mypageA" title="'+myTitle+'">'+pmEsc(u.nick||'회원')+'</a> <a id="logoutA">로그아웃</a></span>';
     const my=document.getElementById('mypageA'); if(my) L.DomEvent.on(my,'click',function(e){ L.DomEvent.stop(e); openMyPage(); });
-    const lo=document.getElementById('logoutA'); if(lo) L.DomEvent.on(lo,'click',function(e){ L.DomEvent.stop(e); setUser(null); _profilePromise=null; _appProfile=null; hideMemberBlock(); const tour=document.getElementById('onboardingTour'); if(tour) tour.classList.remove('open'); gaEvent('logout'); renderAuth(); showGate(); });
+    const lo=document.getElementById('logoutA'); if(lo) L.DomEvent.on(lo,'click',function(e){ L.DomEvent.stop(e); setUser(null); _resetCourseViewerState(); _profilePromise=null; _appProfile=null; hideMemberBlock(); const tour=document.getElementById('onboardingTour'); if(tour) tour.classList.remove('open'); gaEvent('logout'); renderAuth(); showGate(); });
   } else {
     d.innerHTML='<button id="loginA">카카오 로그인</button>';
     const lb=document.getElementById('loginA'); if(lb) L.DomEvent.on(lb,'click',function(e){ L.DomEvent.stop(e); gaEvent('login_start'); location.href=loginWorkerUrl(); });
@@ -2429,6 +2434,17 @@ const _staticCidLayers={};   // 정적 코스 cid -> [{grp,l}] (삭제/숨김용
 const _staticExpeditionCids=new Set();   // 모든 회원에게 기본 표시할 운영 엑스페디션
 const _hiddenStaticCids=new Set();
 const allCoursesGroup=L.layerGroup().addTo(map);   // 코스 전체 토글(단일 레이어 항목)
+const _coursePrefDefaults={courseExpedition:true,courseBunbury:true,courseMine:true,courseOther:false};
+const _courseDisplayPrefs=Object.assign({},_coursePrefDefaults);
+let _courseHiddenIds=new Set();
+function _receiveServerCourseHidden(ids){_courseHiddenIds=new Set(Array.isArray(ids)?ids.map(String):[]);setTimeout(_applyCourseFocus,0);}
+function _setOwnCourseVisible(id,visible){
+  const u=getUser(),key=String(id),previous=new Set(_courseHiddenIds);if(!u||!u.uid)return;
+  if(visible)_courseHiddenIds.delete(key);else _courseHiddenIds.add(key);
+  if(!visible&&_pcDockSelected==='k'+key)_pcDockSelected='';
+  _applyCourseFocus();_pcDockScheduleRender();
+  fetch(WORKER_URL.replace(/\/+$/,'')+'/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'course-visibility',id:u.uid,tok:u.tok||'',courseHiddenIds:Array.from(_courseHiddenIds)})}).then(function(r){if(!r.ok)throw new Error('save');return r.json();}).then(function(d){if(d&&d.profile)_appProfile=d.profile;}).catch(function(){_courseHiddenIds=previous;_applyCourseFocus();_pcDockScheduleRender();alert('코스 표시 설정을 저장하지 못했습니다. 다시 시도해 주세요.');});
+}
 // 실제로 함께 표시 중인 코스의 공통 물길만 두 색 이상이 번갈아 보이도록 덮는다.
 const _courseStripePane=map.createPane('courseStripePane');_courseStripePane.style.zIndex='450';_courseStripePane.style.pointerEvents='none';
 const _courseStripeRenderer=L.svg({pane:'courseStripePane',padding:.4});
@@ -3434,9 +3450,10 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
   function renderCourses(){
     const q=state.q.toLowerCase(), list=state.mine.filter(function(c){return !q||String(c.name||'').toLowerCase().indexOf(q)>=0;}).sort(function(a,b){return (+b.t||0)-(+a.t||0);});
     let h='<div class="my-tools"><input id="mySearch" value="'+pmEsc(state.q)+'" placeholder="코스명 검색"><span style="font-size:12px;color:#718087">최근 생성순</span></div>';
-    h+=list.length?list.map(function(c){return '<div class="my-list-row"><span class="my-kind">〰️</span><div class="my-list-main" data-cgo="'+c.id+'"><b>'+pmEsc(c.name||'코스')+'</b><small>'+(c.km?(+c.km).toFixed(1)+'km · ':'')+dateText(c.t)+'</small></div><div class="my-actions"><button class="my-icon-btn" data-cshare="'+c.id+'" title="공유 링크 복사">↗ <span class="label">공유</span></button><button class="my-icon-btn" data-cedit="'+c.id+'" title="수정">✎</button><button class="my-icon-btn del" data-cdel="'+c.id+'" title="삭제">✕</button></div></div>';}).join(''):'<div class="my-empty"><b>만든 코스가 없습니다</b>거리측정 후 코스로 등록하면 이곳에서 관리할 수 있습니다.</div>';
+    h+=list.length?list.map(function(c){const mine=_isCourseOwner(c),visible=!_courseHiddenIds.has(String(c.id));return '<div class="my-list-row"><span class="my-kind">〰️</span><div class="my-list-main" data-cgo="'+c.id+'"><b>'+pmEsc(c.name||'코스')+'</b><small>'+(c.km?(+c.km).toFixed(1)+'km · ':'')+dateText(c.t)+(mine&&!visible?' · 지도에서 숨김':'')+'</small></div><div class="my-actions">'+(mine?'<button class="my-icon-btn" data-cvis="'+c.id+'" aria-label="'+(visible?'지도에서 숨기기':'지도에 표시하기')+'" title="'+(visible?'지도에서 숨기기':'지도에 표시하기')+'">'+(visible?'◉':'○')+' <span class="label">'+(visible?'표시':'숨김')+'</span></button>':'')+'<button class="my-icon-btn" data-cshare="'+c.id+'" title="공유 링크 복사">↗ <span class="label">공유</span></button><button class="my-icon-btn" data-cedit="'+c.id+'" title="수정">✎</button><button class="my-icon-btn del" data-cdel="'+c.id+'" title="삭제">✕</button></div></div>';}).join(''):'<div class="my-empty"><b>만든 코스가 없습니다</b>거리측정 후 코스로 등록하면 이곳에서 관리할 수 있습니다.</div>';
     shell(h); document.getElementById('mySearch').oninput=function(){const pos=this.selectionStart;state.q=this.value;renderCourses();const n=document.getElementById('mySearch');n.focus();n.setSelectionRange(pos,pos);};
     body.querySelectorAll('[data-cgo]').forEach(function(a){a.onclick=function(){const c=state.mine.find(function(x){return String(x.id)===a.getAttribute('data-cgo');});if(c)focusCourseCourse(c);};});
+    body.querySelectorAll('[data-cvis]').forEach(function(a){a.onclick=function(){const id=a.getAttribute('data-cvis'),c=state.mine.find(function(x){return String(x.id)===id;});if(!c||!_isCourseOwner(c))return;_setOwnCourseVisible(id,_courseHiddenIds.has(id));renderCourses();};});
     body.querySelectorAll('[data-cshare]').forEach(function(a){a.onclick=function(){const id=a.getAttribute('data-cshare'),c=state.mine.find(function(x){return String(x.id)===id;});if(c){_kvCourses[c.id]=c;shareCourse('k'+id,c.name,c.km);}};});
     body.querySelectorAll('[data-cedit]').forEach(function(a){a.onclick=function(){const id=a.getAttribute('data-cedit'),c=state.mine.find(function(x){return String(x.id)===id;});if(c){_kvCourses[c.id]=c;closeMyPage();editCourse(c.id);}};});
     body.querySelectorAll('[data-cdel]').forEach(function(a){a.onclick=function(){const id=a.getAttribute('data-cdel'),c=state.mine.find(function(x){return String(x.id)===id;});if(!c||!confirm('이 코스를 삭제할까요?'))return;const req=isAdmin()?{action:'delete',adminKey:adminKey(),courseId:c.id}:{action:'deleteuser',id:u.uid,tok:u.tok||'',courseId:c.id};fetch(fapi('/course'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(req)}).then(function(r){if(r.ok){state.mine=state.mine.filter(function(x){return String(x.id)!==id;});renderCourses();}else alert('삭제 실패');});};});
@@ -3954,15 +3971,16 @@ const _legendPrefLayers={
   waterLevel:waterLevelLayer,damLevel:damLevelLayer,cctv:cctvLayer,daiso:daisoLayer,hanaro:hanaroLayer
 };
 let _legendPrefsReady=false,_legendPrefsApplying=false,_legendPrefsTouched=false,_legendPrefsTimer=null,_pendingServerLegendPrefs=null,_legendPrefsDesired={};
-function _legendPrefsClean(value){const out={};Object.keys(_legendPrefLayers).forEach(function(key){if(value&&typeof value[key]==='boolean')out[key]=value[key];});return out;}
+function _legendPrefsClean(value){const out={};Object.keys(_legendPrefLayers).concat(Object.keys(_coursePrefDefaults)).forEach(function(key){if(value&&typeof value[key]==='boolean')out[key]=value[key];});return out;}
 function _legendPrefsStorageKey(){const u=getUser();return u&&u.uid?'mc_legend_prefs_'+String(u.uid).slice(0,40):'';}
-function _legendPrefsSnapshot(){const out={},courseRequired=new URLSearchParams(location.search).has('course');Object.keys(_legendPrefLayers).forEach(function(key){out[key]=(key==='courses'&&courseRequired&&typeof _legendPrefsDesired.courses==='boolean')?_legendPrefsDesired.courses:map.hasLayer(_legendPrefLayers[key]);});return out;}
+function _legendPrefsSnapshot(){const out={},courseRequired=new URLSearchParams(location.search).has('course');Object.keys(_legendPrefLayers).forEach(function(key){out[key]=(key==='courses'&&courseRequired&&typeof _legendPrefsDesired.courses==='boolean')?_legendPrefsDesired.courses:map.hasLayer(_legendPrefLayers[key]);});Object.assign(out,_courseDisplayPrefs);return out;}
 function _legendPrefsWriteLocal(prefs){const key=_legendPrefsStorageKey();if(!key)return;try{localStorage.setItem(key,JSON.stringify(_legendPrefsClean(prefs)));}catch(e){}}
 function _legendPrefsReadLocal(){const key=_legendPrefsStorageKey();if(!key)return {};try{return _legendPrefsClean(JSON.parse(localStorage.getItem(key)||'{}'));}catch(e){return {};}}
 function _applyLegendPrefs(value){
   const prefs=_legendPrefsClean(value),courseRequired=new URLSearchParams(location.search).has('course');Object.assign(_legendPrefsDesired,prefs);_legendPrefsApplying=true;
-  Object.keys(prefs).forEach(function(key){const layer=_legendPrefLayers[key],wanted=(key==='courses'&&courseRequired)?true:prefs[key];if(wanted&&!map.hasLayer(layer))map.addLayer(layer);else if(!wanted&&map.hasLayer(layer))map.removeLayer(layer);});
-  _legendPrefsApplying=false;if(_layerControl&&_layerControl._update)_layerControl._update();
+  Object.keys(_legendPrefLayers).forEach(function(key){if(typeof prefs[key]!=='boolean')return;const layer=_legendPrefLayers[key],wanted=(key==='courses'&&courseRequired)?true:prefs[key];if(wanted&&!map.hasLayer(layer))map.addLayer(layer);else if(!wanted&&map.hasLayer(layer))map.removeLayer(layer);});
+  Object.keys(_coursePrefDefaults).forEach(function(key){if(typeof prefs[key]==='boolean')_courseDisplayPrefs[key]=prefs[key];});
+  _legendPrefsApplying=false;if(_layerControl&&_layerControl._update)_layerControl._update();setTimeout(_applyCourseFocus,0);
 }
 function _sendLegendPrefs(){
   const u=getUser();if(!u||!u.uid)return;const prefs=_legendPrefsSnapshot();_legendPrefsWriteLocal(prefs);
@@ -3983,11 +4001,12 @@ function _organizeLayerLegend(){
     ['편의시설','store','lc-store-row']
   ];
   const used=new Set();overlays.replaceChildren();
-  definitions.forEach(function(def){const matches=labels.filter(function(label){const tag=label.querySelector('.lc-group-tag');return tag&&tag.dataset.lcGroup===def[1];});if(!matches.length)return;const section=L.DomUtil.create('div','lc-section',overlays),title=L.DomUtil.create('div','lc-section-title',section),body=L.DomUtil.create('div','lc-section-body '+def[2],section);title.textContent=def[0];matches.forEach(function(label){used.add(label);if(label.querySelector('.wp-key-note'))label.classList.add('lc-waterplay-label');body.appendChild(label);});});
+  definitions.forEach(function(def){const matches=labels.filter(function(label){const tag=label.querySelector('.lc-group-tag');return tag&&tag.dataset.lcGroup===def[1];});if(!matches.length)return;const section=L.DomUtil.create('div','lc-section',overlays),title=L.DomUtil.create('div','lc-section-title',section),body=L.DomUtil.create('div','lc-section-body '+def[2],section);title.textContent=def[0];matches.forEach(function(label){used.add(label);if(label.querySelector('.wp-key-note'))label.classList.add('lc-waterplay-label');body.appendChild(label);});if(def[1]==='canoe'){const options=L.DomUtil.create('div','lc-course-options',body);options.setAttribute('role','group');options.setAttribute('aria-label','지도에 표시할 코스');[['courseExpedition','엑스페디션'],['courseBunbury','번버리Pick'],['courseMine','내 코스'],['courseOther','기타 운영 코스']].forEach(function(item){const row=L.DomUtil.create('label','',options),input=L.DomUtil.create('input','',row);input.type='checkbox';input.dataset.coursePref=item[0];input.checked=_courseDisplayPrefs[item[0]];input.disabled=!map.hasLayer(allCoursesGroup);row.appendChild(document.createTextNode(item[1]));});const courseLabel=matches.find(function(label){return label.querySelector('.sw-course');});if(courseLabel)body.insertBefore(options,courseLabel.nextSibling);options.classList.toggle('is-disabled',!map.hasLayer(allCoursesGroup));}});
   const rest=labels.filter(function(label){return !used.has(label);});if(rest.length){const section=L.DomUtil.create('div','lc-section',overlays),title=L.DomUtil.create('div','lc-section-title',section),body=L.DomUtil.create('div','lc-section-body',section);title.textContent='관리자';rest.forEach(function(label){body.appendChild(label);});}
 }
 const _layerControlUpdate=_layerControl._update.bind(_layerControl);_layerControl._update=function(){const result=_layerControlUpdate();_organizeLayerLegend();return result;};
 _organizeLayerLegend();
+_layerControl.getContainer().addEventListener('change',function(e){const key=e.target&&e.target.dataset&&e.target.dataset.coursePref;if(!Object.prototype.hasOwnProperty.call(_coursePrefDefaults,key))return;_courseDisplayPrefs[key]=!!e.target.checked;_applyCourseFocus();_queueLegendPrefsSave();});
 map.on('overlayadd',function(e){
   if(!e||e.layer!==roadviewLayer)return;_offToast('🛣️ 로드뷰 가능 장소를 불러오는 중…');
   Promise.resolve(_loadSecureBounds(true)).then(function(){const n=Object.keys(_roadviewPlaceIds).length;_offToast(n?('🛣️ 불러온 로드뷰 가능 장소 '+n+'곳 표시'):'현재 화면에 표시할 로드뷰 가능 장소가 없거나 자료를 불러오지 못했습니다');});
@@ -4311,10 +4330,15 @@ function _ownedCourseRequest(){
   if(isAdmin())return fetch(fapi('/course'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'listmine',adminKey:adminKey(),id:u.uid,tok:u.tok||''})});
   return fetch(courseReadUrl('/courses?featured=1&uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||'')));
 }
+let _courseReloadSeq=0;
+function _resetCourseViewerState(){_courseReloadSeq++;_courseHiddenIds.clear();_pcDockSelected='';_clearKVCourses();_applyCourseFocus();}
 function reloadCoursesForViewer(){
   if(_courseFocusId)return;
+  const seq=++_courseReloadSeq,viewerUid=_curUid();
   _clearKVCourses();
-  _ownedCourseRequest().then(function(r){return r?r.json():[];}).then(function(list){(list||[]).forEach(renderKVCourse);_courseKvReady=true;_applyCourseFocus();_maybeSyncAdminCourseFavs();}).catch(function(){_courseKvReady=true;_applyCourseFocus();});
+  const u=getUser(),featured=_ownedCourseRequest();
+  const mine=u&&u.uid&&!isAdmin()?fetch(courseReadUrl('/courses?mine=1&uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||''))):Promise.resolve(null);
+  Promise.all([featured,mine].map(function(p){return p.then(function(r){return r&&r.ok?r.json():[];}).catch(function(){return [];});})).then(function(lists){if(seq!==_courseReloadSeq||viewerUid!==_curUid())return;const seen=new Set();lists.forEach(function(list){(Array.isArray(list)?list:[]).forEach(function(c){if(!c||seen.has(String(c.id)))return;seen.add(String(c.id));renderKVCourse(c);});});_courseKvReady=true;_applyCourseFocus();_maybeSyncAdminCourseFavs();}).catch(function(){if(seq!==_courseReloadSeq)return;_courseKvReady=true;_applyCourseFocus();});
 }
 function loadCourses(){if(_courseFocusId){_courseKvReady=true;return;}reloadCoursesForViewer();}
 // 정적 코스 숨김(관리자 삭제분) 적용
@@ -4446,12 +4470,12 @@ function _applyCourseFocus(){
   const staticId=isFocused && !isKv?id:'';
   const dockSelected=_pcDockIsActive()?String(_pcDockSelected||''):'';
   const preferredExpeditions=_pcDockIsActive()?_pcDockExpeditionChoices():null;
-  const showAll=!isFocused && isAdmin();
-  const member=getUser(), showMemberExpeditions=!isFocused&&!!(member&&member.uid);
+  const member=getUser(), showMemberCourses=!isFocused&&!!(member&&member.uid);
+  function groupEnabled(c,owned){if(owned)return _courseDisplayPrefs.courseMine;const cat=courseSubcat(c.name);return cat==='엑스페디션'?_courseDisplayPrefs.courseExpedition:cat==='번버리Pick'?_courseDisplayPrefs.courseBunbury:_courseDisplayPrefs.courseOther;}
   Object.keys(_staticCidLayers).forEach(function(cid){
     const arr=_staticCidLayers[cid]; if(!arr) return;
     const target='course_c'+cid;
-    const defaultVisible=showAll || (showMemberExpeditions&&(_staticExpeditionCids.has(String(cid))||courseSubcat((_courseByCid[cid]||{}).name)==='번버리Pick'));
+    const defaultVisible=showMemberCourses&&groupEnabled(_courseByCid[cid]||{},false);
     const canonical=!preferredExpeditions||!_staticExpeditionCids.has(String(cid))||preferredExpeditions.get(Number(cid))==='c'+cid;
     const keep=!_hiddenStaticCids.has(String(cid)) && ((defaultVisible&&canonical&&(!_favOnly||_favSet.has(target))) || (!isKv&&String(cid)===staticId) || dockSelected==='c'+cid);
     arr.forEach(function(e){ if(keep) e.grp.addLayer(e.l); else e.grp.removeLayer(e.l); });
@@ -4459,9 +4483,9 @@ function _applyCourseFocus(){
   Object.keys(_kvCourseLayers).forEach(function(cid){
     const e=_kvCourseLayers[cid]; if(!e) return;
     const c=_kvCourses[cid]||{}, target='course_k'+cid;
-    const defaultVisible=showAll || (showMemberExpeditions&&String(c.owner||'')==='admin'&&['엑스페디션','번버리Pick'].includes(courseSubcat(c.name)));
+    const mine=_isCourseOwner(c),defaultVisible=showMemberCourses&&(mine||String(c.owner||'')==='admin')&&groupEnabled(c,mine)&&(!mine||!_courseHiddenIds.has(String(cid)));
     const round=expeditionNumber(c,'k'+cid),canonical=!preferredExpeditions||!round||preferredExpeditions.get(round)==='k'+cid;
-    const keep=(defaultVisible&&canonical&&(!_favOnly||_favSet.has(target)||_ownedCourseTargets.has(target))) || (isKv&&String(cid)===kvId) || dockSelected==='k'+cid;
+    const keep=(defaultVisible&&canonical&&(!_favOnly||_favSet.has(target))) || (isKv&&String(cid)===kvId) || dockSelected==='k'+cid;
     e.ls.forEach(function(l){ if(keep) e.grp.addLayer(l); else e.grp.removeLayer(l); });
   });
   _scheduleCourseStripes();

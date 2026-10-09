@@ -194,6 +194,57 @@ test('legend choices follow the signed-in member across visits', async () => {
   await browser.close();
 });
 
+test('members can toggle operating and personal courses independently on desktop and mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    const context = await browser.newContext({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
+    await context.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'course-member', tok: 'test-token', nick: '패들러' })));
+    let prefs = { courses: true, courseExpedition: true, courseBunbury: true, courseMine: true, courseOther: false };
+    let hidden = [];
+    await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname.endsWith('/profile')) {
+        if (route.request().method() === 'POST') {
+          const body = route.request().postDataJSON();
+          if (body.action === 'legend-prefs') prefs = body.legendPrefs;
+          if (body.action === 'course-visibility') hidden = body.courseHiddenIds;
+        }
+        await route.fulfill({ json: { profile: { memberId: 'member-course', nick: '패들러', mypageTourSeen: 1, onboardingVersion: 1, legendPrefs: prefs, courseHiddenIds: hidden } } });
+      } else if (url.pathname.endsWith('/courses') && url.searchParams.has('featured')) {
+        await route.fulfill({ json: [{ id: 1790000000011, owner: 'admin', name: '엑스페디션 #11 북한강', km: 2, coords: [[38, 127.7], [38.01, 127.71]] }] });
+      } else if (url.pathname.endsWith('/courses') && url.searchParams.has('mine')) {
+        await route.fulfill({ json: [{ id: 1790000000099, owner: 'course-member', name: '내 주말 코스', km: 2, coords: [[38, 127.7], [38.01, 127.71]] }] });
+      } else {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: url.pathname.endsWith('/launch-sites') ? JSON.stringify({ items: [], truncated: false }) : '[]' });
+      }
+    });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => _kvCourseLayers['1790000000099'] && _kvCourseLayers['1790000000011']);
+    expect(await page.evaluate(() => _kvCourseLayers['1790000000099'].grp.hasLayer(_kvCourseLayers['1790000000099'].ls[1]))).toBe(true);
+    await page.locator('.lc-title').click();
+    await page.locator('[data-course-pref="courseMine"]').uncheck();
+    expect(await page.evaluate(() => _kvCourseLayers['1790000000099'].grp.hasLayer(_kvCourseLayers['1790000000099'].ls[1]))).toBe(false);
+    expect(await page.evaluate(() => _kvCourseLayers['1790000000011'].grp.hasLayer(_kvCourseLayers['1790000000011'].ls[1]))).toBe(true);
+    await page.locator('[data-course-pref="courseMine"]').check();
+    await page.evaluate(() => openMyPage());
+    await page.getByRole('button', { name: '내 코스', exact: true }).click();
+    await page.locator('[data-cvis="1790000000099"]').click();
+    await expect.poll(() => hidden).toEqual(['1790000000099']);
+    expect(await page.evaluate(() => _kvCourseLayers['1790000000099'].grp.hasLayer(_kvCourseLayers['1790000000099'].ls[1]))).toBe(false);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => _kvCourseLayers['1790000000099'] && _courseHiddenIds.has('1790000000099'));
+    expect(await page.evaluate(() => _kvCourseLayers['1790000000099'].grp.hasLayer(_kvCourseLayers['1790000000099'].ls[1]))).toBe(false);
+    expect(errors).toEqual([]);
+    await context.close();
+  }
+  await browser.close();
+});
+
 test('course pack survives a mobile offline reload', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
