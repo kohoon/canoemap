@@ -6,6 +6,7 @@ export const NICK_CHANGE_INTERVAL_MS = 14 * 24 * 60 * 60 * 1000;
 const LEGEND_PREF_KEYS = [
   "protect", "wlz", "waterplay", "courses", "famous", "canoe", "obstacles",
   "roadview", "waterLevel", "damLevel", "cctv", "daiso", "hanaro",
+  "courseExpedition", "courseBunbury", "courseMine", "courseOther",
 ];
 
 export function normalizeLegendPrefs(value) {
@@ -13,6 +14,10 @@ export function normalizeLegendPrefs(value) {
   const out = {};
   for (const key of LEGEND_PREF_KEYS) if (typeof source[key] === "boolean") out[key] = source[key];
   return out;
+}
+
+export function normalizeCourseHiddenIds(value) {
+  return Array.isArray(value) ? [...new Set(value.map(String).filter((id) => /^\d{13}$/.test(id)))].slice(0, 300) : [];
 }
 
 export function sessionExpiryIsValid(exp, nowSec) {
@@ -41,6 +46,7 @@ export function memberProfile(member) {
     onboardingVersion,
     onboardingStatus: String(member.onboardingStatus || ""),
     legendPrefs: normalizeLegendPrefs(member.legendPrefs),
+    courseHiddenIds: normalizeCourseHiddenIds(member.courseHiddenIds),
     consentAt: Number(member.consentAt) || 0,
     termsVersion: String(member.termsVersion || ""),
     privacyVersion: String(member.privacyVersion || ""),

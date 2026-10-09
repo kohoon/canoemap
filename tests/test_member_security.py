@@ -12,7 +12,7 @@ class MemberSecurityTest(unittest.TestCase):
         script = textwrap.dedent(
             """
             import {
-              memberRecordIsActive, memberProfile, publicMemberSummary, sessionExpiryIsValid, normalizeLegendPrefs,
+              memberRecordIsActive, memberProfile, publicMemberSummary, sessionExpiryIsValid, normalizeLegendPrefs, normalizeCourseHiddenIds,
               ONBOARDING_VERSION, SESSION_TTL_SECONDS
             } from './workers/member-security.mjs';
             const active = {memberId:'abc123', providerId:'4936913088', nick:'회원', status:'active', loginCount:2, visitCount:3,
@@ -29,6 +29,9 @@ class MemberSecurityTest(unittest.TestCase):
             const prefs = normalizeLegendPrefs({hanaro:false,cctv:true,adminRoad:true,broken:'yes'});
             if (JSON.stringify(prefs) !== JSON.stringify({cctv:true,hanaro:false})) throw new Error('legend prefs not normalized');
             if (memberProfile({...active, legendPrefs:{hanaro:false}}).legendPrefs.hanaro !== false) throw new Error('legend prefs omitted');
+            const hidden = normalizeCourseHiddenIds(['1790000000099','1790000000099','bad']);
+            if (JSON.stringify(hidden) !== JSON.stringify(['1790000000099'])) throw new Error('hidden course ids not normalized');
+            if (memberProfile({...active, courseHiddenIds:hidden}).courseHiddenIds[0] !== '1790000000099') throw new Error('hidden course ids omitted');
             const now = 2_000_000_000;
             if (sessionExpiryIsValid(now, now)) throw new Error('expired token accepted');
             if (!sessionExpiryIsValid(now + SESSION_TTL_SECONDS, now)) throw new Error('valid token rejected');
@@ -52,6 +55,7 @@ class MemberSecurityTest(unittest.TestCase):
         self.assertIn('current.onboardingStatus = b.outcome === "completed" ? "completed" : "skipped"', worker)
         self.assertIn('b.action === "legend-prefs"', worker)
         self.assertIn('current.legendPrefs = normalizeLegendPrefs(b.legendPrefs)', worker)
+        self.assertIn('current.courseHiddenIds = normalizeCourseHiddenIds(b.courseHiddenIds)', worker)
         self.assertIn('url.searchParams.get("expedition")', worker)
         self.assertIn('const userOk = !!uid && await _memberOk(env, uid, url.searchParams.get("tok"))', worker)
         self.assertIn('String(x.owner || "") === "admin" && (', worker)

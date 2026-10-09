@@ -6,6 +6,7 @@ import {
   memberRecordIsActive,
   memberProfile,
   normalizeLegendPrefs,
+  normalizeCourseHiddenIds,
   ONBOARDING_VERSION,
   NICK_CHANGE_INTERVAL_MS,
   publicMemberSummary,
@@ -663,6 +664,16 @@ export default {
           const ip = req.headers.get("CF-Connecting-IP") || "0";
           if (await _rateLimited(env, "legend_" + (await _uidHash(env, uid)), ip, 30)) return J({ ok: false, error: "rate-limit" }, 429);
           current.legendPrefs = normalizeLegendPrefs(b.legendPrefs);
+          current.updatedAt = Date.now();
+          await _memberPut(env, uid, current);
+          return J({ ok: true, profile: memberProfile(current) });
+        }
+        if (b.action === "course-visibility") {
+          if (!_allowedOrigin(req, env)) return J({ ok: false, error: "forbidden-origin" }, 403);
+          if (!memberRecordIsActive(current)) return J({ ok: false, error: "inactive-member" }, 403);
+          const ip = req.headers.get("CF-Connecting-IP") || "0";
+          if (await _rateLimited(env, "course_visibility_" + (await _uidHash(env, uid)), ip, 30)) return J({ ok: false, error: "rate-limit" }, 429);
+          current.courseHiddenIds = normalizeCourseHiddenIds(b.courseHiddenIds);
           current.updatedAt = Date.now();
           await _memberPut(env, uid, current);
           return J({ ok: true, profile: memberProfile(current) });
