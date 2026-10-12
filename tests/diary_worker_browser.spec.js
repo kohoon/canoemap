@@ -197,7 +197,7 @@ test('tour JSON backup restores as a standalone private track with its gaps', as
       name: 'tour-backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(archive)),
     });
     await expect(page.locator('#backupStatus')).toContainText('비공개 기록으로 복원했습니다.');
-    await expect(page.locator('#editorSource')).toContainText('원본 투어와 분리');
+    await expect(page.locator('#editorSource')).toContainText('원래 투어와는 연결되지 않음');
     const recordKey = [...state.kv.values.keys()].find((key) => key.startsWith(`diary-v1:${uid}:a_`));
     const record = JSON.parse(await state.kv.get(recordKey));
     expect(record.visibility).toBe('private');

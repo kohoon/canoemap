@@ -69,9 +69,9 @@ function openEditor(info, record = null) {
   $('editor').hidden = !info;
   if (!info) return;
   $('editorTitle').textContent = record ? '비공개 다이어리 수정' : '비공개 다이어리 작성';
-  $('editorSource').textContent = info.archiveSource === 'tour' ? 'JSON 투어 백업에서 복원 · 원본 투어와 분리된 이동 기록'
+  $('editorSource').textContent = info.archiveSource === 'tour' ? '백업에서 가져온 별도 기록 · 원래 투어와는 연결되지 않음'
     : info.source === 'tour' ? '카누맵 투어 기록에서 가져옴'
-    : info.source === 'gpx' ? 'GPX 이동 트랙에서 가져옴' : '수기 기록 · 경로와 거리는 자동 생성하지 않음';
+    : info.source === 'gpx' ? 'GPX 이동 트랙에서 가져옴' : '경로 없이 남긴 기록';
   $('diaryTitle').value = record?.title || info.title || '카누잉 기록';
   $('diaryDate').value = record?.date || info.date || localDate();
   $('diaryLaunch').value = record?.launch || '';

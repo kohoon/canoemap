@@ -44,6 +44,10 @@ test('map entry offers tour, GPX and manual without adding a crowded map button'
     await expect(page.locator('#diaryStartTour')).toBeVisible();
     await expect(page.locator('#diaryImportGpx')).toBeVisible();
     await expect(page.locator('#diaryWriteManual')).toBeVisible();
+    const diaryLink = page.locator('.tm-diary-link');
+    await expect(diaryLink).toBeVisible();
+    await expect(diaryLink).toHaveAttribute('href', '/diary/');
+    expect(await diaryLink.evaluate((element) => element.getBoundingClientRect().width >= 240)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(errors).toEqual([]);
     await page.close();
@@ -69,6 +73,9 @@ test('manual diary saves as private and remains editable on a phone', async () =
   });
   await page.goto(baseURL + '/diary/?start=manual', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#editor')).toBeVisible();
+  await expect(page.locator('.read-only')).toContainText('본인만 볼 수 있습니다.');
+  await expect(page.locator('body')).not.toContainText('공개·URL 공유는 아직 준비 중입니다.');
+  await expect(page.locator('body')).not.toContainText('다음 단계에서');
   await page.locator('#diaryTitle').fill('춘천호의 오후');
   await page.locator('#diaryDate').fill('2026-10-12');
   await page.locator('#diaryNotes').fill('바람이 잔잔했다.');

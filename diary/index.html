@@ -14,7 +14,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="../" aria-label="카누맵 지도로 돌아가기"><span class="brand-icon" aria-hidden="true">🛶</span><span>카누맵</span></a>
-    <div class="topbar-title">카누잉 다이어리 <span class="beta">개인 베타</span></div>
+    <div class="topbar-title">카누잉 다이어리</div>
     <a class="back-link" href="../">지도로 돌아가기 <span aria-hidden="true">↗</span></a>
   </header>
   <main>
@@ -22,9 +22,9 @@
       <div>
         <p class="eyebrow">MY CANOEING DIARY</p>
         <h1 id="page-title">물 위의 하루를 기록하세요.</h1>
-        <p>투어 기록을 연결하거나 GPX를 가져오고, 예전 카누잉도 직접 남길 수 있습니다. 현재 저장되는 다이어리는 본인만 볼 수 있습니다.</p>
+        <p>투어 기록을 연결하거나 GPX를 가져오고, 예전 카누잉도 직접 남길 수 있습니다. 저장한 기록은 본인만 볼 수 있습니다.</p>
       </div>
-      <div class="read-only"><span class="read-only-dot"></span><strong>비공개 저장</strong><small>카카오 로그인 계정에 저장됩니다. 공개·URL 공유는 아직 준비 중입니다.</small></div>
+      <div class="read-only"><span class="read-only-dot"></span><strong>나만 보는 기록</strong><small>카카오 로그인 계정에 저장되며 본인만 볼 수 있습니다.</small></div>
     </section>
     <div class="workspace">
       <aside class="sources" aria-label="기록 선택">
@@ -79,7 +79,6 @@
             <div class="stats"><div><span>이동 거리</span><strong id="distance">—</strong></div><div><span>경과 시간</span><strong id="elapsed">—</strong></div><div><span>경로 점</span><strong id="pointCount">—</strong></div></div>
             <dl class="details"><div><dt>출발</dt><dd id="startTime">—</dd></div><div><dt>도착</dt><dd id="endTime">—</dd></div><div><dt>경로 구간</dt><dd id="segmentCount">—</dd></div><div><dt>휴식 기록</dt><dd id="restTime">—</dd></div><div><dt>연결 코스</dt><dd id="courseName">—</dd></div></dl>
             <div id="warnings" class="warnings" hidden></div>
-            <div class="condition-placeholder"><span aria-hidden="true">◌</span><div><b>그날의 수위·날씨</b><p>다음 단계에서 관측시각과 출처를 확인해 연결합니다. 지금은 값을 추정해 채우지 않습니다.</p></div></div>
           </div>
         </div>
       </section>
@@ -92,7 +91,7 @@
         <label>카누잉 날짜<input id="diaryDate" type="date" required></label>
         <label>출발 장소<input id="diaryLaunch" maxlength="120" placeholder="예: 소양호 선착장"></label>
         <label>도착 장소<input id="diaryLanding" maxlength="120" placeholder="예: 오월리 랜딩지"></label>
-        <label>함께 탄 사람<input id="diaryCompanions" maxlength="400" placeholder="쉼표로 구분 · 현재는 본인만 확인"></label>
+        <label>함께 탄 사람<input id="diaryCompanions" maxlength="400" placeholder="이름을 쉼표로 구분해 입력"></label>
         <label id="manualDistanceWrap" hidden>기억하는 거리 (km)<input id="diaryDistance" type="number" min="0" max="1000" step="0.01" placeholder="선택 입력 · 본인 입력으로 표시"></label>
       </div>
       <label class="editor-notes">메모<textarea id="diaryNotes" rows="4" maxlength="5000" placeholder="그날의 물길, 휴식, 기억을 남겨보세요."></textarea></label>
@@ -102,9 +101,9 @@
         <button id="diaryBackup" type="button">전체 기록 JSON</button>
         <button id="diaryGpx" type="button">이동 경로 GPX</button>
         <span id="exportStatus" role="status"></span>
-        <p>JSON 백업에는 메모·동행자·정확한 GPS 경로가 포함됩니다. 타인에게 공유하지 말고 안전하게 보관하세요. 이 파일은 위의 ‘JSON 백업 복원’에서 다시 가져올 수 있습니다. 가져온 GPX의 원본 파일 자체는 현재 서버에 보관하지 않습니다.</p>
+        <p>JSON 백업에는 메모·동행자·정확한 GPS 경로가 포함됩니다. 타인에게 공유하지 말고 안전하게 보관하세요. 이 파일은 위의 ‘JSON 백업 복원’에서 다시 가져올 수 있습니다. 가져온 GPX 파일은 보관하지 않고 기록에 필요한 경로만 저장합니다.</p>
       </div>
-      <p class="editor-help">저장 후에도 수정할 수 있습니다. 공개와 URL 공유 기능은 다음 단계에서 제공됩니다.</p>
+      <p class="editor-help">저장 후에도 내용을 수정하거나 기록을 삭제할 수 있습니다.</p>
     </section>
     <p class="footnote">GPX의 계획 경로는 실제 카누잉 기록으로 저장할 수 없습니다. GPS가 끊긴 구간도 이어 그리지 않습니다.</p>
   </main>
