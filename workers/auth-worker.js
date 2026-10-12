@@ -18,6 +18,7 @@ import { applyCourseCorrection, coursePreviewVersionIsCurrent } from "./course-c
 import { EXPEDITIONS, EXPEDITION_STICKERS, expeditionNumber, normalizeExpedition } from "./expedition.mjs";
 import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
 import { accessDayWindow, appendMemberAccess, dailyMemberAccess } from "./access-history.mjs";
+import { handleDiaryApi } from "./diary-api.mjs";
 
 /**
  * Cloudflare Worker — 카카오 로그인 OAuth 콜백.
@@ -1839,6 +1840,11 @@ export default {
         return J(JSON.stringify({ ok: true }));
       }
       return new Response("method", { status: 405, headers: cors });
+    }
+
+    // 0-4a) 비공개 카누잉 다이어리 — 기존 투어와 연결하거나 GPX/수기로 작성
+    if (url.pathname.endsWith("/diary") || url.pathname.endsWith("/diaries") || url.pathname.endsWith("/diary-import")) {
+      return handleDiaryApi(req, env, url, _memberOk);
     }
 
     // 0-4) 카누잉 트립 기록 (KV: trip:<id>, utrips:<uid>, feed, board)

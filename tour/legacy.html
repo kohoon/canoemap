@@ -1198,7 +1198,19 @@ const OpenChatCtl=L.Control.extend({ options:{position:'topright'},
     return row;
   } });
 const TourCtl=L.Control.extend({ options:{position:'topright'},
-  onAdd:function(){const b=L.DomUtil.create('button','tour-entry');b.type='button';b.id='tourEntry';b.innerHTML=TOUR_MODE?'↩️ 투어모드 종료':'🛶 투어 모드 <span>BETA</span>';b.setAttribute('aria-label',TOUR_MODE?'투어모드 종료':'카누 투어 기록 모드 열기');L.DomEvent.disableClickPropagation(b);L.DomEvent.on(b,'click',function(){if(TOUR_MODE&&((typeof _trk!=='undefined'&&_trk)||(typeof _tourStopping!=='undefined'&&_tourStopping))){toastMsg('진행 중인 투어를 먼저 종료해 주세요');return;}const next=new URL(location.href);if(TOUR_MODE)next.searchParams.delete('tour');else next.searchParams.set('tour','1');location.assign(next.toString());});return b;} });
+  onAdd:function(){const b=L.DomUtil.create('button','tour-entry');b.type='button';b.id='tourEntry';b.innerHTML=TOUR_MODE?'↩️ 투어모드 종료':'🛶 기록하기';b.setAttribute('aria-label',TOUR_MODE?'투어모드 종료':'카누잉 기록 방법 선택');L.DomEvent.disableClickPropagation(b);L.DomEvent.on(b,'click',function(){if(TOUR_MODE&&((typeof _trk!=='undefined'&&_trk)||(typeof _tourStopping!=='undefined'&&_tourStopping))){toastMsg('진행 중인 투어를 먼저 종료해 주세요');return;}if(!TOUR_MODE){openDiaryEntry();return;}const next=new URL(location.href);next.searchParams.delete('tour');location.assign(next.toString());});return b;} });
+function openDiaryEntry(){
+  document.getElementById('tmBody').innerHTML='<h3>🛶 카누잉 기록하기</h3>'
+    +'<p class="tm-note">지금 이동 경로를 기록하거나, 이미 다녀온 날을 다이어리에 남길 수 있습니다.</p>'
+    +'<button type="button" class="tm-choice pick" id="diaryStartTour">● 지금 투어 시작 <small>현재 위치부터 GPS로 기록</small></button>'
+    +'<button type="button" class="tm-choice free" id="diaryImportGpx">↑ GPX 가져오기 <small>다른 기기의 이동 경로 등록</small></button>'
+    +'<button type="button" class="tm-choice free" id="diaryWriteManual">✎ 직접 작성 <small>경로가 없는 예전 기록도 작성</small></button>'
+    +'<div class="tm-row"><a class="tm-btn" href="/diary/">내 다이어리 보기</a><button class="tm-btn" type="button" onclick="closeTModal()">닫기</button></div>';
+  openTModalRaw();
+  document.getElementById('diaryStartTour').onclick=function(){const next=new URL(location.href);next.searchParams.set('tour','1');location.assign(next.toString());};
+  document.getElementById('diaryImportGpx').onclick=function(){location.assign('/diary/?start=gpx');};
+  document.getElementById('diaryWriteManual').onclick=function(){location.assign('/diary/?start=manual');};
+}
 
 const ua = navigator.userAgent;
 const isiOS = /iphone|ipad|ipod/i.test(ua);
@@ -3239,7 +3251,7 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
   function dateText(t){ if(!t) return '기록 없음'; const d=new Date(t),p=function(v){return String(v).padStart(2,'0');}; return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
   function durText(sec){ sec=Math.max(0,+sec||0); const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60); return h?h+'시간 '+m+'분':m+'분'; }
   function shell(content){
-    const tabs=[['info','내 정보'],['favs','즐겨찾기'],['courses','내 코스'],['activity','투어 기록']];
+    const tabs=[['info','내 정보'],['favs','즐겨찾기'],['courses','내 코스'],['activity','투어 기록'],['diary','카누잉 다이어리']];
     body.innerHTML='<div class="my-head"><h3>'+pmEsc(u.nick||'회원')+'님의 마이페이지</h3><p>내 정보와 저장한 콘텐츠를 관리합니다</p></div>'
       +'<div class="my-tabs">'+tabs.map(function(x){return '<button class="my-tab'+(state.tab===x[0]?' on':'')+'" data-tab="'+x[0]+'">'+x[1]+'</button>';}).join('')+'</div>'
       +'<div class="my-pane">'+content+'</div>';
@@ -3292,7 +3304,11 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
     document.getElementById('myTourGo').onclick=function(){const next=new URL(location.href);next.searchParams.set('tour','1');location.assign(next.toString());};
     body.querySelectorAll('[data-trip]').forEach(function(b){b.onclick=function(){closeMyPage();viewTrip(b.getAttribute('data-trip'));};});
   }
-  function render(){if(state.tab==='favs')renderFavs();else if(state.tab==='courses')renderCourses();else if(state.tab==='activity')renderActivity();else renderInfo();}
+  function renderDiary(){
+    shell('<div class="my-empty"><b>카누잉 다이어리</b>투어 기록을 연결하거나 GPX·수기 기록을 비공개로 저장하고, 나중에 메모를 보완할 수 있습니다.</div><div class="my-tools"><a class="my-icon-btn" href="/diary/">내 다이어리 열기</a><button class="my-icon-btn" id="myDiaryAdd" type="button">+ 기록 추가</button></div>');
+    document.getElementById('myDiaryAdd').onclick=function(){closeMyPage();openDiaryEntry();};
+  }
+  function render(){if(state.tab==='favs')renderFavs();else if(state.tab==='courses')renderCourses();else if(state.tab==='activity')renderActivity();else if(state.tab==='diary')renderDiary();else renderInfo();}
   body.innerHTML='<div class="pm-empty">불러오는 중…</div>';
   Promise.all([loadFavs(),loadMyCourses(),loadMyTrips(),loadMyProfile()]).then(function(res){state.mine=res[1]||[];state.trips=res[2]||[];render();});
 }
@@ -5353,9 +5369,10 @@ async function openTripSummary(t,endMs,activeSec){
     +'<div class="tm-stat tm-time-stat"><div><b>'+km.toFixed(2)+'</b><span>실측 km</span></div><div><b>'+fmtDur(elapsedSec)+'</b><span>전체 시간</span></div><div><b>'+fmtDur(sec)+'</b><span>활동 시간</span></div><div><b>'+fmtDur(restSec)+'</b><span>휴식 시간</span></div></div>'+_tourPauseList(t.pauses)
     +'<div style="font-size:13px;color:#445"><b>런칭</b> '+pmEsc(launchAddr||'-')+'<br><b>랜딩</b> '+pmEsc(landAddr||'-')+'</div>'+(t.endLocationFallback?'<div class="tm-note">종료 시 GPS를 확인하지 못해 마지막 정상 위치를 도착지로 사용했습니다.</div>':'')+((t.estimated)?'<div class="tm-note">참고용 물길 추정 '+estimatedKm.toFixed(2)+'km · 실측 GPS 거리 '+km.toFixed(2)+'km. 통계와 랭킹에는 실측 거리만 포함됩니다.</div>':'')
     +'<div class="tm-row"><input id="tmTitle" maxlength="40" value="'+title.replace(/["<>]/g,'')+'"></div>'
-    +'<label class="tm-toggle"><input type="checkbox" id="tmShare"> 공유하기 (다른 사용자도 이 경로를 볼 수 있어요)</label>'+(!t.course?'<label class="tm-toggle"><input type="checkbox" id="tmSaveCourse"> 이 이동 경로를 새 코스로 저장</label>':'')
-    +'<div class="tm-row"><button class="tm-save" id="tmSave">저장</button><button class="tm-btn" id="tmCancel">취소</button><span id="tmMsg" style="font-size:12px;color:#888;margin-left:6px"></span></div>';
-  document.getElementById('tmSave').onclick=saveTrip;
+    +'<label class="tm-toggle"><input type="checkbox" id="tmShare"> 기존 투어 피드에 공유 (다이어리 공개와 별개)</label>'+(!t.course?'<label class="tm-toggle"><input type="checkbox" id="tmSaveCourse"> 이 이동 경로를 새 코스로 저장</label>':'')
+    +'<div class="tm-row"><button class="tm-save" id="tmSaveDiary">다이어리로 저장</button><button class="tm-btn" id="tmSave">투어만 저장</button><button class="tm-btn" id="tmCancel">취소</button><span id="tmMsg" style="font-size:12px;color:#888;margin-left:6px"></span></div>';
+  document.getElementById('tmSave').onclick=function(){saveTrip(false);};
+  document.getElementById('tmSaveDiary').onclick=function(){saveTrip(true);};
   document.getElementById('tmCancel').onclick=function(){if(_pendTrip)[_pendTrip.line,_pendTrip.planLine,_pendTrip.estimateLine,_pendTrip.posMarker].forEach(function(l){if(l)map.removeLayer(l);});tripBackupClear();_pendTrip=null;closeTModal();}; }
 const TRIP_QUEUE_KEY='mc_trip_queue_v1';
 function _tripQueue(){try{const a=JSON.parse(localStorage.getItem(TRIP_QUEUE_KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return[];}}
@@ -5363,8 +5380,9 @@ function _tripQueueWrite(a){try{localStorage.setItem(TRIP_QUEUE_KEY,JSON.stringi
 function _tripClientId(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10);}
 function _tripQueuedItem(title,shared,saveAsCourse,u){const p=_pendTrip,id=_tripClientId();return{uid:String(u.uid),clientId:id,created:Date.now(),saveAsCourse:!!saveAsCourse,trip:{action:'save',clientId:id,title:title,shared:!!shared,start:p.startMs,end:p.endMs,durSec:p.durSec,pauses:p.pauses,track:p.track,breaks:p.breaks,gpsTrack:p.gpsTrack,estimatedTrack:p.estimatedTrack,estimatedKm:p.estimatedKm,estimated:p.estimated,courseId:p.course&&p.course.id||'',courseName:p.course&&p.course.name||'',courseProgress:p.courseProgress,launch:p.launch,landing:p.landing},course:saveAsCourse?{action:'adduser',clientId:id,name:title,color:'#00897b',coords:p.track.map(function(x){return[x[0],x[1]];}),km:p.km}:null,summary:{title:title,start:p.startMs,km:p.km,durSec:p.durSec}};}
 async function _sendTripItem(item,u){
-  const tb=Object.assign({},item.trip,{id:u.uid,tok:u.tok||'',nick:u.nick||''}),r=await fetch(wapi('/trip'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(tb)});if(!r.ok){const e=new Error('trip '+r.status);e.status=r.status;throw e;}
+  const tb=Object.assign({},item.trip,{id:u.uid,tok:u.tok||'',nick:u.nick||''}),r=await fetch(wapi('/trip'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(tb)});if(!r.ok){const e=new Error('trip '+r.status);e.status=r.status;throw e;}const saved=await r.json();
   if(item.saveAsCourse&&item.course){const cb=Object.assign({},item.course,{id:u.uid,tok:u.tok||'',nick:u.nick||''}),cr=await fetch(wapi('/course'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cb)});if(!cr.ok){const e=new Error('course '+cr.status);e.status=cr.status;throw e;}bumpCourseVersion();}
+  return saved;
 }
 function _finishTripLocal(){tripBackupClear();if(_pendTrip)[_pendTrip.line,_pendTrip.planLine,_pendTrip.estimateLine,_pendTrip.posMarker].forEach(function(l){if(l)map.removeLayer(l);});_pendTrip=null;}
 function _queueTrip(item){const q=_tripQueue();if(q.some(function(x){return x.clientId===item.clientId;}))return true;q.push(item);return _tripQueueWrite(q);}
@@ -5373,11 +5391,12 @@ async function flushOfflineTrips(){
   for(let i=0;i<q.length;){const item=q[i];if(String(item.uid)!==String(u.uid)){i++;continue;}try{await _sendTripItem(item,u);q.splice(i,1);changed=true;sent++;}catch(e){if(e&&e.status===401)toastMsg('대기 중인 투어 전송에 재로그인이 필요해요');break;}}
   if(changed)_tripQueueWrite(q);if(sent)toastMsg('✅ 오프라인 투어 '+sent+'건 전송 완료');
 }
-async function saveTrip(){ if(!_pendTrip) return; const u=getUser(); if(!u||!u.uid) return;
+async function saveTrip(openDiaryAfter){ if(!_pendTrip) return; const u=getUser(); if(!u||!u.uid) return;
   const title=(document.getElementById('tmTitle').value||'카누잉').trim().slice(0,40),shared=document.getElementById('tmShare').checked,saveAsCourse=!!(document.getElementById('tmSaveCourse')&&document.getElementById('tmSaveCourse').checked);
-  const item=_tripQueuedItem(title,shared,saveAsCourse,u),msg=document.getElementById('tmMsg');msg.textContent=navigator.onLine?'저장 중…':'휴대폰에 저장 중…';
-  try{if(!navigator.onLine)throw new Error('offline');await _sendTripItem(item,u);gaEvent('trip_save',{km:Math.round(_pendTrip.km*10)/10,shared:shared});_finishTripLocal();openTModal('trips');toastMsg(saveAsCourse?'투어 기록과 새 코스를 저장했어요':'투어 기록을 저장했어요');}
-  catch(e){if(e&&e.status&&e.status<500){msg.textContent=e.status===401?'재로그인이 필요해요':'저장 실패';return;}if(_queueTrip(item)){_finishTripLocal();closeTModal();gaEvent('trip_queue');toastMsg('📴 휴대폰에 저장됨 · 연결 시 자동 전송');}else msg.textContent='기기 저장공간 부족 — 화면을 닫지 마세요';} }
+  const item=_tripQueuedItem(title,shared,saveAsCourse,u),msg=document.getElementById('tmMsg'),buttons=[document.getElementById('tmSave'),document.getElementById('tmSaveDiary')];buttons.forEach(function(b){if(b)b.disabled=true;});msg.textContent=navigator.onLine?'저장 중…':'휴대폰에 저장 중…';
+  try{if(!navigator.onLine)throw new Error('offline');const saved=await _sendTripItem(item,u);gaEvent('trip_save',{km:Math.round(_pendTrip.km*10)/10,shared:shared});_finishTripLocal();if(openDiaryAfter&&saved&&saved.id){location.assign('/diary/?trip='+encodeURIComponent(saved.id));return;}openTModal('trips');toastMsg(saveAsCourse?'투어 기록과 새 코스를 저장했어요':'투어 기록을 저장했어요');}
+  catch(e){if(e&&e.status&&e.status<500){msg.textContent=e.status===401?'재로그인이 필요해요':'저장 실패';return;}if(_queueTrip(item)){_finishTripLocal();closeTModal();gaEvent('trip_queue');toastMsg('📴 휴대폰에 저장됨 · 연결 시 자동 전송');}else msg.textContent='기기 저장공간 부족 — 화면을 닫지 마세요';}
+  finally{buttons.forEach(function(b){if(b)b.disabled=false;});} }
 function openTModalRaw(){ document.getElementById('tmodal').classList.add('open'); }
 function closeTModal(){ if(_tourStarting)_tourStartSeq++;document.getElementById('tmodal').classList.remove('open'); }
 function tabBar(active){ const tabs=[['trips','내 기록'],['feed','공유된 코스'],['board','랭킹'],['stats','내 통계']];

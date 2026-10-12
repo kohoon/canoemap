@@ -56,6 +56,11 @@ jobs:
       - name: Verify recent additions seven-day window
         run: node tests/test_recent_additions_worker.mjs
 
+      - name: Verify canoeing diary API and backup
+        run: |
+          node tests/test_diary_api.mjs
+          node tests/test_diary_export.mjs
+
       - name: Deploy Cloudflare Worker
         run: npx --yes wrangler deploy --config wrangler.toml
         env:

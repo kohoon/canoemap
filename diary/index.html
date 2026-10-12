@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#073d48">
-  <title>카누잉 다이어리 시제품 · 카누맵</title>
+  <title>카누잉 다이어리 · 카누맵</title>
   <link rel="icon" href="../pwa-icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="./style.css">
@@ -14,30 +14,36 @@
 <body>
   <header class="topbar">
     <a class="brand" href="../" aria-label="카누맵 지도로 돌아가기"><span class="brand-icon" aria-hidden="true">🛶</span><span>카누맵</span></a>
-    <div class="topbar-title">카누잉 다이어리 <span class="beta">1단계 시제품</span></div>
+    <div class="topbar-title">카누잉 다이어리 <span class="beta">개인 베타</span></div>
     <a class="back-link" href="../">지도로 돌아가기 <span aria-hidden="true">↗</span></a>
   </header>
   <main>
     <section class="intro" aria-labelledby="page-title">
       <div>
         <p class="eyebrow">MY CANOEING DIARY</p>
-        <h1 id="page-title">물 위의 하루를 다시 펼쳐보세요.</h1>
-        <p>내 투어 기록이나 GPX 파일을 한 화면에서 미리봅니다. 경로가 끊긴 곳은 이어 그리지 않고, 계획 경로는 실제 운항 기록과 구분합니다.</p>
+        <h1 id="page-title">물 위의 하루를 기록하세요.</h1>
+        <p>투어 기록을 연결하거나 GPX를 가져오고, 예전 카누잉도 직접 남길 수 있습니다. 현재 저장되는 다이어리는 본인만 볼 수 있습니다.</p>
       </div>
-      <div class="read-only"><span class="read-only-dot"></span><strong>읽기 전용</strong><small>파일은 이 기기에서만 열립니다. 서버에 업로드하거나 저장하지 않습니다.</small></div>
+      <div class="read-only"><span class="read-only-dot"></span><strong>비공개 저장</strong><small>카카오 로그인 계정에 저장됩니다. 공개·URL 공유는 아직 준비 중입니다.</small></div>
     </section>
     <div class="workspace">
       <aside class="sources" aria-label="기록 선택">
-        <div class="panel-head"><span class="section-num">01</span><h2>기록 가져오기</h2></div>
+        <div class="panel-head"><span class="section-num">01</span><h2>내 기록</h2></div>
+        <section class="source-group">
+          <h3>저장한 다이어리</h3>
+          <div id="diaryStatus" class="status" role="status">불러오는 중…</div>
+          <div id="diaryList" class="tour-list"></div>
+          <button id="newManual" class="sample-button" type="button">+ 경로 없이 직접 작성</button>
+        </section>
         <section class="source-group">
           <h3>내 투어 기록</h3>
-          <p class="subtext">카누맵에 저장된 기록을 읽어옵니다.</p>
+          <p class="subtext">선택해 비공개 다이어리로 연결합니다.</p>
           <div id="tourStatus" class="status" role="status">회원 정보를 확인하는 중…</div>
           <div id="tourList" class="tour-list"></div>
         </section>
         <section class="source-group">
-          <h3>GPX 파일 미리보기</h3>
-          <p class="subtext">기기에서 파일을 선택해 경로를 확인하세요.</p>
+          <h3>GPX 가져오기</h3>
+          <p class="subtext">기기에서 경로를 확인한 뒤 저장합니다.</p>
           <label class="file-button" for="gpxFile"><span aria-hidden="true">↑</span> GPX 파일 선택</label>
           <input id="gpxFile" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml">
           <p id="fileName" class="file-name"></p>
@@ -45,8 +51,15 @@
             <label for="entrySelect">파일에 포함된 경로</label>
             <select id="entrySelect"></select>
           </div>
-          <div id="fileStatus" class="status" role="status">GPX의 트랙과 계획 경로를 구별해 표시합니다.</div>
+          <div id="fileStatus" class="status" role="status">GPX의 이동 트랙만 다이어리로 저장할 수 있습니다.</div>
           <button id="sampleButton" class="sample-button" type="button">예시 경로로 화면 보기 <span aria-hidden="true">→</span></button>
+        </section>
+        <section class="source-group">
+          <h3>JSON 백업 복원</h3>
+          <p class="subtext">다른 기기에서 내려받은 카누맵 다이어리 백업을 비공개 새 기록으로 가져옵니다. 기존 기록은 덮어쓰지 않습니다.</p>
+          <label class="file-button secondary-file" for="backupFile">JSON 백업 선택</label>
+          <input id="backupFile" type="file" accept=".json,application/json">
+          <div id="backupStatus" class="status" role="status">4MB 이하의 카누맵 다이어리 JSON 백업만 지원합니다.</div>
         </section>
       </aside>
       <section class="preview" aria-labelledby="preview-title">
@@ -71,7 +84,29 @@
         </div>
       </section>
     </div>
-    <p class="footnote">이 페이지는 기록을 읽고 비교하는 시제품입니다. GPX를 서버로 보내거나 다이어리를 새로 저장·공개하지 않습니다.</p>
+    <section id="editor" class="editor" aria-labelledby="editorTitle" hidden>
+      <div class="panel-head"><span class="section-num">03</span><h2 id="editorTitle">비공개 다이어리 작성</h2></div>
+      <p id="editorSource" class="subtext"></p>
+      <div class="editor-grid">
+        <label>제목<input id="diaryTitle" maxlength="80" required></label>
+        <label>카누잉 날짜<input id="diaryDate" type="date" required></label>
+        <label>출발 장소<input id="diaryLaunch" maxlength="120" placeholder="예: 소양호 선착장"></label>
+        <label>도착 장소<input id="diaryLanding" maxlength="120" placeholder="예: 오월리 랜딩지"></label>
+        <label>함께 탄 사람<input id="diaryCompanions" maxlength="400" placeholder="쉼표로 구분 · 현재는 본인만 확인"></label>
+        <label id="manualDistanceWrap" hidden>기억하는 거리 (km)<input id="diaryDistance" type="number" min="0" max="1000" step="0.01" placeholder="선택 입력 · 본인 입력으로 표시"></label>
+      </div>
+      <label class="editor-notes">메모<textarea id="diaryNotes" rows="4" maxlength="5000" placeholder="그날의 물길, 휴식, 기억을 남겨보세요."></textarea></label>
+      <div class="editor-actions"><button id="diarySave" type="button">비공개로 저장</button><button id="diaryDelete" class="danger" type="button" hidden>기록 삭제</button><span id="saveStatus" role="status"></span></div>
+      <div id="diaryExport" class="export-actions" hidden>
+        <b>내 기록 내려받기</b>
+        <button id="diaryBackup" type="button">전체 기록 JSON</button>
+        <button id="diaryGpx" type="button">이동 경로 GPX</button>
+        <span id="exportStatus" role="status"></span>
+        <p>JSON 백업에는 메모·동행자·정확한 GPS 경로가 포함됩니다. 타인에게 공유하지 말고 안전하게 보관하세요. 이 파일은 위의 ‘JSON 백업 복원’에서 다시 가져올 수 있습니다. 가져온 GPX의 원본 파일 자체는 현재 서버에 보관하지 않습니다.</p>
+      </div>
+      <p class="editor-help">저장 후에도 수정할 수 있습니다. 공개와 URL 공유 기능은 다음 단계에서 제공됩니다.</p>
+    </section>
+    <p class="footnote">GPX의 계획 경로는 실제 카누잉 기록으로 저장할 수 없습니다. GPS가 끊긴 구간도 이어 그리지 않습니다.</p>
   </main>
 </body>
 </html>

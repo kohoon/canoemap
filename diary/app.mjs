@@ -1,4 +1,5 @@
 import { buildPreview, parseGpx, tripPreview, MAX_GPX_BYTES } from './core.mjs';
+import { buildDiaryBackup, buildDiaryGpx } from './export.mjs';
 
 const API = 'https://mycanoe-map.kohoon0140.workers.dev';
 const $ = (id) => document.getElementById(id);
@@ -7,6 +8,10 @@ let routeLayers = [];
 let fileEntries = [];
 let fileLabel = '';
 let isSample = false;
+let selected = null;
+let savedRecord = null;
+let selectedTrip = null;
+const params = new URLSearchParams(location.search);
 
 function user() {
   try {
@@ -32,6 +37,63 @@ function fmtDuration(seconds) {
   const minutes = Math.round(seconds / 60);
   const hours = Math.floor(minutes / 60);
   return hours ? `${hours}시간 ${minutes % 60}분` : `${minutes}분`;
+}
+
+function localDate(timestamp) {
+  const date = timestamp ? new Date(timestamp) : new Date();
+  if (!Number.isFinite(date.getTime())) return '';
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function diaryHeaders() {
+  const account = user();
+  return account ? { 'Content-Type': 'application/json', 'X-User-Id': account.uid, 'X-Auth-Token': account.tok } : null;
+}
+
+async function diaryRequest(path, options = {}) {
+  const headers = diaryHeaders();
+  if (!headers) throw new Error('카카오 로그인 후 저장할 수 있습니다.');
+  const response = await fetch(`${API}${path}`, { ...options, headers, cache: 'no-store' });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const messages = { relogin: '로그인이 만료되었습니다. 카누맵에서 다시 로그인해 주세요.', conflict: '다른 화면에서 수정되었습니다. 기록을 다시 열어 주세요.', 'too-large': '파일이 너무 큽니다.', 'bad-track': '백업의 이동 경로를 확인할 수 없습니다.', 'bad-archive': '지원하지 않는 카누맵 백업 형식입니다.', 'bad-date': '백업의 날짜를 확인할 수 없습니다.' };
+    throw new Error(messages[result.error] || '다이어리 요청을 완료하지 못했습니다.');
+  }
+  return result;
+}
+
+function openEditor(info, record = null) {
+  selected = info;
+  savedRecord = record;
+  selectedTrip = null;
+  $('editor').hidden = !info;
+  if (!info) return;
+  $('editorTitle').textContent = record ? '비공개 다이어리 수정' : '비공개 다이어리 작성';
+  $('editorSource').textContent = info.archiveSource === 'tour' ? 'JSON 투어 백업에서 복원 · 원본 투어와 분리된 이동 기록'
+    : info.source === 'tour' ? '카누맵 투어 기록에서 가져옴'
+    : info.source === 'gpx' ? 'GPX 이동 트랙에서 가져옴' : '수기 기록 · 경로와 거리는 자동 생성하지 않음';
+  $('diaryTitle').value = record?.title || info.title || '카누잉 기록';
+  $('diaryDate').value = record?.date || info.date || localDate();
+  $('diaryLaunch').value = record?.launch || '';
+  $('diaryLanding').value = record?.landing || '';
+  $('diaryCompanions').value = (record?.companions || []).join(', ');
+  $('diaryNotes').value = record?.notes || '';
+  $('manualDistanceWrap').hidden = info.source !== 'manual';
+  $('diaryDistance').value = info.source === 'manual' && record?.distanceKm != null ? String(record.distanceKm) : '';
+  $('diaryDelete').hidden = !record;
+  $('diaryExport').hidden = !record;
+  $('diaryGpx').disabled = info.source === 'manual';
+  $('saveStatus').textContent = '';
+  $('exportStatus').textContent = '';
+}
+
+function showManual(record = null) {
+  $('result').hidden = true;
+  $('emptyState').hidden = false;
+  $('emptyState').querySelector('h3').textContent = '기억하는 하루를 남겨보세요.';
+  $('emptyState').querySelector('p').textContent = '경로 없이 날짜와 장소부터 기록할 수 있습니다. 거리와 시간은 기억나는 만큼만 입력하세요.';
+  $('sourceBadge').textContent = '수기 기록';
+  openEditor({ source: 'manual', archiveSource: record?.archiveSource, title: record?.title || '카누잉 기록', date: record?.date || localDate() }, record);
 }
 
 function resetMap() {
@@ -84,8 +146,8 @@ function showPreview(preview) {
   $('routeKind').classList.toggle('plan', preview.kind === 'route');
   $('mapKeyLabel').textContent = preview.kind === 'route' ? '계획 경로' : preview.source === 'sample' ? '가상 이동 트랙' : '이동 트랙';
   $('routeTitle').textContent = preview.title;
-  $('routeDate').textContent = preview.source === 'tour' ? '저장된 투어 기록 · 읽기 전용'
-    : preview.source === 'sample' ? '가상 예시 · 실제 운항 기록 아님' : 'GPX 파일 · 아직 저장되지 않음';
+  $('routeDate').textContent = preview.source === 'tour' ? '저장된 투어 기록 · 다이어리로 연결 가능'
+    : preview.source === 'sample' ? '가상 예시 · 실제 운항 기록 아님' : 'GPX 이동 경로';
   $('distance').textContent = `${preview.distanceKm.toFixed(2)} km`;
   $('elapsed').textContent = fmtDuration(preview.elapsedSeconds);
   $('pointCount').textContent = `${preview.pointCount.toLocaleString('ko-KR')}개`;
@@ -123,7 +185,10 @@ function showFileEntry(index) {
       source: isSample ? 'sample' : 'gpx', kind: entry.kind,
     });
     showPreview(preview);
-    setStatus('fileStatus', `${entry.kind === 'route' ? '계획 경로' : '이동 트랙'} · ${preview.pointCount.toLocaleString('ko-KR')}개 점 · 서버 저장 없음`);
+    if (isSample || entry.kind === 'route') openEditor(null);
+    else openEditor({ source: 'gpx', title: preview.title, date: localDate(preview.startTime),
+      lines: preview.lines.map((part) => part.map((point) => [point.lat, point.lon, point.time])) });
+    setStatus('fileStatus', `${entry.kind === 'route' ? '계획 경로 · 저장 불가' : '이동 트랙 · 아래에서 비공개 저장 가능'} · ${preview.pointCount.toLocaleString('ko-KR')}개 점`);
   } catch (error) {
     setStatus('fileStatus', error.message || '경로를 표시할 수 없습니다.', true);
   }
@@ -134,6 +199,7 @@ async function onFileChange(event) {
   if (!file) return;
   fileEntries = [];
   isSample = false;
+  openEditor(null);
   $('entryWrap').hidden = true;
   $('fileName').textContent = file.name;
   if (!file.name.toLowerCase().endsWith('.gpx') || file.size > MAX_GPX_BYTES) {
@@ -161,6 +227,35 @@ async function onFileChange(event) {
   }
 }
 
+async function onBackupChange(event) {
+  const input = event.target, file = input.files?.[0];
+  if (!file) return;
+  try {
+    if (!user()) throw new Error('카카오 로그인 후 백업을 가져올 수 있습니다.');
+    if (!file.name.toLowerCase().endsWith('.json') || file.size > 4 * 1024 * 1024) {
+      throw new Error('4MB 이하의 .json 백업 파일을 선택해 주세요.');
+    }
+    const contents = await file.text();
+    let archive;
+    try { archive = JSON.parse(contents); } catch { throw new Error('JSON 파일을 읽을 수 없습니다.'); }
+    if (archive?.format !== 'canoemap-diary-backup' || archive.version !== 1 || !archive.record?.id) {
+      throw new Error('카누맵 다이어리 백업 형식이 아닙니다.');
+    }
+    const sourceNote = archive.record.source === 'tour' ? '투어 백업은 원본 투어와 분리된 이동 기록으로 복원됩니다. ' : '';
+    if (!confirm(`${archive.record.title || '카누잉 기록'}을(를) 비공개 새 기록으로 가져올까요?\n${sourceNote}기존 기록은 덮어쓰지 않습니다.`)) {
+      setStatus('backupStatus', '가져오기를 취소했습니다.');
+      return;
+    }
+    setStatus('backupStatus', '백업을 검증하고 복원하는 중…');
+    const record = await diaryRequest('/diary-import', { method: 'POST', body: contents });
+    await loadSavedDiaries();
+    await loadSavedDiary(record.id);
+    setStatus('backupStatus', record.duplicate ? '이미 가져온 백업입니다. 저장된 기록을 열었습니다.' : '비공개 기록으로 복원했습니다.');
+  } catch (error) {
+    setStatus('backupStatus', error.message || '백업을 가져오지 못했습니다.', true);
+  } finally { input.value = ''; }
+}
+
 async function loadTours() {
   const currentUser = user();
   if (!currentUser) {
@@ -174,8 +269,8 @@ async function loadTours() {
     return;
   }
   try {
-    const params = new URLSearchParams({ uid: currentUser.uid, tok: currentUser.tok });
-    const response = await fetch(`${API}/trips?${params}`, { cache: 'no-store' });
+    const authParams = new URLSearchParams({ uid: currentUser.uid, tok: currentUser.tok });
+    const response = await fetch(`${API}/trips?${authParams}`, { cache: 'no-store' });
     if (!response.ok) throw new Error('투어 목록을 불러오지 못했습니다.');
     const trips = await response.json();
     if (!Array.isArray(trips)) throw new Error('투어 목록 형식이 올바르지 않습니다.');
@@ -199,17 +294,170 @@ async function loadTours() {
           const query = new URLSearchParams({ id: trip.id, viewer: currentUser.uid, tok: currentUser.tok });
           const detailResponse = await fetch(`${API}/trip?${query}`, { cache: 'no-store' });
           if (!detailResponse.ok) throw new Error('투어 기록을 열 수 없습니다. 다시 로그인해 주세요.');
-          showPreview(tripPreview(await detailResponse.json()));
-          setStatus('tourStatus', '읽기 전용 미리보기 · 원본 기록은 변경되지 않습니다.');
+          const tripDetail = await detailResponse.json();
+          const existingResponse = await fetch(`${API}/diary?id=${encodeURIComponent(`t_${trip.id}`)}`, { headers: diaryHeaders(), cache: 'no-store' });
+          if (existingResponse.status !== 404 && !existingResponse.ok) throw new Error('연결된 다이어리를 확인하지 못했습니다.');
+          const existing = existingResponse.ok ? await existingResponse.json() : null;
+          showPreview(tripPreview(tripDetail));
+          openEditor({ source: 'tour', tripId: trip.id, title: tripDetail.title,
+            date: localDate(Number(tripDetail.start)) }, existing);
+          selectedTrip = tripDetail;
+          if (!existing) {
+            $('diaryLaunch').value = tripDetail.launch?.addr || '';
+            $('diaryLanding').value = tripDetail.landing?.addr || '';
+          }
+          setStatus('tourStatus', '기존 투어 원본은 그대로 두고 비공개 다이어리로 연결합니다.');
           $('entryWrap').hidden = true;
+          if (params.get('trip') === String(trip.id) && !existing) await saveDiary();
         } catch (error) {
           setStatus('tourStatus', error.message || '투어 기록을 열지 못했습니다.', true);
         }
       });
       list.append(button);
+      if (params.get('trip') === String(trip.id)) queueMicrotask(() => button.click());
     });
   } catch (error) {
     setStatus('tourStatus', error.message || '투어 목록을 불러오지 못했습니다.', true);
+  }
+}
+
+async function loadSavedDiaries() {
+  if (!user()) {
+    setStatus('diaryStatus', '카카오 로그인 후 다이어리를 저장하고 다시 볼 수 있습니다.');
+    $('diaryList').replaceChildren();
+    return;
+  }
+  try {
+    const list = $('diaryList');
+    list.replaceChildren();
+    let cursor = null, count = 0;
+    do {
+      const result = await diaryRequest(`/diaries${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`);
+      for (const item of result.items || []) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'tour-item';
+        const title = document.createElement('strong');
+        title.textContent = item.title || '카누잉 기록';
+        const meta = document.createElement('small');
+        meta.textContent = `${item.date || '날짜 없음'} · ${item.archiveSource === 'tour' ? '투어 백업' : item.source === 'manual' ? '수기' : item.source === 'gpx' ? 'GPX' : '투어'}${item.distanceKm != null ? ` · ${Number(item.distanceKm).toFixed(2)} km` : ''}`;
+        button.append(title, meta);
+        button.addEventListener('click', () => loadSavedDiary(item.id));
+        list.append(button);
+        count++;
+      }
+      cursor = result.cursor;
+    } while (cursor && count < 200);
+    setStatus('diaryStatus', count ? `${count}개 비공개 기록 · 선택해 다시 열기` : '아직 저장한 다이어리가 없습니다.');
+  } catch (error) {
+    setStatus('diaryStatus', error.message, true);
+  }
+}
+
+async function loadSavedDiary(id) {
+  try {
+    setStatus('diaryStatus', '기록을 여는 중…');
+    const record = await diaryRequest(`/diary?id=${encodeURIComponent(id)}`);
+    if (record.source === 'manual') showManual(record);
+    else if (record.source === 'gpx') {
+      const parts = record.lines.map((part) => part.map((point) => ({ lat: point[0], lon: point[1], time: point[2] })));
+      showPreview(buildPreview(parts, { source: 'gpx', kind: 'track', title: record.title }));
+      openEditor({ source: 'gpx', archiveSource: record.archiveSource, lines: record.lines, title: record.title, date: record.date }, record);
+    } else {
+      const account = user();
+      const query = new URLSearchParams({ id: record.tripId, viewer: account.uid, tok: account.tok });
+      const response = await fetch(`${API}/trip?${query}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error('연결된 투어 원본을 열지 못했습니다.');
+      const tripDetail = await response.json();
+      showPreview(tripPreview(tripDetail));
+      openEditor({ source: 'tour', tripId: record.tripId, title: record.title, date: record.date }, record);
+      selectedTrip = tripDetail;
+    }
+    setStatus('diaryStatus', '비공개 기록을 열었습니다.');
+    $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) {
+    setStatus('diaryStatus', error.message, true);
+  }
+}
+
+async function saveDiary() {
+  if (!selected) return;
+  const title = $('diaryTitle').value.trim(), date = $('diaryDate').value;
+  if (!title || !date) { $('saveStatus').textContent = '제목과 날짜를 입력해 주세요.'; return; }
+  const distance = $('diaryDistance').value.trim();
+  const body = {
+    source: selected.source, tripId: selected.tripId,
+    lines: selected.source === 'gpx' && !savedRecord ? selected.lines : undefined,
+    diaryId: savedRecord?.id, rev: savedRecord?.rev,
+    title, date, launch: $('diaryLaunch').value.trim(), landing: $('diaryLanding').value.trim(),
+    companions: $('diaryCompanions').value.split(',').map((name) => name.trim()).filter(Boolean),
+    notes: $('diaryNotes').value.trim(),
+    userDistanceKm: selected.source === 'manual' && distance ? Number(distance) : null,
+  };
+  const button = $('diarySave');
+  button.disabled = true;
+  $('saveStatus').textContent = '비공개로 저장하는 중…';
+  try {
+    const record = await diaryRequest('/diary', { method: 'POST', body: JSON.stringify(body) });
+    savedRecord = record;
+    $('editorTitle').textContent = '비공개 다이어리 수정';
+    $('diaryDelete').hidden = false;
+    $('diaryExport').hidden = false;
+    $('diaryGpx').disabled = record.source === 'manual';
+    $('saveStatus').textContent = record.duplicate ? '이미 저장한 기록을 열었습니다.' : '비공개로 저장했습니다.';
+    await loadSavedDiaries();
+  } catch (error) {
+    $('saveStatus').textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function deleteDiary() {
+  if (!savedRecord || !confirm('이 다이어리를 삭제할까요? 연결된 투어 원본은 그대로 남습니다.')) return;
+  const button = $('diaryDelete');
+  button.disabled = true;
+  $('saveStatus').textContent = '삭제하는 중…';
+  try {
+    await diaryRequest(`/diary?id=${encodeURIComponent(savedRecord.id)}`, { method: 'DELETE' });
+    openEditor(null);
+    $('result').hidden = true;
+    $('emptyState').hidden = false;
+    $('sourceBadge').textContent = '기록을 선택해 주세요';
+    await loadSavedDiaries();
+    setStatus('diaryStatus', '비공개 다이어리를 삭제했습니다.');
+  } catch (error) {
+    $('saveStatus').textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function downloadDiaryFile(contents, type, extension) {
+  const blob = new Blob([contents], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `canoemap-diary-${savedRecord.date}-${savedRecord.id}.${extension}`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+function exportDiary(kind) {
+  if (!savedRecord) return;
+  try {
+    if (kind === 'backup') {
+      const backup = buildDiaryBackup(savedRecord, selectedTrip);
+      downloadDiaryFile(`${JSON.stringify(backup, null, 2)}\n`, 'application/json;charset=utf-8', 'json');
+      $('exportStatus').textContent = '개인 백업을 내려받았습니다.';
+    } else {
+      downloadDiaryFile(buildDiaryGpx(savedRecord, selectedTrip), 'application/gpx+xml;charset=utf-8', 'gpx');
+      $('exportStatus').textContent = '이동 경로 GPX를 내려받았습니다.';
+    }
+  } catch (error) {
+    $('exportStatus').textContent = error.message || '파일을 만들지 못했습니다.';
   }
 }
 
@@ -238,6 +486,15 @@ async function loadSample() {
 }
 
 $('gpxFile').addEventListener('change', onFileChange);
+$('backupFile').addEventListener('change', onBackupChange);
 $('entrySelect').addEventListener('change', (event) => showFileEntry(Number(event.target.value)));
 $('sampleButton').addEventListener('click', loadSample);
+$('newManual').addEventListener('click', () => { showManual(); $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('diarySave').addEventListener('click', saveDiary);
+$('diaryDelete').addEventListener('click', deleteDiary);
+$('diaryBackup').addEventListener('click', () => exportDiary('backup'));
+$('diaryGpx').addEventListener('click', () => exportDiary('gpx'));
+loadSavedDiaries();
 loadTours();
+if (params.get('start') === 'manual') queueMicrotask(() => $('newManual').click());
+if (params.get('start') === 'gpx') queueMicrotask(() => $('gpxFile').closest('.source-group')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
