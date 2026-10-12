@@ -208,7 +208,10 @@
   .rate-mine a.on{color:#f59f00}
   .pm-compose{margin-top:6px}
   .pm-rateline{font-size:12.5px;color:#778;margin-bottom:3px;display:flex;align-items:center;gap:4px}
-  .pm-cmt-stars{color:#f59f00;font-size:11px;letter-spacing:-1px}
+  .rating-stars{display:inline-flex;white-space:nowrap;letter-spacing:-1px}
+  .rating-stars .filled{color:#f59f00}
+  .rating-stars .empty{color:#aeb8bd}
+  .pm-cmt-stars{font-size:12px}
   .fav-btn{margin-left:auto;border:1.5px solid #e5808f;background:#fff;color:#d6336c;border-radius:14px;padding:4px 11px;font:700 12.5px sans-serif;cursor:pointer}
   .fav-btn.on{background:#d6336c;color:#fff;border-color:#d6336c}
   #myBody h3{margin:2px 30px 10px 0;font-size:18px;color:#1b3a2b}
@@ -427,14 +430,14 @@
   .pm-cmt{padding:7px 0;border-bottom:1px solid #f0f0f0}
   .pm-cmt-h b{font-size:12.5px;color:#1565c0}
   .pm-cmt-t{font-size:10.5px;color:#aab}
-  .pm-cmt-b{font-size:13.5px;color:#222;margin-top:2px;word-break:break-word}
+  .pm-cmt-b{font-size:13.5px;color:#222;margin-top:2px;white-space:pre-wrap;word-break:break-word}
   .pm-cmt-img{margin-top:5px}
   .pm-cmt-img img{max-width:130px;max-height:130px;border-radius:8px;cursor:pointer;border:1px solid #e3e3e3}
   .pm-cmt-adm{float:right}
   .pm-cmt-adm button{font:inherit;font-size:11px;cursor:pointer;margin-left:8px;border:0;background:none;padding:2px 3px}
   .pm-empty{color:#999;font-size:13px;padding:10px 0}
-  .pm-form{display:flex;gap:6px;margin-top:8px;align-items:center}
-  .pm-form input[type=text],.pm-form #pmInput{flex:1;min-width:0;padding:9px;border:1px solid #ccc;border-radius:8px;font-size:14px}
+  .pm-form{display:flex;gap:6px;margin-top:8px;align-items:flex-end}
+  .pm-form #pmInput{flex:1;min-width:0;box-sizing:border-box;min-height:64px;padding:9px;border:1px solid #ccc;border-radius:8px;font:14px/1.45 sans-serif;resize:vertical}
   .pm-form button{background:#1565c0;color:#fff;border:0;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer}
   .pm-photo{flex:none;cursor:pointer;font-size:18px;padding:6px 8px;border:1px solid #ccc;border-radius:8px;background:#fafafa}
   .pm-photo.on{background:#e3f0fc;border-color:#1565c0}
@@ -822,7 +825,7 @@
     <div id="pmCmts" class="pm-cmts"></div>
     <div class="pm-compose">
       <div class="pm-rateline">평가 <span id="pmStars" class="rate-mine"></span></div>
-      <div class="pm-form"><input id="pmInput" maxlength="100" placeholder="한줄 코멘트 (최대 100자)"><label class="pm-photo" id="pmPhotoBtn" title="사진 첨부">📷<input type="file" id="pmPhoto" accept="image/*"></label><button id="pmSend">등록</button></div>
+      <div class="pm-form"><textarea id="pmInput" rows="3" maxlength="100" placeholder="코멘트 (최대 100자)" aria-label="코멘트"></textarea><label class="pm-photo" id="pmPhotoBtn" title="사진 첨부">📷<input type="file" id="pmPhoto" accept="image/*"></label><button id="pmSend">등록</button></div>
       <div id="pmPhotoPrev"></div>
     </div>
     <div id="pmMsg"></div>
@@ -2594,10 +2597,12 @@ function courseWeather(lat,lng,elId){
   fetchWeatherData(lat,lng).then(function(w){ _renderWeatherBox(el,w); }).catch(function(){ _renderWeatherBox(el,null); });
 }
 let _pmPlace=null,_pmSlug=null;
+function setCommentInputLimit(limit){ const input=document.getElementById('pmInput'); input.maxLength=limit; input.placeholder='코멘트 (최대 '+limit+'자)'; }
 function openPlaceModal(pl){
   if(pl&&pl.cat==='런칭/랜딩 후보지'&&!isAdmin()) return;
   _pmPlace=pl; _pmSlug=placeSlug(pl.lat,pl.lng);
   _pmTarget=_pmSlug; _pmKind='p'; _pmName=pl.name||'장소'; _pmLL=[pl.lat,pl.lng];
+  setCommentInputLimit(100);
   document.getElementById('pmTitle').textContent=(pl.name||'장소');
   renderPmCat(pl);
   _clearPhoto(); renderRateRow();
@@ -2697,6 +2702,7 @@ function openCourseComments(key,course,shareId){
   const name=course.name||'코스', km=course.km||0;
   _pmPlace={name:name}; _pmSlug=key;
   _pmTarget=key; _pmKind='c'; _pmName=name||'코스'; _pmLL=null;
+  setCommentInputLimit(500);
   const water=courseWaterInfo(course),character=courseCharacterText(course);
   document.getElementById('pmTitle').textContent=(water?water.icon+' ':'')+(name||'코스');
   document.getElementById('pmCat').innerHTML='';
@@ -2918,13 +2924,15 @@ async function loadComments(){ if(!WORKER_URL||!_pmSlug) return;
     const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/comments?place='+encodeURIComponent(_pmSlug),{cache:'no-store',headers:headers}); renderComments(await r.json()); }
   catch(e){ renderComments({}); document.getElementById('pmCmts').innerHTML='<div class="pm-empty">코멘트를 불러오지 못했어요(잠시 후 다시)</div>'; } }
 let _pmCommentRows=new Map();
+function fiveStars(value,label){ const filled=Math.max(0,Math.min(5,Math.round(Number(value)||0)));
+  return '<span class="rating-stars" role="img" aria-label="'+label+'"><span class="filled">'+'★'.repeat(filled)+'</span><span class="empty">'+'☆'.repeat(5-filled)+'</span></span>'; }
 function renderComments(d){ d=d||{}; let ah='';
   if(d.admin) ah+='<div class="pm-adminbox"><b>📌 관리자</b><div>'+linkify(d.admin)+'</div></div>';
   if(isAdmin()) ah+='<button class="pm-admedit" onclick="editAdminComment()">관리자 코멘트 '+(d.admin?'수정':'작성')+'</button>';
   document.getElementById('pmAdmin').innerHTML=ah; window._pmAdminCur=d.admin||'';
   const list=d.list||[]; _pmCommentRows=new Map(list.map(function(c){return [Number(c.id),c];})); document.getElementById('pmCnt').textContent='('+list.length+')';
   document.getElementById('pmCmts').innerHTML = list.length? list.slice().reverse().map(function(c){
-    const stars=(c.stars>=1&&c.stars<=5)?' <span class="pm-cmt-stars">'+'★'.repeat(c.stars)+'</span>':'';
+    const stars=(c.stars>=1&&c.stars<=5)?' <span class="pm-cmt-stars">'+fiveStars(c.stars,'별점 '+c.stars+'점 / 5점')+'</span>':'';
     const tm=c.t?' <span class="pm-cmt-t">'+_cmtTime(c.t)+(c.editedAt?' · 수정됨':'')+'</span>':'';
     const im=c.img?'<div class="pm-cmt-img"><img src="'+imgUrl(c.img)+'" loading="lazy" onclick="openImg(\''+c.img+'\')"></div>':'';
     const adm=isAdmin()||c.mine?'<span class="pm-cmt-adm"><button type="button" style="color:#1565c0" onclick="editCmt('+c.id+')">수정</button><button type="button" style="color:#c62828" onclick="delCmt('+c.id+')">삭제</button></span>':'';
@@ -2939,8 +2947,9 @@ async function delCmt(cid){ const c=_pmCommentRows.get(Number(cid)),u=getUser();
     else if(r.status===409){alert('다른 변경이 먼저 반영됐습니다. 코멘트를 새로 불러옵니다.');loadComments();}
     else alert('삭제할 수 없습니다. 다시 로그인하거나 권한을 확인해 주세요.'); }catch(e){alert('삭제 중 오류가 발생했습니다.');} }
 async function editCmt(cid){ const c=_pmCommentRows.get(Number(cid)),u=getUser(); if(!c||!(isAdmin()||c.mine)) return; const nt=prompt('코멘트 수정',c.text||''); if(nt===null||nt.trim()===(c.text||'')) return;
+  const limit=_pmKind==='c'?500:100; if(nt.trim().length>limit){ alert('코멘트는 최대 '+limit+'자까지 입력할 수 있습니다.'); return; }
   try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/comments',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({action:'cmtedit',adminKey:isAdmin()?adminKey():'',id:u&&u.uid,tok:u&&u.tok,place:_pmSlug,cid:cid,rev:c.rev||1,text:nt.slice(0,100)})});
+    body:JSON.stringify({action:'cmtedit',adminKey:isAdmin()?adminKey():'',id:u&&u.uid,tok:u&&u.tok,place:_pmSlug,cid:cid,rev:c.rev||1,text:nt.trim()})});
     if(r.ok){ const d=await r.json().catch(function(){return {};}); if(d.comments) renderComments(d.comments); else loadComments(); }
     else if(r.status===409){alert('다른 변경이 먼저 반영됐습니다. 코멘트를 새로 불러옵니다.');loadComments();}
     else alert('수정할 수 없습니다. 다시 로그인하거나 권한을 확인해 주세요.'); }catch(e){alert('수정 중 오류가 발생했습니다.');} }
@@ -2953,7 +2962,7 @@ function _setPhotoPrev(){ const el=document.getElementById('pmPhotoPrev'); const
 function _clearPhoto(){ _pmPhotoFile=null; const f=document.getElementById('pmPhoto'); if(f) f.value=''; _setPhotoPrev(); }
 async function submitComment(){ const u=getUser(); if(!u||!u.uid){ alert('로그인 후 이용하세요'); return; }
   const commentSlug=_pmSlug;
-  const inp=document.getElementById('pmInput'); const t=(inp.value||'').trim().slice(0,100);
+  const inp=document.getElementById('pmInput'); const t=(inp.value||'').trim();
   if(!t && !_pmPhotoFile){ return; }
   const msg=document.getElementById('pmMsg'); msg.textContent=_pmPhotoFile?'사진 올리는 중…':'등록 중…';
   const body={place:commentSlug,name:(_pmPlace||{}).name||'',id:u.uid,tok:u.tok||'',nick:u.nick||'',text:t};
@@ -2973,7 +2982,7 @@ function editAdminComment(){ if(!isAdmin()) return; const u=getUser();
     body:JSON.stringify({place:_pmSlug,name:(_pmPlace||{}).name||'',id:u.uid,adminKey:adminKey(),nick:u.nick||'',admin:true,text:t.slice(0,300)})})
     .then(async function(r){ if(r.ok){ const d=await r.json().catch(function(){return {};}); if(d.comments) renderComments(d.comments); else loadComments(); } }).catch(function(){}); }
 (function(){ const s=document.getElementById('pmSend'); if(s) s.onclick=submitComment;
-  const i=document.getElementById('pmInput'); if(i) i.addEventListener('keydown',function(e){ if(e.key==='Enter') submitComment(); });
+  const i=document.getElementById('pmInput'); if(i) i.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){ e.preventDefault(); submitComment(); } });
   const ph=document.getElementById('pmPhoto'); if(ph) ph.addEventListener('change',function(){ const f=this.files&&this.files[0];
     if(f && f.type.indexOf('image')===0){ _pmPhotoFile=f; } else { _pmPhotoFile=null; } _setPhotoPrev(); }); })();
 
@@ -3149,7 +3158,7 @@ let _composeStars=0;   // 코멘트 작성란에서 고른 별점
 function renderRateRow(){
   const el=document.getElementById('pmRate'); if(!el||!_pmTarget) return;
   const u=getUser(), heart=_favSet.has(_pmTarget);
-  el.innerHTML='<span id="rateAvg" class="rate-avg">★ -</span>'
+  el.innerHTML='<span id="rateAvg" class="rate-avg">'+fiveStars(0,'평균 별점 없음')+' -</span>'
     +'<button id="favBtn" class="fav-btn'+(heart?' on':'')+'">'+(heart?'♥ 즐겨찾기':'♡ 즐겨찾기')+'</button>';
   document.getElementById('favBtn').onclick=toggleFav;
   // 작성란 별점(인터랙티브) — 내 기존 별점 프리필
@@ -3161,7 +3170,8 @@ function renderRateRow(){
 }
 function _paintCompose(){ const st=document.getElementById('pmStars'); if(st) st.querySelectorAll('a').forEach(function(a,i){ a.textContent=(i<_composeStars)?'★':'☆'; a.classList.toggle('on',i<_composeStars); }); }
 function _paintStars(avg,n,my){
-  const av=document.getElementById('rateAvg'); if(av) av.innerHTML='★ '+(n?avg.toFixed(1):'-')+' <small>('+n+')</small>';
+  const av=document.getElementById('rateAvg'); if(av){ const value=n?Number(avg):0;
+    av.innerHTML=fiveStars(value,n?'평균 별점 '+value.toFixed(1)+'점 / 5점':'평균 별점 없음')+' '+(n?value.toFixed(1):'-')+' <small>('+n+')</small>'; }
   if(my && !_composeStars){ _composeStars=my; _paintCompose(); }   // 내 기존 별점을 작성란에 반영
 }
 function fetchRate(uid){

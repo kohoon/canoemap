@@ -932,6 +932,7 @@ export default {
         }
         const slug = String(b.place || "").slice(0, 40);
         if (!slug) return new Response("bad", { status: 400, headers: cors });
+        const commentLimit = slug.startsWith("course_") ? 500 : 100;
         if (!KV) return new Response("no-store", { status: 500, headers: cors });
         const clearCommentCache = () => caches.default.delete(new Request(url.origin + url.pathname + "?place=" + encodeURIComponent(slug), { method: "GET" }));
         let obj = { admin: "", list: [] };
@@ -970,7 +971,8 @@ export default {
             await saveWithAudit("delete", cid, actor, before, null);
             if (victim.img) ctx.waitUntil(KV.delete("img:" + victim.img));
           } else {
-            const text = String(b.text || "").trim().slice(0, 100);
+            const text = String(b.text || "").trim();
+            if (text.length > commentLimit) return new Response("comment too long", { status: 400, headers: cors });
             if (!text && !victim.img) return new Response("bad", { status: 400, headers: cors });
             victim.text = text;
             victim.editedAt = Date.now();
@@ -1002,7 +1004,8 @@ export default {
           if (!(await _memberOk(env, String(b.id), b.tok))) return new Response("relogin", { status: 401, headers: cors });
           const member = await _memberGet(env, String(b.id));
           viewerId = await _memberId(env, String(b.id));
-          const text = String(b.text || "").trim().slice(0, 100);
+          const text = String(b.text || "").trim();
+          if (text.length > commentLimit) return new Response("comment too long", { status: 400, headers: cors });
           const imgKey = String(b.img || "").replace(/[^a-zA-Z0-9_]/g, "").slice(0, 40);
           if (!text && !imgKey) return new Response("bad", { status: 400, headers: cors });
           const cnick = String((member && member.nick) || "익명").slice(0, 20);

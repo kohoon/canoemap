@@ -6,12 +6,15 @@ test.afterAll(async()=>server&&await new Promise(r=>server.close(r)));
 for(const mobile of [false,true])test('comment owner controls '+(mobile?'mobile':'desktop'),async()=>{
  const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  const page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile,hasTouch:mobile});
- let own={id:21,nick:'나',text:'원문',t:Date.now(),rev:1,mine:true},submitted=[];
+ let own={id:21,nick:'나',text:'원문',stars:4,t:Date.now(),rev:1,mine:true},submitted=[];
+ await page.route('**/rate?*',r=>r.fulfill({json:{course_c1:{avg:4.2,n:5,my:4}}}));
  await page.route('**/comments?*',r=>r.fulfill({json:{admin:'',list:[own,{id:22,nick:'타인',text:'다른 글',t:Date.now(),mine:false}]}}));
  await page.route('**/comments',async r=>{const b=r.request().postDataJSON();submitted.push(b);if(b.action==='cmtedit')own={...own,text:b.text,rev:2};if(b.action==='cmtdel')own=null;await r.fulfill({json:{ok:true,comments:{admin:'',list:own?[own]:[]}}});});
  await page.goto(base+'/index.html');
  await page.evaluate(()=>{setUser({uid:'owner',tok:'valid-token',nick:'나'});hideGate();openCourseComments('course_c1',{static:true,id:1,name:'코스'},'1');});
  await expect(page.locator('.pm-cmt')).toHaveCount(2);
+ await expect(page.locator('.pm-cmt').filter({hasText:'원문'}).getByRole('img',{name:'별점 4점 / 5점'})).toHaveText('★★★★☆');
+ await expect(page.locator('#rateAvg').getByRole('img',{name:'평균 별점 4.2점 / 5점'})).toHaveText('★★★★☆');
  await expect(page.locator('.pm-cmt').filter({hasText:'원문'}).getByRole('button',{name:'수정'})).toBeVisible();
  await expect(page.locator('.pm-cmt').filter({hasText:'다른 글'}).getByRole('button')).toHaveCount(0);
  page.once('dialog',d=>d.accept('수정본'));
@@ -22,6 +25,25 @@ for(const mobile of [false,true])test('comment owner controls '+(mobile?'mobile'
  await page.locator('.pm-cmt').filter({hasText:'수정본'}).getByRole('button',{name:'삭제'}).click();
  await expect(page.locator('.pm-cmt')).toHaveCount(0);
  expect(submitted[1]).toMatchObject({action:'cmtdel',cid:21,rev:2,id:'owner',tok:'valid-token'});
+ await browser.close();
+});
+test('course comment accepts a longer multiline review without mobile clipping',async()=>{
+ const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+ const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+ let submitted;
+ await page.route('**/comments?*',r=>r.fulfill({json:{admin:'',list:[]}}));
+ await page.route('**/comments',r=>{submitted=r.request().postDataJSON();return r.fulfill({json:{ok:true,comments:{admin:'',list:[]}}});});
+ await page.goto(base+'/index.html');
+ await page.evaluate(()=>{setUser({uid:'owner',tok:'valid-token',nick:'나'});hideGate();openCourseComments('course_c1',{static:true,id:1,name:'코스'},'1');});
+ const input=page.locator('#pmInput');
+ await expect(input).toHaveAttribute('maxlength','500');
+ const review='수위가 낮았습니다.\n주상절리 절벽 구간이 특히 좋았습니다. '.repeat(5);
+ await input.fill(review);
+ await page.locator('#pmSend').click();
+ expect(submitted.text).toBe(review.trim());
+ expect(await page.locator('#pmodal .pm-form').evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true);
+ await page.evaluate(()=>openPlaceModal({lat:37.1,lng:127.2,name:'런칭지'}));
+ await expect(input).toHaveAttribute('maxlength','100');
  await browser.close();
 });
 test('round 8 shared detail loads the smaller sticker on desktop and mobile',async()=>{
