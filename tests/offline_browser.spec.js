@@ -304,6 +304,49 @@ test('course pack survives a mobile offline reload', async () => {
   await browser.close();
 });
 
+test('temporary offline fallback does not replace the chosen online basemap', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  await page.route('**/health.txt?*', (route) => route.fulfill({ status: 503, body: 'unavailable' }));
+  await page.goto(baseURL + '/?course=1', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => _offlineReady);
+  await page.evaluate(async () => {
+    await _offlineWrite({ version: 2, savedAt: Date.now(), bounds: { s: 37, w: 127, n: 38, e: 128 },
+      roads: { type: 'FeatureCollection', features: [] }, rivers: { type: 'FeatureCollection', features: [] },
+      places: [], obstacles: [] });
+    localStorage.setItem('mc_basemap', '위성지도');
+    localStorage.removeItem('mc_offline_explicit');
+  });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => _offlineReady);
+  expect(await page.evaluate(() => ({ satellite: map.hasLayer(baseSat), offline: map.hasLayer(offlineBase), saved: localStorage.getItem('mc_basemap') })))
+    .toEqual({ satellite: true, offline: false, saved: '위성지도' });
+
+  await context.setOffline(true);
+  await page.evaluate(() => _offlineNetworkUi(true));
+  expect(await page.evaluate(() => ({ offline: map.hasLayer(offlineBase), saved: localStorage.getItem('mc_basemap') })))
+    .toEqual({ offline: true, saved: '위성지도' });
+  await context.setOffline(false);
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  await page.waitForFunction(() => map.hasLayer(baseSat));
+  expect(await page.evaluate(() => map.hasLayer(offlineBase))).toBe(false);
+
+  await page.evaluate(() => { localStorage.setItem('mc_basemap', '오프라인 지도'); localStorage.removeItem('mc_offline_explicit'); });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => _offlineReady);
+  expect(await page.evaluate(() => ({ satellite: map.hasLayer(baseSat), offline: map.hasLayer(offlineBase), saved: localStorage.getItem('mc_basemap') })))
+    .toEqual({ satellite: true, offline: false, saved: '위성지도' });
+  await page.evaluate(() => { localStorage.setItem('mc_basemap', '오프라인 지도'); localStorage.setItem('mc_offline_explicit', '1'); });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => _offlineReady);
+  expect(await page.evaluate(() => map.hasLayer(offlineBase))).toBe(true);
+  await context.close();
+  await browser.close();
+});
+
 test('tour offline control does not cover tracker actions', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
