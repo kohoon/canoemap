@@ -5548,7 +5548,7 @@ function scheduleRecentAdditions(){
 }
 function ntDate(t){ try{ const d=new Date(t); return (d.getMonth()+1)+'/'+d.getDate(); }catch(e){ return ''; } }
 async function fetchNotices(){ try{ const ctrl=new AbortController(); const tid=setTimeout(function(){ctrl.abort();},3500);
-  const r=await fetch(napi(),{signal:ctrl.signal}); clearTimeout(tid); _notices=(await r.json())||[]; }catch(e){ _notices=[]; } return _notices; }
+  const r=await fetch(napi(),{signal:ctrl.signal,cache:'no-store'}); clearTimeout(tid); if(!r.ok)throw new Error('notices '+r.status);_notices=(await r.json())||[]; }catch(e){ _notices=[]; } return _notices; }
 function _noticeSeen(){ try{ return parseInt(localStorage.getItem('mc_notice_seen')||'0',10)||0; }catch(e){ return 0; } }
 function noticeUnread(){ const s=_noticeSeen(); return (_notices||[]).filter(function(n){ return Number(n.id)>s; }).length; }
 function updateNoticeBadge(){ const b=document.querySelector('.noticebtn'); if(!b) return; const c=noticeUnread();
@@ -5559,7 +5559,7 @@ async function openNotices(){
   _newsTab('notice');
   document.getElementById('ntBody').innerHTML='<h3>📢 공지사항</h3><div class="tm-empty">불러오는 중…</div>';
   gaEvent('notice_open');
-  try{ const r=await fetch(napi()); _notices=(await r.json())||[]; renderNotices(_notices); markNoticesSeen(); }
+  try{ const r=await fetch(napi(),{cache:'no-store'});if(!r.ok)throw new Error('notices '+r.status);_notices=(await r.json())||[]; renderNotices(_notices); markNoticesSeen(); }
   catch(e){ document.getElementById('ntBody').innerHTML='<h3>📢 공지사항</h3><div class="tm-empty">불러오지 못했어요</div>'; }
 }
 let _editingNotice=null;
@@ -5570,8 +5570,8 @@ function renderNotices(list){
     const tv=ed?pmEsc(ed.title||'').replace(/"/g,'&quot;'):'';
     const bv=ed?pmEsc(ed.body||''):'';
     h+='<div class="nt-write"><input id="ntTitle" placeholder="공지 제목" maxlength="80" value="'+tv+'"><textarea id="ntBodyIn" rows="2" placeholder="공지 내용" maxlength="2000">'+bv+'</textarea>'
-      +'<div class="nt-wbtns"><button class="sg-submit" onclick="postNotice()">'+(ed?'수정 완료':'공지 등록')+'</button>'
-      +(ed?'<button class="nt-cancel" onclick="cancelEditNotice()">취소</button>':'')+'</div></div>';
+      +'<div class="nt-wbtns"><button id="ntSubmit" class="sg-submit" type="button" onclick="postNotice()">'+(ed?'수정 완료':'공지 등록')+'</button>'
+      +(ed?'<button class="nt-cancel" type="button" onclick="cancelEditNotice()">취소</button>':'')+'</div><div id="ntStatus" role="status" aria-live="polite"></div></div>';
   }
   if(!list||!list.length){ h+='<div class="tm-empty">아직 공지가 없어요</div>'; }
   else h+=list.map(function(n){
@@ -5587,21 +5587,32 @@ function renderNotices(list){
 }
 function editNoticeStart(id){ _editingNotice=id; renderNotices(_notices); try{ document.querySelector('#noticeModal .pmodal').scrollTop=0; }catch(e){} const t=document.getElementById('ntTitle'); if(t) t.focus(); }
 function cancelEditNotice(){ _editingNotice=null; renderNotices(_notices); }
-async function postNotice(){ if(!isAdmin()) return;
+async function applyNoticeMutation(r){
+  if(!r.ok)throw new Error(r.status===403?'관리자 인증을 다시 확인해 주세요.':'저장에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+  const result=await r.json();
+  if(!result.ok)throw new Error('저장 결과를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+  if(Array.isArray(result.notices)){_notices=result.notices;_editingNotice=null;renderNotices(_notices);markNoticesSeen();}
+  else await openNotices();
+}
+async function postNotice(){ if(!isAdmin()){ const msg=document.getElementById('ntStatus');if(msg)msg.textContent='관리자 인증이 해제되었습니다. 다시 인증해 주세요.';return; }
   const t=(document.getElementById('ntTitle').value||'').trim(), bd=(document.getElementById('ntBodyIn').value||'').trim();
-  if(!t&&!bd){ return; }
+  const msg=document.getElementById('ntStatus'),submit=document.getElementById('ntSubmit');
+  if(!t&&!bd){msg.textContent='제목이나 내용을 입력해 주세요.';return;}
+  if(submit.disabled)return;submit.disabled=true;msg.textContent='저장 중…';
   const body={action:_editingNotice?'edit':'post',adminKey:adminKey(),title:t,body:bd}; if(_editingNotice) body.noticeId=_editingNotice;
   try{ const r=await fetch(napi(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(r.ok){ gaEvent(_editingNotice?'notice_edit':'notice_post'); _editingNotice=null; openNotices(); } else alert('실패(권한 확인)'); }catch(e){ alert('오류'); } }
+    await applyNoticeMutation(r);gaEvent(body.action==='edit'?'notice_edit':'notice_post');
+  }catch(e){msg.textContent=e.message||'저장에 실패했습니다. 입력한 내용은 유지됩니다.';}
+  finally{if(submit.isConnected)submit.disabled=false;} }
 async function replyNotice(nid, text){ const u=getUser(); if(!u||!u.uid) return; text=(text||'').trim(); if(!text) return;
   try{ const r=await fetch(napi(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'reply',id:u.uid,nick:u.nick||'',noticeId:nid,text:text})});
-    if(r.ok){ gaEvent('notice_reply'); openNotices(); } else alert('답글 실패'); }catch(e){ alert('오류'); } }
+    await applyNoticeMutation(r);gaEvent('notice_reply'); }catch(e){ alert(e.message||'답글을 저장하지 못했습니다.'); } }
 async function deleteNotice(nid){ if(!isAdmin()) return; if(!confirm('이 공지를 삭제할까요?')) return;
   try{ const r=await fetch(napi(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',adminKey:adminKey(),noticeId:nid})});
-    if(r.ok) openNotices(); }catch(e){} }
+    await applyNoticeMutation(r); }catch(e){ alert(e.message||'공지를 삭제하지 못했습니다.'); } }
 async function deleteReply(nid, rt){ if(!isAdmin()) return; if(!confirm('이 답글을 삭제할까요?')) return;
   try{ const r=await fetch(napi(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'replyDelete',adminKey:adminKey(),noticeId:nid,replyT:rt})});
-    if(r.ok){ gaEvent('notice_reply_del'); openNotices(); } else alert('실패(권한 확인)'); }catch(e){ alert('오류'); } }
+    await applyNoticeMutation(r);gaEvent('notice_reply_del'); }catch(e){ alert(e.message||'답글을 삭제하지 못했습니다.'); } }
 
 // ---- 코스 주변 오프라인 팩(PWA + IndexedDB + CacheStorage) ----
 const OFFLINE_DB='mycanoe-offline-v1',OFFLINE_STORE='packs',OFFLINE_KEY='active',OFFLINE_CACHE_LEGACY='mycanoe-offline-pack-v1',OFFLINE_CACHE_PREFIX='mycanoe-offline-pack-v2-';

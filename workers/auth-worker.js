@@ -1798,10 +1798,10 @@ export default {
       if (req.method === "OPTIONS") return new Response(null, { headers: cors });
       const KV = env.PLACES;
       const J = (s) => new Response(s, { headers: { ...cors, "Content-Type": "application/json" } });
-      if (req.method === "GET") { return _cacheJson(ctx, url.toString(), async () => {
+      if (req.method === "GET") {
         const d = KV ? await KV.get("notices") : null;
-        return new Response(d || "[]", { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=60" } });
-      }, 60); }
+        return new Response(d || "[]", { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" } });
+      }
       if (req.method === "POST") {
         let b = {}; try { b = await req.json(); } catch (e) {}
         if (!KV) return new Response("no-store", { status: 500, headers: cors });
@@ -1837,7 +1837,7 @@ export default {
           nt.replies.push({ nick: String(b.nick || "익명").slice(0, 20), text: text, t: Date.now() });
         } else return new Response("action", { status: 400, headers: cors });
         await KV.put("notices", JSON.stringify(arr));
-        return J(JSON.stringify({ ok: true }));
+        return J(JSON.stringify({ ok: true, notices: arr }));
       }
       return new Response("method", { status: 405, headers: cors });
     }
