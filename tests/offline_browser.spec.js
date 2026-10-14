@@ -29,6 +29,23 @@ test.afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
+test('signup and Soyang participation forms ask for a Canoemap username, not a cafe nickname', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const width of [390, 1280]) {
+    const page = await browser.newPage({ viewport: { width, height: 844 }, isMobile: width < 500, hasTouch: width < 500 });
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#nickInput')).toHaveAttribute('aria-label', '카누맵 사용자명');
+    await expect(page.locator('#nickModal .signup-lead')).toContainText('카누맵에서 사용할 사용자명');
+    await page.goto(baseURL + '/soyang-travers/', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('label[for="userName"]')).toHaveText('카누맵 사용자명');
+    await expect(page.locator('#cafeNick')).toHaveCount(0);
+    await page.close();
+  }
+  await browser.close();
+});
+
 test('expedition direct links open the course detail on desktop and mobile', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

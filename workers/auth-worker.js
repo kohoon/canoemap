@@ -2037,17 +2037,17 @@ export default {
       const uid = String(b.id || "").slice(0, 40);
       if (!uid || !(await _tokOk(env, uid, b.tok))) return new Response("relogin", { status: 401, headers: cors });
       const name = String(b.name || "").trim().slice(0, 40);
-      const cafeNick = String(b.cafeNick || "").trim().slice(0, 40);
+      const userName = String(b.userName || b.cafeNick || "").trim().slice(0, 40);
       const phone = String(b.phone || "").trim().slice(0, 30);
       const agreed = !!b.agreed;
       const privacyAgreed = !!b.privacyAgreed;
-      if (!agreed || !privacyAgreed || !name || !cafeNick || !phone) return new Response("bad", { status: 400, headers: cors });
+      if (!agreed || !privacyAgreed || !name || !userName || !phone) return new Response("bad", { status: 400, headers: cors });
       let arr = []; try { arr = JSON.parse((await KV.get("soyang_traverse_signups")) || "[]"); } catch (e) {}
       const rec = {
         uid,
         kakaoNick: String(b.nick || "").slice(0, 40),
         name,
-        cafeNick,
+        userName,
         phone,
         agreed,
         privacyAgreed,
@@ -2066,7 +2066,7 @@ export default {
           cat: "소양호종주",
           place: "soyang-travers",
           nick: rec.kakaoNick,
-          text: "카카오ID: " + uid + " / 실명: " + name + " / 카페닉네임: " + cafeNick + " / 휴대전화: " + phone + " / 안전동의: Y / 개인정보동의: Y",
+          text: "카카오ID: " + uid + " / 실명: " + name + " / 카누맵 사용자명: " + userName + " / 휴대전화: " + phone + " / 안전동의: Y / 개인정보동의: Y",
           lat: "",
           lng: "",
           img: "",

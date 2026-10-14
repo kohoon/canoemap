@@ -89,7 +89,7 @@
 
         <div class="privacy">
           <strong>개인정보 수집·이용 동의</strong>
-          <p>수집 항목: 카카오ID, 카카오닉네임, 실명, 카페닉네임, 휴대전화번호<br>수집 목적: 소양호 카누잉 종주 동행자 확인, 참여 안내, 긴급 연락<br>보유 및 이용 기간: 모임 종료 후 30일 이내 파기<br>동의를 거부할 권리가 있으며, 동의하지 않을 경우 오픈채팅방 초대 링크 제공이 제한됩니다.</p>
+          <p>수집 항목: 카카오ID, 카카오닉네임, 실명, 카누맵 사용자명, 휴대전화번호<br>수집 목적: 소양호 카누잉 종주 동행자 확인, 참여 안내, 긴급 연락<br>보유 및 이용 기간: 모임 종료 후 30일 이내 파기<br>동의를 거부할 권리가 있으며, 동의하지 않을 경우 오픈채팅방 초대 링크 제공이 제한됩니다.</p>
           <label class="agree-line"><input id="privacyAgree" type="checkbox" required>위 개인정보 수집·이용 내용을 확인하였으며, 이에 동의합니다.</label>
         </div>
 
@@ -98,8 +98,8 @@
           <input id="realName" type="text" autocomplete="name" required>
         </div>
         <div class="field">
-          <label for="cafeNick">카페닉네임</label>
-          <input id="cafeNick" type="text" autocomplete="nickname" required>
+          <label for="userName">카누맵 사용자명</label>
+          <input id="userName" type="text" autocomplete="nickname" placeholder="참여자에게 표시할 이름" required>
         </div>
         <div class="field">
           <label for="phone">휴대전화 연락처</label>
@@ -157,15 +157,15 @@
       const agreed=document.getElementById("agree").checked;
       const privacyAgreed=document.getElementById("privacyAgree").checked;
       const name=document.getElementById("realName").value.trim();
-      const cafeNick=document.getElementById("cafeNick").value.trim();
+      const userName=document.getElementById("userName").value.trim();
       const phone=document.getElementById("phone").value.trim();
-      if(!agreed||!privacyAgreed||!name||!cafeNick||!phone){ msg.textContent="동의 체크와 모든 입력 항목을 완료해주세요."; return; }
+      if(!agreed||!privacyAgreed||!name||!userName||!phone){ msg.textContent="동의 체크와 모든 입력 항목을 완료해주세요."; return; }
       btn.disabled=true; btn.textContent="제출 중...";
       try{
         const r=await fetch(WORKER_URL.replace(/\/+$/,"")+"/soyang-travers",{
           method:"POST",
           headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({id:u.uid,tok:u.tok||"",nick:u.nick||"",agreed,privacyAgreed,name,cafeNick,phone})
+          body:JSON.stringify({id:u.uid,tok:u.tok||"",nick:u.nick||"",agreed,privacyAgreed,name,userName,phone})
         });
         if(r.ok){
           document.getElementById("formBox").classList.add("hidden");
