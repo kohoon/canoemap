@@ -5019,6 +5019,7 @@ function overpassOne(url,q,ms){
   });
 }
 const _opCache={};   // 세션 캐시(같은 영역 재측정 즉시)
+const _opPending={}; // 동일 영역 동시 계산 시 Overpass 요청 공유
 const _opAreaCache=[];   // 더 큰 기존 bbox가 새 요청 bbox를 포함하면 재사용
 let _routeRiverPromise=null;
 function staticWaterRoute(p1,p2){
@@ -5043,8 +5044,11 @@ function staticWaterRoute(p1,p2){
     return {coords:coords,km:m/1000,access:[],snap:[x.dist,y.dist],source:'static-river',riverName:chosen.name,_core:core};
   });
 }
-async function overpassFetch(q){
-  if(_opCache[q]) return _opCache[q];
+function overpassFetch(q){
+  if(_opCache[q]) return Promise.resolve(_opCache[q]);
+  if(_opPending[q]) return _opPending[q];
+  _opPending[q]=(async function(){
+  try{
   // 미러 동시 요청 → 데이터가 있는(elements>0) 응답을 우선 채택(빈 응답이 이기지 않게)
   const mirrors=['https://overpass.kumi.systems/api/interpreter','https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.osm.ch/api/interpreter'];
   let fallback=null;
@@ -5062,17 +5066,22 @@ async function overpassFetch(q){
   }
   if(fallback){ _opCache[q]=fallback; return fallback; }   // 정말 물길이 없는 영역일 때만(→직선)
   return null;
+  }finally{ delete _opPending[q]; }
+  })();
+  return _opPending[q];
 }
 async function waterRoute(p1,p2){
-  const staticRoute=await staticWaterRoute(p1,p2);
+  const staticRoutePromise=staticWaterRoute(p1,p2);
   const pad=Math.max(0.035, Math.abs(p1.lat-p2.lat)*0.35, Math.abs(p1.lng-p2.lng)*0.35);  // 강 굽이 포함되게 충분히
   const r3=function(x){return Math.round(x*1000)/1000;};   // bbox 100m 라운딩(캐시 적중↑)
   const s=r3(Math.min(p1.lat,p2.lat)-pad), w=r3(Math.min(p1.lng,p2.lng)-pad), n=r3(Math.max(p1.lat,p2.lat)+pad), e=r3(Math.max(p1.lng,p2.lng)+pad);
   const cached=_opAreaCache.find(function(x){return x.s<=s&&x.w<=w&&x.n>=n&&x.e>=e;});
   const q='[out:json][timeout:25];way["waterway"~"river|stream|canal"]('+s+','+w+','+n+','+e+')->.ww;( .ww;way["natural"="water"]('+s+','+w+','+n+','+e+');relation["natural"="water"]('+s+','+w+','+n+','+e+');way["waterway"~"weir|dam|lock_gate"]('+s+','+w+','+n+','+e+');way["man_made"="dam"]('+s+','+w+','+n+','+e+'););out geom;';
-  const j=cached?cached.j:await overpassFetch(q);
+  const [staticRoute,j]=await Promise.all([staticRoutePromise,cached?Promise.resolve(cached.j):overpassFetch(q)]);
   if(!j) return {err:'overpass'};
-  if(!cached){_opAreaCache.push({s:s,w:w,n:n,e:e,j:j});if(_opAreaCache.length>8)_opAreaCache.shift();}
+  if(!cached&&!_opAreaCache.some(function(x){return x.s===s&&x.w===w&&x.n===n&&x.e===e;})){
+    _opAreaCache.push({s:s,w:w,n:n,e:e,j:j});if(_opAreaCache.length>8)_opAreaCache.shift();
+  }
   const nodes={}, adj={}, nodeNames={}, graphEdges=[], toR=Math.PI/180;
   function key(la,ln){ const k=la.toFixed(4)+','+ln.toFixed(4); if(!(k in nodes)) nodes[k]=[la,ln]; return k; }  // 11m 병합(합류부 연결)
   function hav(a,b){ const R=6371000, dla=(b[0]-a[0])*toR, dlo=(b[1]-a[1])*toR, la1=a[0]*toR, la2=b[0]*toR;

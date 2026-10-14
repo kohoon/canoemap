@@ -1199,6 +1199,44 @@ test('wide reservoir access routes around land instead of crossing it', async ()
   await browser.close();
 });
 
+test('waterway calculation overlaps river loading and shares simultaneous Overpass requests', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof waterRoute === 'function');
+  const result = await page.evaluate(async () => {
+    let releaseRivers, overpassStarted = false, mirrorRequests = 0;
+    const originalStatic = staticWaterRoute, originalFetch = overpassFetch, originalOne = overpassOne;
+    try {
+      window.staticWaterRoute = () => new Promise(resolve => { releaseRivers = () => resolve(null); });
+      window.overpassFetch = async () => { overpassStarted = true; return null; };
+      const route = waterRoute({ lat: 37, lng: 127 }, { lat: 37.001, lng: 127.001 });
+      const overlapped = overpassStarted && typeof releaseRivers === 'function';
+      releaseRivers();
+      await route;
+      window.overpassFetch = originalFetch;
+      window.overpassOne = async () => {
+        mirrorRequests++;
+        await new Promise(resolve => setTimeout(resolve, 40));
+        return { elements: [{ type: 'way', tags: { waterway: 'river' }, geometry: [
+          { lat: 37, lon: 127 }, { lat: 37.001, lon: 127.001 },
+        ] }] };
+      };
+      await Promise.all([overpassFetch('dedupe-test'), overpassFetch('dedupe-test')]);
+      return { overlapped, mirrorRequests };
+    } finally {
+      window.staticWaterRoute = originalStatic;
+      window.overpassFetch = originalFetch;
+      window.overpassOne = originalOne;
+    }
+  });
+  expect(result.overlapped).toBe(true);
+  expect(result.mirrorRequests).toBe(4);
+  await browser.close();
+});
+
 test('dynamic waterway simplification does not cut across a narrow peninsula', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
