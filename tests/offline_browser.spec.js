@@ -2006,6 +2006,35 @@ test('naver cafe, open chat, and paddling school shortcuts share a row below the
   await browser.close();
 });
 
+test('admin badge sits after map controls without covering menus on desktop and mobile', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const { width, tour } of [{ width: 320, tour: false }, { width: 390, tour: false }, { width: 960, tour: false }, { width: 1280, tour: false }, { width: 390, tour: true }]) {
+    const page = await browser.newPage({ viewport: { width, height: 844 }, isMobile: width < 500, hasTouch: width < 500 });
+    await page.goto(baseURL + (tour ? '/?tour=1' : '/'), { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => { hideGate(); _adminBadge(true); });
+    const bounds = await page.evaluate(() => {
+      const badge = document.getElementById('adminBadge');
+      const rect = badge.getBoundingClientRect();
+      const siblings = [...badge.parentElement.children].filter((el) => el !== badge && getComputedStyle(el).display !== 'none');
+      const lastControlBottom = Math.max(0, ...siblings.map((el) => el.getBoundingClientRect().bottom));
+      const topbar = document.getElementById('pcTopbar').getBoundingClientRect();
+      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, lastControlBottom,
+        topbarBottom: getComputedStyle(document.getElementById('pcTopbar')).display === 'none' ? 0 : topbar.bottom,
+        insideMapControls: badge.parentElement.matches('#map .leaflet-top.leaflet-right') };
+    });
+    expect(bounds.insideMapControls).toBe(true);
+    expect(bounds.left).toBeGreaterThanOrEqual(0);
+    expect(bounds.right).toBeLessThanOrEqual(width);
+    expect(bounds.top).toBeGreaterThanOrEqual(bounds.lastControlBottom);
+    expect(bounds.top).toBeGreaterThanOrEqual(bounds.topbarBottom);
+    expect(bounds.bottom).toBeLessThanOrEqual(844);
+    await page.close();
+  }
+  await browser.close();
+});
+
 test('course share URL and preview image use the course-specific map card', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
