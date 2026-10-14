@@ -1926,15 +1926,20 @@ test('legend stays clear of account, admin, and tour controls on short screens',
   await browser.close();
 });
 
-test('open chat and paddling school shortcuts share a row below the account control', async () => {
+test('naver cafe, open chat, and paddling school shortcuts share a row below the account control', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
-  for (const { width, tour } of [{ width: 320, tour: false }, { width: 390, tour: false }, { width: 1280, tour: false }, { width: 390, tour: true }]) {
+  for (const { width, tour } of [{ width: 320, tour: false }, { width: 390, tour: false }, { width: 960, tour: false }, { width: 1024, tour: false }, { width: 1280, tour: false }, { width: 390, tour: true }]) {
     const page = await browser.newPage({ viewport: { width, height: 844 } });
     await page.goto(baseURL + (tour ? '/?tour=1' : '/'), { waitUntil: 'domcontentloaded' });
+    const cafe = page.locator('#naverCafeLink');
     const chat = page.locator('#openChatLink');
     const school = page.locator('#paddlingSchoolCtl');
+    await expect(cafe).toBeVisible();
+    await expect(cafe).toHaveText(/네이버카페/);
+    await expect(cafe).toHaveAttribute('href', 'https://cafe.naver.com/afloat');
+    await expect(cafe).toHaveAttribute('target', '_blank');
     await expect(chat).toBeVisible();
     await expect(chat).toHaveText(/오픈채팅/);
     await expect(chat).toHaveAttribute('href', 'https://open.kakao.com/o/gcURegPi');
@@ -1943,11 +1948,15 @@ test('open chat and paddling school shortcuts share a row below the account cont
     await expect(school).toHaveText(/패들링 스쿨/);
     await expect(school).toHaveAttribute('href', '/paddling/');
     const bounds = await page.evaluate(() => {
+      const cafe = document.getElementById('naverCafeLink').getBoundingClientRect();
       const chat = document.getElementById('openChatLink').getBoundingClientRect();
       const school = document.getElementById('paddlingSchoolCtl').getBoundingClientRect();
       const tour = document.getElementById('tourEntry').getBoundingClientRect();
-      return { chatLeft: chat.left, chatRight: chat.right, schoolLeft: school.left, chatTop: chat.top, schoolTop: school.top, schoolRight: school.right, schoolBottom: school.bottom, tourTop: tour.top };
+      return { cafeLeft: cafe.left, cafeRight: cafe.right, cafeTop: cafe.top, chatLeft: chat.left, chatRight: chat.right, schoolLeft: school.left, chatTop: chat.top, schoolTop: school.top, schoolRight: school.right, schoolBottom: school.bottom, tourTop: tour.top };
     });
+    expect(bounds.cafeLeft).toBeGreaterThanOrEqual(0);
+    expect(bounds.cafeRight).toBeLessThan(bounds.chatLeft);
+    expect(Math.abs(bounds.cafeTop - bounds.chatTop)).toBeLessThan(2);
     expect(bounds.chatLeft).toBeGreaterThanOrEqual(0);
     expect(bounds.chatRight).toBeLessThan(bounds.schoolLeft);
     expect(Math.abs(bounds.chatTop - bounds.schoolTop)).toBeLessThan(2);
@@ -1955,6 +1964,13 @@ test('open chat and paddling school shortcuts share a row below the account cont
     if (width >= 1024 && !tour) {
       expect(await page.locator('#pcTopbar #openChatCtl').count()).toBe(1);
       expect(await page.locator('#pcTopbar #authbox').count()).toBe(1);
+      const topbar = await page.evaluate(() => ({
+        navRight: document.querySelector('#pcTopbar .pc-nav').getBoundingClientRect().right,
+        linksLeft: document.querySelector('#pcTopbar .pc-right').getBoundingClientRect().left,
+        linksRight: document.querySelector('#pcTopbar .pc-right').getBoundingClientRect().right,
+      }));
+      expect(topbar.navRight).toBeLessThanOrEqual(topbar.linksLeft);
+      expect(topbar.linksRight).toBeLessThanOrEqual(width);
     } else {
       expect(bounds.schoolBottom).toBeLessThan(bounds.tourTop);
       const order = await page.locator('.leaflet-top.leaflet-right > .leaflet-control').evaluateAll((nodes) => nodes.map((node) => node.id));

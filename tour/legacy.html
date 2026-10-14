@@ -593,10 +593,12 @@
   .authbox .who a{color:#1565c0;margin-left:8px;text-decoration:none;cursor:pointer}
   .authbox .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2ecc71;margin-right:6px;vertical-align:middle}
   .map-quick-links{display:flex;align-items:center;justify-content:flex-end;gap:8px;max-width:calc(100vw - 20px)}
-  .openchat-btn,.paddling-school-btn{display:flex;align-items:center;justify-content:center;gap:5px;min-height:var(--mc-control-height);box-sizing:border-box;border-radius:18px;padding:9px 12px;text-decoration:none!important;font:700 12.5px/1 sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.28);transition:transform .12s,box-shadow .12s}
+  .naver-cafe-btn,.openchat-btn,.paddling-school-btn{display:flex;align-items:center;justify-content:center;gap:5px;min-height:var(--mc-control-height);box-sizing:border-box;border-radius:18px;padding:9px 12px;text-decoration:none!important;font:700 12.5px/1 sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.28);transition:transform .12s,box-shadow .12s}
+  .naver-cafe-btn{background:#e9f8ee;color:#11643b!important;border:1px solid #a8dbc0}
+  .naver-cafe-mark{display:grid;place-items:center;flex:none;width:17px;height:17px;border-radius:4px;background:#03a94f;color:#fff;font:900 11px/1 sans-serif}
   .openchat-btn{background:#FEE500;color:#191600!important;border:0}
   .paddling-school-btn{background:#e1f8ef;color:#075d4c!important;border:1px solid #95d9c2}
-  .openchat-btn:hover,.openchat-btn:focus,.paddling-school-btn:hover,.paddling-school-btn:focus{transform:translateY(-1px);box-shadow:0 4px 11px rgba(0,0,0,.32);outline:2px solid #0c7d74;outline-offset:2px}
+  .naver-cafe-btn:hover,.naver-cafe-btn:focus,.openchat-btn:hover,.openchat-btn:focus,.paddling-school-btn:hover,.paddling-school-btn:focus{transform:translateY(-1px);box-shadow:0 4px 11px rgba(0,0,0,.32);outline:2px solid #0c7d74;outline-offset:2px}
   #pcTopbar,#pcDock{display:none}
   @media(min-width:1024px){
     html.pc-dock-ready:not(.tour-mode) #map{top:64px;left:296px;width:calc(100% - 296px);height:calc(var(--app-height) - 64px)}
@@ -621,7 +623,7 @@
     #pcTopbar #tourEntry span{display:none}
     #pcTopbar .pc-right{display:flex;align-items:center;gap:7px;margin-left:auto;min-width:0}
     #pcTopbar .map-quick-links{gap:5px;max-width:none}
-    #pcTopbar .openchat-btn,#pcTopbar .paddling-school-btn{min-height:40px;padding:7px 9px;border-radius:9px;box-shadow:none;font-size:12px}
+    #pcTopbar .naver-cafe-btn,#pcTopbar .openchat-btn,#pcTopbar .paddling-school-btn{min-height:40px;padding:7px 9px;border-radius:9px;box-shadow:none;font-size:12px}
     #pcTopbar #authbox{margin:0;white-space:nowrap;font-size:12px}
     #pcTopbar #authbox .who{max-width:150px;box-shadow:none;border:1px solid #dce8e2}
     #pcTopbar #authbox button{box-shadow:none}
@@ -736,7 +738,7 @@
     .authbox button{padding:7px 11px;font-size:12.5px}
     .authbox .who{font-size:12.5px;padding:6px 9px}
     .map-quick-links{gap:6px}
-    .openchat-btn,.paddling-school-btn{padding:9px 10px;font-size:12px}
+    .naver-cafe-btn,.openchat-btn,.paddling-school-btn{padding:9px 8px;font-size:11px}
     .cafe-actions{justify-content:flex-end}
     .admin-sheet-card,.admin-members-card,.admin-suggest-card{width:var(--mc-control-height);height:var(--mc-control-height);padding:6px;justify-content:center;gap:0}
     .admin-sheet-card .cf-t,.admin-members-card .cf-t,.admin-suggest-card .cf-t{display:none}
@@ -1197,9 +1199,11 @@ const AuthCtl=L.Control.extend({ options:{position:'topright'},
 const OpenChatCtl=L.Control.extend({ options:{position:'topright'},
   onAdd:function(){
     const row=L.DomUtil.create('div','map-quick-links'); row.id='openChatCtl';
+    const cafe=L.DomUtil.create('a','naver-cafe-btn',row); cafe.id='naverCafeLink'; cafe.href='https://cafe.naver.com/afloat'; cafe.target='_blank'; cafe.rel='noopener noreferrer'; cafe.setAttribute('aria-label','네이버카페 새 창에서 열기'); cafe.innerHTML='<span class="naver-cafe-mark" aria-hidden="true">N</span><span>네이버카페</span>';
     const chat=L.DomUtil.create('a','openchat-btn',row); chat.id='openChatLink'; chat.href='https://open.kakao.com/o/gcURegPi'; chat.target='_blank'; chat.rel='noopener'; chat.setAttribute('aria-label','카누맵 이용자 오픈채팅방 열기'); chat.innerHTML='<span aria-hidden="true">💬</span><span>오픈채팅</span>';
     const school=L.DomUtil.create('a','paddling-school-btn',row); school.id='paddlingSchoolCtl'; school.href='/paddling/'; school.setAttribute('aria-label','패들링 스쿨 열기'); school.innerHTML='<span aria-hidden="true">🛶</span><span>패들링 스쿨</span>';
     L.DomEvent.disableClickPropagation(row);
+    L.DomEvent.on(cafe,'click',function(){gaEvent('naver_cafe_click',{placement:'topright'});});
     L.DomEvent.on(chat,'click',function(){gaEvent('openchat_click',{placement:'topright'});});
     L.DomEvent.on(school,'click',function(){gaEvent('paddling_school_click',{placement:'topright'});});
     return row;
