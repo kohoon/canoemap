@@ -558,6 +558,7 @@ __GTAG__
   .my-empty{text-align:center;color:#829097;font-size:13px;padding:44px 12px}.my-empty b{display:block;color:#4c6068;margin-bottom:5px;font-size:14px}
   .my-diary-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}.my-diary-stat{min-width:0;padding:15px;background:#fff;border:1px solid #dce7e8;border-radius:12px}.my-diary-stat span{display:block;color:#607780;font-size:12px}.my-diary-stat strong{display:block;margin-top:4px;color:#123f49;font-size:22px;line-height:1.2}.my-diary-stat small{font-size:12px;font-weight:600}.my-diary-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px}.my-diary-head h4{margin:0;color:#244951;font-size:15px}.my-diary-add{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 15px;border:1px solid #087f77;border-radius:9px;background:#087f77;color:#fff;font-size:13px;font-weight:750;white-space:nowrap;cursor:pointer}.my-diary-add:hover,.my-diary-add:focus-visible{background:#066a64}.my-diary-table-wrap{width:100%;overflow-x:auto;border:1px solid #dce7e8;border-radius:12px;background:#fff}.my-diary-table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}.my-diary-table th{padding:12px;color:#607780;background:#f1f6f5;font-size:12px;font-weight:750;white-space:nowrap}.my-diary-table td{padding:0 12px;border-top:1px solid #e8eeee;vertical-align:middle}.my-diary-table tbody tr:hover{background:#f3faf8}.my-diary-table td:not(:nth-child(2)){white-space:nowrap}.my-diary-row{display:block;width:100%;min-height:48px;padding:10px 0;border:0;background:transparent;text-align:left;color:#164d58;font-size:13px;font-weight:750;cursor:pointer;overflow-wrap:anywhere}.my-diary-row:hover,.my-diary-row:focus-visible{text-decoration:underline;outline:2px solid #087f77;outline-offset:-2px}.my-diary-note{margin:10px 0 0;color:#6b7f83;font-size:11px;line-height:1.5}.my-diary-message{padding:24px 16px;color:#607780;text-align:center;font-size:13px}
   .my-diary-kind{display:none}
+  .my-diary-tour-link{display:inline-flex;align-items:center;min-height:28px;margin:0 0 8px;padding:0 6px 0 0;border:0;background:transparent;color:#087f77;font-size:11px;font-weight:750;cursor:pointer}.my-diary-tour-link:hover{text-decoration:underline}.my-diary-tour-link:focus-visible{outline:2px solid #087f77;border-radius:4px}
   @media(max-width:620px){.my-diary-summary{gap:6px}.my-diary-stat{padding:11px 8px}.my-diary-stat span{font-size:11px}.my-diary-stat strong{font-size:17px}.my-diary-table{table-layout:fixed}.my-diary-table th,.my-diary-table td{padding-left:8px;padding-right:8px}.my-diary-table th:first-child{width:91px}.my-diary-table th:nth-child(3){width:86px}.my-diary-table th:nth-child(4),.my-diary-table td:nth-child(4){display:none}.my-diary-kind{display:block;margin-top:3px;color:#758a8d;font-size:11px;font-weight:500}}
   @media(max-width:620px){#myModal{height:100vh;height:100dvh;bottom:auto}#myModal .pmodal{width:100%;height:88%;max-height:calc(100% - env(safe-area-inset-top,0px) - 16px);box-sizing:border-box;border-radius:14px 14px 0 0}#myBody{height:100%}.my-head{padding:17px 16px 12px}.my-tabs{padding:0 7px}.my-tab{padding:12px 11px 10px}.my-pane{padding:14px 15px 24px}.my-stats{grid-template-columns:repeat(2,1fr)}.my-stat:nth-child(2){border-right:0}.my-stat:nth-child(-n+2){border-bottom:1px solid #e3e9eb}.my-stats.compact .my-stat{border-bottom:0}.my-tools{align-items:stretch}.my-toggle{width:100%;margin-left:0}.my-actions .label{display:none}.my-nick-note,.my-nick-form,.my-nick-error{margin-left:0}}
   #pmLinks{font-size:13px;margin-bottom:10px}
@@ -3402,8 +3403,8 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
     }catch(e){ return []; }
   }
   async function loadMyTrips(){
-    try{ const r=await fetch(fapi('/trips?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||''))); return r.ok?await r.json():[]; }
-    catch(e){ return []; }
+    try{ const r=await fetch(fapi('/trips?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||'')));if(!r.ok)throw new Error('투어 기록을 불러오지 못했습니다.');state.tripError='';return await r.json(); }
+    catch(e){state.tripError=e.message||'투어 기록을 불러오지 못했습니다.';return [];}
   }
   async function loadMyDiaries(){
     if(state.diaryLoading)return;
@@ -3439,11 +3440,11 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
     _fitAndPop(c.coords, c.name, c.km);
     openCourseComments('course_k'+c.id, c, 'k'+c.id);
   }
-  let state={tab:'info',mine:[],trips:[],diaries:null,diaryLoading:false,diaryError:'',q:'',favKind:'all'};
+  let state={tab:'info',mine:[],trips:[],tripError:'',tripLoading:false,diaries:null,diaryLoading:false,diaryError:'',q:'',favKind:'all'};
   function dateText(t){ if(!t) return '기록 없음'; const d=new Date(t),p=function(v){return String(v).padStart(2,'0');}; return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
   function durText(sec){ sec=Math.max(0,+sec||0); const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60); return h?h+'시간 '+m+'분':m+'분'; }
   function shell(content){
-    const tabs=[['info','내 정보'],['favs','즐겨찾기'],['courses','내 코스'],['activity','투어 기록'],['diary','카누잉 다이어리']];
+    const tabs=[['info','내 정보'],['favs','즐겨찾기'],['courses','내 코스'],['diary','카누잉 기록']];
     body.innerHTML='<div class="my-head"><h3>'+pmEsc(u.nick||'회원')+'님의 마이페이지</h3><p>내 정보와 저장한 콘텐츠를 관리합니다</p></div>'
       +'<div class="my-tabs">'+tabs.map(function(x){return '<button class="my-tab'+(state.tab===x[0]?' on':'')+'" data-tab="'+x[0]+'">'+x[1]+'</button>';}).join('')+'</div>'
       +'<div class="my-pane">'+content+'</div>';
@@ -3492,40 +3493,63 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
     body.querySelectorAll('[data-cedit]').forEach(function(a){a.onclick=function(){const id=a.getAttribute('data-cedit'),c=state.mine.find(function(x){return String(x.id)===id;});if(c){_kvCourses[c.id]=c;closeMyPage();editCourse(c.id);}};});
     body.querySelectorAll('[data-cdel]').forEach(function(a){a.onclick=function(){const id=a.getAttribute('data-cdel'),c=state.mine.find(function(x){return String(x.id)===id;});if(!c||!confirm('이 코스를 삭제할까요?'))return;const req=isAdmin()?{action:'delete',adminKey:adminKey(),courseId:c.id}:{action:'deleteuser',id:u.uid,tok:u.tok||'',courseId:c.id};fetch(fapi('/course'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(req)}).then(function(r){if(r.ok){state.mine=state.mine.filter(function(x){return String(x.id)!==id;});renderCourses();}else alert('삭제 실패');});};});
   }
-  function renderActivity(){
-    const list=state.trips||[]; let h='<button class="my-icon-btn" id="myTourGo">🛶 투어 모드 열기</button>'+(list.length?list.map(function(x){return '<div class="my-list-row"><span class="my-kind">🛶</span><button class="my-list-main" data-trip="'+pmEsc(x.id)+'"><b>'+pmEsc(x.title||'카누잉')+'</b><small>'+dateText(x.start)+' · '+(+x.distKm||0).toFixed(1)+'km · '+durText(x.durSec)+(x.estimated?' · 추정 구간 포함':'')+'</small></button></div>';}).join(''):'<div class="my-empty"><b>아직 활동 기록이 없습니다</b>투어 모드에서 기록을 시작할 수 있습니다.</div>');shell(h);
-    document.getElementById('myTourGo').onclick=function(){const next=new URL(location.href);next.searchParams.set('tour','1');location.assign(next.toString());};
-    body.querySelectorAll('[data-trip]').forEach(function(b){b.onclick=function(){closeMyPage();viewTrip(b.getAttribute('data-trip'));};});
-  }
   function renderDiary(){
     const year=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric'}).format(new Date()));
-    const list=state.diaries||[];
-    const annual=list.filter(function(x){return String(x.date||'').slice(0,4)===String(year);});
-    const km=annual.reduce(function(sum,x){const value=x.distanceKm==null?NaN:Number(x.distanceKm);return sum+(x.source!=='course'&&Number.isFinite(value)&&value>=0?value:0);},0);
+    const diaries=state.diaries||[],trips=state.trips||[];
+    const linked=new Set(),tripById=new Map(trips.map(function(x){return [String(x.id),x];}));
+    const list=diaries.map(function(x){
+      const tripId=x.source==='tour'?(x.tripId||String(x.id||'').replace(/^t_/,'')):'';
+      const trip=tripById.get(String(tripId));
+      if(trip)linked.add(String(trip.id));
+      return {date:x.date||'',title:x.title||'카누잉 기록',distanceKm:trip?trip.distKm:x.distanceKm,
+        diaryId:x.id,tripId:trip?.id||'',source:x.source,archiveSource:x.archiveSource,
+        countDistance:x.source!=='course'&&(!trip||trip.recordVersion===2||!trip.estimated),updatedAt:x.updatedAt||0};
+    });
+    trips.forEach(function(x){
+      if(linked.has(String(x.id)))return;
+      const started=new Date(Number(x.start));
+      const parts=Number.isFinite(started.getTime())?new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(started):[];
+      const date=function(type){return parts.find(function(p){return p.type===type;})?.value||'';};
+      list.push({date:parts.length?date('year')+'-'+date('month')+'-'+date('day'):'',title:x.title||'카누잉 투어',
+        distanceKm:x.distKm,tripId:x.id,source:'tour',countDistance:x.recordVersion===2||!x.estimated,updatedAt:x.start||0});
+    });
+    list.sort(function(a,b){return String(b.date).localeCompare(String(a.date))||(+b.updatedAt||0)-(+a.updatedAt||0);});
+    const annual=list.filter(function(x){return String(x.date).slice(0,4)===String(year);});
+    const km=annual.reduce(function(sum,x){const value=x.distanceKm==null?NaN:Number(x.distanceKm);return sum+(x.countDistance&&Number.isFinite(value)&&value>=0?value:0);},0);
+    const totalsReady=state.diaries!==null&&!state.diaryError&&!state.tripError&&!state.tripLoading;
     let h='<div class="my-diary-summary" aria-label="'+year+'년 카누잉 누적 기록">'
-      +'<div class="my-diary-stat"><span>'+year+'년 기록</span><strong>'+annual.length+' <small>회</small></strong></div>'
-      +'<div class="my-diary-stat"><span>'+year+'년 기록 거리</span><strong>'+km.toFixed(1)+' <small>km</small></strong></div>'
-      +'<div class="my-diary-stat"><span>전체 기록</span><strong>'+list.length+' <small>회</small></strong></div></div>'
-      +'<div class="my-diary-head"><h4>내 다이어리</h4><button class="my-diary-add" id="myDiaryAdd" type="button">+ 기록 추가</button></div>';
-    if(state.diaryError)h+='<div class="my-diary-message" role="alert">'+pmEsc(state.diaryError)+' <button class="my-icon-btn" id="myDiaryRetry" type="button">다시 시도</button></div>';
+      +'<div class="my-diary-stat"><span>'+year+'년 기록</span><strong>'+(totalsReady?annual.length:'—')+' <small>회</small></strong></div>'
+      +'<div class="my-diary-stat"><span>'+year+'년 기록 거리</span><strong>'+(totalsReady?km.toFixed(1):'—')+' <small>km</small></strong></div>'
+      +'<div class="my-diary-stat"><span>전체 기록</span><strong>'+(totalsReady?list.length:'—')+' <small>회</small></strong></div></div>'
+      +'<div class="my-diary-head"><h4>투어 · 다이어리</h4><button class="my-diary-add" id="myDiaryAdd" type="button">+ 기록 추가</button></div>';
+    if(state.diaryError||state.tripError)h+='<div class="my-diary-message" role="alert">'+pmEsc(state.diaryError||state.tripError)+' <button class="my-icon-btn" id="myDiaryRetry" type="button">다시 시도</button></div>';
     else if(state.diaries===null)h+='<div class="my-diary-message" role="status">다이어리를 불러오는 중…</div>';
-    else if(!list.length)h+='<div class="my-diary-message">아직 저장한 기록이 없습니다. 기록 추가로 첫 카누잉을 남겨보세요.</div>';
+    else if(!list.length)h+='<div class="my-diary-message">아직 투어·다이어리 기록이 없습니다. 기록 추가로 첫 카누잉을 남겨보세요.</div>';
     else{
       h+='<div class="my-diary-table-wrap"><table class="my-diary-table"><thead><tr><th scope="col">날짜</th><th scope="col">기록</th><th scope="col">거리</th><th scope="col">유형</th></tr></thead><tbody>'
         +list.map(function(x){const value=x.distanceKm==null?NaN:Number(x.distanceKm);
-          const distance=Number.isFinite(value)&&value>=0?value.toFixed(1)+' km'+(x.source==='course'?' (코스)':''):'—';
-          const kind=x.archiveSource==='tour'?'투어 백업':x.source==='course'?'등록 코스':x.source==='manual'?'수기':x.source==='gpx'?'GPX':'투어';
-          return '<tr data-diary-row="'+encodeURIComponent(String(x.id||'')).replace(/'/g,'%27')+'"><td>'+pmEsc(x.date||'날짜 없음')+'</td><td><button class="my-diary-row" type="button">'+pmEsc(x.title||'카누잉 기록')+'<span class="my-diary-kind">'+kind+'</span></button></td><td>'+distance+'</td><td>'+kind+'</td></tr>';
+          const distance=Number.isFinite(value)&&value>=0?value.toFixed(1)+' km'+(x.source==='course'?' (코스)':!x.countDistance?' (추정)':''):'—';
+          const kind=x.archiveSource==='tour'?'투어 백업':x.diaryId&&x.tripId?'투어 · 다이어리':x.diaryId?(x.source==='course'?'등록 코스':x.source==='manual'?'수기':x.source==='gpx'?'GPX':'다이어리'):'투어';
+          const diaryId=encodeURIComponent(String(x.diaryId||'')).replace(/'/g,'%27');
+          const tripId=encodeURIComponent(String(x.tripId||'')).replace(/'/g,'%27');
+          return '<tr data-diary-row="'+diaryId+'" data-trip-row="'+tripId+'"><td>'+pmEsc(x.date||'날짜 없음')+'</td><td><button class="my-diary-row" type="button">'+pmEsc(x.title)+'<span class="my-diary-kind">'+kind+'</span></button>'+(x.diaryId&&x.tripId?'<button class="my-diary-tour-link" type="button" data-tour-id="'+tripId+'">원본 투어 보기</button>':'')+'</td><td>'+distance+'</td><td>'+kind+'</td></tr>';
         }).join('')+'</tbody></table></div>';
     }
-    h+='<p class="my-diary-note">올해 기록 거리는 등록 코스의 계획 거리와 거리 미입력 기록을 제외합니다. 기록을 누르면 상세보기로 이동합니다.</p>';
+    h+='<p class="my-diary-note">연결된 투어·다이어리는 1회로 집계합니다. 올해 기록 거리는 계획 경로·구형 추정 거리·거리 미입력 기록을 제외합니다.</p>';
     shell(h);
     document.getElementById('myDiaryAdd').onclick=function(){closeMyPage();openDiaryEntry();};
-    const retry=document.getElementById('myDiaryRetry');if(retry)retry.onclick=function(){state.diaries=null;state.diaryError='';renderDiary();};
-    body.querySelectorAll('[data-diary-row]').forEach(function(row){row.onclick=function(){const id=row.getAttribute('data-diary-row');if(id)location.assign('/diary/?id='+id);};});
+    const retry=document.getElementById('myDiaryRetry');if(retry)retry.onclick=function(){
+      state.diaries=null;state.diaryError='';state.tripError='';state.tripLoading=true;renderDiary();
+      loadMyTrips().then(function(trips){state.trips=trips;state.tripLoading=false;if(state.tab==='diary')renderDiary();});
+    };
+    body.querySelectorAll('[data-diary-row]').forEach(function(row){row.onclick=function(e){
+      const source=e.target.closest('[data-tour-id]'),trip=source?.getAttribute('data-tour-id')||row.getAttribute('data-trip-row');
+      if(source||!row.getAttribute('data-diary-row')){if(trip){closeMyPage();viewTrip(decodeURIComponent(trip));}return;}
+      location.assign('/diary/?id='+row.getAttribute('data-diary-row'));
+    };});
     if(state.diaries===null&&!state.diaryLoading)loadMyDiaries();
   }
-  function render(){if(state.tab==='favs')renderFavs();else if(state.tab==='courses')renderCourses();else if(state.tab==='activity')renderActivity();else if(state.tab==='diary')renderDiary();else renderInfo();}
+  function render(){if(state.tab==='favs')renderFavs();else if(state.tab==='courses')renderCourses();else if(state.tab==='diary')renderDiary();else renderInfo();}
   body.innerHTML='<div class="pm-empty">불러오는 중…</div>';
   Promise.all([loadFavs(),loadMyCourses(),loadMyTrips(),loadMyProfile()]).then(function(res){state.mine=res[1]||[];state.trips=res[2]||[];render();});
 }

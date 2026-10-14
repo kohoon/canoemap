@@ -80,6 +80,53 @@ test('My Page shows the diary table and yearly totals, and opens a selected deta
   await b.close();
 });
 
+test('My Page merges tours and diaries without counting a linked tour twice', async () => {
+  const b = await browser();
+  const year = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(new Date()));
+  const trips = [
+    { id: 'linked', title: '한탄강 투어', start: Date.parse(`${year}-10-12T01:00:00Z`), distKm: 5, recordVersion: 2 },
+    { id: 'unlinked', title: '임진강 투어', start: Date.parse(`${year}-10-10T01:00:00Z`), distKm: 7, recordVersion: 2 },
+    { id: 'legacy', title: '이전 추정 투어', start: Date.parse(`${year}-10-09T01:00:00Z`), distKm: 9, estimated: true, recordVersion: 1 },
+  ];
+  const diaries = [
+    { id: 't_linked', source: 'tour', title: '한탄강 다이어리', date: `${year}-10-12`, distanceKm: 5 },
+    { id: 'm_one', source: 'manual', title: '수기 기록', date: `${year}-10-11`, distanceKm: 3 },
+    { id: 'c_one', source: 'course', title: '참고 코스', date: `${year}-10-08`, distanceKm: 46 },
+  ];
+  for (const width of [1280, 390]) {
+    const page = await b.newPage({ viewport: { width, height: 844 }, isMobile: width < 500, hasTouch: width < 500 });
+    await page.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'member1', tok: 'secret', nick: '테스터' })));
+    await page.route('**/mycanoe-map.kohoon0140.workers.dev/**', (route) => {
+      const pathname = new URL(route.request().url()).pathname;
+      if (pathname === '/diaries') return route.fulfill({ json: { items: diaries, cursor: null } });
+      if (pathname === '/trips') return route.fulfill({ json: trips });
+      if (pathname === '/trip') return route.fulfill({ json: { ...trips[0], end: trips[0].start + 3600000,
+        durSec: 3600, track: [[38, 127, trips[0].start], [38.01, 127.01, trips[0].start + 3600000]] } });
+      if (pathname === '/profile') return route.fulfill({ json: { profile: { nick: '테스터' } } });
+      return route.fulfill({ json: [] });
+    });
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => hideGate());
+    await page.locator('#mypageA').click();
+    await expect(page.locator('#myModal .my-tab')).toHaveCount(4);
+    await page.locator('#myModal .my-tab[data-tab="diary"]').click();
+    await expect(page.locator('.my-diary-table tbody tr')).toHaveCount(5);
+    await expect(page.locator('.my-diary-stat').nth(0)).toContainText('5 회');
+    await expect(page.locator('.my-diary-stat').nth(1)).toContainText('15.0 km');
+    await expect(page.locator('.my-diary-table tbody tr').first()).toContainText('한탄강 다이어리');
+    await expect(page.locator('.my-diary-table tbody tr').first().locator('.my-diary-tour-link')).toHaveText('원본 투어 보기');
+    await expect(page.locator('.my-diary-table tbody tr').filter({ hasText: '임진강 투어' })).toHaveCount(1);
+    await expect(page.locator('.my-diary-table tbody tr').filter({ hasText: '이전 추정 투어' })).toContainText('추정');
+    expect(await page.locator('.my-diary-table-wrap').evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.locator('.my-diary-table tbody tr').first().locator('.my-diary-tour-link').click();
+    await expect(page.locator('#myModal')).not.toHaveClass(/open/);
+    await expect(page.locator('.leaflet-popup')).toContainText('한탄강 투어');
+    await page.close();
+  }
+  await b.close();
+});
+
 async function browser() {
   return chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
