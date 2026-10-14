@@ -1419,6 +1419,15 @@ export default {
           ));
           return new Response(JSON.stringify(arr), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
         }
+        if (url.searchParams.get("selectable") || url.searchParams.get("diary-course")) {
+          const uid = (url.searchParams.get("uid") || "").slice(0, 40);
+          if (!uid || !(await _memberOk(env, uid, url.searchParams.get("tok")))) return J("[]");
+          arr = arr.filter((x) => String(x.owner || "") === "admin" || String(x.owner || "") === uid);
+          const selectedId = String(url.searchParams.get("diary-course") || "").replace(/^k/, "");
+          const result = selectedId ? arr.filter((x) => String(x.id) === selectedId)
+            : arr.map((x) => ({ id: x.id, name: x.name, km: x.km, owner: x.owner, pointCount: Array.isArray(x.coords) ? x.coords.length : 0 }));
+          return new Response(JSON.stringify(result), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
+        }
         if (url.searchParams.get("mine")) {
           const adminOk = !!env.ADMIN_KEY && String(req.headers.get("X-Admin-Key") || "") === String(env.ADMIN_KEY);
           const uid = (url.searchParams.get("uid") || "").slice(0, 40);

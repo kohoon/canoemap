@@ -11,7 +11,7 @@ function validPoint(point) {
     && Math.abs(Number(point[0])) <= 90 && Math.abs(Number(point[1])) <= 180;
 }
 function routeLines(record, trip) {
-  if (record.source === 'gpx') return record.lines || [];
+  if (record.source === 'gpx' || record.source === 'course') return record.lines || [];
   if (record.source !== 'tour' || !trip) return [];
   const points = Array.isArray(trip.track) ? trip.track : [];
   const breaks = new Set((trip.breaks || []).map(Number));
@@ -26,7 +26,7 @@ function routeLines(record, trip) {
 }
 
 export function buildDiaryBackup(record, trip = null, exportedAt = new Date().toISOString()) {
-  if (!record || !['tour', 'gpx', 'manual'].includes(record.source) || !record.id) throw new Error('저장된 다이어리를 먼저 선택해 주세요.');
+  if (!record || !['tour', 'gpx', 'manual', 'course'].includes(record.source) || !record.id) throw new Error('저장된 다이어리를 먼저 선택해 주세요.');
   if (record.source === 'tour' && !trip) throw new Error('연결된 투어 원본을 불러오지 못해 백업할 수 없습니다.');
   const tripSnapshot = trip ? {
     id: trip.id, title: trip.title, start: trip.start, end: trip.end, durSec: trip.durSec,
@@ -50,6 +50,10 @@ export function buildDiaryGpx(record, trip = null) {
   const count = lines.reduce((sum, line) => sum + line.length, 0);
   if (count < 2 || count > 20000 || lines.length > 200 || lines.some((line) => !Array.isArray(line) || line.some((point) => !validPoint(point)))) {
     throw new Error('내보낼 수 있는 이동 경로가 없습니다.');
+  }
+  if (record.source === 'course') {
+    const points = lines.flat().map((point) => `<rtept lat="${Number(point[0])}" lon="${Number(point[1])}"/>`).join('');
+    return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="CanoeMap Diary" xmlns="http://www.topografix.com/GPX/1/1"><rte><name>${xml(record.courseName || record.title || '선택한 코스')}</name>${points}</rte></gpx>\n`;
   }
   const segments = lines.filter((line) => line.length).map((line) => {
     const points = line.map((point) => {

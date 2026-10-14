@@ -42,6 +42,7 @@ test('map entry offers tour, GPX and manual without adding a crowded map button'
     await page.evaluate(() => hideGate());
     await page.locator('#tourEntry').click();
     await expect(page.locator('#diaryStartTour')).toBeVisible();
+    await expect(page.locator('#diaryChooseCourse')).toBeVisible();
     await expect(page.locator('#diaryImportGpx')).toBeVisible();
     await expect(page.locator('#diaryWriteManual')).toBeVisible();
     const diaryLink = page.locator('.tm-diary-link');
@@ -52,6 +53,47 @@ test('map entry offers tour, GPX and manual without adding a crowded map button'
     expect(errors).toEqual([]);
     await page.close();
   }
+  await b.close();
+});
+
+test('registered course can become a diary without claiming GPS tracking', async () => {
+  const b = await browser();
+  const page = await b.newPage({ viewport: { width: 390, height: 844 } });
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const course = { id: 1790000000001, owner: 'admin', name: '소양호 종주', km: 46,
+    coords: [[37.9, 127.8], [37.901, 127.801], [37.902, 127.802]] };
+  let saved;
+  await page.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'member1', tok: 'secret', nick: '테스터' })));
+  await page.route('**/mycanoe-map.kohoon0140.workers.dev/**', (route) => {
+    const request = route.request(), pathname = new URL(request.url()).pathname;
+    if (pathname === '/courses') return route.fulfill({ json: request.url().includes('diary-course=') ? [course]
+      : [{ id: course.id, owner: course.owner, name: course.name, km: course.km, pointCount: course.coords.length }] });
+    if (pathname === '/trips') return route.fulfill({ json: [] });
+    if (pathname === '/diaries') return route.fulfill({ json: { items: saved ? [saved] : [], cursor: null } });
+    if (pathname === '/diary' && request.method() === 'POST') {
+      saved = { ...request.postDataJSON(), source: 'course', id: 'c_saved', rev: 1,
+        courseName: course.name, lines: [course.coords.map((point) => [...point, null])], distanceKm: .3, visibility: 'private' };
+      return route.fulfill({ status: 201, json: saved });
+    }
+    if (pathname === '/diary' && request.method() === 'GET') return route.fulfill({ json: saved });
+    return route.fulfill({ status: 404, json: { error: 'not-found' } });
+  });
+  await page.goto(baseURL + '/diary/?start=course', { waitUntil: 'domcontentloaded' });
+  await page.locator('#courseSearch').fill('소양');
+  await page.locator('#courseList .tour-item').click();
+  await expect(page.locator('#routeKind')).toContainText('계획 경로');
+  await expect(page.locator('#warnings')).toContainText('실제');
+  await page.locator('#diaryTitle').fill('소양호를 건넌 날');
+  await page.locator('#diaryDate').fill('2026-10-12');
+  await page.locator('#diarySave').click();
+  await expect(page.locator('#saveStatus')).toContainText('비공개로 저장했습니다.');
+  expect(saved.courseId).toBe('k1790000000001');
+  await page.locator('#diaryList .tour-item').click();
+  await expect(page.locator('#diaryTitle')).toHaveValue('소양호를 건넌 날');
+  await expect(page.locator('#diaryGpx')).toHaveText('코스 경로 GPX');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
   await b.close();
 });
 

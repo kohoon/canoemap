@@ -120,7 +120,7 @@ export async function handleDiaryApi(req, env, url, memberOk) {
     if (existing) return json({ ...JSON.parse(existing), duplicate: true }, 200, origin);
   }
   const source = cleanText(body.source, 10);
-  if (!['tour', 'gpx', 'manual'].includes(source)) return json({ error: 'bad-source' }, 400, origin);
+  if (!['tour', 'gpx', 'manual', 'course'].includes(source)) return json({ error: 'bad-source' }, 400, origin);
 
   let id = importing ? '' : cleanText(body.diaryId, 100), old = null;
   if (id) {
@@ -132,7 +132,7 @@ export async function handleDiaryApi(req, env, url, memberOk) {
   }
 
   id = id || archiveId;
-  let tripId = '', track = null, trip = null;
+  let tripId = '', track = null, trip = null, course = null;
   if (source === 'tour') {
     tripId = cleanText(body.tripId || old?.tripId, 100);
     if (!/^[a-zA-Z0-9_-]{3,100}$/.test(tripId)) return json({ error: 'bad-trip' }, 400, origin);
@@ -149,24 +149,42 @@ export async function handleDiaryApi(req, env, url, memberOk) {
       startTime: old.startTime, endTime: old.endTime,
     } : normalizeLines(body.lines);
     if (!track) return json({ error: 'bad-track' }, 400, origin);
+  } else if (source === 'course') {
+    if (old) {
+      track = normalizeLines(old.lines);
+      if (!track) return json({ error: 'bad-track' }, 400, origin);
+    } else if (importing) {
+      track = normalizeLines(body.lines);
+      if (!track || !track.lines.every((line) => line.every((point) => point[2] === null))) return json({ error: 'bad-track' }, 400, origin);
+    } else {
+      const courseId = cleanText(body.courseId, 30).replace(/^k/, '');
+      if (!/^\d{13}$/.test(courseId)) return json({ error: 'bad-course' }, 400, origin);
+      let courses;
+      try { courses = JSON.parse((await kv.get('courses')) || '[]'); } catch { courses = []; }
+      course = (Array.isArray(courses) ? courses : []).find((item) => String(item?.id) === courseId);
+      if (!course) return json({ error: 'course-not-found' }, 404, origin);
+      if (String(course.owner || '') !== 'admin' && String(course.owner || '') !== uid) return json({ error: 'forbidden' }, 403, origin);
+      track = normalizeLines([Array.isArray(course.coords) ? course.coords.map((point) => [point?.[0], point?.[1], null]) : []]);
+      if (!track) return json({ error: 'bad-track' }, 400, origin);
+    }
   }
-  if (!id) id = `${source === 'gpx' ? 'g' : 'm'}_${crypto.randomUUID().replaceAll('-', '')}`;
+  if (!id) id = `${source === 'gpx' ? 'g' : source === 'course' ? 'c' : 'm'}_${crypto.randomUUID().replaceAll('-', '')}`;
   const date = validDate(body.date || old?.date || (trip?.start ? new Date(trip.start).toISOString().slice(0, 10) : ''));
   if (!date) return json({ error: 'bad-date' }, 400, origin);
   const companions = Array.isArray(body.companions) ? body.companions.slice(0, 20).map((x) => cleanText(x, 40)).filter(Boolean) : old?.companions || [];
   const userDistance = body.userDistanceKm == null || body.userDistanceKm === '' ? null : Number(body.userDistanceKm);
   const now = Date.now();
   const record = {
-    id, source, tripId, visibility: 'private', archiveSource: archiveSource || old?.archiveSource || null,
+    id, source, tripId, courseId: source === 'course' ? cleanText(old?.courseId || body.courseId, 30) : '', visibility: 'private', archiveSource: archiveSource || old?.archiveSource || null,
     archiveIdentity: archiveId || old?.archiveIdentity || null,
     title: cleanText(body.title || old?.title || trip?.title || '카누잉 기록', 80), date,
-    courseName: cleanText(body.courseName || old?.courseName || trip?.courseName, 80),
+    courseName: cleanText(course?.name || old?.courseName || body.courseName || trip?.courseName, 80),
     launch: cleanText(body.launch || old?.launch || trip?.launch?.addr, 120),
     landing: cleanText(body.landing || old?.landing || trip?.landing?.addr, 120),
     notes: cleanText(body.notes ?? old?.notes, 5000), companions,
-    lines: source === 'gpx' ? track.lines : [],
-    pointCount: source === 'gpx' ? track.pointCount : source === 'tour' ? trip.track?.length || 0 : 0,
-    distanceKm: source === 'gpx' ? track.distanceKm : source === 'tour' ? Number(trip.distKm) || 0 : Number.isFinite(userDistance) && userDistance >= 0 && userDistance <= 1000 ? userDistance : null,
+    lines: source === 'gpx' || source === 'course' ? track.lines : [],
+    pointCount: source === 'gpx' || source === 'course' ? track.pointCount : source === 'tour' ? trip.track?.length || 0 : 0,
+    distanceKm: source === 'gpx' || source === 'course' ? track.distanceKm : source === 'tour' ? Number(trip.distKm) || 0 : Number.isFinite(userDistance) && userDistance >= 0 && userDistance <= 1000 ? userDistance : null,
     startTime: source === 'gpx' ? track.startTime : source === 'tour' ? Number(trip.start) || null : null,
     endTime: source === 'gpx' ? track.endTime : source === 'tour' ? Number(trip.end) || null : null,
     restSeconds: source === 'tour' ? Number(trip.restSec) || 0 : null,

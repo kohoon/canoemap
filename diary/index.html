@@ -22,7 +22,7 @@
       <div>
         <p class="eyebrow">MY CANOEING DIARY</p>
         <h1 id="page-title">물 위의 하루를 기록하세요.</h1>
-        <p>투어 기록을 연결하거나 GPX를 가져오고, 예전 카누잉도 직접 남길 수 있습니다. 저장한 기록은 본인만 볼 수 있습니다.</p>
+        <p>투어 기록을 연결하거나 등록된 코스를 고르고, GPX와 예전 카누잉도 기록할 수 있습니다. 저장한 기록은 본인만 볼 수 있습니다.</p>
       </div>
       <div class="read-only"><span class="read-only-dot"></span><strong>나만 보는 기록</strong><small>카카오 로그인 계정에 저장되며 본인만 볼 수 있습니다.</small></div>
     </section>
@@ -40,6 +40,14 @@
           <p class="subtext">선택해 비공개 다이어리로 연결합니다.</p>
           <div id="tourStatus" class="status" role="status">회원 정보를 확인하는 중…</div>
           <div id="tourList" class="tour-list"></div>
+        </section>
+        <section class="source-group" id="courseSource">
+          <h3>등록된 코스로 기록</h3>
+          <p class="subtext">내 코스나 운영자 등록 코스를 골라 다녀온 날짜와 메모를 남깁니다. 코스 경로는 GPS 이동 기록이 아닙니다.</p>
+          <label class="course-search-label" for="courseSearch">코스 이름 검색</label>
+          <input id="courseSearch" class="course-search" type="search" placeholder="코스 이름 입력" autocomplete="off">
+          <div id="courseStatus" class="status" role="status">코스 목록을 불러오는 중…</div>
+          <div id="courseList" class="tour-list"></div>
         </section>
         <section class="source-group">
           <h3>GPX 가져오기</h3>
@@ -70,7 +78,7 @@
         <div id="emptyState" class="empty-state">
           <div class="empty-symbol" aria-hidden="true">〰</div>
           <h3>어떤 물길을 지나왔나요?</h3>
-          <p>왼쪽에서 내 투어 기록을 고르거나 GPX 파일을 선택하면 경로와 기록 요약이 여기에 표시됩니다.</p>
+          <p>투어 기록·등록 코스·GPX 중 하나를 고르거나 경로 없이 직접 작성할 수 있습니다.</p>
         </div>
         <div id="result" hidden>
           <div class="map-wrap"><div id="routeMap" role="img" aria-label="카누잉 경로 지도"></div><div class="map-key"><span class="key-line"></span><span id="mapKeyLabel">이동 트랙</span> <span class="key-dot start"></span>출발 <span class="key-dot end"></span>도착</div></div>
@@ -99,13 +107,13 @@
       <div id="diaryExport" class="export-actions" hidden>
         <b>내 기록 내려받기</b>
         <button id="diaryBackup" type="button">전체 기록 JSON</button>
-        <button id="diaryGpx" type="button">이동 경로 GPX</button>
+        <button id="diaryGpx" type="button">경로 GPX</button>
         <span id="exportStatus" role="status"></span>
         <p>JSON 백업에는 메모·동행자·정확한 GPS 경로가 포함됩니다. 타인에게 공유하지 말고 안전하게 보관하세요. 이 파일은 위의 ‘JSON 백업 복원’에서 다시 가져올 수 있습니다. 가져온 GPX 파일은 보관하지 않고 기록에 필요한 경로만 저장합니다.</p>
       </div>
       <p class="editor-help">저장 후에도 내용을 수정하거나 기록을 삭제할 수 있습니다.</p>
     </section>
-    <p class="footnote">GPX의 계획 경로는 실제 카누잉 기록으로 저장할 수 없습니다. GPS가 끊긴 구간도 이어 그리지 않습니다.</p>
+    <p class="footnote">등록 코스는 카누잉 날짜·메모와 함께 저장하지만 실제 GPS 운항 경로로 취급하지 않습니다. GPX의 계획 경로도 실제 이동 트랙으로 저장할 수 없습니다.</p>
   </main>
 </body>
 </html>

@@ -64,6 +64,22 @@ const duplicate = await call('/diary', 'POST', { source: 'tour', tripId: 'member
 assert.equal(duplicate.body.duplicate, true);
 assert.equal(duplicate.body.id, tour.body.id);
 
+await env.PLACES.put('courses', JSON.stringify([
+  { id: 1790000000001, owner: 'admin', name: '소양호 종주', coords: [[37.9, 127.8], [37.901, 127.801]] },
+  { id: 1790000000002, owner: 'member2', name: '타인 비공개 코스', coords: [[37.9, 127.8], [37.901, 127.801]] },
+]));
+const course = await call('/diary', 'POST', { source: 'course', courseId: 'k1790000000001', date: '2026-10-12', title: '종주한 날', notes: '바람이 강했다.' });
+assert.equal(course.status, 201);
+assert.equal(course.body.courseName, '소양호 종주');
+assert.equal(course.body.lines[0][0][2], null);
+assert.equal(course.body.startTime, null);
+assert.ok(course.body.distanceKm > 0);
+assert.equal((await call('/diary', 'POST', { source: 'course', courseId: 'k1790000000002', date: '2026-10-12' })).status, 403);
+const courseEdited = await call('/diary', 'POST', { source: 'course', diaryId: course.body.id, rev: course.body.rev,
+  date: '2026-10-13', title: '종주한 다음 날', notes: '메모 수정' });
+assert.equal(courseEdited.status, 200);
+assert.deepEqual(courseEdited.body.lines, course.body.lines);
+
 const archive = (record, tripSnapshot = null) => ({
   format: 'canoemap-diary-backup', version: 1, exportedAt: '2026-10-13T00:00:00Z',
   record: { ...record, visibility: 'public' }, tripSnapshot,
@@ -87,6 +103,10 @@ const gpxImport = await call('/diary-import', 'POST', archive(gpx.body));
 assert.equal(gpxImport.status, 201);
 assert.equal(gpxImport.body.lines.length, 2);
 assert.equal(gpxImport.body.distanceKm, gpx.body.distanceKm);
+const courseImport = await call('/diary-import', 'POST', archive(course.body));
+assert.equal(courseImport.status, 201);
+assert.equal(courseImport.body.source, 'course');
+assert.deepEqual(courseImport.body.lines, course.body.lines);
 const tourSnapshot = { id: 'member1_trip', track: [[37.9, 127.8, 1000], [37.901, 127.801, 61000], [37.91, 127.81, 120000], [37.911, 127.811, 180000]], breaks: [2] };
 const tourImport = await call('/diary-import', 'POST', archive(tour.body, tourSnapshot));
 assert.equal(tourImport.status, 201);
@@ -97,5 +117,5 @@ assert.equal((await call('/diary-import', 'POST', archive(tour.body, { ...tourSn
 
 assert.equal((await call(`/diary?id=${manual.body.id}`, 'DELETE')).status, 200);
 assert.equal((await call(`/diary?id=${manual.body.id}`)).status, 404);
-assert.equal((await call('/diaries')).body.items.length, 5);
+assert.equal((await call('/diaries')).body.items.length, 7);
 console.log('Private diary API: ok');

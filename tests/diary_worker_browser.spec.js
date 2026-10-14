@@ -152,6 +152,38 @@ test('invalid or another member token cannot read a private diary', async () => 
   }
 });
 
+test('registered course selection uses a small authenticated list and saves a reference route', async () => {
+  const state = await fixture(), browser = await launch();
+  await state.kv.put('courses', JSON.stringify([
+    { id: 1790000000001, owner: 'admin', name: '소양호 종주', km: 46,
+      coords: [[37.9, 127.8], [37.901, 127.801], [37.902, 127.802]] },
+    { id: 1790000000002, owner: 'anothermember', name: '타인 코스', km: 1,
+      coords: [[37.9, 127.8], [37.901, 127.801]] },
+  ]));
+  try {
+    const page = await pageWithWorker(browser, state);
+    await page.goto(`${baseURL}/diary/?start=course`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#courseList .tour-item')).toHaveCount(1);
+    await page.locator('#courseList .tour-item').click();
+    await expect(page.locator('#routeKind')).toContainText('실제 운항 아님');
+    await page.locator('#diaryDate').fill('2026-10-12');
+    await page.locator('#diarySave').click();
+    await expect(page.locator('#saveStatus')).toContainText('비공개로 저장했습니다.');
+    const recordKey = [...state.kv.values.keys()].find((key) => key.startsWith(`diary-v1:${uid}:c_`));
+    const record = JSON.parse(await state.kv.get(recordKey));
+    expect(record.source).toBe('course');
+    expect(record.courseName).toBe('소양호 종주');
+    expect(record.startTime).toBe(null);
+    expect(record.lines[0]).toHaveLength(3);
+    const pending = page.waitForEvent('download');
+    await page.locator('#diaryGpx').click();
+    const output = fs.readFileSync(await (await pending).path(), 'utf8');
+    expect(output).toContain('<rte>');
+    expect(output).not.toContain('<trk>');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally { await browser.close(); }
+});
+
 test('GPX with two track segments saves without bridging the gap on desktop', async () => {
   const state = await fixture(), browser = await launch();
   try {

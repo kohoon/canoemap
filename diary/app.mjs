@@ -11,6 +11,7 @@ let isSample = false;
 let selected = null;
 let savedRecord = null;
 let selectedTrip = null;
+let availableCourses = [];
 const params = new URLSearchParams(location.search);
 
 function user() {
@@ -70,6 +71,7 @@ function openEditor(info, record = null) {
   if (!info) return;
   $('editorTitle').textContent = record ? '비공개 다이어리 수정' : '비공개 다이어리 작성';
   $('editorSource').textContent = info.archiveSource === 'tour' ? '백업에서 가져온 별도 기록 · 원래 투어와는 연결되지 않음'
+    : info.source === 'course' ? '선택한 코스를 참고해 작성 · 표시된 경로는 실제 GPS 이동 기록이 아님'
     : info.source === 'tour' ? '카누맵 투어 기록에서 가져옴'
     : info.source === 'gpx' ? 'GPX 이동 트랙에서 가져옴' : '경로 없이 남긴 기록';
   $('diaryTitle').value = record?.title || info.title || '카누잉 기록';
@@ -83,6 +85,7 @@ function openEditor(info, record = null) {
   $('diaryDelete').hidden = !record;
   $('diaryExport').hidden = !record;
   $('diaryGpx').disabled = info.source === 'manual';
+  $('diaryGpx').textContent = info.source === 'course' ? '코스 경로 GPX' : '이동 경로 GPX';
   $('saveStatus').textContent = '';
   $('exportStatus').textContent = '';
 }
@@ -139,16 +142,20 @@ function drawRoute(preview) {
 function showPreview(preview) {
   $('emptyState').hidden = true;
   $('result').hidden = false;
-  $('sourceBadge').textContent = preview.source === 'tour' ? '카누맵 투어 기록'
+  $('sourceBadge').textContent = preview.source === 'course' ? '등록 코스 참고 기록'
+    : preview.source === 'tour' ? '카누맵 투어 기록'
     : preview.source === 'sample' ? '가상 예시 경로' : '내 기기의 GPX 미리보기';
   $('routeKind').textContent = preview.kind === 'route' ? '계획 경로 · 실제 운항 아님'
     : preview.source === 'sample' ? '가상 이동 트랙' : '실제 이동 트랙';
   $('routeKind').classList.toggle('plan', preview.kind === 'route');
+  document.querySelector('.map-key').classList.toggle('plan', preview.kind === 'route');
   $('mapKeyLabel').textContent = preview.kind === 'route' ? '계획 경로' : preview.source === 'sample' ? '가상 이동 트랙' : '이동 트랙';
   $('routeTitle').textContent = preview.title;
-  $('routeDate').textContent = preview.source === 'tour' ? '저장된 투어 기록 · 다이어리로 연결 가능'
+  $('routeDate').textContent = preview.source === 'course' ? '등록된 코스 경로 · 실제 운항 경로가 아닙니다'
+    : preview.source === 'tour' ? '저장된 투어 기록 · 다이어리로 연결 가능'
     : preview.source === 'sample' ? '가상 예시 · 실제 운항 기록 아님' : 'GPX 이동 경로';
   $('distance').textContent = `${preview.distanceKm.toFixed(2)} km`;
+  $('distance').previousElementSibling.textContent = preview.source === 'course' ? '코스 길이' : '이동 거리';
   $('elapsed').textContent = fmtDuration(preview.elapsedSeconds);
   $('pointCount').textContent = `${preview.pointCount.toLocaleString('ko-KR')}개`;
   $('startTime').textContent = fmtDate(preview.startTime);
@@ -162,7 +169,8 @@ function showPreview(preview) {
   warningBox.replaceChildren();
   const warnings = [...preview.warnings];
   if (preview.source === 'sample') warnings.unshift('화면 확인용 가상 경로입니다. 실제 카누잉·안전 판단에 사용하지 마세요.');
-  if (preview.kind === 'route') warnings.unshift('이 GPX는 계획 경로입니다. 실제 카누잉 완료 기록으로 표시하지 않습니다.');
+  if (preview.kind === 'route' && preview.source !== 'course') warnings.unshift('이 GPX는 계획 경로입니다. 실제 카누잉 완료 기록으로 표시하지 않습니다.');
+  if (preview.source === 'course') warnings.unshift('코스 선은 참고 경로입니다. 실제로 이동한 위치·시간·휴식은 기록되지 않습니다.');
   if (preview.source === 'tour' && preview.savedDistanceKm !== null
     && Math.abs(preview.savedDistanceKm - preview.distanceKm) > .1) {
     warnings.push(`저장된 거리 ${preview.savedDistanceKm.toFixed(2)} km와 미리보기 재계산 거리가 다릅니다. 원본은 변경하지 않았습니다.`);
@@ -321,6 +329,69 @@ async function loadTours() {
   }
 }
 
+function showCourse(course, record = null) {
+  const coords = Array.isArray(record?.lines) ? record.lines[0]?.map((point) => [point[0], point[1]]) : course?.coords;
+  const parts = [Array.isArray(coords) ? coords.map((point) => ({ lat: Number(point[0]), lon: Number(point[1]), time: null })) : []];
+  const title = record?.courseName || course?.name || record?.title || '등록 코스';
+  const preview = buildPreview(parts, { source: 'course', kind: 'route', title });
+  preview.courseName = title;
+  showPreview(preview);
+  openEditor({ source: 'course', courseId: record?.courseId || `k${course.id}`, courseName: title,
+    title: record?.title || title, date: record?.date || localDate() }, record);
+  $('entryWrap').hidden = true;
+}
+
+function renderCourses() {
+  const list = $('courseList');
+  list.replaceChildren();
+  const account = user();
+  const query = $('courseSearch').value.trim().toLocaleLowerCase();
+  const matched = availableCourses.filter((course) => !query || String(course.name || '').toLocaleLowerCase().includes(query));
+  for (const course of matched.slice(0, 50)) {
+    const button = document.createElement('button');
+    button.className = 'tour-item';
+    button.type = 'button';
+    const title = document.createElement('strong');
+    title.textContent = course.name || '등록 코스';
+    const meta = document.createElement('small');
+    meta.textContent = `${String(course.owner) === account?.uid ? '내 코스' : '운영자 코스'}${Number(course.km) > 0 ? ` · ${Number(course.km).toFixed(1)} km` : ''}`;
+    button.append(title, meta);
+    button.addEventListener('click', async () => {
+      document.querySelectorAll('#courseList .tour-item').forEach((item) => item.classList.remove('selected'));
+      button.classList.add('selected');
+      setStatus('courseStatus', '선택한 코스를 불러오는 중…');
+      try {
+        const params = new URLSearchParams({ 'diary-course': `k${course.id}`, uid: account.uid, tok: account.tok });
+        const response = await fetch(`${API}/courses?${params}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error('선택한 코스를 열 수 없습니다.');
+        const rows = await response.json();
+        if (!Array.isArray(rows) || !rows[0]) throw new Error('코스를 찾을 수 없습니다. 목록을 새로고침해 주세요.');
+        showCourse(rows[0]); setStatus('courseStatus', '다녀온 날짜와 실제 경험을 적어 저장하세요.');
+        $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (error) { setStatus('courseStatus', error.message || '코스를 표시할 수 없습니다.', true); }
+    });
+    list.append(button);
+  }
+  if (!matched.length && availableCourses.length) setStatus('courseStatus', '검색 결과가 없습니다.');
+  else if (matched.length) setStatus('courseStatus', `${matched.length}개 코스${matched.length > 50 ? ' · 검색어로 좁혀 주세요' : ''}`);
+}
+
+async function loadCourses() {
+  const account = user();
+  if (!account) { setStatus('courseStatus', '카카오 로그인 후 등록 코스를 고를 수 있습니다.'); return; }
+  try {
+    const query = new URLSearchParams({ selectable: '1', uid: account.uid, tok: account.tok });
+    const response = await fetch(`${API}/courses?${query}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error('코스 목록을 불러오지 못했습니다.');
+    const rows = await response.json();
+    if (!Array.isArray(rows)) throw new Error('코스 목록 형식이 올바르지 않습니다.');
+    availableCourses = rows.filter((course) => Number(course.pointCount) >= 2)
+      .sort((a, b) => Number(String(b.owner) === account.uid) - Number(String(a.owner) === account.uid) || String(a.name).localeCompare(String(b.name), 'ko'));
+    renderCourses();
+    if (!availableCourses.length) setStatus('courseStatus', '선택할 수 있는 등록 코스가 없습니다.');
+  } catch (error) { setStatus('courseStatus', error.message || '코스 목록을 불러오지 못했습니다.', true); }
+}
+
 async function loadSavedDiaries() {
   if (!user()) {
     setStatus('diaryStatus', '카카오 로그인 후 다이어리를 저장하고 다시 볼 수 있습니다.');
@@ -340,7 +411,7 @@ async function loadSavedDiaries() {
         const title = document.createElement('strong');
         title.textContent = item.title || '카누잉 기록';
         const meta = document.createElement('small');
-        meta.textContent = `${item.date || '날짜 없음'} · ${item.archiveSource === 'tour' ? '투어 백업' : item.source === 'manual' ? '수기' : item.source === 'gpx' ? 'GPX' : '투어'}${item.distanceKm != null ? ` · ${Number(item.distanceKm).toFixed(2)} km` : ''}`;
+        meta.textContent = `${item.date || '날짜 없음'} · ${item.archiveSource === 'tour' ? '투어 백업' : item.source === 'course' ? '등록 코스 참고' : item.source === 'manual' ? '수기' : item.source === 'gpx' ? 'GPX' : '투어'}${item.distanceKm != null ? ` · ${Number(item.distanceKm).toFixed(2)} km` : ''}`;
         button.append(title, meta);
         button.addEventListener('click', () => loadSavedDiary(item.id));
         list.append(button);
@@ -359,6 +430,7 @@ async function loadSavedDiary(id) {
     setStatus('diaryStatus', '기록을 여는 중…');
     const record = await diaryRequest(`/diary?id=${encodeURIComponent(id)}`);
     if (record.source === 'manual') showManual(record);
+    else if (record.source === 'course') showCourse(null, record);
     else if (record.source === 'gpx') {
       const parts = record.lines.map((part) => part.map((point) => ({ lat: point[0], lon: point[1], time: point[2] })));
       showPreview(buildPreview(parts, { source: 'gpx', kind: 'track', title: record.title }));
@@ -387,6 +459,7 @@ async function saveDiary() {
   const distance = $('diaryDistance').value.trim();
   const body = {
     source: selected.source, tripId: selected.tripId,
+    courseId: selected.courseId, courseName: selected.courseName,
     lines: selected.source === 'gpx' && !savedRecord ? selected.lines : undefined,
     diaryId: savedRecord?.id, rev: savedRecord?.rev,
     title, date, launch: $('diaryLaunch').value.trim(), landing: $('diaryLanding').value.trim(),
@@ -454,7 +527,7 @@ function exportDiary(kind) {
       $('exportStatus').textContent = '개인 백업을 내려받았습니다.';
     } else {
       downloadDiaryFile(buildDiaryGpx(savedRecord, selectedTrip), 'application/gpx+xml;charset=utf-8', 'gpx');
-      $('exportStatus').textContent = '이동 경로 GPX를 내려받았습니다.';
+      $('exportStatus').textContent = savedRecord.source === 'course' ? '참고 코스 GPX를 내려받았습니다.' : '이동 경로 GPX를 내려받았습니다.';
     }
   } catch (error) {
     $('exportStatus').textContent = error.message || '파일을 만들지 못했습니다.';
@@ -488,6 +561,7 @@ async function loadSample() {
 $('gpxFile').addEventListener('change', onFileChange);
 $('backupFile').addEventListener('change', onBackupChange);
 $('entrySelect').addEventListener('change', (event) => showFileEntry(Number(event.target.value)));
+$('courseSearch').addEventListener('input', renderCourses);
 $('sampleButton').addEventListener('click', loadSample);
 $('newManual').addEventListener('click', () => { showManual(); $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('diarySave').addEventListener('click', saveDiary);
@@ -496,5 +570,7 @@ $('diaryBackup').addEventListener('click', () => exportDiary('backup'));
 $('diaryGpx').addEventListener('click', () => exportDiary('gpx'));
 loadSavedDiaries();
 loadTours();
+loadCourses();
 if (params.get('start') === 'manual') queueMicrotask(() => $('newManual').click());
 if (params.get('start') === 'gpx') queueMicrotask(() => $('gpxFile').closest('.source-group')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+if (params.get('start') === 'course') queueMicrotask(() => $('courseSource').scrollIntoView({ behavior: 'smooth', block: 'start' }));

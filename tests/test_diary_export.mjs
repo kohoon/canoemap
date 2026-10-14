@@ -32,6 +32,13 @@ const imported = { id: 'g_track', source: 'gpx', title: 'GPX 기록', date: '202
   lines: [[[37, 127, null], [37.01, 127.01, null]], [[37.02, 127.02, null], [37.03, 127.03, null]]] };
 assert.equal((buildDiaryGpx(imported).match(/<trkseg>/g) || []).length, 2);
 assert.equal(buildDiaryBackup(imported).record.lines.length, 2);
+const course = { id: 'c_saved', source: 'course', title: '소양호를 건넌 날', courseName: '소양호 종주',
+  date: '2026-10-12', lines: [[[37, 127, null], [37.01, 127.01, null]]] };
+const courseGpx = buildDiaryGpx(course);
+assert.match(courseGpx, /<rte>/);
+assert.equal((courseGpx.match(/<rtept /g) || []).length, 2);
+assert.doesNotMatch(courseGpx, /<trk>|<trkpt/);
+assert.equal(buildDiaryBackup(course).record.courseName, '소양호 종주');
 assert.throws(() => buildDiaryGpx({ id: 'm_1', source: 'manual' }), /경로가 없는/);
 assert.throws(() => buildDiaryBackup(record), /투어 원본/);
 console.log('Diary backup and GPX export: ok');

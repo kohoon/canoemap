@@ -1216,11 +1216,13 @@ function openDiaryEntry(){
   document.getElementById('tmBody').innerHTML='<h3>🛶 카누잉 기록하기</h3>'
     +'<p class="tm-note">지금 이동 경로를 기록하거나, 이미 다녀온 날을 다이어리에 남길 수 있습니다.</p>'
     +'<button type="button" class="tm-choice pick" id="diaryStartTour">● 지금 투어 시작 <small>현재 위치부터 GPS로 기록</small></button>'
+    +'<button type="button" class="tm-choice free" id="diaryChooseCourse">〰 등록 코스로 기록 <small>기존 코스를 참고해 날짜와 경험 작성</small></button>'
     +'<button type="button" class="tm-choice free" id="diaryImportGpx">↑ GPX 가져오기 <small>다른 기기의 이동 경로 등록</small></button>'
     +'<button type="button" class="tm-choice free" id="diaryWriteManual">✎ 직접 작성 <small>경로가 없는 예전 기록도 작성</small></button>'
     +'<div class="tm-diary-footer"><a class="tm-diary-link" href="/diary/" aria-label="내 다이어리 보기 — 저장한 기록 확인 및 수정"><span class="tm-diary-link-icon" aria-hidden="true">📖</span><span class="tm-diary-link-copy"><b>내 다이어리 보기</b><small>저장한 기록 확인·수정</small></span><span class="tm-diary-link-arrow" aria-hidden="true">→</span></a></div>';
   openTModalRaw();
   document.getElementById('diaryStartTour').onclick=function(){const next=new URL(location.href);next.searchParams.set('tour','1');location.assign(next.toString());};
+  document.getElementById('diaryChooseCourse').onclick=function(){location.assign('/diary/?start=course');};
   document.getElementById('diaryImportGpx').onclick=function(){location.assign('/diary/?start=gpx');};
   document.getElementById('diaryWriteManual').onclick=function(){location.assign('/diary/?start=manual');};
 }
