@@ -405,7 +405,8 @@ __GTAG__
   .cm-row::-webkit-scrollbar-thumb{background:#c7d4df;border-radius:999px}
   .cm-ana-card{background:#fff;border:1px solid #e3ebf3;border-radius:8px;padding:8px 9px;flex:0 0 auto}
   .cm-day-card{min-width:126px;max-width:126px}
-  .cm-station-card{min-width:198px;max-width:198px}
+  .cm-station-card{min-width:240px;max-width:240px}
+  .cm-station-relation{display:inline-block;padding:2px 6px;margin-right:3px;border-radius:6px;background:#dcefe9;color:#08695e;font-size:11px;white-space:nowrap}
   .cm-ana-title{font-weight:800;font-size:12.5px;color:#1f3a34;margin-bottom:4px}
   .cm-ana-line{font-size:12.5px;color:#445;line-height:1.45;word-break:break-word}
   .cm-ana-note{margin-top:8px;font-size:12.5px;color:#23527c;background:#eaf4ff;border-radius:8px;padding:8px 9px}
@@ -3738,27 +3739,28 @@ function _wlSpark24M(s,cd){
     return get(mid,now).catch(function(){return [];}).then(function(newRows){return [oldRows,newRows];});
   }).then(function(parts){const byDay={};parts[0].concat(parts[1]).forEach(function(r){byDay[ymd(r.t)]=r;});const rows=Object.keys(byDay).map(function(k){return byDay[k];}).sort(function(a,b){return a.t-b.t;});_wlSparkCache[cd]={rows:rows,ts:Date.now()};return build(rows);}).catch(function(){return '';});
 }
-function _wlYear(cd, cur){   // 지난 1년(1D) 일자료 분포에서 현재 수위 백분위 — 게이지 + 범위
+function _wlYear(cd, cur){   // 최근 12개월 최저~최고 변동폭 중 현재 수위의 상대 위치
   if(!HRFCO_KEY||!isFinite(cur)) return Promise.resolve('');
   const build=function(vals){
     if(!vals||vals.length<60) return '';
     const mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals);
     if(mx-mn<0.01) return '';
-    const pct=Math.round(vals.filter(function(v){return v<=cur;}).length/vals.length*100);
-    const pos=Math.max(0,Math.min(100,pct));
     const rel=((cur-mn)/(mx-mn))*100;
-    const fromMin=Math.max(0,cur-mn), toMax=Math.max(0,mx-cur);
-    const lab=pct>=80?['매우 높은 편','#e53935']:pct>=60?['높은 편','#fb8c00']:pct>=20?['보통 범위','#2e7d32']:['낮은 편','#1565c0'];
+    const pos=Math.max(0,Math.min(100,rel));
+    const fromMin=cur-mn, toMax=mx-cur;
+    const minText=fromMin>=0?'최저 대비 +'+fromMin.toFixed(2)+'m':'최저보다 '+Math.abs(fromMin).toFixed(2)+'m 낮음';
+    const maxText=toMax>=0?'최고까지 '+toMax.toFixed(2)+'m':'최고보다 '+Math.abs(toMax).toFixed(2)+'m 높음';
+    const lab=rel>100?['최근 최고 초과','#e53935']:rel<0?['최근 최저 미만','#1565c0']:rel>=80?['높은 편','#e53935']:rel>=60?['다소 높은 편','#fb8c00']:rel>=20?['중간 범위','#2e7d32']:['낮은 편','#1565c0'];
     return '<div style="margin-top:7px">'
       +'<div style="position:relative;height:8px;border-radius:4px;background:linear-gradient(90deg,#90caf9,#a5d6a7,#ffcc80,#ef9a9a)">'
       +'<span style="position:absolute;left:'+pos.toFixed(1)+'%;top:-3px;transform:translateX(-50%);width:3px;height:14px;background:#263238;border-radius:2px"></span></div>'
-      +'<small style="color:#889;display:block;margin-top:2px;white-space:normal;overflow-wrap:anywhere">최근 1년 범위 '+mn.toFixed(2)+'~'+mx.toFixed(2)+'m</small>'
-      +'<div class="wl-year-meta"><b style="color:'+lab[1]+'">'+lab[0]+'</b><span>최저 대비 +'+fromMin.toFixed(2)+'m</span><span>최고 대비 -'+toMax.toFixed(2)+'m</span><span>'+rel.toFixed(0)+'% 지점</span></div></div>';
+      +'<small style="color:#667;display:block;margin-top:2px;white-space:normal;overflow-wrap:anywhere">최근 12개월 '+mn.toFixed(2)+'~'+mx.toFixed(2)+'m</small>'
+      +'<div class="wl-year-meta"><b style="color:'+lab[1]+'">현재 '+lab[0]+'</b><span>변동폭의 '+rel.toFixed(0)+'% 위치</span><span>'+minText+'</span><span>'+maxText+'</span></div></div>';
   };
   const c=_wlYrCache[cd];
   if(c && Date.now()-c.ts<3600000) return Promise.resolve(build(c.vals));
   function ymd(d){ return d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2); }
-  const now=new Date(), from=new Date(now.getTime()-365*86400000);
+  const now=new Date(), from=new Date(now.getFullYear()-1,now.getMonth(),now.getDate());
   return fetch('https://api.hrfco.go.kr/'+HRFCO_KEY+'/waterlevel/list/1D/'+cd+'/'+ymd(from)+'/'+ymd(now)+'.json')
     .then(function(r){return r.json();})
     .then(function(j){ const vals=(j.content||[]).map(function(x){return parseFloat(x.wl);}).filter(isFinite);
@@ -4923,15 +4925,11 @@ function _coursePointMinKm(pt, coords){
   coords.forEach(function(p){ const d=_haversineKm(pt,p); if(d<best) best=d; });
   return best;
 }
-function _courseStationRank(coords, limit){
-  const list=(WLSTN||[]).map(function(s){
-    const pt=[+s.lat,+s.lng];
-    let d=_coursePointMinKm(pt, coords);
-    return {s:s, d:d};
-  }).filter(function(x){ return isFinite(x.d); }).sort(function(a,b){ return a.d-b.d; });
-  const seen=new Set(), out=[];
-  list.forEach(function(x){ if(out.length>=limit) return; if(seen.has(String(x.s.cd))) return; seen.add(String(x.s.cd)); out.push(x); });
-  return out;
+function _courseStationRank(course, limit){
+  if(!_routeRiverPromise)_routeRiverPromise=fetch('rivers.geojson?v='+DATAVER.rivers).then(function(r){if(!r.ok)throw 0;return r.json();}).catch(function(){return {features:[]};});
+  return Promise.all([import('/assets/course-stations.mjs?v=20261014'),_routeRiverPromise]).then(function(parts){
+    return parts[0].rankCourseStations(course,WLSTN,parts[1].features,{maxResults:limit});
+  }).catch(function(){return [];});
 }
 function _stageRank(label){ return label==='심각'?4:label==='경계'?3:label==='주의'?2:label==='관심'?1:0; }
 function _trendClass(d){ return d>0.03?'up':(d<-0.03?'down':'flat'); }
@@ -4970,14 +4968,11 @@ async function renderCourseAnalysis(course,targetId){
   const seq=++_courseAnalysisSeq;
   const center=_courseCenter(coords);
   box.innerHTML='<div class="cm-analysis-h"><span>코스 분석 <span class="beta-tag">BETA</span></span><button type="button" class="cm-analysis-close" onclick="toggleCourseAnalysis()" title="닫기">×</button></div><div class="cm-ana-line">분석 중…</div>';
-  const stations=_courseStationRank(coords, 3);
-  if(!stations.length){
-    box.innerHTML='<div class="cm-analysis-h"><span>코스 분석 <span class="beta-tag">BETA</span></span><button type="button" class="cm-analysis-close" onclick="toggleCourseAnalysis()" title="닫기">×</button></div><div class="cm-ana-line">주변 수위관측소를 찾지 못했습니다.</div>';
-    return;
-  }
+  const stationP=_courseStationRank(course, 6);
   const wxP=center?fetchWeatherData(center.lat, center.lng):Promise.resolve(null);
-  const wlPs=stations.map(function(x){ return Promise.all([_wlGet(x.s), _wlRecentTrend(x.s.cd)]).then(function(arr){
-    return {station:x.s, dist:x.d, rec:arr[0], tr:arr[1]};
+  const stations=await stationP;
+  const wlPs=stations.map(function(x){ return Promise.all([_wlGet(x.station), _wlRecentTrend(x.station.cd)]).then(function(arr){
+    return {station:x.station,relation:x.relation,dist:x.distanceKm,rec:arr[0],tr:arr[1]};
   }); });
   const [wx, rows]=await Promise.all([wxP, Promise.all(wlPs)]);
   if(seq!==_courseAnalysisSeq) return;
@@ -4994,17 +4989,20 @@ async function renderCourseAnalysis(course,targetId){
         +'<div class="cm-ana-line"><b>'+lbl+'</b> · '+(dr===2?'강수/풍속이 높은 편':dr===1?'비·바람 영향 가능':'현재 조건상 안정적')+'</div></div>';
     }).join('');
   }
-  const cards=rows.map(function(x){
+  const cards=rows.map(function(x,i){
     const s=x.station, rec=x.rec||{}, tr=x.tr||null;
     const level=(rec&&isFinite(parseFloat(rec.wl)))?parseFloat(rec.wl):NaN;
     const st=_wlStage(level, s); risk=Math.max(risk,_stageRank(st[0]));
     const extra=tr&&isFinite(tr.delta)?(' · '+_fmtDelta(tr.delta)):'';
-    return '<div class="cm-ana-card cm-station-card"><div class="cm-ana-title">'+pmEsc(s.nm||'수위관측소')+' · '+x.dist.toFixed(1)+'km</div>'
+    return '<div class="cm-ana-card cm-station-card"><div class="cm-ana-title"><span class="cm-station-relation">'+pmEsc(x.relation)+'</span> '+pmEsc(s.nm||'수위관측소')+'</div>'
+      +'<div class="cm-ana-line">'+(x.relation==='코스 내'?'코스와 '+x.dist.toFixed(1)+'km':x.relation+' 쪽 물길 '+x.dist.toFixed(1)+'km')+'</div>'
       +'<div class="cm-ana-line"><b style="color:'+st[1]+'">'+st[0]+'</b> '
       +(isFinite(level)?level.toFixed(2)+'m':'값 없음')+extra
       +(st[0]!=='정상'?' · 기준 '+(s.att||'-')+' / '+(s.wrn||'-')+' / '+(s.alm||'-')+' / '+(s.srs||'-'):'')
       +'</div>'
+      +(rec&&rec.t?'<div class="cm-ana-line">'+pmEsc(_wlTime(rec.t))+' 관측</div>':'')
       +(tr&&isFinite(tr.delta)?'<div class="cm-ana-line" style="color:#778">24시간 범위 '+tr.min.toFixed(2)+'~'+tr.max.toFixed(2)+'m</div>':'')
+      +'<div class="cm-ana-line" data-course-year="'+i+'">최근 12개월 수위 불러오는 중…</div>'
       +'</div>';
   }).join('');
   const verdict=_courseVerdict(Math.max(risk,wxRisk), wx);
@@ -5015,7 +5013,16 @@ async function renderCourseAnalysis(course,targetId){
     +(wxLine||'')
     +'<div class="cm-ana-card"><div class="cm-ana-title">판정</div><div class="cm-ana-line"><b>'+(verdict.label)+'</b> · '+verdict.note+'</div></div>'
     +(dailyCards?'<div class="cm-row-hint"><span>7일 예보</span><span>← 좌우로 스크롤 →</span></div><div class="cm-row">'+dailyCards+'</div>':'')
-    +'<div class="cm-row-hint"><span>주변 수위관측소</span><span>← 좌우로 스크롤 →</span></div><div class="cm-row">'+cards+'</div>';
+    +'<div class="cm-row-hint"><span>코스 물길 수위관측소</span><span>← 좌우로 스크롤 →</span></div>'
+    +(cards?'<div class="cm-row">'+cards+'</div><div class="cm-ana-line">상·하류는 코스 출발→도착 방향 기준 추정입니다. 12개월 위치는 안전 기준이 아니며 실제 유향·현장 상황을 확인하세요.</div>':'<div class="cm-ana-line">같은 물길로 확인되는 수위관측소가 없습니다.</div>');
+  rows.forEach(function(x,i){
+    const level=parseFloat(x.rec&&x.rec.wl),cd=(x.rec&&x.rec.cd)||x.station.cd;
+    _wlYear(cd,level).then(function(html){
+      if(seq!==_courseAnalysisSeq)return;
+      const el=box.querySelector('[data-course-year="'+i+'"]');
+      if(el)el.innerHTML=html||'최근 12개월 수위 자료 부족';
+    });
+  });
 }
 function closeCourseModal(){ document.getElementById('courseModal').classList.remove('open'); }
 function _splitCourse(name){   // 이름 -> {cat, no, desc}
