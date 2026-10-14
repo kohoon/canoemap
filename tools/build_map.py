@@ -1920,7 +1920,7 @@ async function vworldDistrictSearch(q){
     try{
       const d=await vworldJsonp('/req/search',{service:'search',request:'search',version:'2.0',size:'30',page:'1',query:q,type:'district',category:level,format:'json',crs:'EPSG:4326'},9000);
       const r=d&&d.response,it=r&&r.status==='OK'&&r.result&&r.result.items;
-      const mapped=(it||[]).map(function(x){const title=_cleanSearchText(x.title||''),leaf=_adminLeaf(title),p=x.point||{};return {kind:'admin',adminLevel:level,adminId:String(x.id||''),label:'🗺️ '+leaf,sub:title+' · '+_adminLevelLabel(level,leaf),disp:title,lat:+p.y,lng:+p.x};}).filter(function(x){return isFinite(x.lat)&&isFinite(x.lng)&&_adminLeaf(x.disp);});
+      const mapped=(it||[]).map(function(x){const title=_cleanSearchText(x.title||''),leaf=_adminLeaf(title),p=x.point||{};return {kind:'admin',adminLevel:level,adminId:String(x.id||''),label:'🗺️ '+leaf,sub:title+' · '+_adminLevelLabel(level,leaf),disp:title,lat:+p.y,lng:+p.x};}).filter(function(x){const leaf=_adminLeaf(x.disp);return isFinite(x.lat)&&isFinite(x.lng)&&leaf&&(level!=='L4'||/리$/.test(leaf));});
       // 수원시·청주시처럼 일반구로 분할된 시는 여러 구 경계를 하나의 시 결과로 묶는다.
       if(level==='L2'){
         const cityGroups={};mapped.forEach(function(x){const parts=x.disp.split(/\s+/),leaf=parts[parts.length-1],city=parts.slice(0,-1).reverse().find(function(p){return /시$/.test(p);});if(!/구$/.test(leaf)||!city)return;const cityN=city.replace(/\s/g,'').toLowerCase();if(cityN.indexOf(nq)<0)return;const i=parts.indexOf(city),full=parts.slice(0,i+1).join(' ');(cityGroups[full]||(cityGroups[full]=[])).push(x);});

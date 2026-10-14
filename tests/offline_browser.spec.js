@@ -2217,6 +2217,27 @@ test('short measure links load the stored path and legacy links still decode', a
   await browser.close();
 });
 
+test('Gwain-myeon is not mislabeled as a legal ri', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const rows = await page.evaluate(async () => {
+    const original = vworldJsonp;
+    try {
+      vworldJsonp = async (_path, params) => ({ response: { status: ['L3', 'L4'].includes(params.category) ? 'OK' : 'NOT_FOUND', result: { items: ['L3', 'L4'].includes(params.category) ? [
+        { id: params.category, title: '경기도 포천시 관인면', point: { x: '127.234427', y: '38.123743' } },
+      ] : [] } } });
+      return (await vworldDistrictSearch('관인면')).map((row) => ({ name: row.disp, level: row.adminLevel }));
+    } finally { vworldJsonp = original; }
+  });
+  expect(rows).toEqual([{ name: '경기도 포천시 관인면', level: 'L3' }]);
+  await context.close();
+  await browser.close();
+});
+
 test('administrative district search highlights real boundaries on desktop and mobile', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
