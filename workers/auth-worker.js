@@ -20,6 +20,12 @@ import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
 import { accessDayWindow, appendMemberAccess, dailyMemberAccess } from "./access-history.mjs";
 import { handleDiaryApi } from "./diary-api.mjs";
 
+// 배포에 포함된 전체 경로 JPEG. KV 미리보기가 없는 기존 공개 코스의 공유 카드에 사용한다.
+const BUNDLED_COURSE_PREVIEW_IDS = new Set([
+  ...Object.keys(STATIC_COURSE_SHARE),
+  "k1782028261325", "k1790337080336", "k1789437978827", "k1783312681276",
+]);
+
 /**
  * Cloudflare Worker — 카카오 로그인 OAuth 콜백.
  * 정적 사이트는 토큰 교환을 직접 못 하므로 이 Worker가 대신 처리한다.
@@ -423,17 +429,12 @@ export default {
       const preview = await _coursePreviewRecord(env.PLACES, id, course.name);
       const site = new URL(env.SITE_URL || "https://canoe.crowdbase.kr/");
       site.searchParams.set("course", id);
-      const round = expeditionNumber(course, id);
-      const sticker = round ? _expeditionImage(site, round) : null;
-      const imageUrl = sticker ? sticker.imageUrl : id === "k1789437978827"
-        ? new URL("assets/course-previews/k1789437978827.jpg", site).toString()
-        : id === "k1783312681276"
-        ? new URL("assets/course-previews/k1783312681276.jpg", site).toString()
-        : preview
+      const imageUrl = preview
         ? url.origin + "/course-preview/" + encodeURIComponent(id) + ".jpg?v=" + encodeURIComponent(preview.v)
-        : new URL("og.png", env.SITE_URL || "https://canoe.crowdbase.kr/").toString();
-      const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl,
-        ...(sticker || {}) });
+        : BUNDLED_COURSE_PREVIEW_IDS.has(id)
+        ? new URL("assets/course-previews/" + id + ".jpg", site).toString()
+        : new URL("og.png", site).toString();
+      const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl });
       return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60" } });
     }
 
@@ -443,10 +444,11 @@ export default {
       const id = normalizeCourseShareId(coursePreviewMatch[1]);
       const course = await _courseShareRecord(env, id);   // 삭제·숨김 코스는 식별자가 남아도 현재 코스로 보지 않는다.
       if (!course) return new Response("not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
-      if (id === "k1789437978827") return Response.redirect(new URL("assets/course-previews/k1789437978827.jpg", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
-      if (id === "k1783312681276") return Response.redirect(new URL("assets/course-previews/k1783312681276.jpg", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
       const preview = await _coursePreviewRecord(env.PLACES, id, course.name);
-      if (!preview) return Response.redirect(new URL("og.png", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
+      if (!preview) return Response.redirect(new URL(
+        BUNDLED_COURSE_PREVIEW_IDS.has(id) ? "assets/course-previews/" + id + ".jpg" : "og.png",
+        env.SITE_URL || "https://canoe.crowdbase.kr/"
+      ).toString(), 302);
       const bytes = Uint8Array.from(atob(preview.b64), (c) => c.charCodeAt(0));
       return new Response(bytes, { headers: {
         "Content-Type": "image/jpeg",

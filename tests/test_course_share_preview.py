@@ -80,7 +80,7 @@ class CourseSharePreviewTests(unittest.TestCase):
         self.assertIn('await _memberOk(env, uid, body.tok)', worker)
         self.assertIn('course.owner === uid', worker)
 
-    def test_expedition_links_use_stickers_and_open_course_details(self):
+    def test_expedition_links_keep_stickers_but_course_links_use_full_map(self):
         script = textwrap.dedent("""
             import worker from './workers/auth-worker.js';
             const courses = [
@@ -94,7 +94,10 @@ class CourseSharePreviewTests(unittest.TestCase):
               output.push({status:response.status,html:await response.text()});
             }
             const direct=await worker.fetch(new Request('https://worker.example/c/k1790000000011'),env,{});
-            console.log(JSON.stringify({output,direct:await direct.text()}));
+            const bundled=await worker.fetch(new Request('https://worker.example/c/k1790337080336'),
+              {...env,PLACES:{get:async key => key==='courses' ? JSON.stringify([...courses,
+                {id:1790337080336,owner:'admin',name:'마이카누 엑스페디션 #11 · 북한강 · 구만오월길',km:25.13,t:3}]) : null}},{});
+            console.log(JSON.stringify({output,direct:await direct.text(),bundled:await bundled.text()}));
         """)
         result = subprocess.run(["node", "--input-type=module", "-e", script], cwd=ROOT,
                                 check=True, capture_output=True, text=True)
@@ -105,8 +108,20 @@ class CourseSharePreviewTests(unittest.TestCase):
             self.assertIn(f"assets/expedition/expedition_{n:02d}.{extension}", row["html"])
             self.assertIn("&amp;detail=1", row["html"])
             self.assertIn(f"마이카누 엑스페디션 #{n}", row["html"])
-        self.assertIn("assets/expedition/expedition_11.png", payload["direct"])
-        self.assertIn('property="og:image:type" content="image/png"', payload["direct"])
+        self.assertIn("og.png", payload["direct"])
+        self.assertNotIn("assets/expedition/expedition_11.png", payload["direct"])
+        self.assertIn('assets/course-previews/k1790337080336.jpg', payload["bundled"])
+        self.assertIn('property="og:image:type" content="image/jpeg"', payload["bundled"])
+
+    def test_bundled_course_previews_exist(self):
+        ids = json.loads((ROOT / "data/course_ids.json").read_text(encoding="utf-8"))["ids"]
+        features = json.loads((ROOT / "data/courses.geojson").read_text(encoding="utf-8"))["features"]
+        expected = {str(ids[feature["properties"]["name"]]) for feature in features}
+        expected.update({"k1782028261325", "k1790337080336", "k1789437978827", "k1783312681276"})
+        for course_id in expected:
+            image = ROOT / "assets" / "course-previews" / f"{course_id}.jpg"
+            self.assertTrue(image.exists(), course_id)
+            self.assertEqual(image.read_bytes()[:3], b"\xff\xd8\xff", course_id)
 
 
 if __name__ == "__main__":
