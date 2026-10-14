@@ -69,19 +69,19 @@ const privateCourse={id:1,owner:'user',name:'엑스페디션#1 개인 코스'};
 process.stdout.write(JSON.stringify({rows,privateCourse:normalizeExpedition(privateCourse,'k1'),staticCourse:normalizeExpedition({static:true,id:2,name:'이전 이름'},'2')}));'''
   d=json.loads(subprocess.check_output(['node','--input-type=module','-e',script],cwd=ROOT,text=True))
   self.assertEqual(len(d['rows']),11)
-  self.assertEqual(d['rows'][-1]['name'],'엑스페디션 #11 · 북한강 · 구만오월길')
+  self.assertEqual(d['rows'][-1]['name'],'마이카누 엑스페디션 #11 · 북한강 · 구만오월길')
   for i,c in enumerate(d['rows'],1):
-   self.assertTrue(c['name'].startswith(f'엑스페디션 #{i} · '));self.assertEqual(c['coords'],[[38,127],[37,126]]);self.assertEqual(c['km'],25.13)
+   self.assertTrue(c['name'].startswith(f'마이카누 엑스페디션 #{i} · '));self.assertEqual(c['coords'],[[38,127],[37,126]]);self.assertEqual(c['km'],25.13)
   self.assertEqual(d['privateCourse']['name'],'엑스페디션#1 개인 코스')
-  self.assertEqual(d['staticCourse']['name'],'엑스페디션 #2 · 남한강 · 장회서창길')
+  self.assertEqual(d['staticCourse']['name'],'마이카누 엑스페디션 #2 · 남한강 · 장회서창길')
 
  def test_twelfth_expedition_name_has_space_before_number(self):
   script="import {normalizeExpedition} from './workers/expedition.mjs'; console.log(normalizeExpedition({id:12,owner:'admin',name:'엑스페디션#12 소양호'},'k12').name);"
   actual=subprocess.check_output(['node','--input-type=module','-e',script],cwd=ROOT,text=True).strip()
-  self.assertEqual(actual,'엑스페디션 #12 소양호')
+  self.assertEqual(actual,'마이카누 엑스페디션 #12 소양호')
   browser_source=(ROOT/'tools/build_map.py').read_text()
   self.assertIn("(cat==='엑스페디션'?' #':'#')+no",browser_source)
-  self.assertIn("'엑스페디션 #12'",browser_source)
+  self.assertIn("'마이카누 엑스페디션 #12'",browser_source)
 
  def test_korean_date_punctuation_and_ranges(self):
   source=(ROOT/'tools/build_map.py').read_text()

@@ -111,7 +111,7 @@ async function _coursePreviewRecord(KV, id, courseName) {
     const parsed = JSON.parse((await KV.get(key)) || "null");
     if (!parsed || !/^[A-Za-z0-9+/=]+$/.test(String(parsed.b64 || ""))) return null;
     if (!coursePreviewVersionIsCurrent(id, parsed.v)) return null;
-    if (/^엑스페디션 #[0-9]+ · /.test(courseName || "") && parsed.name !== courseName) return null;
+    if (/^(?:마이카누 )?엑스페디션 #[0-9]+ · /.test(courseName || "") && parsed.name !== courseName) return null;
     return { b64: String(parsed.b64), v: String(parsed.v || "0").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32) || "0" };
   } catch (e) { return null; }
 }
@@ -1414,7 +1414,7 @@ export default {
           const userOk = !!uid && await _memberOk(env, uid, url.searchParams.get("tok"));
           if (!userOk) return J("[]");
           arr = arr.filter((x) => String(x.owner || "") === "admin" && (
-            String(x.name || "").startsWith("엑스페디션") ||
+            /^(?:마이카누\s+)?엑스페디션/.test(String(x.name || "")) ||
             (!!url.searchParams.get("featured") && /^번버리(?: 픽|Pick)(?=\s|$)/.test(String(x.name || "")))
           ));
           return new Response(JSON.stringify(arr), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
@@ -1504,7 +1504,7 @@ export default {
           if (matches.length !== 1) return new Response("course-conflict", { status: 409, headers: cors });
           const it = matches[0], originalOwner = String(it.owner || "");
           if (!originalOwner || originalOwner === "admin" || await _memberId(env, originalOwner) !== ownerId ||
-              String(it.nick || "").trim() !== "번버리" || !/^엑스페디션\s*#\s*12(?!\d)/.test(String(it.name || "")) ||
+              String(it.nick || "").trim() !== "번버리" || !/^(?:마이카누\s+)?엑스페디션\s*#\s*12(?!\d)/.test(String(it.name || "")) ||
               String(it.name || "") !== String(b.expectedName || "")) return new Response("course-conflict", { status: 409, headers: cors });
           const at = Date.now(), auditKey = "course_transfer:" + at + ":" + courseId;
           await KV.put(auditKey, JSON.stringify({ at, courseId, ownerId, before: it }));

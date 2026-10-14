@@ -38,7 +38,7 @@ test('expedition direct links open the course detail on desktop and mobile', asy
     await page.route('**/comments?*', route => route.fulfill({ json: { comments: [] } }));
     await page.goto(baseURL + '/?course=1&detail=1', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#pmodal')).toHaveClass(/open/, { timeout: 10000 });
-    await expect(page.locator('#pmTitle')).toContainText('엑스페디션 #1');
+    await expect(page.locator('#pmTitle')).toContainText('마이카누 엑스페디션 #1');
     await page.close();
   }
   await browser.close();
@@ -56,7 +56,32 @@ test('registered expedition direct link opens its detail after loading the route
   await page.route('**/comments?*', route => route.fulfill({ json: { comments: [] } }));
   await page.goto(baseURL + '/?course=k1790000000011&detail=1', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#pmodal')).toHaveClass(/open/, { timeout: 10000 });
-  await expect(page.locator('#pmTitle')).toContainText('엑스페디션 #11');
+  await expect(page.locator('#pmTitle')).toContainText('마이카누 엑스페디션 #11');
+  await browser.close();
+});
+
+test('official expedition label fits the desktop filter and mobile legend', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const width of [390, 1280]) {
+    const page = await browser.newPage({ viewport: { width, height: 844 }, isMobile: width < 500, hasTouch: width < 500 });
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => hideGate());
+    const label = width < 500
+      ? page.locator('.lc-course-options label').filter({ hasText: '마이카누 엑스페디션' })
+      : page.locator('#pcDock [data-filter="expedition"]');
+    if (width < 500) await page.locator('.lc-title').click();
+    await expect(label).toBeVisible();
+    const bounds = await label.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, scrollWidth: el.scrollWidth, clientWidth: el.clientWidth };
+    });
+    expect(bounds.left).toBeGreaterThanOrEqual(0);
+    expect(bounds.right).toBeLessThanOrEqual(width);
+    expect(bounds.scrollWidth).toBeLessThanOrEqual(bounds.clientWidth + 1);
+    await page.close();
+  }
   await browser.close();
 });
 
@@ -1011,7 +1036,7 @@ test('members see curated expedition courses by default', async () => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith('/profile') && route.request().method() === 'GET') {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, profile: { memberId: 'member-123', nick: '회원', onboardingVersion: 1 } }) });
-    } else if (url.pathname.endsWith('/courses') && url.searchParams.has('expedition')) {
+    } else if (url.pathname.endsWith('/courses') && url.searchParams.has('featured')) {
       expeditionRequest = Object.fromEntries(url.searchParams.entries());
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([
         { id: 'admin-expedition', owner: 'admin', name: '엑스페디션#20 테스트', km: 1.2, coords: [[37.1, 127.1], [37.11, 127.11]] },
@@ -1029,7 +1054,7 @@ test('members see curated expedition courses by default', async () => {
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => _courseStaticReady && _courseKvReady && !!_kvCourses['admin-expedition'], null, { timeout: 10000 });
-  expect(expeditionRequest).toMatchObject({ expedition: '1', uid: 'member-123', tok: 'member-token' });
+  expect(expeditionRequest).toMatchObject({ featured: '1', uid: 'member-123', tok: 'member-token' });
   const initial = await page.evaluate(() => {
     const visibility = (entry) => entry && entry.grp.hasLayer(entry.l);
     const expedition = Array.from(_staticExpeditionCids).flatMap((cid) => _staticCidLayers[cid] || []);

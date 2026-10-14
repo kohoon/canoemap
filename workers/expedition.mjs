@@ -15,12 +15,13 @@ export function expeditionNumber(course, shareId){
   const id=String(shareId||'');
   if(course.static||id&&id.charAt(0)!=='k')return /^[1-9]$/.test(id||String(course.id))?Number(id||course.id):0;
   if(String(course.owner||'')!=='admin')return 0;
-  const match=String(course.name||'').match(/^엑스페디션\s*#\s*(\d+)(?!\d)/);
+  const match=String(course.name||'').match(/^(?:마이카누\s+)?엑스페디션\s*#\s*(\d+)(?!\d)/);
   const n=match?Number(match[1]):0;
   return EXPEDITIONS[n]?n:0;
 }
 export function normalizeExpedition(course, shareId){
   if(!course)return course;
   const n=expeditionNumber(course,shareId),meta=EXPEDITIONS[n];
-  return meta?{...course,name:'엑스페디션 #'+n+' · '+meta[0]+' · '+meta[1]}:{...course,name:String(course.name||'').replace(/^엑스페디션\s*#\s*12(?=\D|$)/,'엑스페디션 #12').replace(/^번버리(?: 픽|Pick)(?=\s|$)/,'번버리Pick')};
+  const name=String(course.name||'');
+  return meta?{...course,name:'마이카누 엑스페디션 #'+n+' · '+meta[0]+' · '+meta[1]}:{...course,name:(course.static||String(course.owner||'')==='admin'?name.replace(/^(?:마이카누\s+)?엑스페디션(?=\s*#|\s|$)/,'마이카누 엑스페디션').replace(/^마이카누 엑스페디션\s*#\s*12(?=\D|$)/,'마이카누 엑스페디션 #12'):name).replace(/^번버리(?: 픽|Pick)(?=\s|$)/,'번버리Pick')};
 }

@@ -104,6 +104,7 @@ class CourseSharePreviewTests(unittest.TestCase):
             extension = "jpg" if n in (2, 3, 4, 5, 9) else "png"
             self.assertIn(f"assets/expedition/expedition_{n:02d}.{extension}", row["html"])
             self.assertIn("&amp;detail=1", row["html"])
+            self.assertIn(f"마이카누 엑스페디션 #{n}", row["html"])
         self.assertIn("assets/expedition/expedition_11.png", payload["direct"])
         self.assertIn('property="og:image:type" content="image/png"', payload["direct"])
 

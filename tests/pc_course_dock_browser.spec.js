@@ -216,7 +216,7 @@ test('clicking a course line on the PC map opens its full detail', async () => {
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => { hideGate(); courseCmt('c', '1', true); });
   await expect(page.locator('#pmodal')).toBeVisible();
-  await expect(page.locator('#pcCourseDetail strong')).toContainText('엑스페디션');
+  await expect(page.locator('#pcCourseDetail strong')).toContainText('마이카누 엑스페디션');
   await browser.close();
 });
 
