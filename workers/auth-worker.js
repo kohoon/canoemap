@@ -12,6 +12,7 @@ import {
   publicMemberSummary,
 } from "./member-security.mjs";
 import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
+import { normalizeRiverShare, riverShareHtml, riverShareId } from "./river-share.mjs";
 import { MEASURE_SHARE_CORRECTIONS } from "./measure-share-corrections.mjs";
 import { coursePreviewKey, courseShareHtml, normalizeCourseShareId } from "./course-share.mjs";
 import { applyCourseCorrection, coursePreviewVersionIsCurrent } from "./course-corrections.mjs";
@@ -408,6 +409,57 @@ export default {
     // B: 쓰기성 POST는 우리 사이트 Origin에서만(타 사이트 브라우저 JS 차단). Origin 없으면 통과(이미지/툴).
     if (req.method === "POST" && !_allowedOrigin(req, env)) {
       return new Response("forbidden-origin", { status: 403, headers: { "Access-Control-Allow-Origin": req.headers.get("Origin") || "*" } });
+    }
+
+    // 물줄기별 지도 이미지가 포함된 공유 카드. 기존 ?river= 링크는 그대로 유지한다.
+    const riverShareMatch = url.pathname.match(/^\/r\/(r[0-9a-f]{20})\/?$/);
+    if (riverShareMatch && req.method === "GET") {
+      const raw = await env.PLACES?.get("river_share:" + riverShareMatch[1]);
+      if (!raw) return new Response("river not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
+      let record = null; try { record = JSON.parse(raw); } catch (e) {}
+      const river = normalizeRiverShare(record);
+      if (!river || !record.b64) return new Response("invalid river", { status: 404 });
+      const site = new URL(env.SITE_URL || "https://canoe.crowdbase.kr/");
+      site.searchParams.set("river", river.name);
+      site.searchParams.set("riverAt", river.lat.toFixed(5) + "," + river.lng.toFixed(5));
+      const imageUrl = url.origin + "/river-preview/" + riverShareMatch[1] + ".jpg?v=" + encodeURIComponent(record.v || "1");
+      return new Response(riverShareHtml({ name: river.name, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl }), {
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60" },
+      });
+    }
+    const riverPreviewMatch = url.pathname.match(/^\/river-preview\/(r[0-9a-f]{20})\.jpg$/);
+    if (riverPreviewMatch && req.method === "GET") {
+      const raw = await env.PLACES?.get("river_share:" + riverPreviewMatch[1]);
+      if (!raw) return new Response("not found", { status: 404 });
+      let record = null; try { record = JSON.parse(raw); } catch (e) {}
+      if (!record?.b64) return new Response("not found", { status: 404 });
+      const bytes = Uint8Array.from(atob(record.b64), (c) => c.charCodeAt(0));
+      return new Response(bytes, { headers: {
+        "Content-Type": "image/jpeg", "Content-Length": String(bytes.byteLength),
+        "Cache-Control": url.searchParams.get("v") === record.v ? "public, max-age=31536000, immutable" : "public, max-age=300",
+        "Access-Control-Allow-Origin": "*",
+      } });
+    }
+    if (url.pathname === "/river-share") {
+      const origin = req.headers.get("Origin") || "*";
+      const cors = { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
+      const J = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
+      if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+      if (req.method !== "POST") return J({ ok: false, error: "method" }, 405);
+      if (!env.PLACES) return J({ ok: false, error: "no-store" }, 500);
+      const ip = req.headers.get("CF-Connecting-IP") || "0";
+      if (await _rateLimited(env, "river_share", ip, 12)) return J({ ok: false, error: "rate-limit" }, 429);
+      let body = {}; try { body = await req.json(); } catch (e) {}
+      const uid = String(body.uid || "").slice(0, 40);
+      const adminOk = !!env.ADMIN_KEY && _safeEqual(String(body.adminKey || ""), String(env.ADMIN_KEY));
+      const memberOk = !!uid && await _memberOk(env, uid, body.tok);
+      if (!adminOk && !memberOk) return J({ ok: false, error: "forbidden" }, 403);
+      const river = normalizeRiverShare(body);
+      const match = String(body.img || "").match(/^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/);
+      if (!river || !match || match[1].length < 100 || match[1].length > 950000 || !match[1].startsWith("/9j/")) return J({ ok: false, error: "bad-river" }, 400);
+      const id = await riverShareId(river), version = Date.now().toString(36);
+      await env.PLACES.put("river_share:" + id, JSON.stringify({ ...river, b64: match[1], v: version }));
+      return J({ ok: true, id, url: url.origin + "/r/" + id });
     }
 
     // 회차별 고정 주소: 스티커 미리보기와 코스 상세창으로 이동한다.

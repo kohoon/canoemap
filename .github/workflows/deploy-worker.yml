@@ -64,6 +64,9 @@ jobs:
       - name: Verify notice writes and immediate reads
         run: node tests/test_notices_worker.mjs
 
+      - name: Verify river share preview
+        run: node tests/test_river_share.mjs
+
       - name: Deploy Cloudflare Worker
         run: npx --yes wrangler deploy --config wrangler.toml
         env:

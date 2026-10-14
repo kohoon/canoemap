@@ -4070,12 +4070,47 @@ function _riverRegionLabel(lat,lng){
 }
 function clearRiverSearch(keepUrl){_riverPopupSeq++;_riverSearchFocus.clearLayers();if(_riverPopup){map.closePopup(_riverPopup);_riverPopup=null;}const d=document.getElementById('riverFocusBar');if(d)d.classList.remove('on');if(!keepUrl){const u=new URL(location.href);if(u.searchParams.has('river')||u.searchParams.has('riverAt')){u.searchParams.delete('river');u.searchParams.delete('riverAt');history.replaceState(null,'',u.pathname+(u.searchParams.toString()?'?'+u.searchParams.toString():'')+u.hash);}}}
 function riverShareUrl(name,lat,lng){const u=new URL(location.href);u.searchParams.delete('course');u.searchParams.set('river',name);if(isFinite(lat)&&isFinite(lng))u.searchParams.set('riverAt',(+lat).toFixed(5)+','+(+lng).toFixed(5));return u.toString();}
-function shareRiver(name,lat,lng){const u=riverShareUrl(name,lat,lng);gaEvent('river_share',{name:name});if(navigator.share){navigator.share({title:'카누맵 · '+name,url:u}).catch(function(){});}else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(function(){alert('하천 링크가 복사됐어요!\n'+u);}).catch(function(){prompt('아래 링크 복사',u);});}else prompt('아래 링크 복사',u);}
+let _riverShareSelection=null;
+const _riverShareLinks={},_riverSharePending={};
+function _drawRiverSharePreview(name,features,lat,lng){
+  const paths=(features||[]).map(function(f){const cs=(f.geometry||{}).coordinates||[],stride=Math.max(1,Math.ceil(cs.length/1800));return cs.filter(function(_,i){return i%stride===0||i===cs.length-1;}).map(function(p){return [p[1],p[0]];});}).filter(function(p){return p.length>1;});
+  const all=paths.flat();if(all.length<2||all.length>12000)return '';
+  const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=630;const ctx=canvas.getContext('2d');if(!ctx)return '';
+  ctx.fillStyle='#eef3e8';ctx.fillRect(0,0,1200,630);
+  const frame={x:500,y:34,w:650,h:562},project=_cpProjection(all,frame),lats=all.map(function(p){return p[0];}),lngs=all.map(function(p){return p[1];});
+  const s=Math.min.apply(null,lats),n=Math.max.apply(null,lats),w=Math.min.apply(null,lngs),e=Math.max.apply(null,lngs),py=Math.max(.025,(n-s)*.25),px=Math.max(.025,(e-w)*.25);
+  ctx.save();ctx.beginPath();ctx.rect(frame.x,frame.y,frame.w,frame.h);ctx.clip();
+  let contextCount=0;for(const f of _riverFeatures){if(contextCount>=55)break;if((features||[]).includes(f))continue;const cs=(f.geometry||{}).coordinates||[];if(!cs.some(function(p){return p[0]>=w-px&&p[0]<=e+px&&p[1]>=s-py&&p[1]<=n+py;}))continue;
+    const stride=Math.max(1,Math.ceil(cs.length/900));ctx.beginPath();cs.forEach(function(p,i){if(i%stride&&i!==cs.length-1)return;const q=project([p[1],p[0]]);if(i===0)ctx.moveTo(q[0],q[1]);else ctx.lineTo(q[0],q[1]);});ctx.strokeStyle='#bddfe5';ctx.lineWidth=2;ctx.globalAlpha=.75;ctx.stroke();contextCount++;}
+  ctx.globalAlpha=1;paths.forEach(function(path){const ps=path.map(project);function stroke(color,width){ctx.beginPath();ps.forEach(function(p,i){if(i)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1]);});ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();}stroke('#fff',18);stroke('#078fa8',10);stroke('#3ad3e8',5);});
+  const marker=project([lat,lng]);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(marker[0],marker[1],15,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ef7041';ctx.beginPath();ctx.arc(marker[0],marker[1],9,0,Math.PI*2);ctx.fill();ctx.restore();
+  ctx.save();ctx.shadowColor='rgba(21,45,37,.18)';ctx.shadowBlur=18;ctx.shadowOffsetY=5;ctx.fillStyle='#fff';_cpRound(ctx,48,42,438,546,26);ctx.fill();ctx.shadowColor='transparent';ctx.strokeStyle='#cbd8cf';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+  _cpText(ctx,'카누맵 · 물줄기 지도',82,103,370,21,'800','#60756c');_cpWrapText(ctx,name,82,160,370,39,'900','#14231e',2,46);
+  ctx.strokeStyle='#d8e4dc';ctx.beginPath();ctx.moveTo(82,275);ctx.lineTo(452,275);ctx.stroke();
+  _cpText(ctx,'전체 물줄기',82,320,370,24,'800','#087f94');_cpText(ctx,_riverRegionLabel(lat,lng),82,364,370,22,'700','#52695f');
+  _cpText(ctx,'강·하천의 흐름을 지도에서 확인하세요',82,530,370,19,'800','#284a40');
+  ctx.fillStyle='#fff';_cpRound(ctx,1006,550,116,40,20);ctx.fill();ctx.strokeStyle='#cbd8cf';ctx.stroke();ctx.textAlign='center';ctx.font='900 18px Apple SD Gothic Neo, Pretendard, sans-serif';ctx.fillStyle='#14231e';ctx.fillText('카누맵',1064,577);ctx.textAlign='left';
+  return canvas.toDataURL('image/jpeg',.92);
+}
+function _prepareRiverShare(name,lat,lng){
+  const key=name+'|'+(+lat).toFixed(5)+','+(+lng).toFixed(5);if(_riverShareLinks[key])return Promise.resolve(_riverShareLinks[key]);if(_riverSharePending[key])return _riverSharePending[key];
+  const selection=_riverShareSelection;if(!selection||selection.key!==key)return Promise.resolve('');
+  _riverSharePending[key]=(async function(){try{const img=_drawRiverSharePreview(name,selection.features,lat,lng);if(!img)return '';
+    const u=getUser()||{},body={name:name,lat:lat,lng:lng,img:img,uid:u.uid||'',tok:u.tok||''};if(isAdmin())body.adminKey=adminKey();
+    const r=await fetch(fapi('/river-share'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),d=await r.json();if(!r.ok||!d.url)return '';return _riverShareLinks[key]=d.url;
+  }catch(e){return '';}finally{delete _riverSharePending[key];}})();return _riverSharePending[key];
+}
+async function shareRiver(name,lat,lng){
+  const previewUrl=await _prepareRiverShare(name,lat,lng),u=previewUrl||riverShareUrl(name,lat,lng);gaEvent('river_share',{name:name,preview:!!previewUrl});
+  if(navigator.share){try{await navigator.share({title:'카누맵 · '+name,url:u});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+  if(navigator.clipboard&&navigator.clipboard.writeText){try{await navigator.clipboard.writeText(u);alert((previewUrl?'물줄기 지도 미리보기 링크':'물줄기 링크')+'가 복사됐어요!\n'+u);return;}catch(e){}}
+  prompt('아래 링크 복사',u);
+}
 function shareRiverEncoded(name,lat,lng){try{shareRiver(decodeURIComponent(name),lat,lng);}catch(e){}}
 function focusRiverSearch(x,keepUrl){
   clearRiverSearch(!!keepUrl);_showRiverFocusBar(x.name);const seq=++_riverPopupSeq,bounds=L.latLngBounds([]);let anchor=null;
   (x.features||[]).forEach(function(f){const ll=f.geometry.coordinates.map(function(c){return [c[1],c[0]];});if(ll.length<2)return;if(!anchor)anchor=ll[Math.floor(ll.length/2)];L.polyline(ll,{pane:'riverSearchPane',color:'#55c9ef',weight:10,opacity:.82,interactive:false}).addTo(_riverSearchFocus);L.polyline(ll,{pane:'riverSearchPane',color:RIVER_SKY_COLOR,weight:7.5,opacity:1,interactive:false}).addTo(_riverSearchFocus);riverWaveLayer(ll,'riverSearchPane',5).addTo(_riverSearchFocus);bounds.extend(ll);});
-  if(bounds.isValid()&&anchor){map.fitBounds(bounds.pad(.06),{maxZoom:13,animate:false});const c=L.latLng(anchor),enc=encodeURIComponent(x.name);_riverPopup=L.popup({minWidth:190,autoPan:true,closeButton:true}).setLatLng(c).setContent('<b>🌊 '+pmEsc(x.name)+'</b><br><small>'+pmEsc(_riverRegionLabel(c.lat,c.lng))+' · 전체 물줄기 강조 표시</small><br><button class="addplace-btn" onclick="shareRiverEncoded(\''+enc+'\','+c.lat+','+c.lng+')">공유</button> <button class="addplace-btn" onclick="clearRiverSearch()">강조 해제</button>');setTimeout(function(){if(seq===_riverPopupSeq&&_riverPopup)_riverPopup.openOn(map);},80);}gaEvent('river_search',{name:x.name});
+  if(bounds.isValid()&&anchor){map.fitBounds(bounds.pad(.06),{maxZoom:13,animate:false});const c=L.latLng(anchor),enc=encodeURIComponent(x.name);_riverShareSelection={key:x.name+'|'+c.lat.toFixed(5)+','+c.lng.toFixed(5),features:x.features||[]};_riverPopup=L.popup({minWidth:190,autoPan:true,closeButton:true}).setLatLng(c).setContent('<b>🌊 '+pmEsc(x.name)+'</b><br><small>'+pmEsc(_riverRegionLabel(c.lat,c.lng))+' · 전체 물줄기 강조 표시</small><br><button class="addplace-btn" onclick="shareRiverEncoded(\''+enc+'\','+c.lat+','+c.lng+')">공유</button> <button class="addplace-btn" onclick="clearRiverSearch()">강조 해제</button>');setTimeout(function(){if(seq===_riverPopupSeq&&_riverPopup)_riverPopup.openOn(map);},80);}gaEvent('river_search',{name:x.name});
 }
 function focusRiverFromUrl(){
   const u=new URL(location.href),name=u.searchParams.get('river'),at=(u.searchParams.get('riverAt')||'').split(',').map(Number);if(!name)return;

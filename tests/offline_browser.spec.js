@@ -628,6 +628,41 @@ test('Yangyang Namdaecheon shared view uses one connected river', async () => {
   await browser.close();
 });
 
+test('river share builds a full-size waterway map preview and uses its share URL', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const width of [390, 1280]) {
+    const page = await browser.newPage({ viewport: { width, height: 844 }, isMobile: width < 500, hasTouch: width < 500 });
+    let body;
+    await page.route('**/river-share', async route => {
+      body = route.request().postDataJSON();
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ ok: true, id: 'r12345678901234567890', url: 'https://worker.example/r/r12345678901234567890' }) });
+    });
+    await page.goto(baseURL + '/?river=' + encodeURIComponent('양양남대천') + '&riverAt=38.05,128.64', { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => _riverFeatures.length > 0 && !!_riverShareSelection, null, { timeout: 15000 });
+    const result = await page.evaluate(async () => {
+      const selection = _riverShareSelection, coords = selection.features[0].geometry.coordinates;
+      const anchor = coords[Math.floor(coords.length / 2)];
+      const url = await _prepareRiverShare('양양남대천', anchor[1], anchor[0]);
+      const image = new Image();
+      image.src = _drawRiverSharePreview('양양남대천', selection.features, anchor[1], anchor[0]);
+      await image.decode();
+      const frame = { x: 500, y: 34, w: 650, h: 562 }, points = coords.map(p => [p[1], p[0]]);
+      const project = _cpProjection(points, frame), drawn = points.map(project);
+      return { url, width: image.naturalWidth, height: image.naturalHeight, imageLength: image.src.length,
+        withinFrame: drawn.every(p => p[0] >= frame.x && p[0] <= frame.x + frame.w && p[1] >= frame.y && p[1] <= frame.y + frame.h) };
+    });
+    expect(result).toMatchObject({ url: 'https://worker.example/r/r12345678901234567890', width: 1200, height: 630, withinFrame: true });
+    expect(result.imageLength).toBeGreaterThan(50000);
+    expect(body.name).toBe('양양남대천');
+    expect(body.img).toMatch(/^data:image\/jpeg;base64,\/9j\//);
+    await page.close();
+  }
+  await browser.close();
+});
+
 test('Illicheon shared view reaches the Seomgang confluence', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
