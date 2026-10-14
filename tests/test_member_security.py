@@ -59,7 +59,7 @@ class MemberSecurityTest(unittest.TestCase):
         self.assertIn('url.searchParams.get("expedition")', worker)
         self.assertIn('const userOk = !!uid && await _memberOk(env, uid, url.searchParams.get("tok"))', worker)
         self.assertIn('String(x.owner || "") === "admin" && (', worker)
-        self.assertIn('String(x.name || "").startsWith("엑스페디션")', worker)
+        self.assertIn('/^(?:마이카누\\s+)?엑스페디션/.test(String(x.name || ""))', worker)
         self.assertIn('url.searchParams.get("featured")', worker)
         self.assertNotIn('"mc1|"', worker)
 
