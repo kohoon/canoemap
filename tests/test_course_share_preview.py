@@ -111,6 +111,7 @@ class CourseSharePreviewTests(unittest.TestCase):
         self.assertIn("og.png", payload["direct"])
         self.assertNotIn("assets/expedition/expedition_11.png", payload["direct"])
         self.assertIn('assets/course-previews/k1790337080336.jpg', payload["bundled"])
+        self.assertIn('k1790337080336.jpg?v=20261014-map1', payload["bundled"])
         self.assertIn('property="og:image:type" content="image/jpeg"', payload["bundled"])
 
     def test_bundled_course_previews_exist(self):

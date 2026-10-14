@@ -25,6 +25,10 @@ const BUNDLED_COURSE_PREVIEW_IDS = new Set([
   ...Object.keys(STATIC_COURSE_SHARE),
   "k1782028261325", "k1790337080336", "k1789437978827", "k1783312681276",
 ]);
+const BUNDLED_COURSE_PREVIEW_VERSION = "20261014-map1";
+function _bundledCoursePreviewUrl(site, id) {
+  return new URL("assets/course-previews/" + id + ".jpg?v=" + BUNDLED_COURSE_PREVIEW_VERSION, site).toString();
+}
 
 /**
  * Cloudflare Worker — 카카오 로그인 OAuth 콜백.
@@ -432,7 +436,7 @@ export default {
       const imageUrl = preview
         ? url.origin + "/course-preview/" + encodeURIComponent(id) + ".jpg?v=" + encodeURIComponent(preview.v)
         : BUNDLED_COURSE_PREVIEW_IDS.has(id)
-        ? new URL("assets/course-previews/" + id + ".jpg", site).toString()
+        ? _bundledCoursePreviewUrl(site, id)
         : new URL("og.png", site).toString();
       const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl });
       return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60" } });
@@ -445,10 +449,9 @@ export default {
       const course = await _courseShareRecord(env, id);   // 삭제·숨김 코스는 식별자가 남아도 현재 코스로 보지 않는다.
       if (!course) return new Response("not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
       const preview = await _coursePreviewRecord(env.PLACES, id, course.name);
-      if (!preview) return Response.redirect(new URL(
-        BUNDLED_COURSE_PREVIEW_IDS.has(id) ? "assets/course-previews/" + id + ".jpg" : "og.png",
-        env.SITE_URL || "https://canoe.crowdbase.kr/"
-      ).toString(), 302);
+      if (!preview) return Response.redirect(BUNDLED_COURSE_PREVIEW_IDS.has(id)
+        ? _bundledCoursePreviewUrl(env.SITE_URL || "https://canoe.crowdbase.kr/", id)
+        : new URL("og.png", env.SITE_URL || "https://canoe.crowdbase.kr/").toString(), 302);
       const bytes = Uint8Array.from(atob(preview.b64), (c) => c.charCodeAt(0));
       return new Response(bytes, { headers: {
         "Content-Type": "image/jpeg",
