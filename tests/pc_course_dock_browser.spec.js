@@ -288,6 +288,32 @@ test('PC course panel collapses, restores map width, and remembers the choice', 
   await browser.close();
 });
 
+test('Course Plan opens a collapsed dock and keeps an active draft instead of finishing it', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => hideGate());
+  await page.locator('#pcDockClose').click();
+  await expect(page.locator('#pcDock')).toBeHidden();
+  await page.locator('#pcCoursePlan').click();
+  await expect(page.locator('#pcDock')).toBeVisible();
+  await expect(page.locator('#pcDockToggle')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#measBtnBox')).toHaveClass(/on/);
+  await expect(page.locator('#measModeBtn')).toBeVisible();
+  await expect(page.locator('#hint')).toContainText('출발점');
+  await page.locator('#pcDockClose').click();
+  await page.locator('#pcCoursePlan').click();
+  await expect(page.locator('#pcDock')).toBeVisible();
+  await expect(page.locator('#measBtnBox')).toHaveClass(/on/);
+  expect(await page.evaluate(() => measureMode)).toBe(true);
+  expect(errors).toEqual([]);
+  await browser.close();
+});
+
 test('one official expedition round appears once when static and registered courses overlap', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

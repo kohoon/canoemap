@@ -5990,7 +5990,11 @@ document.getElementById('pcDock').addEventListener('click',function(e){
   if(action.dataset.action==='share')shareCourse(isKv?'k'+id:id);
   else openCourseComments('course_'+entry.key,entry.course,isKv?'k'+id:id);
 });
-document.getElementById('pcCoursePlan').addEventListener('click',function(){const b=document.getElementById('measBtnBox');if(b)b.click();});
+document.getElementById('pcCoursePlan').addEventListener('click',function(){
+  if(document.documentElement.classList.contains('pc-dock-collapsed'))_pcDockSetCollapsed(false,true);
+  if(!measureMode)startMeasure();
+  else{_showMeasMode(true);measHint(measPts.length?'🗺️ 코스 계획 중 — 지도를 탭해 다음 지점을 찍으세요':'🗺️ 지도를 탭해 출발점을 찍으세요');}
+});
 window.addEventListener('resize',_pcDockLayout);
 _pcDockLayout();
 </script>
