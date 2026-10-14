@@ -446,7 +446,7 @@ async function loadSavedDiary(id) {
       selectedTrip = tripDetail;
     }
     setStatus('diaryStatus', '비공개 기록을 열었습니다.');
-    $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    ($('result').hidden ? $('editor') : document.querySelector('.preview')).scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
     setStatus('diaryStatus', error.message, true);
   }
@@ -568,7 +568,10 @@ $('diarySave').addEventListener('click', saveDiary);
 $('diaryDelete').addEventListener('click', deleteDiary);
 $('diaryBackup').addEventListener('click', () => exportDiary('backup'));
 $('diaryGpx').addEventListener('click', () => exportDiary('gpx'));
-loadSavedDiaries();
+loadSavedDiaries().then(() => {
+  const id = params.get('id');
+  if (id) loadSavedDiary(id);
+});
 loadTours();
 loadCourses();
 if (params.get('start') === 'manual') queueMicrotask(() => $('newManual').click());

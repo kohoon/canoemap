@@ -26,6 +26,60 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => { if (server) await new Promise((resolve) => server.close(resolve)); });
 
+test('My Page shows the diary table and yearly totals, and opens a selected detail on desktop and mobile', async () => {
+  const b = await browser();
+  const year = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', year: 'numeric' }).format(new Date()));
+  const records = [
+    { id: 'm_current', source: 'manual', title: '한탄강의 하루', date: `${year}-10-12`, distanceKm: 5, rev: 1, companions: [] },
+    { id: 'c_current', source: 'course', title: '소양호 참고 코스', date: `${year}-10-11`, distanceKm: 46, rev: 1 },
+    { id: 'm_previous', source: 'manual', title: '지난해 기록', date: `${year - 1}-07-01`, distanceKm: 3, rev: 1 },
+  ];
+  for (const width of [1280, 390]) {
+    const page = await b.newPage({ viewport: { width, height: 844 }, isMobile: width < 500, hasTouch: width < 500 });
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'member1', tok: 'secret', nick: '테스터' })));
+    await page.route('**/mycanoe-map.kohoon0140.workers.dev/**', (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === '/diaries') {
+        expect(route.request().headers()['x-user-id']).toBe('member1');
+        return route.fulfill({ json: url.searchParams.has('cursor')
+          ? { items: [records[2]], cursor: null }
+          : { items: records.slice(0, 2), cursor: 'next' } });
+      }
+      if (url.pathname === '/diary') return route.fulfill({ json: records[0] });
+      if (url.pathname === '/trips' || url.pathname === '/courses') return route.fulfill({ json: [] });
+      if (url.pathname === '/profile') return route.fulfill({ json: { profile: { nick: '테스터' } } });
+      return route.fulfill({ json: [] });
+    });
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => hideGate());
+    await page.locator('#mypageA').click();
+    await page.locator('#myModal .my-tab[data-tab="diary"]').click();
+    await expect(page.locator('.my-diary-table tbody tr')).toHaveCount(3);
+    await expect(page.locator('.my-diary-stat').nth(0)).toContainText('2 회');
+    await expect(page.locator('.my-diary-stat').nth(1)).toContainText('5.0 km');
+    await expect(page.locator('.my-diary-table tbody tr').first()).toContainText('한탄강의 하루');
+    const layout = await page.evaluate(() => {
+      const summary = document.querySelector('.my-diary-summary').getBoundingClientRect();
+      const table = document.querySelector('.my-diary-table-wrap');
+      const add = document.querySelector('.my-diary-add').getBoundingClientRect();
+      return { summaryBottom: summary.bottom, tableTop: table.getBoundingClientRect().top,
+        tableOverflow: table.scrollWidth - table.clientWidth, addHeight: add.height };
+    });
+    expect(layout.summaryBottom).toBeLessThan(layout.tableTop);
+    expect(layout.tableOverflow).toBeLessThanOrEqual(1);
+    expect(layout.addHeight).toBeGreaterThanOrEqual(40);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.locator('.my-diary-table tbody tr').first().locator('button').click();
+    await expect(page).toHaveURL(/\/diary\/\?id=m_current$/);
+    await expect(page.locator('#diaryTitle')).toHaveValue('한탄강의 하루');
+    expect(errors).toEqual([]);
+    await page.close();
+  }
+  await b.close();
+});
+
 async function browser() {
   return chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }

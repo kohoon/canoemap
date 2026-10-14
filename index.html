@@ -393,6 +393,9 @@
   .my-actions{display:flex;gap:4px;flex:none}.my-icon-btn{border:1px solid #ccd8dd;background:#fff;color:#52656e;border-radius:8px;min-width:var(--mc-icon-target);min-height:var(--mc-icon-target);padding:0 8px;cursor:pointer;font-size:12px}.my-icon-btn.del{color:#c62828;border-color:#ecc5c5}
   .my-withdraw-note{margin:9px 0 0;color:#64747c;font:12px/1.55 sans-serif;word-break:keep-all}.my-withdraw-note a{color:#087561;text-decoration:underline;text-underline-offset:2px}
   .my-empty{text-align:center;color:#829097;font-size:13px;padding:44px 12px}.my-empty b{display:block;color:#4c6068;margin-bottom:5px;font-size:14px}
+  .my-diary-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}.my-diary-stat{min-width:0;padding:15px;background:#fff;border:1px solid #dce7e8;border-radius:12px}.my-diary-stat span{display:block;color:#607780;font-size:12px}.my-diary-stat strong{display:block;margin-top:4px;color:#123f49;font-size:22px;line-height:1.2}.my-diary-stat small{font-size:12px;font-weight:600}.my-diary-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px}.my-diary-head h4{margin:0;color:#244951;font-size:15px}.my-diary-add{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 15px;border:1px solid #087f77;border-radius:9px;background:#087f77;color:#fff;font-size:13px;font-weight:750;white-space:nowrap;cursor:pointer}.my-diary-add:hover,.my-diary-add:focus-visible{background:#066a64}.my-diary-table-wrap{width:100%;overflow-x:auto;border:1px solid #dce7e8;border-radius:12px;background:#fff}.my-diary-table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}.my-diary-table th{padding:12px;color:#607780;background:#f1f6f5;font-size:12px;font-weight:750;white-space:nowrap}.my-diary-table td{padding:0 12px;border-top:1px solid #e8eeee;vertical-align:middle}.my-diary-table tbody tr:hover{background:#f3faf8}.my-diary-table td:not(:nth-child(2)){white-space:nowrap}.my-diary-row{display:block;width:100%;min-height:48px;padding:10px 0;border:0;background:transparent;text-align:left;color:#164d58;font-size:13px;font-weight:750;cursor:pointer;overflow-wrap:anywhere}.my-diary-row:hover,.my-diary-row:focus-visible{text-decoration:underline;outline:2px solid #087f77;outline-offset:-2px}.my-diary-note{margin:10px 0 0;color:#6b7f83;font-size:11px;line-height:1.5}.my-diary-message{padding:24px 16px;color:#607780;text-align:center;font-size:13px}
+  .my-diary-kind{display:none}
+  @media(max-width:620px){.my-diary-summary{gap:6px}.my-diary-stat{padding:11px 8px}.my-diary-stat span{font-size:11px}.my-diary-stat strong{font-size:17px}.my-diary-table{table-layout:fixed}.my-diary-table th,.my-diary-table td{padding-left:8px;padding-right:8px}.my-diary-table th:first-child{width:91px}.my-diary-table th:nth-child(3){width:86px}.my-diary-table th:nth-child(4),.my-diary-table td:nth-child(4){display:none}.my-diary-kind{display:block;margin-top:3px;color:#758a8d;font-size:11px;font-weight:500}}
   @media(max-width:620px){#myModal{height:100vh;height:100dvh;bottom:auto}#myModal .pmodal{width:100%;height:88%;max-height:calc(100% - env(safe-area-inset-top,0px) - 16px);box-sizing:border-box;border-radius:14px 14px 0 0}#myBody{height:100%}.my-head{padding:17px 16px 12px}.my-tabs{padding:0 7px}.my-tab{padding:12px 11px 10px}.my-pane{padding:14px 15px 24px}.my-stats{grid-template-columns:repeat(2,1fr)}.my-stat:nth-child(2){border-right:0}.my-stat:nth-child(-n+2){border-bottom:1px solid #e3e9eb}.my-stats.compact .my-stat{border-bottom:0}.my-tools{align-items:stretch}.my-toggle{width:100%;margin-left:0}.my-actions .label{display:none}.my-nick-note,.my-nick-form,.my-nick-error{margin-left:0}}
   #pmLinks{font-size:13px;margin-bottom:10px}
   .pm-memo{color:#556;font-size:13px;margin-top:6px}
@@ -3264,6 +3267,29 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
     try{ const r=await fetch(fapi('/trips?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||''))); return r.ok?await r.json():[]; }
     catch(e){ return []; }
   }
+  async function loadMyDiaries(){
+    if(state.diaryLoading)return;
+    state.diaryLoading=true;
+    try{
+      let cursor='',items=[],seen=new Set();
+      do{
+        const url=fapi('/diaries'+(cursor?'?cursor='+encodeURIComponent(cursor):''));
+        const r=await fetch(url,{headers:{'X-User-Id':u.uid,'X-Auth-Token':u.tok||''},cache:'no-store'});
+        if(!r.ok)throw new Error(r.status===401?'로그인이 만료되었습니다. 다시 로그인해 주세요.':'다이어리를 불러오지 못했습니다.');
+        const data=await r.json();
+        if(!Array.isArray(data.items))throw new Error('다이어리 목록 형식이 올바르지 않습니다.');
+        items=items.concat(data.items);
+        const next=data.cursor||'';
+        if(next&&seen.has(next))throw new Error('다이어리 목록을 끝까지 불러오지 못했습니다.');
+        if(next)seen.add(next);
+        cursor=next;
+      }while(cursor);
+      state.diaries=items.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))||(+b.updatedAt||0)-(+a.updatedAt||0);});
+      state.diaryError='';
+    }catch(e){state.diaries=[];state.diaryError=e.message||'다이어리를 불러오지 못했습니다.';}
+    state.diaryLoading=false;
+    if(state.tab==='diary'&&document.getElementById('myModal').classList.contains('open'))renderDiary();
+  }
   async function loadMyProfile(){
     try{const r=await fetch(fapi('/profile?uid='+encodeURIComponent(u.uid)+'&tok='+encodeURIComponent(u.tok||'')));if(!r.ok)return;const d=await r.json();if(d.profile){_appProfile=d.profile;u.nick=d.profile.nick;setUser(u);renderAuth();}}catch(e){}
   }
@@ -3275,7 +3301,7 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
     _fitAndPop(c.coords, c.name, c.km);
     openCourseComments('course_k'+c.id, c, 'k'+c.id);
   }
-  let state={tab:'info',mine:[],trips:[],q:'',favKind:'all'};
+  let state={tab:'info',mine:[],trips:[],diaries:null,diaryLoading:false,diaryError:'',q:'',favKind:'all'};
   function dateText(t){ if(!t) return '기록 없음'; const d=new Date(t),p=function(v){return String(v).padStart(2,'0');}; return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
   function durText(sec){ sec=Math.max(0,+sec||0); const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60); return h?h+'시간 '+m+'분':m+'분'; }
   function shell(content){
@@ -3334,8 +3360,32 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
     body.querySelectorAll('[data-trip]').forEach(function(b){b.onclick=function(){closeMyPage();viewTrip(b.getAttribute('data-trip'));};});
   }
   function renderDiary(){
-    shell('<div class="my-empty"><b>카누잉 다이어리</b>투어 기록을 연결하거나 GPX·수기 기록을 비공개로 저장하고, 나중에 메모를 보완할 수 있습니다.</div><div class="my-tools"><a class="my-icon-btn" href="/diary/">내 다이어리 열기</a><button class="my-icon-btn" id="myDiaryAdd" type="button">+ 기록 추가</button></div>');
+    const year=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Seoul',year:'numeric'}).format(new Date()));
+    const list=state.diaries||[];
+    const annual=list.filter(function(x){return String(x.date||'').slice(0,4)===String(year);});
+    const km=annual.reduce(function(sum,x){const value=x.distanceKm==null?NaN:Number(x.distanceKm);return sum+(x.source!=='course'&&Number.isFinite(value)&&value>=0?value:0);},0);
+    let h='<div class="my-diary-summary" aria-label="'+year+'년 카누잉 누적 기록">'
+      +'<div class="my-diary-stat"><span>'+year+'년 기록</span><strong>'+annual.length+' <small>회</small></strong></div>'
+      +'<div class="my-diary-stat"><span>'+year+'년 기록 거리</span><strong>'+km.toFixed(1)+' <small>km</small></strong></div>'
+      +'<div class="my-diary-stat"><span>전체 기록</span><strong>'+list.length+' <small>회</small></strong></div></div>'
+      +'<div class="my-diary-head"><h4>내 다이어리</h4><button class="my-diary-add" id="myDiaryAdd" type="button">+ 기록 추가</button></div>';
+    if(state.diaryError)h+='<div class="my-diary-message" role="alert">'+pmEsc(state.diaryError)+' <button class="my-icon-btn" id="myDiaryRetry" type="button">다시 시도</button></div>';
+    else if(state.diaries===null)h+='<div class="my-diary-message" role="status">다이어리를 불러오는 중…</div>';
+    else if(!list.length)h+='<div class="my-diary-message">아직 저장한 기록이 없습니다. 기록 추가로 첫 카누잉을 남겨보세요.</div>';
+    else{
+      h+='<div class="my-diary-table-wrap"><table class="my-diary-table"><thead><tr><th scope="col">날짜</th><th scope="col">기록</th><th scope="col">거리</th><th scope="col">유형</th></tr></thead><tbody>'
+        +list.map(function(x){const value=x.distanceKm==null?NaN:Number(x.distanceKm);
+          const distance=Number.isFinite(value)&&value>=0?value.toFixed(1)+' km'+(x.source==='course'?' (코스)':''):'—';
+          const kind=x.archiveSource==='tour'?'투어 백업':x.source==='course'?'등록 코스':x.source==='manual'?'수기':x.source==='gpx'?'GPX':'투어';
+          return '<tr data-diary-row="'+encodeURIComponent(String(x.id||'')).replace(/'/g,'%27')+'"><td>'+pmEsc(x.date||'날짜 없음')+'</td><td><button class="my-diary-row" type="button">'+pmEsc(x.title||'카누잉 기록')+'<span class="my-diary-kind">'+kind+'</span></button></td><td>'+distance+'</td><td>'+kind+'</td></tr>';
+        }).join('')+'</tbody></table></div>';
+    }
+    h+='<p class="my-diary-note">올해 기록 거리는 등록 코스의 계획 거리와 거리 미입력 기록을 제외합니다. 기록을 누르면 상세보기로 이동합니다.</p>';
+    shell(h);
     document.getElementById('myDiaryAdd').onclick=function(){closeMyPage();openDiaryEntry();};
+    const retry=document.getElementById('myDiaryRetry');if(retry)retry.onclick=function(){state.diaries=null;state.diaryError='';renderDiary();};
+    body.querySelectorAll('[data-diary-row]').forEach(function(row){row.onclick=function(){const id=row.getAttribute('data-diary-row');if(id)location.assign('/diary/?id='+id);};});
+    if(state.diaries===null&&!state.diaryLoading)loadMyDiaries();
   }
   function render(){if(state.tab==='favs')renderFavs();else if(state.tab==='courses')renderCourses();else if(state.tab==='activity')renderActivity();else if(state.tab==='diary')renderDiary();else renderInfo();}
   body.innerHTML='<div class="pm-empty">불러오는 중…</div>';
