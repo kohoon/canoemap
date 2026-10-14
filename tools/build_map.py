@@ -3392,7 +3392,7 @@ function syncMyPageViewport(viewport){
 if(window.visualViewport){window.visualViewport.addEventListener('resize',function(){syncMyPageViewport();});window.visualViewport.addEventListener('scroll',function(){syncMyPageViewport();});}
 window.addEventListener('resize',function(){syncMyPageViewport();});
 function closeMyPage(){ const modal=document.getElementById('myModal');modal.classList.remove('open');modal.style.cssText=''; }
-function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
+function openMyPage(initialTab){ const u=getUser(); if(!u||!u.uid) return;
   document.getElementById('myModal').classList.add('open');
   syncMyPageViewport();
   const body=document.getElementById('myBody');
@@ -3440,7 +3440,7 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
     _fitAndPop(c.coords, c.name, c.km);
     openCourseComments('course_k'+c.id, c, 'k'+c.id);
   }
-  let state={tab:'info',mine:[],trips:[],tripError:'',tripLoading:false,diaries:null,diaryLoading:false,diaryError:'',q:'',favKind:'all'};
+  let state={tab:initialTab==='diary'?'diary':'info',mine:[],trips:[],tripError:'',tripLoading:false,diaries:null,diaryLoading:false,diaryError:'',q:'',favKind:'all'};
   function dateText(t){ if(!t) return '기록 없음'; const d=new Date(t),p=function(v){return String(v).padStart(2,'0');}; return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
   function durText(sec){ sec=Math.max(0,+sec||0); const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60); return h?h+'시간 '+m+'분':m+'분'; }
   function shell(content){
@@ -3523,7 +3523,7 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
       +'<div class="my-diary-stat"><span>전체 기록</span><strong>'+(totalsReady?list.length:'—')+' <small>회</small></strong></div></div>'
       +'<div class="my-diary-head"><h4>투어 · 다이어리</h4><button class="my-diary-add" id="myDiaryAdd" type="button">+ 기록 추가</button></div>';
     if(state.diaryError||state.tripError)h+='<div class="my-diary-message" role="alert">'+pmEsc(state.diaryError||state.tripError)+' <button class="my-icon-btn" id="myDiaryRetry" type="button">다시 시도</button></div>';
-    else if(state.diaries===null)h+='<div class="my-diary-message" role="status">다이어리를 불러오는 중…</div>';
+    else if(state.diaries===null||state.tripLoading)h+='<div class="my-diary-message" role="status">기록을 불러오는 중…</div>';
     else if(!list.length)h+='<div class="my-diary-message">아직 투어·다이어리 기록이 없습니다. 기록 추가로 첫 카누잉을 남겨보세요.</div>';
     else{
       h+='<div class="my-diary-table-wrap"><table class="my-diary-table"><thead><tr><th scope="col">날짜</th><th scope="col">기록</th><th scope="col">거리</th><th scope="col">유형</th></tr></thead><tbody>'
@@ -3551,8 +3551,17 @@ function openMyPage(){ const u=getUser(); if(!u||!u.uid) return;
   }
   function render(){if(state.tab==='favs')renderFavs();else if(state.tab==='courses')renderCourses();else if(state.tab==='diary')renderDiary();else renderInfo();}
   body.innerHTML='<div class="pm-empty">불러오는 중…</div>';
-  Promise.all([loadFavs(),loadMyCourses(),loadMyTrips(),loadMyProfile()]).then(function(res){state.mine=res[1]||[];state.trips=res[2]||[];render();});
+  if(state.tab==='diary'){state.tripLoading=true;renderDiary();}
+  const tripsReady=loadMyTrips().then(function(trips){state.trips=trips||[];state.tripLoading=false;if(state.tab==='diary')renderDiary();return trips;});
+  Promise.all([loadFavs(),loadMyCourses(),tripsReady,loadMyProfile()]).then(function(res){state.mine=res[1]||[];render();});
 }
+setTimeout(function(){
+  const query=new URLSearchParams(location.search);
+  if(query.get('records')!=='1'||!getUser())return;
+  query.delete('records');
+  history.replaceState(null,'',location.pathname+(query.toString()?'?'+query:'')+location.hash);
+  openMyPage('diary');
+},0);
 function gotoFav(x){ if(!x) return; closeMyPage();
   if(x.k==='c'){
     if(x.t.indexOf('course_c')===0){ const cid=x.t.slice(8);

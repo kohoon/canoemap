@@ -148,10 +148,38 @@ test('map entry offers tour, GPX and manual without adding a crowded map button'
     await expect(page.locator('#diaryWriteManual')).toBeVisible();
     const diaryLink = page.locator('.tm-diary-link');
     await expect(diaryLink).toBeVisible();
-    await expect(diaryLink).toHaveAttribute('href', '/diary/');
+    await expect(diaryLink).toHaveAttribute('href', '/?records=1');
     expect(await diaryLink.evaluate((element) => element.getBoundingClientRect().width >= 240)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(errors).toEqual([]);
+    await page.close();
+  }
+  await b.close();
+});
+
+test('View My Diary opens saved records, not the entry form, including a direct link', async () => {
+  const b = await browser();
+  for (const width of [1280, 390]) {
+    const page = await b.newPage({ viewport: { width, height: 844 }, isMobile: width < 500, hasTouch: width < 500 });
+    await page.addInitScript(() => localStorage.setItem('mc_user', JSON.stringify({ uid: 'member1', tok: 'secret', nick: '테스터' })));
+    await page.route('**/mycanoe-map.kohoon0140.workers.dev/**', (route) => {
+      const pathname = new URL(route.request().url()).pathname;
+      if (pathname === '/diaries') return route.fulfill({ json: { items: [{ id: 'm_saved', source: 'manual', title: '저장한 기록', date: '2026-10-12', distanceKm: 4 }], cursor: null } });
+      if (pathname === '/profile') return route.fulfill({ json: { profile: { nick: '테스터' } } });
+      return route.fulfill({ json: [] });
+    });
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => hideGate());
+    await page.locator('#tourEntry').click();
+    await page.locator('.tm-diary-link').click();
+    await expect(page.locator('#myModal')).toHaveClass(/open/);
+    await expect(page.locator('#myModal .my-tab[data-tab="diary"]')).toHaveClass(/on/);
+    await expect(page.locator('.my-diary-table')).toContainText('저장한 기록');
+    await expect(page.locator('#tmodal')).not.toHaveClass(/open/);
+    expect(new URL(page.url()).pathname).toBe('/');
+    await page.goto(baseURL + '/?records=1', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#myModal .my-tab[data-tab="diary"]')).toHaveClass(/on/);
+    await expect(page.locator('.my-diary-table')).toContainText('저장한 기록');
     await page.close();
   }
   await b.close();
