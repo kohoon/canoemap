@@ -60,7 +60,7 @@ test('registered expedition direct link opens its detail after loading the route
   await browser.close();
 });
 
-test('official expedition label fits the desktop filter and mobile legend', async () => {
+test('course legend has one parent checkbox and no subcategory controls on desktop and mobile', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -68,11 +68,11 @@ test('official expedition label fits the desktop filter and mobile legend', asyn
     const page = await browser.newPage({ viewport: { width, height: 844 }, isMobile: width < 500, hasTouch: width < 500 });
     await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => hideGate());
-    const label = width < 500
-      ? page.locator('.lc-course-options label').filter({ hasText: '마이카누 엑스페디션' })
-      : page.locator('#pcDock [data-filter="expedition"]');
-    if (width < 500) await page.locator('.lc-title').click();
+    const label = page.locator('.leaflet-control-layers-overlays label').filter({ hasText: '카누잉 코스' });
+    await page.locator('.lc-title').click();
     await expect(label).toBeVisible();
+    await expect(label.locator('input[type="checkbox"]')).toHaveCount(1);
+    await expect(page.locator('.lc-course-options, [data-course-pref]')).toHaveCount(0);
     const bounds = await label.evaluate((el) => {
       const rect = el.getBoundingClientRect();
       return { left: rect.left, right: rect.right, scrollWidth: el.scrollWidth, clientWidth: el.clientWidth };
@@ -219,7 +219,7 @@ test('legend choices follow the signed-in member across visits', async () => {
   await browser.close();
 });
 
-test('members can toggle operating and personal courses independently on desktop and mobile', async () => {
+test('the parent course toggle controls all courses while My Page can hide a personal course', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -251,11 +251,16 @@ test('members can toggle operating and personal courses independently on desktop
     await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => _kvCourseLayers['1790000000099'] && _kvCourseLayers['1790000000011']);
     expect(await page.evaluate(() => _kvCourseLayers['1790000000099'].grp.hasLayer(_kvCourseLayers['1790000000099'].ls[1]))).toBe(true);
+    expect(await page.evaluate(() => (_staticCidLayers['11'] || []).some(entry => entry.grp.hasLayer(entry.l)))).toBe(true);
     await page.locator('.lc-title').click();
-    await page.locator('[data-course-pref="courseMine"]').uncheck();
-    expect(await page.evaluate(() => _kvCourseLayers['1790000000099'].grp.hasLayer(_kvCourseLayers['1790000000099'].ls[1]))).toBe(false);
+    const courseToggle = page.locator('.leaflet-control-layers-overlays label').filter({ hasText: '카누잉 코스' }).locator('input[type="checkbox"]');
+    await expect(page.locator('[data-course-pref]')).toHaveCount(0);
+    await courseToggle.uncheck();
+    expect(await page.evaluate(() => map.hasLayer(allCoursesGroup))).toBe(false);
+    await courseToggle.check();
+    expect(await page.evaluate(() => map.hasLayer(allCoursesGroup))).toBe(true);
+    expect(await page.evaluate(() => _kvCourseLayers['1790000000099'].grp.hasLayer(_kvCourseLayers['1790000000099'].ls[1]))).toBe(true);
     expect(await page.evaluate(() => _kvCourseLayers['1790000000011'].grp.hasLayer(_kvCourseLayers['1790000000011'].ls[1]))).toBe(true);
-    await page.locator('[data-course-pref="courseMine"]').check();
     await page.evaluate(() => openMyPage());
     await page.getByRole('button', { name: '내 코스', exact: true }).click();
     await page.locator('[data-cvis="1790000000099"]').click();
