@@ -29,6 +29,27 @@ test.afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
+test('Owol bridge route follows its local mapped channel when Overpass is unavailable', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  let overpassRequests = 0;
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => { overpassRequests++; return route.abort(); });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(() => waterRoute({ lat: 37.983002, lng: 127.644284 }, { lat: 37.986, lng: 127.654 }));
+  expect(result.err).toBeUndefined();
+  expect(result.coords.some((point) => point[0] < 37.979 && point[1] > 127.649)).toBe(true);
+  expect(result.coords.some((point) => point[1] > 127.656)).toBe(true);
+  expect(result.km).toBeGreaterThan(1.8);
+  expect(result.access[0][0]).toEqual([37.983002, 127.644284]);
+  expect(Math.abs(result.access[0][1][1] - 127.644284)).toBeLessThan(0.001);
+  expect(overpassRequests).toBe(0);
+  await context.close();
+  await browser.close();
+});
+
 test('signup and Soyang participation forms ask for a Canoemap username, not a cafe nickname', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
@@ -1431,6 +1452,7 @@ test('Chuncheonho route follows the mapped waterway into Owol-ri without a land 
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.route(/\/owol_waterways\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const rivers = { type: 'FeatureCollection', features: [{
     type: 'Feature', properties: { name: '북한강', kind: 'river' },
     geometry: { type: 'LineString', coordinates: [[127.654, 37.978], [127.654, 37.987]] },
@@ -1480,6 +1502,7 @@ test('Owol bridge channel connects to the middle of the North Han River way', as
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext();
+  await context.route(/\/owol_waterways\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
   const overpass = { elements: [
     { type: 'relation', id: 1, tags: { natural: 'water' }, members: [

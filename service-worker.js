@@ -1,4 +1,4 @@
-const APP_CACHE = 'mycanoe-app-v14';
+const APP_CACHE = 'mycanoe-app-v15';
 const LEGACY_PACK_CACHE = 'mycanoe-offline-pack-v1';
 const PACK_CACHE_PREFIX = 'mycanoe-offline-pack-v2-';
 const ESRI_IMAGERY_HOST = 'server.arcgisonline.com';
@@ -9,6 +9,7 @@ const APP_SHELL = [
   './manifest.webmanifest',
   './pwa-icon.svg',
   './og.png',
+  './owol_waterways.json',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
