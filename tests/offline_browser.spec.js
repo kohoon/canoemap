@@ -1636,7 +1636,7 @@ test('land destination snaps to the nearest shoreline without drawing or measuri
     { type: 'relation', id: 1, tags: { natural: 'water' }, members: [
       { role: 'outer', geometry: ring([[36.988, 126.998], [37.012, 126.998], [37.012, 127.001], [36.988, 127.001], [36.988, 126.998]]) },
     ] },
-    { type: 'way', id: 2, tags: { waterway: 'river', name: '테스트강' }, geometry: ring([[37.01, 127.0], [36.99, 127.0]]) },
+    { type: 'way', id: 2, tags: { waterway: 'river', name: '테스트강' }, geometry: ring([[37.01, 127.0], [36.99, 127.0], [36.972, 127.0]]) },
   ] };
   await context.route(/\/rivers\.geojson(?:\?|$)/, async (route) => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rivers) });
@@ -1674,6 +1674,25 @@ test('land destination snaps to the nearest shoreline without drawing or measuri
   }));
   expect(selected.end).toEqual(selected.routeEnd);
   expect(selected.label).toBe('육지 랜딩');
+  const newerWaterline = await page.evaluate(() => waterRoute(
+    { lat: 37.008, lng: 127.0 },
+    { lat: 36.985, lng: 127.001 },
+  ));
+  expect(newerWaterline.err).toBeUndefined();
+  expect(newerWaterline.snappedEnd).toEqual(newerWaterline.coords[newerWaterline.coords.length - 1]);
+  expect(newerWaterline.snappedEnd[0]).toBeCloseTo(36.985, 3);
+  expect(newerWaterline.snappedEnd[1]).toBeCloseTo(127.0, 3);
+  // 수면 다각형이 끊긴 곳도 확인된 하천 중심선이 이어지면 계산을 포기하지 않는다.
+  const beyondPolygon = await page.evaluate(() => waterRoute(
+    { lat: 37.008, lng: 127.0 },
+    { lat: 36.972, lng: 127.001 },
+  ));
+  expect(beyondPolygon.err).toBeUndefined();
+  expect(beyondPolygon.access).toEqual([]);
+  expect(beyondPolygon.snappedEnd).toEqual(beyondPolygon.coords[beyondPolygon.coords.length - 1]);
+  expect(beyondPolygon.snappedEnd[0]).toBeCloseTo(36.972, 3);
+  expect(beyondPolygon.snappedEnd[1]).toBeCloseTo(127.0, 3);
+  expect(beyondPolygon.km).toBeGreaterThan(3);
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();

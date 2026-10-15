@@ -4761,7 +4761,7 @@ async function _runMeasQueue(){
     const placed=seg.snappedEnd?L.latLng(seg.snappedEnd[0],seg.snappedEnd[1]):pt;
     if(seg.snappedEnd)placed._measLabel=pt._measLabel;
     measSegs.push(seg); measPts.push(placed); _redrawMeasDraft(); updateMeasBtn();
-    measHint(seg.snappedEnd?'육지로 선택한 도착점을 가장 가까운 물가로 옮겼습니다':seg.access&&seg.access.length?'회색 점선은 수면으로 확인되지 않은 접근 구간이며 카누잉 거리에서 제외됩니다':'지점 '+measPts.length+'개 · 계속 탭하거나, 좌상단 "🏁 완료"를 누르면 거리가 나와요');
+    measHint(seg.snappedEnd?'선택 지점 근처에서 계산 가능한 물길 끝점으로 보정했습니다':seg.access&&seg.access.length?'회색 점선은 수면으로 확인되지 않은 접근 구간이며 카누잉 거리에서 제외됩니다':'지점 '+measPts.length+'개 · 계속 탭하거나, 좌상단 "🏁 완료"를 누르면 거리가 나와요');
   }
   _measRunning=false;
 }
@@ -5262,8 +5262,14 @@ async function waterRoute(p1,p2){
   }
   const landEnd=waterOuter.length&&!inWater([p2.lat,p2.lng]);
   const shoreEnd=landEnd?nearestShore(p2):null;
-  if(landEnd&&!shoreEnd)return {err:'farwater'};
-  const routeEnd=shoreEnd?{lat:shoreEnd[0],lng:shoreEnd[1]}:p2;
+  // 영상 촬영시점·수위 차이로 OSM 물가가 짧게 잡힐 수 있다. 연결된 하천선이 더 가까우면 그쪽까지 간다.
+  const shoreDist=shoreEnd?hav([p2.lat,p2.lng],shoreEnd):1e18;
+  let graphEnd=null;
+  if(landEnd)for(const edge of graphEdges){
+    const candidate=edgeProjection([p2.lat,p2.lng],edge);
+    if(candidate.dist<=1500&&candidate.dist+25<shoreDist&&(!graphEnd||candidate.dist<graphEnd.dist))graphEnd=candidate;
+  }
+  const routeEnd=graphEnd?{lat:graphEnd.p[0],lng:graphEnd.p[1]}:shoreEnd?{lat:shoreEnd[0],lng:shoreEnd[1]}:p2;
   let repairedStatic=null;
   if(staticRoute&&staticRoute._core&&staticRoute._core.length>1&&waterOuter.length&&staticRoute._core.every(function(p,i,a){return !i||waterLineClear(a[i-1],p);})){
     const core=staticRoute._core.slice(),start=[p1.lat,p1.lng],end=[routeEnd.lat,routeEnd.lng];
@@ -5271,11 +5277,11 @@ async function waterRoute(p1,p2){
     let first=verifiedLeg(start,core[0]),last=verifiedLeg(core[core.length-1],end);
     let coords=core,access=[];
     if(first)coords=first.slice(0,-1).concat(coords);else access.push([start,core[0]]);
-    if(last)coords=coords.concat(last.slice(1));else access.push([core[core.length-1],end]);
+    if(last)coords=coords.concat(last.slice(1));else if(!landEnd)access.push([core[core.length-1],end]);
     let meters=0;for(let i=1;i<coords.length;i++)meters+=hav(coords[i-1],coords[i]);
     repairedStatic={coords:coords,km:meters/1000,access:access,snap:staticRoute.snap,source:'static-river-water',riverName:staticRoute.riverName};
-    if(shoreEnd)repairedStatic.snappedEnd=shoreEnd;
-    if(!access.length)return repairedStatic;
+    if(landEnd)repairedStatic.snappedEnd=coords[coords.length-1];
+    if(!access.length&&(!landEnd||last))return repairedStatic;
   }
   function nearest(pt){ let best=null,bd=1e18; for(const k in nodes){ const d=hav(nodes[k],[pt.lat,pt.lng]); if(d<bd){bd=d;best=k;} } return {key:best,dist:bd,wet:false}; }
   function edgeProjection(origin,edge){
@@ -5354,7 +5360,6 @@ async function waterRoute(p1,p2){
     return {key:nearest.key,dist:nearest.dist,wet:false};
   }
   const near1=nearestWet(p1),near2=nearestWet(routeEnd),s1=near1.key,s2=near2.key;
-  if(shoreEnd&&!near2.wet)return repairedStatic&&!repairedStatic.access.length?repairedStatic:{err:'landcross'};
   if(near1.projection&&near2.projection&&near1.edgeId===near2.edgeId&&s1!==s2){const d=hav(nodes[s1],nodes[s2]);(adj[s1]=adj[s1]||[]).push([s2,d]);(adj[s2]=adj[s2]||[]).push([s1,d]);}
   if(!s1||!s2||near1.dist>1500||near2.dist>1500) return repairedStatic||{err:'farwater'};
   // 물길 모드에서는 연결 실패를 직선으로 숨기지 않는다. 직선은 사용자가 직선 모드를 고른 경우에만 사용한다.
@@ -5382,10 +5387,10 @@ async function waterRoute(p1,p2){
   }
   // 수면으로 확인되지 않은 출발·도착 접근은 항로 실선 및 거리에서 분리한다.
   if(!near1.wet&&hav(start,coords[0])>=3)access.push([start,coords[0]]);
-  if(!near2.wet&&hav(coords[coords.length-1],end)>=3)access.push([coords[coords.length-1],end]);
+  if(!landEnd&&!near2.wet&&hav(coords[coords.length-1],end)>=3)access.push([coords[coords.length-1],end]);
   let waterM=0;for(let i=1;i<coords.length;i++)waterM+=hav(coords[i-1],coords[i]);
   const result={coords:coords, km:waterM/1000, access:access, snap:[near1.dist,near2.dist], riverName:riverName};
-  if(shoreEnd)result.snappedEnd=shoreEnd;
+  if(landEnd)result.snappedEnd=coords[coords.length-1];
   return result;
 }
 function MinHeap(){ this.a=[]; }
