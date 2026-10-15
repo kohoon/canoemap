@@ -1251,6 +1251,104 @@ test('wide reservoir access routes around land instead of crossing it', async ()
   await browser.close();
 });
 
+test('simplified static river shortcut through an island is rejected', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
+  const rivers = { type: 'FeatureCollection', features: [{
+    type: 'Feature', properties: { name: '테스트강', kind: 'river' },
+    geometry: { type: 'LineString', coordinates: [[126.995, 37.0], [127.015, 37.0]] },
+  }] };
+  const overpass = { elements: [
+    { type: 'relation', id: 1, tags: { natural: 'water' }, members: [
+      { role: 'outer', geometry: ring([[36.99, 126.99], [37.01, 126.99], [37.01, 127.02], [36.99, 127.02], [36.99, 126.99]]) },
+      { role: 'inner', geometry: ring([[36.997, 127.0], [37.003, 127.0], [37.003, 127.01], [36.997, 127.01], [36.997, 127.0]]) },
+    ] },
+    { type: 'way', id: 2, tags: { waterway: 'river', name: '테스트강' }, geometry: ring([
+      [37.0, 126.995], [36.995, 126.998], [36.995, 127.012], [37.0, 127.015],
+    ]) },
+  ] };
+  await context.route(/\/rivers\.geojson(?:\?|$)/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rivers) }));
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(overpass) }));
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(async () => {
+    const route = await waterRoute({ lat: 37.0, lng: 126.996 }, { lat: 37.0, lng: 127.014 });
+    const crossesIsland = route.coords.some((a, i) => i && Array.from({ length: 21 }, (_, j) => {
+      const b = route.coords[i - 1], t = j / 20;
+      const lat = b[0] + (a[0] - b[0]) * t, lon = b[1] + (a[1] - b[1]) * t;
+      return lat > 36.997 && lat < 37.003 && lon > 127.0 && lon < 127.01;
+    }).some(Boolean));
+    return { route, crossesIsland };
+  });
+  expect(result.route.source).not.toBe('static-river-water');
+  expect(result.crossesIsland).toBe(false);
+  expect(result.route.km).toBeGreaterThan(2);
+  await context.close();
+  await browser.close();
+});
+
+test('OSM waterway centerline crossing an island is rerouted on water', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
+  const overpass = { elements: [
+    { type: 'relation', id: 1, tags: { natural: 'water' }, members: [
+      { role: 'outer', geometry: ring([[36.99, 126.99], [37.01, 126.99], [37.01, 127.02], [36.99, 127.02], [36.99, 126.99]]) },
+      { role: 'inner', geometry: ring([[36.997, 127.0], [37.003, 127.0], [37.003, 127.01], [36.997, 127.01], [36.997, 127.0]]) },
+    ] },
+    { type: 'way', id: 2, tags: { waterway: 'river' }, geometry: ring([[37.0, 126.995], [37.0, 127.015]]) },
+  ] };
+  await context.route(/\/rivers\.geojson(?:\?|$)/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ type: 'FeatureCollection', features: [] }) }));
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(overpass) }));
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const route = await page.evaluate(() => waterRoute({ lat: 37.0, lng: 126.996 }, { lat: 37.0, lng: 127.014 }));
+  expect(route.err).toBeUndefined();
+  expect(route.coords.length).toBeGreaterThan(2);
+  for (let i = 1; i < route.coords.length; i++) {
+    const a = route.coords[i - 1], b = route.coords[i];
+    for (let step = 0; step <= 30; step++) {
+      const t = step / 30, lat = a[0] + (b[0] - a[0]) * t, lon = a[1] + (b[1] - a[1]) * t;
+      expect(lat > 36.997 && lat < 37.003 && lon > 127.0 && lon < 127.01).toBe(false);
+    }
+  }
+  await context.close();
+  await browser.close();
+});
+
+test('an unverified land waypoint cannot silently join two saved water routes', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(async () => {
+    const original = waterRoute;
+    let calls = 0;
+    try {
+      waterRoute = async () => { calls++; return { coords: [[37, 127.003], [37, 127.01]], km: 1, access: [[[37, 127.002], [37, 127.003]]] }; };
+      measPts = [L.latLng(37, 127), L.latLng(37, 127.002)];
+      measSegs = [{ coords: [[37, 127], [37, 127.001]], km: 0.1, access: [[[37, 127.001], [37, 127.002]]] }];
+      _measQueue = [{ pt: L.latLng(37, 127.01), mode: 'water' }];
+      await _runMeasQueue();
+      const afterDryEnd = { points: measPts.length, segments: measSegs.length, calls };
+      measPts = [L.latLng(37, 127), L.latLng(37, 127.002)];
+      measSegs = [{ coords: [[37, 127], [37, 127.002]], km: 0.2, access: [] }];
+      _measQueue = [{ pt: L.latLng(37, 127.01), mode: 'water' }];
+      await _runMeasQueue();
+      return { afterDryEnd, afterDryStart: { points: measPts.length, segments: measSegs.length, calls } };
+    } finally { waterRoute = original; }
+  });
+  expect(result.afterDryEnd).toEqual({ points: 2, segments: 1, calls: 0 });
+  expect(result.afterDryStart).toEqual({ points: 2, segments: 1, calls: 1 });
+  await browser.close();
+});
+
 test('waterway calculation overlaps river loading and shares simultaneous Overpass requests', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
@@ -1457,7 +1555,7 @@ test('water route enters the nearest edge projection without an endpoint backtra
   await browser.close();
 });
 
-test('water route extends to a selected landing beyond the mapped water boundary', async () => {
+test('landing beyond the mapped water boundary is shown as access, not a water route', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -1488,9 +1586,10 @@ test('water route extends to a selected landing beyond the mapped water boundary
     { lat: 37.008, lng: 127.0 },
     { lat: 36.992, lng: 127.0045 },
   ));
-  expect(result.access).toEqual([]);
+  expect(result.access).toHaveLength(1);
   expect(result.coords[0]).toEqual([37.008, 127.0]);
-  expect(result.coords[result.coords.length - 1]).toEqual([36.992, 127.0045]);
+  expect(result.access[0][0]).toEqual(result.coords[result.coords.length - 1]);
+  expect(result.access[0][1]).toEqual([36.992, 127.0045]);
   expect(result.km).toBeGreaterThan(1.8);
   expect(errors).toEqual([]);
   await context.close();
