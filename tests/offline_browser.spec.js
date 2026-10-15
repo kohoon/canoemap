@@ -1475,6 +1475,36 @@ test('Chuncheonho route follows the mapped waterway into Owol-ri without a land 
   await browser.close();
 });
 
+test('Owol bridge channel connects to the middle of the North Han River way', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
+  const overpass = { elements: [
+    { type: 'relation', id: 1, tags: { natural: 'water' }, members: [
+      { role: 'outer', geometry: ring([[37.973, 127.64], [37.989, 127.64], [37.989, 127.665], [37.973, 127.665], [37.973, 127.64]]) },
+    ] },
+    { type: 'way', id: 26084529, tags: { waterway: 'river', name: '북한강' }, geometry: ring([
+      [37.9836299, 127.6548804], [37.9825258, 127.6618407],
+    ]) },
+    { type: 'way', id: 931930968, tags: { waterway: 'river', name: '북한강' }, geometry: ring([
+      [37.983002, 127.644284], [37.9785, 127.646], [37.978, 127.651], [37.9833309, 127.6567653],
+    ]) },
+  ] };
+  await context.route(/\/rivers\.geojson(?:\?|$)/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ type: 'FeatureCollection', features: [] }) }));
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => route.fulfill({ status: 200, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(overpass) }));
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const route = await page.evaluate(() => waterRoute({ lat: 37.983002, lng: 127.644284 }, { lat: 37.9827, lng: 127.6607 }));
+  expect(route.err).toBeUndefined();
+  expect(route.access).toEqual([]);
+  expect(route.coords.some((p) => p[0] < 37.98)).toBe(true);
+  expect(route.km).toBeGreaterThan(2);
+  await context.close();
+  await browser.close();
+});
+
 test('water route reaches a cove endpoint by following the water surface around land', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
