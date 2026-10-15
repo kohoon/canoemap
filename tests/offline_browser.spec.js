@@ -1574,6 +1574,15 @@ test('water route reaches a cove endpoint by following the water surface around 
   expect(result.route.coords[result.route.coords.length - 1]).toEqual([37.012, 127.0]);
   expect(result.route.coords.some((p) => p[0] < land[0] || p[0] > land[2])).toBe(true);
   expect(result.crossesLand).toBe(false);
+  const shore = await page.evaluate(() => waterRoute(
+    { lat: 37.015, lng: 127.01 },
+    { lat: 37.012, lng: 127.007 },
+  ));
+  expect(shore.err).toBeUndefined();
+  expect(shore.access).toEqual([]);
+  expect(shore.snappedEnd).toEqual(shore.coords[shore.coords.length - 1]);
+  expect(shore.snappedEnd[1]).toBeGreaterThan(127.008);
+  expect(shore.snappedEnd[1]).toBeLessThan(127.0085);
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();
@@ -1613,7 +1622,7 @@ test('water route enters the nearest edge projection without an endpoint backtra
   await browser.close();
 });
 
-test('landing beyond the mapped water boundary is shown as access, not a water route', async () => {
+test('land destination snaps to the nearest shoreline without drawing or measuring inland', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -1644,11 +1653,27 @@ test('landing beyond the mapped water boundary is shown as access, not a water r
     { lat: 37.008, lng: 127.0 },
     { lat: 36.992, lng: 127.0045 },
   ));
-  expect(result.access).toHaveLength(1);
+  expect(result.access).toEqual([]);
   expect(result.coords[0]).toEqual([37.008, 127.0]);
-  expect(result.access[0][0]).toEqual(result.coords[result.coords.length - 1]);
-  expect(result.access[0][1]).toEqual([36.992, 127.0045]);
+  expect(result.snappedEnd).toEqual(result.coords[result.coords.length - 1]);
+  expect(result.snappedEnd[0]).toBeCloseTo(36.992, 3);
+  expect(result.snappedEnd[1]).toBeGreaterThan(127.0008);
+  expect(result.snappedEnd[1]).toBeLessThan(127.001);
+  expect(result.coords.every((p) => p[1] <= 127.001)).toBe(true);
   expect(result.km).toBeGreaterThan(1.8);
+  await page.evaluate(() => {
+    startMeasure();
+    _measPickPoint({ lat: 37.008, lng: 127.0 }, '출발');
+    _measPickPoint({ lat: 36.992, lng: 127.0045 }, '육지 랜딩');
+  });
+  await page.waitForFunction(() => measPts.length === 2 && !_measRunning);
+  const selected = await page.evaluate(() => ({
+    end: [measPts[1].lat, measPts[1].lng],
+    label: measPts[1]._measLabel,
+    routeEnd: measSegs[0].coords[measSegs[0].coords.length - 1],
+  }));
+  expect(selected.end).toEqual(selected.routeEnd);
+  expect(selected.label).toBe('육지 랜딩');
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();
