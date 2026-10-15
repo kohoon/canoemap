@@ -1,4 +1,4 @@
-const APP_CACHE = 'mycanoe-app-v15';
+const APP_CACHE = 'mycanoe-app-v16';
 const LEGACY_PACK_CACHE = 'mycanoe-offline-pack-v1';
 const PACK_CACHE_PREFIX = 'mycanoe-offline-pack-v2-';
 const ESRI_IMAGERY_HOST = 'server.arcgisonline.com';
@@ -9,7 +9,7 @@ const APP_SHELL = [
   './manifest.webmanifest',
   './pwa-icon.svg',
   './og.png',
-  './owol_waterways.json',
+  './owol_waterways_v2.json',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -105,7 +105,7 @@ self.addEventListener('fetch', (event) => {
     })());
     return;
   }
-  if (url.origin === self.location.origin && /\/(protect_polygons|wlz|waterplay|rivers|roads|daiso_stores|hanaro_stores)\.geojson$/.test(url.pathname)) {
+  if (url.origin === self.location.origin && (/\/(protect_polygons|wlz|waterplay|rivers|roads|daiso_stores|hanaro_stores)\.geojson$/.test(url.pathname) || url.pathname.endsWith('/owol_waterways_v2.json'))) {
     event.respondWith(cachedData(request));
     return;
   }

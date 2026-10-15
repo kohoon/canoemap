@@ -45,6 +45,11 @@ test('Owol bridge route follows its local mapped channel when Overpass is unavai
   expect(result.km).toBeGreaterThan(1.8);
   expect(result.access[0][0]).toEqual([37.983002, 127.644284]);
   expect(Math.abs(result.access[0][1][1] - 127.644284)).toBeLessThan(0.001);
+  const downstream = await page.evaluate(() => waterRoute({ lat: 37.9826, lng: 127.6400 }, { lat: 37.97486, lng: 127.6760 }));
+  expect(downstream.err).toBeUndefined();
+  expect(downstream.coords.some((point) => point[0] < 37.979 && point[1] > 127.649)).toBe(true);
+  expect(downstream.coords.some((point) => point[1] > 127.675)).toBe(true);
+  expect(downstream.km).toBeGreaterThan(3);
   expect(overpassRequests).toBe(0);
   await context.close();
   await browser.close();
@@ -1452,7 +1457,7 @@ test('Chuncheonho route follows the mapped waterway into Owol-ri without a land 
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-  await context.route(/\/owol_waterways\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
+  await context.route(/\/owol_waterways_v2\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const rivers = { type: 'FeatureCollection', features: [{
     type: 'Feature', properties: { name: '북한강', kind: 'river' },
     geometry: { type: 'LineString', coordinates: [[127.654, 37.978], [127.654, 37.987]] },
@@ -1502,7 +1507,7 @@ test('Owol bridge channel connects to the middle of the North Han River way', as
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext();
-  await context.route(/\/owol_waterways\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
+  await context.route(/\/owol_waterways_v2\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
   const overpass = { elements: [
     { type: 'relation', id: 1, tags: { natural: 'water' }, members: [

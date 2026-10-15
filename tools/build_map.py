@@ -137,7 +137,7 @@ def _datahash(_name):
 PROTECT_VER = _datahash("protect_polygons.geojson")
 WLZ_VER = _datahash("wlz.geojson")
 RIVERS_VER = _datahash("rivers.geojson")
-OWOL_VER = _datahash("owol_waterways.json")
+OWOL_VER = _datahash("owol_waterways_v2.json")
 ROADS_VER = _datahash("roads.geojson")
 WATERPLAY_VER = _datahash("waterplay.geojson")
 DAISO_VER = _datahash("daiso_stores.geojson")
@@ -5215,7 +5215,7 @@ const _opAreaCache=[];   // 더 큰 기존 bbox가 새 요청 bbox를 포함하�
 let _routeRiverPromise=null;
 let _owolWaterwaysPromise=null;
 function owolWaterways(){
-  if(!_owolWaterwaysPromise)_owolWaterwaysPromise=fetch('owol_waterways.json?v='+DATAVER.owol).then(function(r){if(!r.ok)throw 0;return r.json();}).catch(function(){return null;});
+  if(!_owolWaterwaysPromise)_owolWaterwaysPromise=fetch('owol_waterways_v2.json?v='+DATAVER.owol).then(function(r){if(!r.ok)throw 0;return r.json();}).catch(function(){return null;});
   return _owolWaterwaysPromise;
 }
 function staticWaterRoute(p1,p2){
@@ -5274,8 +5274,8 @@ async function waterRoute(p1,p2){
   const cached=_opAreaCache.find(function(x){return x.s<=s&&x.w<=w&&x.n>=n&&x.e>=e;});
   const q='[out:json][timeout:25];way["waterway"~"river|stream|canal"]('+s+','+w+','+n+','+e+')->.ww;( .ww;way["natural"="water"]('+s+','+w+','+n+','+e+');relation["natural"="water"]('+s+','+w+','+n+','+e+');way["waterway"~"weir|dam|lock_gate"]('+s+','+w+','+n+','+e+');way["man_made"="dam"]('+s+','+w+','+n+','+e+'););out geom;';
   // 오월교 아래 수로는 검증된 OSM 중심선을 로컬에 보관한다. 외부 Overpass가 비거나 느려도 수로를 잃지 않는다.
-  const inOwolChannel=function(p){return p.lat>=37.977&&p.lat<=37.9845&&p.lng>=127.642&&p.lng<=127.652;};
-  const inOwolReach=function(p){return p.lat>=37.977&&p.lat<=37.996&&p.lng>=127.642&&p.lng<=127.67;};
+  const inOwolChannel=function(p){return p.lat>=37.974&&p.lat<=37.985&&p.lng>=127.635&&p.lng<=127.652;};
+  const inOwolReach=function(p){return p.lat>=37.965&&p.lat<=37.998&&p.lng>=127.63&&p.lng<=127.685;};
   const localOwol=(inOwolChannel(p1)&&inOwolReach(p2))||(inOwolChannel(p2)&&inOwolReach(p1));
   const [staticRoute,localWays,remoteWays]=await Promise.all([staticRoutePromise,localOwol?owolWaterways():Promise.resolve(null),localOwol?Promise.resolve(null):(cached?Promise.resolve(cached.j):overpassFetch(q))]);
   const j=localWays&&localWays.elements&&localWays.elements.length?localWays:(localOwol?await overpassFetch(q):remoteWays);
@@ -5977,7 +5977,7 @@ function _offSanitizePlaces(b,u){if(!u||!u.uid)return[];return (_kvPlaces||[]).f
 function _offSanitizeObstacles(b){return Object.keys(_obstacles||{}).map(function(k){return _obstacles[k];}).filter(function(x){return x&&!x.del&&_offInside(+x.lat,+x.lng,b);}).slice(0,1000).map(function(x){return{id:String(x.id||''),lat:+x.lat,lng:+x.lng,type:String(x.type||'보'),note:String(x.note||'').slice(0,200),name:String(x.name||'').slice(0,60),kakaoUrl:String(x.kakaoUrl||'').slice(0,500),kakaoPlaceName:String(x.kakaoPlaceName||'').slice(0,80),kakaoMatchDistance:Number(x.kakaoMatchDistance)||0};});}
 async function saveOfflinePack(){
   if(_offlineBusy)return;if(!navigator.onLine||_offlineDetected){_offToast('온라인 상태에서 저장해 주세요');return;}if(!('caches'in window)||!('indexedDB'in window)){_offToast('이 브라우저는 오프라인 저장을 지원하지 않아요');return;}
-  const course=_offCourse(),b=_offBounds(course),satPlan=_offSatellitePlan(course,b),cacheName=OFFLINE_CACHE_PREFIX+Date.now(),urls=[['protect','./protect_polygons.geojson?v='+DATAVER.protect],['wlz','./wlz.geojson?v='+DATAVER.wlz],['waterplay','./waterplay.geojson?v='+DATAVER.waterplay],['rivers','./rivers.geojson?v='+DATAVER.rivers],['owol','./owol_waterways.json?v='+DATAVER.owol],['roads','./roads.geojson?v='+DATAVER.roads]];_offlineBusy=true;_offlineStatus();_offProgress(5,'Esri 위성 '+satPlan.tiles.length+'장 준비 · 예상 '+_offSize(satPlan.estimatedBytes));
+  const course=_offCourse(),b=_offBounds(course),satPlan=_offSatellitePlan(course,b),cacheName=OFFLINE_CACHE_PREFIX+Date.now(),urls=[['protect','./protect_polygons.geojson?v='+DATAVER.protect],['wlz','./wlz.geojson?v='+DATAVER.wlz],['waterplay','./waterplay.geojson?v='+DATAVER.waterplay],['rivers','./rivers.geojson?v='+DATAVER.rivers],['owol','./owol_waterways_v2.json?v='+DATAVER.owol],['roads','./roads.geojson?v='+DATAVER.roads]];_offlineBusy=true;_offlineStatus();_offProgress(5,'Esri 위성 '+satPlan.tiles.length+'장 준비 · 예상 '+_offSize(satPlan.estimatedBytes));
   try{
     const cache=await caches.open(cacheName),data={};let done=0;
     await Promise.all(urls.map(async function(row){const r=await fetch(row[1],{cache:'reload'});if(!r.ok)throw new Error(row[0]+' '+r.status);if(row[0]!=='rivers'&&row[0]!=='roads')await cache.put(row[1],r.clone());data[row[0]]=await r.json();done++;_offProgress(8+done*8,'지도·안전자료 저장 중… '+done+'/'+urls.length);}));
