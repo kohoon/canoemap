@@ -55,12 +55,9 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 
   test(`integrated tour opens and records GPS at ${viewport.width}px`, async () => {
     const { browser, context, page, errors } = await setup(viewport);
     try {
-      await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+      await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
       await expect(page.locator('#tourEntry')).toBeVisible();
-      await expect(page.locator('#tripbar')).toBeHidden();
-      await page.locator('#tourEntry').click();
-      await expect(page).toHaveURL(/tour=1/);
       await expect(page.locator('html')).toHaveClass(/tour-mode/, { timeout: 15000 });
       await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
       await expect(page.locator('#tourEntry')).toHaveText('↩️ 투어모드 종료');
@@ -117,6 +114,47 @@ test('old tour address keeps unsent records available', async () => {
     await expect(page.locator('#pending')).toBeVisible();
     await expect(page.locator('#go')).toHaveAttribute('href', /course=k123.*tour=1/);
     await expect(page.locator('a[href="./legacy.html"]')).toBeVisible();
+    expect(errors).toEqual([]);
+  } finally {
+    await browser.close();
+  }
+});
+
+test('tour keeps GPS gaps empty and saves no estimated waterway', async () => {
+  const { browser, page, errors } = await setup({ width: 390, height: 844 });
+  try {
+    await page.goto(baseURL + '/?tour=1', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#gate')).toBeHidden({ timeout: 15000 });
+    await page.locator('#tripStart').click();
+    await page.locator('#tmGpsAgree').check();
+    await page.locator('#tmStartNow').click();
+    await expect(page.locator('#tripGpsStatus')).toContainText('GPS 정상');
+    const gap = await page.evaluate(() => {
+      _trk.track[_trk.track.length - 1][2] = Date.now() - 45000;
+      onTripPos({ coords: { latitude: 37.891, longitude: 127.741, accuracy: 8, speed: 1 } });
+      const backup = JSON.parse(localStorage.getItem('mc_trk'));
+      return {
+        breaks: _trk.breaks,
+        parts: _tourLineParts(_trk.track, _trk.breaks),
+        meters: _tourMeters(_trk),
+        savedBreaks: backup.breaks,
+        hasEstimate: 'estimatedCoords' in backup || 'estimated' in backup || 'estimateLine' in _trk,
+      };
+    });
+    expect(gap.breaks).toContain(1);
+    expect(gap.parts).toHaveLength(2);
+    expect(gap.meters).toBe(0);
+    expect(gap.savedBreaks).toEqual(gap.breaks);
+    expect(gap.hasEstimate).toBe(false);
+    await page.locator('#tripStart').click();
+    await expect(page.locator('#tmBody')).toContainText('실측 km');
+    await expect(page.locator('#tmSaveCourse')).toHaveCount(0);
+    await expect(page.locator('#tmBody')).toContainText('GPS가 끊긴 구간');
+    expect(await page.evaluate(() => ({
+      estimated: _pendTrip.estimated,
+      estimatedTrack: _pendTrip.estimatedTrack,
+      breaks: _pendTrip.breaks,
+    }))).toEqual({ estimated: false, estimatedTrack: [], breaks: expect.arrayContaining([1]) });
     expect(errors).toEqual([]);
   } finally {
     await browser.close();
