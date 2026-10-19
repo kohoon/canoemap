@@ -74,7 +74,7 @@ test('E and V select their satellite sources without intercepting typing', async
   expect(await page.evaluate(() => ({
     satellite: map.hasLayer(baseSat), source: _satSrc,
     storedSource: localStorage.getItem('mc_satsrc'), maxZoom: map.getMaxZoom(),
-  }))).toEqual({ satellite: true, source: 'esri', storedSource: 'esri', maxZoom: 18 });
+  }))).toEqual({ satellite: true, source: 'esri', storedSource: 'esri', maxZoom: 20 });
   await page.keyboard.press('m');
   await page.locator('#srchQ').focus();
   await page.keyboard.type('v');
@@ -85,6 +85,35 @@ test('E and V select their satellite sources without intercepting typing', async
   await page.reload({ waitUntil: 'domcontentloaded' });
   expect(await page.evaluate(() => map.hasLayer(baseSat) && _satSrc === 'esri')).toBe(true);
   expect(errors).toEqual([]);
+  await browser.close();
+});
+
+test('Esri can overzoom two levels without requesting missing Korean z19–20 tiles', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    const page = await browser.newPage({ viewport, isMobile: viewport.width < 500, hasTouch: viewport.width < 500 });
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => hideGate());
+    await page.keyboard.press('e');
+    const zoom = await page.evaluate(() => {
+      map.setView([37.99, 127.65], 20, { animate: false });
+      return {
+        zoom: map.getZoom(), maxZoom: map.getMaxZoom(),
+        nativeZoom: satImgEsri.options.maxNativeZoom,
+        tileZoom: satImgEsri._getZoomForUrl(),
+        labelMaxZoom: satLabels.options.maxZoom,
+      };
+    });
+    expect(zoom).toEqual({ zoom: 20, maxZoom: 20, nativeZoom: 18, tileZoom: 18, labelMaxZoom: 20 });
+    await page.keyboard.press('v');
+    await expect.poll(() => page.evaluate(() => ({ zoom: map.getZoom(), maxZoom: map.getMaxZoom() }))).toEqual({ zoom: 19, maxZoom: 19 });
+    expect(errors).toEqual([]);
+    await page.close();
+  }
   await browser.close();
 });
 
