@@ -4403,7 +4403,7 @@ map.on('baselayerchange', function(e){
   else if(saved==='오프라인 지도') {}   // IndexedDB 저장본을 읽은 뒤 _offlineInit에서 추가
   else baseOSM.addTo(map);
   _syncSatToggle(); _renderJapanLakeLabels(); })();
-// PC 단축키 M: 일반지도 ↔ 위성지도. 검색·입력·대화상자에서는 가로채지 않는다.
+// PC 단축키 M: 일반 ↔ 위성, E/V: Esri/VWorld 위성. 검색·입력·대화상자에서는 가로채지 않는다.
 function _toggleBasemapShortcut(){
   const next=map.hasLayer(baseSat)?baseOSM:baseSat;
   [baseOSM,baseSat,offlineBase].forEach(function(layer){if(map.hasLayer(layer))map.removeLayer(layer);});
@@ -4411,12 +4411,25 @@ function _toggleBasemapShortcut(){
   if(_layerControl&&_layerControl._update)_layerControl._update();
   gaEvent('basemap_shortcut',{map:next===baseSat?'satellite':'standard'});
 }
+function _selectSatelliteShortcut(src){
+  if(src==='vworld'&&!satImgV)return;
+  if(_satSrc!==src)setSatSource(src);
+  if(!map.hasLayer(baseSat)){
+    [baseOSM,baseSat,offlineBase].forEach(function(layer){if(map.hasLayer(layer))map.removeLayer(layer);});
+    baseSat.addTo(map);
+    if(_layerControl&&_layerControl._update)_layerControl._update();
+  }
+  gaEvent('basemap_shortcut',{map:'satellite',source:src});
+}
 document.addEventListener('keydown',function(e){
-  if(e.code!=='KeyM'||e.repeat||e.isComposing||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
+  if(!['KeyM','KeyE','KeyV'].includes(e.code)||e.repeat||e.isComposing||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
   const target=e.target instanceof Element?e.target:null;
   if(target&&target.closest('input,textarea,select,button,a,[contenteditable],[role="textbox"],[role="dialog"]'))return;
   const gate=document.getElementById('gate');if(gate&&getComputedStyle(gate).display!=='none')return;
-  e.preventDefault();_toggleBasemapShortcut();
+  if(e.code==='KeyV'&&!satImgV)return;
+  e.preventDefault();
+  if(e.code==='KeyM')_toggleBasemapShortcut();
+  else _selectSatelliteShortcut(e.code==='KeyV'?'vworld':'esri');
 });
 
 // ---- 등록 코스(KV) 로드/렌더 ----

@@ -55,6 +55,39 @@ test('M switches standard and satellite maps without intercepting typing', async
   await browser.close();
 });
 
+test('E and V select their satellite sources without intercepting typing', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => hideGate());
+  await page.keyboard.press('v');
+  expect(await page.evaluate(() => ({
+    satellite: map.hasLayer(baseSat), standard: map.hasLayer(baseOSM),
+    source: _satSrc, storedSource: localStorage.getItem('mc_satsrc'),
+    storedMap: localStorage.getItem('mc_basemap'), maxZoom: map.getMaxZoom(),
+  }))).toEqual({ satellite: true, standard: false, source: 'vworld', storedSource: 'vworld', storedMap: '위성지도', maxZoom: 19 });
+  await page.keyboard.press('e');
+  expect(await page.evaluate(() => ({
+    satellite: map.hasLayer(baseSat), source: _satSrc,
+    storedSource: localStorage.getItem('mc_satsrc'), maxZoom: map.getMaxZoom(),
+  }))).toEqual({ satellite: true, source: 'esri', storedSource: 'esri', maxZoom: 18 });
+  await page.keyboard.press('m');
+  await page.locator('#srchQ').focus();
+  await page.keyboard.type('v');
+  expect(await page.evaluate(() => map.hasLayer(baseOSM) && _satSrc === 'esri')).toBe(true);
+  await page.evaluate(() => document.activeElement.blur());
+  await page.keyboard.press('e');
+  expect(await page.evaluate(() => map.hasLayer(baseSat) && _satSrc === 'esri')).toBe(true);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  expect(await page.evaluate(() => map.hasLayer(baseSat) && _satSrc === 'esri')).toBe(true);
+  expect(errors).toEqual([]);
+  await browser.close();
+});
+
 test('shortcut hint does not crowd the mobile legend', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
