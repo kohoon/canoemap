@@ -100,12 +100,23 @@ test('Soyang Lake launching-site legs remain routable without Overpass', async (
   expect(totalKm).toBeGreaterThan(45);
   expect(totalKm).toBeLessThan(46);
   expect(overpassRequests).toBe(0);
+  const attribution = page.locator('.leaflet-control-attribution');
+  await expect(attribution).not.toContainText('소양호 물가');
+  await expect(attribution).not.toContainText('오월교 물길');
+  await expect(attribution.locator('a[href="https://www.openstreetmap.org/copyright"]')).toHaveCount(1);
   const mobile = await context.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   await mobile.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   const mobileLeg = await mobile.evaluate(([a, b]) => waterRoute(
     { lat: a[0], lng: a[1] }, { lat: b[0], lng: b[1] }), [points[0], points[1]]);
   expect(mobileLeg.err).toBeUndefined();
   expect(mobileLeg.km).toBeGreaterThan(20);
+  const mobileAttribution = await mobile.locator('.leaflet-control-attribution').evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    return { left: rect.left, right: rect.right, scrollWidth: el.scrollWidth, clientWidth: el.clientWidth, viewportWidth: innerWidth };
+  });
+  expect(mobileAttribution.left).toBeGreaterThanOrEqual(0);
+  expect(mobileAttribution.right).toBeLessThanOrEqual(mobileAttribution.viewportWidth + 1);
+  expect(mobileAttribution.scrollWidth).toBeLessThanOrEqual(mobileAttribution.clientWidth + 1);
   await mobile.close();
   await context.close();
   await browser.close();

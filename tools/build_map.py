@@ -1434,8 +1434,9 @@ const AdminCtl=L.Control.extend({ options:{position:'topright'},
     setTimeout(function(){ _updateAdminActions(isAdmin()); _updateAdminSheetLink(isAdmin()); _updateAdminMemberButton(isAdmin()); },0);
     return d; } });
 
+const OSM_ATTR='<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a>';
 const baseOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  {maxZoom:19,attribution:'© OpenStreetMap'});   // 이동 범위를 한 세계로 제한하고, 오른쪽 아메리카 구간만 타일 래핑
+  {maxZoom:19,attribution:OSM_ATTR});   // 이동 범위를 한 세계로 제한하고, 오른쪽 아메리카 구간만 타일 래핑
 // 위성지도(단일 베이스) = Esri 또는 VWorld 정사영상. 서브토글(안 B)로 출처 교체.
 const SAT_NATIVEZOOM_E=18; // 국내 다수 지역의 마지막 실영상 타일
 const SAT_MAXZOOM_E=20;   // z19–20은 z18 영상을 확대 표시
@@ -1451,7 +1452,7 @@ const satLabels = VKEY
   ? L.tileLayer('https://api.vworld.kr/req/wmts/1.0.0/'+VKEY+'/Hybrid/{z}/{y}/{x}.png',
       {maxNativeZoom:SAT_MAXZOOM_V,maxZoom:SAT_MAXZOOM_E,pane:'satLabelsPane',attribution:'© VWorld(국토지리정보원)'})
   : L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {subdomains:'abc',maxNativeZoom:SAT_MAXZOOM_V,maxZoom:SAT_MAXZOOM_E,pane:'satLabelsPane',opacity:0.4,attribution:'© OpenStreetMap'});
+      {subdomains:'abc',maxNativeZoom:SAT_MAXZOOM_V,maxZoom:SAT_MAXZOOM_E,pane:'satLabelsPane',opacity:0.4,attribution:OSM_ATTR});
 // VWorld 정사영상(국토지리정보원). VKEY 도메인잠금, 브라우저 직접 호출. 라벨은 위 OSM 공용.
 const satImgV = VKEY ? L.tileLayer('https://api.vworld.kr/req/wmts/1.0.0/'+VKEY+'/Satellite/{z}/{y}/{x}.jpeg',
   {maxNativeZoom:SAT_MAXZOOM_V,maxZoom:SAT_MAXZOOM_V,attribution:'© VWorld(국토지리정보원)'}) : null;
@@ -5312,8 +5313,8 @@ async function waterRoute(p1,p2){
   const localWays=(localOwol||localSoyang)?candidateWays:null;
   const j=localWays&&localWays.elements&&localWays.elements.length?localWays:((localOwol||soyangCandidate)?await overpassFetch(q):remoteWays);
   if(!j) return {err:'overpass'};
-  if(localOwol&&localWays&&!window._owolAttributionShown){map.attributionControl.addAttribution('오월교 물길 &copy; OpenStreetMap 기여자');window._owolAttributionShown=true;}
-  if(localSoyang&&localWays&&!window._soyangAttributionShown){map.attributionControl.addAttribution('소양호 물가 &copy; OpenStreetMap 기여자');window._soyangAttributionShown=true;}
+  // 구간별 설명 문구를 출처 영역에 늘리지 않고 OSM 공통 출처 한 번만 표시한다.
+  if(localWays&&!window._localWaterAttributionShown){map.attributionControl.addAttribution(OSM_ATTR);window._localWaterAttributionShown=true;}
   if(!localWays&&!cached&&!_opAreaCache.some(function(x){return x.s===s&&x.w===w&&x.n===n&&x.e===e;})){
     _opAreaCache.push({s:s,w:w,n:n,e:e,j:j});if(_opAreaCache.length>8)_opAreaCache.shift();
   }
