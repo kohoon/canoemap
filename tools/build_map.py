@@ -4862,7 +4862,7 @@ function _redrawMeasDraft(){
   measSegs.forEach(function(sg,i){
     cumulativeKm+=sg.km;
     _drawMeasAccess(measDraft,sg.access);
-    L.polyline(sg.coords,{color:'#ff7043',weight:4,opacity:.85,dashArray:sg.straight?'6,8':null}).addTo(measDraft);
+    L.polyline(sg.waterCoords||sg.coords,{color:'#ff7043',weight:4,opacity:.85,dashArray:sg.straight?'6,8':null}).addTo(measDraft);
     _addSegLabel(measDraft,sg.coords,i,sg.km,cumulativeKm);
   });
   measPts.forEach(function(p){ L.circleMarker(p,{radius:5,color:'#bf360c',fillColor:'#ff7043',fillOpacity:1}).addTo(measDraft); });
@@ -4886,11 +4886,6 @@ async function _runMeasQueue(){
     const item=_measQueue.shift(), pt=item.pt, segMode=item.mode||measMode;
     if(measPts.length===0){ measPts.push(pt); _redrawMeasDraft(); updateMeasBtn(); continue; }
     const last=measPts[measPts.length-1];
-    const previous=measSegs[measSegs.length-1];
-    if(previous&&(previous.access||[]).some(function(a){return map.distance(a[1],last)<3;})){
-      L.popup({closeButton:false}).setLatLng(last).setContent('수면 밖 도착지에서는 경로를 이어 그릴 수 없습니다.<br><small>완료하거나 마지막 구간을 취소하고 물 위 경유지를 선택해 주세요.</small>').openOn(map);
-      continue;
-    }
     let seg=null;
     if(segMode==='straight'){   // 직선 모드: 즉시 직선 구간
       seg={coords:[[last.lat,last.lng],[pt.lat,pt.lng]], km:map.distance([last.lat,last.lng],[pt.lat,pt.lng])/1000, straight:true};
@@ -4898,17 +4893,14 @@ async function _runMeasQueue(){
       const b=document.getElementById('measBtnBox'); if(b) b.innerHTML='⏳ 물길 계산 중…';
       try{ seg=await waterRoute(last, pt); }catch(err){ seg={err:'overpass'}; }
     }
-    if(seg&&!seg.err&&segMode==='water'&&measSegs.length&&(seg.access||[]).some(function(a){return map.distance(a[0],last)<3;}))seg={err:'landwaypoint'};
     if(!seg || seg.err){
-      const why=seg&&seg.err==='overpass'?'서버 혼잡 — 잠시 후 다시 클릭':seg&&seg.err==='farwater'?'가까운 물길이 없습니다<br><small>강안에 더 가까운 지점을 선택하세요</small>':seg&&seg.err==='detour'?'비정상적으로 우회하는 물길입니다<br><small>경유지를 추가해 구간을 나눠주세요</small>':seg&&seg.err==='landcross'?'육지를 가로지르는 경로여서 표시하지 않았습니다<br><small>물 위에 경유지를 추가해 주세요</small>':seg&&seg.err==='landwaypoint'?'수면 밖 경유지에서 물길을 이어 그릴 수 없습니다<br><small>물 위 경유지를 선택해 주세요</small>':'이 구간 물길 못 찾음<br><small>더 가까운 점/경유지를 찍어보세요</small>';
+      const why=seg&&seg.err==='overpass'?'서버 혼잡 — 잠시 후 다시 클릭':seg&&seg.err==='farwater'?'연결할 물길을 찾지 못했습니다':seg&&seg.err==='detour'?'비정상적으로 우회하는 물길입니다<br><small>경유지를 추가해 구간을 나눠주세요</small>':seg&&seg.err==='landcross'?'육지를 가로지르는 경로여서 표시하지 않았습니다<br><small>물 위에 경유지를 추가해 주세요</small>':'이 구간 물길 못 찾음<br><small>더 가까운 점/경유지를 찍어보세요</small>';
       L.popup({closeButton:false}).setLatLng(pt).setContent(why).openOn(map);
       _redrawMeasDraft();
       updateMeasBtn(); continue;   // 이 점은 건너뛰고 다음 점은 마지막 성공점에서 이어감
     }
-    const placed=seg.snappedEnd?L.latLng(seg.snappedEnd[0],seg.snappedEnd[1]):pt;
-    if(seg.snappedEnd)placed._measLabel=pt._measLabel;
-    measSegs.push(seg); measPts.push(placed); _redrawMeasDraft(); updateMeasBtn();
-    measHint(seg.snappedEnd?'선택 지점 근처에서 계산 가능한 물길 끝점으로 보정했습니다':seg.access&&seg.access.length?'회색 점선은 수면으로 확인되지 않은 접근 구간이며 카누잉 거리에서 제외됩니다':'지점 '+measPts.length+'개 · 계속 탭하거나, 좌상단 "🏁 완료"를 누르면 거리가 나와요');
+    measSegs.push(seg); measPts.push(pt); _redrawMeasDraft(); updateMeasBtn();
+    measHint(seg.access&&seg.access.length?'회색 점선은 물길과 선택 지점을 잇는 직선 구간입니다':'지점 '+measPts.length+'개 · 계속 탭하거나, 좌상단 "🏁 완료"를 누르면 거리가 나와요');
   }
   _measRunning=false;
 }
@@ -4931,7 +4923,7 @@ function finishMeasure(){
     cumulativeKm+=sg.km;
     const label=_segName(i,totalPts)+' · '+sg.km.toFixed(2)+'km';
     _drawMeasAccess(grp,sg.access);
-    L.polyline(sg.coords,{color:'#ff7043',weight:5,opacity:.95,lineCap:'round',dashArray:sg.straight?'6,8':null})
+    L.polyline(sg.waterCoords||sg.coords,{color:'#ff7043',weight:5,opacity:.95,lineCap:'round',dashArray:sg.straight?'6,8':null})
       .bindTooltip(label,{sticky:true,opacity:.95}).addTo(grp);
     _addSegLabel(grp,sg.coords,i,sg.km,cumulativeKm);
   });
@@ -5329,11 +5321,11 @@ async function waterRoute(p1,p2){
     if(first&&prev){wayEnds.push({key:first,id:el.id},{key:prev,id:el.id});} }
   function inPoly(pt,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a[0]>pt[0])!==(b[0]>pt[0]))&&(pt[1]<(b[1]-a[1])*(pt[0]-a[0])/((b[0]-a[0])||1e-12)+a[1]))inside=!inside;}return inside;}
   function inWater(pt){let ok=false;for(const x of waterOuter){const b=x.b;if(pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3]&&inPoly(pt,x.p)){ok=true;break;}}if(!ok)return false;for(const x of waterInner){const b=x.b;if(pt[0]>=b[0]&&pt[0]<=b[2]&&pt[1]>=b[1]&&pt[1]<=b[3]&&inPoly(pt,x.p))return false;}return true;}
-  // 선택한 도착지가 육지라면 수로 중심선이 아니라 가장 가까운 실제 수면 경계 안쪽으로 옮긴다.
+  // 육지 선택 지점에서 가장 가까운 실제 수면 경계를 찾아 물길과 직선으로 연결한다.
   function nearestShore(pt){
     const origin=[pt.lat,pt.lng];if(!waterOuter.length||inWater(origin))return null;
     const c=Math.cos(origin[0]*toR),latScale=110540,lngScale=111320*c;
-    let best=null,bestDist=1500;
+    let best=null,bestDist=5000;
     for(const ring of waterOuter.concat(waterInner)){
       const bb=ring.b;
       if(origin[0]<bb[0]-bestDist/latScale||origin[0]>bb[2]+bestDist/latScale||
@@ -5405,6 +5397,9 @@ async function waterRoute(p1,p2){
     while(i<raw.length-1){let j=raw.length-1;while(j>i+1&&!waterLineClear(raw[i],raw[j]))j--;out.push(raw[j]);i=j;}
     return out;
   }
+  const landStart=waterOuter.length&&!inWater([p1.lat,p1.lng]);
+  const shoreStart=landStart?nearestShore(p1):null;
+  const routeStart=shoreStart?{lat:shoreStart[0],lng:shoreStart[1]}:p1;
   const landEnd=waterOuter.length&&!inWater([p2.lat,p2.lng]);
   const shoreEnd=landEnd?nearestShore(p2):null;
   // 영상 촬영시점·수위 차이로 OSM 물가가 짧게 잡힐 수 있다. 연결된 하천선이 더 가까우면 그쪽까지 간다.
@@ -5412,9 +5407,26 @@ async function waterRoute(p1,p2){
   let graphEnd=null;
   if(landEnd)for(const edge of graphEdges){
     const candidate=edgeProjection([p2.lat,p2.lng],edge);
-    if(candidate.dist<=1500&&candidate.dist+25<shoreDist&&(!graphEnd||candidate.dist<graphEnd.dist))graphEnd=candidate;
+    if(candidate.dist<=5000&&candidate.dist+25<shoreDist&&(!graphEnd||candidate.dist<graphEnd.dist))graphEnd=candidate;
   }
   const routeEnd=graphEnd?{lat:graphEnd.p[0],lng:graphEnd.p[1]}:shoreEnd?{lat:shoreEnd[0],lng:shoreEnd[1]}:p2;
+  // 물길은 수면에서 끝내되, 사용자가 찍은 육지 지점도 직선 연결해 코스에 보존한다.
+  function connectSelectedPoints(route){
+    if(!route||route.err||!route.coords||!route.coords.length)return route;
+    const waterCoords=route.coords.slice(),coords=waterCoords.slice(),access=route.access||[];
+    const start=[p1.lat,p1.lng],end=[p2.lat,p2.lng];
+    if(hav(start,coords[0])>.05){
+      if(!access.some(function(a){return hav(a[0],start)<3;}))access.unshift([start,coords[0]]);
+      coords.unshift(start);
+    }
+    if(hav(coords[coords.length-1],end)>.05&&(landEnd||access.some(function(a){return hav(a[1],end)<3;}))){
+      if(!access.some(function(a){return hav(a[1],end)<3;}))access.push([coords[coords.length-1],end]);
+      coords.push(end);
+    }
+    let meters=0;for(let i=1;i<coords.length;i++)meters+=hav(coords[i-1],coords[i]);
+    route.coords=coords;route.waterCoords=waterCoords;route.access=access;route.km=meters/1000;
+    return route;
+  }
   let repairedStatic=null;
   if(staticRoute&&staticRoute._core&&staticRoute._core.length>1&&waterOuter.length&&staticRoute._core.every(function(p,i,a){return !i||waterLineClear(a[i-1],p);})){
     const core=staticRoute._core.slice(),start=[p1.lat,p1.lng],end=[routeEnd.lat,routeEnd.lng];
@@ -5425,8 +5437,7 @@ async function waterRoute(p1,p2){
     if(last)coords=coords.concat(last.slice(1));else if(!landEnd)access.push([core[core.length-1],end]);
     let meters=0;for(let i=1;i<coords.length;i++)meters+=hav(coords[i-1],coords[i]);
     repairedStatic={coords:coords,km:meters/1000,access:access,snap:staticRoute.snap,source:'static-river-water',riverName:staticRoute.riverName};
-    if(landEnd)repairedStatic.snappedEnd=coords[coords.length-1];
-    if(!access.length&&(!landEnd||last))return repairedStatic;
+    if(!access.length&&(!landEnd||last))return connectSelectedPoints(repairedStatic);
   }
   function nearest(pt){ let best=null,bd=1e18; for(const k in nodes){ const d=hav(nodes[k],[pt.lat,pt.lng]); if(d<bd){bd=d;best=k;} } return {key:best,dist:bd,wet:false}; }
   function edgeProjection(origin,edge){
@@ -5483,12 +5494,12 @@ async function waterRoute(p1,p2){
   }
   function nearestWet(pt){
     const origin=[pt.lat,pt.lng],nearestEdge=graphEdges.map(function(edge){return edgeProjection(origin,edge);}).sort(function(a,b){return a.dist-b.dist;})[0];
-    const projected=attachProjected(pt,pt===p1?'@route-start':'@route-end');
+    const projected=attachProjected(pt,pt===routeStart?'@route-start':'@route-end');
     // 가까운 수로까지 수면 연결을 확인하지 못하면 짧은 접근선으로 남긴다.
     // 멀리 있는 본류의 연결을 먼저 채택하면 오월교 아래 수로를 건너뛰게 된다.
     if(nearestEdge&&nearestEdge.dist<=500&&(!projected||projected.dist>nearestEdge.dist+150)){
       let k=nearestEdge.t<.00001?nearestEdge.edge[0]:(nearestEdge.t>.99999?nearestEdge.edge[1]:null);
-      if(!k){k=pt===p1?'@route-dry-start':'@route-dry-end';nodes[k]=nearestEdge.p;adj[k]=[];
+      if(!k){k=pt===routeStart?'@route-dry-start':'@route-dry-end';nodes[k]=nearestEdge.p;adj[k]=[];
         for(const target of nearestEdge.edge){const d=hav(nearestEdge.p,nodes[target]);adj[k].push([target,d]);(adj[target]=adj[target]||[]).push([k,d]);}}
       return {key:k,dist:nearestEdge.dist,wet:false,edgeId:nearestEdge.edgeId,projection:nearestEdge};
     }
@@ -5504,14 +5515,14 @@ async function waterRoute(p1,p2){
     }
     return {key:nearest.key,dist:nearest.dist,wet:false};
   }
-  const near1=nearestWet(p1),near2=nearestWet(routeEnd),s1=near1.key,s2=near2.key;
+  const near1=nearestWet(routeStart),near2=nearestWet(routeEnd),s1=near1.key,s2=near2.key;
   if(near1.projection&&near2.projection&&near1.edgeId===near2.edgeId&&s1!==s2){const d=hav(nodes[s1],nodes[s2]);(adj[s1]=adj[s1]||[]).push([s2,d]);(adj[s2]=adj[s2]||[]).push([s1,d]);}
-  if(!s1||!s2||near1.dist>1500||near2.dist>1500) return repairedStatic||{err:'farwater'};
-  // 물길 모드에서는 연결 실패를 직선으로 숨기지 않는다. 직선은 사용자가 직선 모드를 고른 경우에만 사용한다.
+  if(!s1||!s2||near1.dist>2500||near2.dist>2500) return repairedStatic?connectSelectedPoints(repairedStatic):{err:'farwater'};
+  // 물길 그래프 전체의 연결 실패를 직선으로 숨기지 않는다. 직선은 강안과 선택 지점 사이에만 쓴다.
   const dist={}, prev={}; dist[s1]=0; const heap=new MinHeap(); heap.push(0,s1);
   while(heap.size()){ const top=heap.pop(); const d=top[0], u=top[1]; if(u===s2) break; if(d>(dist[u]===undefined?1e18:dist[u])) continue;
     for(const vw of (adj[u]||[])){ const v=vw[0], nd=d+vw[1]; if(nd<(dist[v]===undefined?1e18:dist[v])){ dist[v]=nd; prev[v]=u; heap.push(nd,v); } } }
-  if(dist[s2]===undefined) return repairedStatic||{err:'nowaterpath'};
+  if(dist[s2]===undefined) return repairedStatic?connectSelectedPoints(repairedStatic):{err:'nowaterpath'};
   const path=[s2]; while(path[path.length-1]!==s1){ const pp=prev[path[path.length-1]]; if(pp===undefined) return {err:'nowaterpath'}; path.push(pp); } path.reverse();
   const routeNames={};path.forEach(function(k){const ns=nodeNames[k]||{};for(const nm in ns)routeNames[nm]=(routeNames[nm]||0)+ns[nm];});
   const riverName=Object.keys(routeNames).sort(function(a,b){return routeNames[b]-routeNames[a];})[0]||'';
@@ -5519,24 +5530,23 @@ async function waterRoute(p1,p2){
   const directM=hav([p1.lat,p1.lng],[routeEnd.lat,routeEnd.lng]);
   if(directM>=10000 && routeM>directM*3) return {err:'detour'};
   let raw=path.map(k=>nodes[k]);
-  if(near1.wet){const c=near1.connector||[[p1.lat,p1.lng],nodes[s1]];raw=c.slice(0,-1).concat(raw);}
+  if(near1.wet){const c=near1.connector||[[routeStart.lat,routeStart.lng],nodes[s1]];raw=c.slice(0,-1).concat(raw);}
   if(near2.wet){const c=near2.connector||[[routeEnd.lat,routeEnd.lng],nodes[s2]];raw=raw.concat(c.slice().reverse().slice(1));}
   const shortened=shortcutWaterPath(raw),coords=[shortened[0]],start=[p1.lat,p1.lng],end=[routeEnd.lat,routeEnd.lng],access=[];
   // OSM 중심선 자체가 섬을 관통할 때도 수면 위 우회 경로로 바꾼다.
   for(let i=1;i<shortened.length;i++){
     const a=coords[coords.length-1],b=shortened[i];
     if(waterOuter.length&&inWater(a)&&inWater(b)&&!waterLineClear(a,b)){
-      const detour=waterSurfacePath(a,b);if(!detour)return repairedStatic||{err:'landcross'};
+      const detour=waterSurfacePath(a,b);if(!detour)return repairedStatic?connectSelectedPoints(repairedStatic):{err:'landcross'};
       coords.push.apply(coords,detour.slice(1));
     }else coords.push(b);
   }
-  // 수면으로 확인되지 않은 출발·도착 접근은 항로 실선 및 거리에서 분리한다.
+  // 수면으로 확인되지 않은 접근선은 항로 실선과 시각적으로 분리하고, 이후 총거리에는 포함한다.
   if(!near1.wet&&hav(start,coords[0])>=3)access.push([start,coords[0]]);
   if(!landEnd&&!near2.wet&&hav(coords[coords.length-1],end)>=3)access.push([coords[coords.length-1],end]);
   let waterM=0;for(let i=1;i<coords.length;i++)waterM+=hav(coords[i-1],coords[i]);
   const result={coords:coords, km:waterM/1000, access:access, snap:[near1.dist,near2.dist], riverName:riverName};
-  if(landEnd)result.snappedEnd=coords[coords.length-1];
-  return result;
+  return connectSelectedPoints(result);
 }
 function MinHeap(){ this.a=[]; }
 MinHeap.prototype.size=function(){ return this.a.length; };

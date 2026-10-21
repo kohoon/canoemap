@@ -1347,7 +1347,7 @@ test('OSM waterway centerline crossing an island is rerouted on water', async ()
   await browser.close();
 });
 
-test('an unverified land waypoint cannot silently join two saved water routes', async () => {
+test('a land waypoint can continue to another water route', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -1370,8 +1370,8 @@ test('an unverified land waypoint cannot silently join two saved water routes', 
       return { afterDryEnd, afterDryStart: { points: measPts.length, segments: measSegs.length, calls } };
     } finally { waterRoute = original; }
   });
-  expect(result.afterDryEnd).toEqual({ points: 2, segments: 1, calls: 0 });
-  expect(result.afterDryStart).toEqual({ points: 2, segments: 1, calls: 1 });
+  expect(result.afterDryEnd).toEqual({ points: 3, segments: 2, calls: 1 });
+  expect(result.afterDryStart).toEqual({ points: 3, segments: 2, calls: 2 });
   await browser.close();
 });
 
@@ -1579,10 +1579,10 @@ test('water route reaches a cove endpoint by following the water surface around 
     { lat: 37.012, lng: 127.007 },
   ));
   expect(shore.err).toBeUndefined();
-  expect(shore.access).toEqual([]);
-  expect(shore.snappedEnd).toEqual(shore.coords[shore.coords.length - 1]);
-  expect(shore.snappedEnd[1]).toBeGreaterThan(127.008);
-  expect(shore.snappedEnd[1]).toBeLessThan(127.0085);
+  expect(shore.coords[shore.coords.length - 1]).toEqual([37.012, 127.007]);
+  expect(shore.access).toHaveLength(1);
+  expect(shore.access[0][0][1]).toBeGreaterThan(127.008);
+  expect(shore.access[0][0][1]).toBeLessThan(127.0085);
   expect(errors).toEqual([]);
   await context.close();
   await browser.close();
@@ -1622,7 +1622,7 @@ test('water route enters the nearest edge projection without an endpoint backtra
   await browser.close();
 });
 
-test('land destination snaps to the nearest shoreline without drawing or measuring inland', async () => {
+test('land destination connects from the nearest shoreline to the selected point', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
@@ -1653,13 +1653,12 @@ test('land destination snaps to the nearest shoreline without drawing or measuri
     { lat: 37.008, lng: 127.0 },
     { lat: 36.992, lng: 127.0045 },
   ));
-  expect(result.access).toEqual([]);
+  expect(result.access).toHaveLength(1);
   expect(result.coords[0]).toEqual([37.008, 127.0]);
-  expect(result.snappedEnd).toEqual(result.coords[result.coords.length - 1]);
-  expect(result.snappedEnd[0]).toBeCloseTo(36.992, 3);
-  expect(result.snappedEnd[1]).toBeGreaterThan(127.0008);
-  expect(result.snappedEnd[1]).toBeLessThan(127.001);
-  expect(result.coords.every((p) => p[1] <= 127.001)).toBe(true);
+  expect(result.coords[result.coords.length - 1]).toEqual([36.992, 127.0045]);
+  expect(result.access[0][0][0]).toBeCloseTo(36.992, 3);
+  expect(result.access[0][0][1]).toBeGreaterThan(127.0008);
+  expect(result.access[0][0][1]).toBeLessThan(127.001);
   expect(result.km).toBeGreaterThan(1.8);
   await page.evaluate(() => {
     startMeasure();
@@ -1674,24 +1673,44 @@ test('land destination snaps to the nearest shoreline without drawing or measuri
   }));
   expect(selected.end).toEqual(selected.routeEnd);
   expect(selected.label).toBe('육지 랜딩');
+  const inland = await page.evaluate(() => waterRoute(
+    { lat: 37.008, lng: 127.0 },
+    { lat: 36.992, lng: 127.03 },
+  ));
+  expect(inland.err).toBeUndefined();
+  expect(inland.coords[inland.coords.length - 1]).toEqual([36.992, 127.03]);
+  expect(inland.access[inland.access.length - 1][1]).toEqual([36.992, 127.03]);
+  await page.evaluate(() => _measPickPoint({ lat: 37.0, lng: 127.0 }, '다음 지점'));
+  await page.waitForFunction(() => measPts.length === 3 && !_measRunning);
+  const continued = await page.evaluate(() => ({
+    start: measSegs[1].coords[0],
+    end: measSegs[1].coords[measSegs[1].coords.length - 1],
+  }));
+  expect(continued.start).toEqual([36.992, 127.0045]);
+  expect(continued.end).toEqual([37.0, 127.0]);
+  await page.evaluate(() => finishMeasure());
+  const saved = await page.evaluate(() => _lastMeasureShare);
+  expect(saved.coords).toContainEqual([36.992, 127.0045]);
+  expect(saved.coords[saved.coords.length - 1]).toEqual([37.0, 127.0]);
   const newerWaterline = await page.evaluate(() => waterRoute(
     { lat: 37.008, lng: 127.0 },
     { lat: 36.985, lng: 127.001 },
   ));
   expect(newerWaterline.err).toBeUndefined();
-  expect(newerWaterline.snappedEnd).toEqual(newerWaterline.coords[newerWaterline.coords.length - 1]);
-  expect(newerWaterline.snappedEnd[0]).toBeCloseTo(36.985, 3);
-  expect(newerWaterline.snappedEnd[1]).toBeCloseTo(127.0, 3);
+  expect(newerWaterline.coords[newerWaterline.coords.length - 1]).toEqual([36.985, 127.001]);
+  expect(newerWaterline.access).toHaveLength(1);
+  expect(newerWaterline.access[0][0][0]).toBeCloseTo(36.985, 3);
+  expect(newerWaterline.access[0][0][1]).toBeCloseTo(127.0, 3);
   // 수면 다각형이 끊긴 곳도 확인된 하천 중심선이 이어지면 계산을 포기하지 않는다.
   const beyondPolygon = await page.evaluate(() => waterRoute(
     { lat: 37.008, lng: 127.0 },
     { lat: 36.972, lng: 127.001 },
   ));
   expect(beyondPolygon.err).toBeUndefined();
-  expect(beyondPolygon.access).toEqual([]);
-  expect(beyondPolygon.snappedEnd).toEqual(beyondPolygon.coords[beyondPolygon.coords.length - 1]);
-  expect(beyondPolygon.snappedEnd[0]).toBeCloseTo(36.972, 3);
-  expect(beyondPolygon.snappedEnd[1]).toBeCloseTo(127.0, 3);
+  expect(beyondPolygon.access).toHaveLength(1);
+  expect(beyondPolygon.coords[beyondPolygon.coords.length - 1]).toEqual([36.972, 127.001]);
+  expect(beyondPolygon.access[0][0][0]).toBeCloseTo(36.972, 3);
+  expect(beyondPolygon.access[0][0][1]).toBeCloseTo(127.0, 3);
   expect(beyondPolygon.km).toBeGreaterThan(3);
   expect(errors).toEqual([]);
   await context.close();
