@@ -55,6 +55,62 @@ test('Owol bridge route follows its local mapped channel when Overpass is unavai
   await browser.close();
 });
 
+test('Soyang Lake launching-site legs remain routable without Overpass', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  let overpassRequests = 0;
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => { overpassRequests++; return route.abort(); });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  // Coordinates of the registered 소양강댐 → 수인리 → 하수내리 → 관대리 launch sites.
+  const points = [[37.95186616000597, 127.81570071000591], [38.02267036732603, 127.93841025449382],
+    [38.00130580915737, 128.04752590884402], [38.017033683400605, 128.10287871388883]];
+  const water = (await (await page.request.get(baseURL + '/soyang_water.geojson')).json()).features[0].geometry.coordinates;
+  let totalKm = 0;
+  function inRing(point, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const a = ring[i], b = ring[j];
+      if ((a[1] > point[0]) !== (b[1] > point[0]) &&
+        point[1] < (b[0] - a[0]) * (point[0] - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+    }
+    return inside;
+  }
+  for (let i = 1; i < points.length; i++) {
+    const result = await page.evaluate(([a, b]) => waterRoute(
+      { lat: a[0], lng: a[1] }, { lat: b[0], lng: b[1] }), [points[i - 1], points[i]]);
+    expect(result.err, `Soyang leg ${i}`).toBeUndefined();
+    expect(result.km, `Soyang leg ${i}`).toBeGreaterThan(5);
+    expect(result.coords.length, `Soyang leg ${i}`).toBeGreaterThan(10);
+    totalKm += result.km;
+    const path = result.waterCoords;
+    let landSamples = 0;
+    for (let k = 1; k < path.length; k++) {
+      const a = path[k - 1], b = path[k];
+      const steps = Math.max(1, Math.ceil(Math.hypot((a[0] - b[0]) * 111000, (a[1] - b[1]) * 88000) / 20));
+      for (let n = 0; n <= steps; n++) {
+        const t = n / steps, point = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+        if (!inRing(point, water[0]) || water.slice(1).some((ring) => inRing(point, ring))) landSamples++;
+      }
+    }
+    expect(landSamples, `Soyang leg ${i} must stay within mapped water`).toBe(0);
+  }
+  expect(totalKm).toBeGreaterThan(45);
+  expect(totalKm).toBeLessThan(46);
+  expect(overpassRequests).toBe(0);
+  const mobile = await context.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await mobile.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const mobileLeg = await mobile.evaluate(([a, b]) => waterRoute(
+    { lat: a[0], lng: a[1] }, { lat: b[0], lng: b[1] }), [points[0], points[1]]);
+  expect(mobileLeg.err).toBeUndefined();
+  expect(mobileLeg.km).toBeGreaterThan(20);
+  await mobile.close();
+  await context.close();
+  await browser.close();
+});
+
 test('signup and Soyang participation forms ask for a Canoemap username, not a cafe nickname', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
