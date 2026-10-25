@@ -29,6 +29,100 @@ test.afterAll(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
 });
 
+test('regional water tiles route a non-special river without Overpass', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  let overpassRequests = 0;
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => { overpassRequests++; return route.abort(); });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(() => waterRoute(
+    { lat: 35.625742, lng: 127.2002622 }, { lat: 35.6260645, lng: 127.1749449 }));
+  expect(result.err).toBeUndefined();
+  expect(result.km).toBeGreaterThan(1);
+  expect(result.km).toBeLessThan(10);
+  expect(overpassRequests).toBe(0);
+  await context.close();
+  await browser.close();
+});
+
+test('regional water tiles connect a long river across chunk and tile boundaries', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  let overpassRequests = 0;
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => { overpassRequests++; return route.abort(); });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(() => waterRoute(
+    { lat: 35.5417443, lng: 127.1087936 }, { lat: 35.3352923, lng: 127.2200991 }));
+  expect(result.err).toBeUndefined();
+  expect(result.km).toBeGreaterThan(20);
+  expect(result.km).toBeLessThan(80);
+  expect(overpassRequests).toBe(0);
+  await context.close();
+  await browser.close();
+});
+
+test('regional water tiles follow the Geum River through Daecheong Lake', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  let overpassRequests = 0;
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => { overpassRequests++; return route.abort(); });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(() => waterRoute(
+    { lat: 36.3705035, lng: 127.6126488 }, { lat: 36.4688551, lng: 127.4823579 }));
+  expect(result.err).toBeUndefined();
+  expect(result.km).toBeGreaterThan(15);
+  expect(result.km).toBeLessThan(60);
+  expect(overpassRequests).toBe(0);
+  await context.close();
+  await browser.close();
+});
+
+test('regional water tiles connect Chungju Dam to Danyang without a lake-specific file', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  await context.route(/\/chungju_water\.geojson(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => route.abort());
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  const result = await page.evaluate(() => waterRoute(
+    { lat: 36.9978073, lng: 128.0046763 }, { lat: 36.930608379851996, lng: 128.24650165496178 }));
+  expect(result.err).toBeUndefined();
+  expect(result.km).toBeGreaterThan(30);
+  const shoreline = JSON.parse(fs.readFileSync(path.join(root, 'chungju_water.geojson'), 'utf8')).features[0].geometry.coordinates;
+  const inRing = (point, ring) => {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const a = ring[i], b = ring[j];
+      if ((a[1] > point[0]) !== (b[1] > point[0]) &&
+        point[1] < (b[0] - a[0]) * (point[0] - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+    }
+    return inside;
+  };
+  let drySamples = 0, firstDry = null, lastDry = null;
+  for (let i = 1; i < result.waterCoords.length; i++) {
+    const a = result.waterCoords[i - 1], b = result.waterCoords[i];
+    const steps = Math.max(1, Math.ceil(Math.hypot((a[0] - b[0]) * 111000, (a[1] - b[1]) * 88000) / 30));
+    for (let k = 0; k <= steps; k++) {
+      const t = k / steps, point = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      if (!inRing(point, shoreline[0]) || shoreline.slice(1).some((ring) => inRing(point, ring))) { drySamples++; firstDry ||= point; lastDry = point; }
+    }
+  }
+  expect({ drySamples, firstDry, lastDry }).toEqual({ drySamples: 0, firstDry: null, lastDry: null });
+  await context.close();
+  await browser.close();
+});
+
 test('Owol bridge route follows its local mapped channel when Overpass is unavailable', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
@@ -1339,6 +1433,7 @@ test('wide reservoir access routes around land instead of crossing it', async ()
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.route(/\/water_tiles\/manifest\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const rivers = { type: 'FeatureCollection', features: [{
     type: 'Feature', properties: { name: '테스트강', kind: 'river' },
     geometry: { type: 'LineString', coordinates: [[127.01, 37.02], [127.01, 36.99]] },
@@ -1399,6 +1494,7 @@ test('simplified static river shortcut through an island is rejected', async () 
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext();
+  await context.route(/\/water_tiles\/manifest\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
   const rivers = { type: 'FeatureCollection', features: [{
     type: 'Feature', properties: { name: '테스트강', kind: 'river' },
@@ -1438,6 +1534,7 @@ test('OSM waterway centerline crossing an island is rerouted on water', async ()
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext();
+  await context.route(/\/water_tiles\/manifest\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
   const overpass = { elements: [
     { type: 'relation', id: 1, tags: { natural: 'water' }, members: [
@@ -1497,6 +1594,7 @@ test('waterway calculation overlaps river loading and shares simultaneous Overpa
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const page = await browser.newPage();
+  await page.route(/\/water_tiles\/manifest\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof waterRoute === 'function');
   const result = await page.evaluate(async () => {
@@ -1506,6 +1604,7 @@ test('waterway calculation overlaps river loading and shares simultaneous Overpa
       window.staticWaterRoute = () => new Promise(resolve => { releaseRivers = () => resolve(null); });
       window.overpassFetch = async () => { overpassStarted = true; return null; };
       const route = waterRoute({ lat: 37, lng: 127 }, { lat: 37.001, lng: 127.001 });
+      for(let i=0;i<30&&!overpassStarted;i++)await new Promise(resolve => setTimeout(resolve,10));
       const overlapped = overpassStarted && typeof releaseRivers === 'function';
       releaseRivers();
       await route;
@@ -1535,6 +1634,7 @@ test('dynamic waterway simplification does not cut across a narrow peninsula', a
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.route(/\/water_tiles\/manifest\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
   const overpass = { elements: [
     { type: 'relation', id: 10, tags: { natural: 'water' }, members: [
@@ -1574,6 +1674,7 @@ test('Chuncheonho route follows the mapped waterway into Owol-ri without a land 
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.route(/\/water_tiles\/manifest\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   await context.route(/\/owol_waterways_v2\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const rivers = { type: 'FeatureCollection', features: [{
     type: 'Feature', properties: { name: '북한강', kind: 'river' },
@@ -1625,6 +1726,7 @@ test('Owol bridge channel connects to the middle of the North Han River way', as
     : { headless: true });
   const context = await browser.newContext();
   await context.route(/\/owol_waterways_v2\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
+  await context.route(/\/water_tiles\/manifest\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
   const overpass = { elements: [
     { type: 'relation', id: 1, tags: { natural: 'water' }, members: [
@@ -1655,6 +1757,7 @@ test('water route reaches a cove endpoint by following the water surface around 
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.route(/\/water_tiles\/manifest\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
   const land = [37.006, 127.003, 37.017, 127.008];
   const overpass = { elements: [
@@ -1710,6 +1813,7 @@ test('water route enters the nearest edge projection without an endpoint backtra
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.route(/\/water_tiles\/manifest\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
   const overpass = { elements: [
     { type: 'relation', id: 1, tags: { natural: 'water' }, members: [
@@ -1744,6 +1848,7 @@ test('land destination connects from the nearest shoreline to the selected point
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await context.route(/\/water_tiles\/manifest\.json(?:\?|$)/, (route) => route.fulfill({ status: 404, body: 'not found' }));
   const ring = (points) => points.map(([lat, lon]) => ({ lat, lon }));
   const rivers = { type: 'FeatureCollection', features: [{
     type: 'Feature', properties: { name: '테스트강', kind: 'river' },

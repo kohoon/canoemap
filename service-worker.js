@@ -1,4 +1,4 @@
-const APP_CACHE = 'mycanoe-app-v16';
+const APP_CACHE = 'mycanoe-app-v17';
 const LEGACY_PACK_CACHE = 'mycanoe-offline-pack-v1';
 const PACK_CACHE_PREFIX = 'mycanoe-offline-pack-v2-';
 const ESRI_IMAGERY_HOST = 'server.arcgisonline.com';
@@ -10,6 +10,7 @@ const APP_SHELL = [
   './pwa-icon.svg',
   './og.png',
   './owol_waterways_v2.json',
+  './water_tiles/manifest.json',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
   'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -98,6 +99,32 @@ self.addEventListener('fetch', (event) => {
       try {
         const response = await fetch(request, { cache: 'no-store' });
         if (response.ok) await cache.put(request, response.clone());
+        return response;
+      } catch (error) {
+        return (await cache.match(request)) || Response.error();
+      }
+    })());
+    return;
+  }
+  if (url.origin === self.location.origin && url.pathname.startsWith('/water_tiles/')) {
+    event.respondWith((async () => {
+      const cache = await caches.open(APP_CACHE);
+      try {
+        const response = await fetch(request, { cache: 'no-cache' });
+        if (response.ok) {
+          await cache.put(request, response.clone());
+          if (url.pathname.endsWith('/water_tiles/manifest.json')) {
+            const manifest = await response.clone().json().catch(() => null);
+            if (manifest && manifest.version) {
+              const keys = await cache.keys();
+              await Promise.all(keys.filter((key) => {
+                const old = new URL(key.url);
+                return /\/water_tiles\/[^/]+\.json$/.test(old.pathname) &&
+                  !old.pathname.endsWith('/manifest.json') && old.searchParams.get('v') !== manifest.version;
+              }).map((key) => cache.delete(key)));
+            }
+          }
+        }
         return response;
       } catch (error) {
         return (await cache.match(request)) || Response.error();

@@ -143,7 +143,7 @@ def runs_in_country(points, polygons):
     return runs
 
 
-def merge_named_features(features, river_tolerance=0.04, stream_tolerance=0.0015):
+def merge_named_features(features, river_tolerance=0.002, stream_tolerance=0.0015):
     groups = {}
     for feature in features:
         p = feature["properties"]

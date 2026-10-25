@@ -13,6 +13,7 @@ from tools.build_rivers import (
     FORCED_EXTENSIONS,
     _inside_cache,
     connected_features_touching_country,
+    merge_named_features,
     normalize_name,
 )
 
@@ -28,6 +29,20 @@ def haversine_km(a, b):
 
 
 def main():
+    # 같은 이름만으로 수 km 떨어진 물길을 직선으로 잇지 않는다.
+    def segment(a, b):
+        return {"type": "Feature", "properties": {"name": "동명이하천", "kind": "river"},
+                "geometry": {"type": "LineString", "coordinates": [a, b]}}
+    separated = merge_named_features([
+        segment([127.0, 37.0], [127.01, 37.0]),
+        segment([127.04, 37.0], [127.05, 37.0]),
+    ])
+    assert len(separated) == 2
+    touching = merge_named_features([
+        segment([127.0, 37.0], [127.01, 37.0]),
+        segment([127.0105, 37.0], [127.02, 37.0]),
+    ])
+    assert len(touching) == 1
     assert normalize_name("양양 남대천") == "양양남대천"
     assert normalize_name("림진강") == "임진강"
     assert normalize_name("림진강/임진강") == "임진강"

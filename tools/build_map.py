@@ -5263,6 +5263,41 @@ function chungjuWaterways(){
   }).catch(function(){return null;});
   return _chungjuWaterwaysPromise;
 }
+let _waterTileManifestPromise=null;
+const _waterTilePromises={};
+const _waterTileOrder=[];
+async function waterTileData(p1,p2){
+  if(!_waterTileManifestPromise)_waterTileManifestPromise=fetch('water_tiles/manifest.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json();}).catch(function(){return null;});
+  const manifest=await _waterTileManifestPromise;
+  if(!manifest||manifest.schema!==1||manifest.step!==0.25||!manifest.version)return null;
+  const selected=new Set(),step=manifest.step;
+  function add(la,ln){const y=Math.floor(la/step),x=Math.floor(ln/step);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const id=(y+dy)+'_'+(x+dx);if(manifest.tiles[id])selected.add(id);}}
+  const span=Math.max(Math.abs(p1.lat-p2.lat),Math.abs(p1.lng-p2.lng)),samples=Math.max(1,Math.ceil(span/(step/2)));
+  for(let i=0;i<=samples;i++){const t=i/samples;add(p1.lat+(p2.lat-p1.lat)*t,p1.lng+(p2.lng-p1.lng)*t);}
+  const y0=Math.floor(Math.min(p1.lat,p2.lat)/step)-1,y1=Math.floor(Math.max(p1.lat,p2.lat)/step)+1;
+  const x0=Math.floor(Math.min(p1.lng,p2.lng)/step)-1,x1=Math.floor(Math.max(p1.lng,p2.lng)/step)+1;
+  if((y1-y0+1)*(x1-x0+1)<=48)for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const id=y+'_'+x;if(manifest.tiles[id])selected.add(id);
+  }
+  if(!selected.size||selected.size>64)return null;
+  const chunks=await Promise.all(Array.from(selected,function(id){
+    if(!_waterTilePromises[id]){
+      _waterTilePromises[id]=fetch('water_tiles/'+id+'.json?v='+manifest.version).then(function(r){if(!r.ok)throw 0;return r.json();}).catch(function(){
+        delete _waterTilePromises[id];const at=_waterTileOrder.indexOf(id);if(at>=0)_waterTileOrder.splice(at,1);return null;
+      });
+      _waterTileOrder.push(id);
+      if(_waterTileOrder.length>32)delete _waterTilePromises[_waterTileOrder.shift()];
+    }
+    return _waterTilePromises[id];
+  }));
+  if(chunks.some(function(x){return !x;}))return null;
+  const seenWays=new Set(),seenPolygons=new Set(),elements=[],polygons=[];
+  for(const chunk of chunks){
+    for(const way of (chunk.elements||[])){if(seenWays.has(way.id))continue;seenWays.add(way.id);elements.push({type:'way',id:way.id,tags:way.tags,geometry:way.geometry.map(function(p){return {lat:p[0],lon:p[1]};})});}
+    for(const poly of (chunk.polygons||[])){if(seenPolygons.has(poly.id))continue;seenPolygons.add(poly.id);polygons.push(poly);}
+  }
+  return elements.length?{elements:elements,polygons:polygons}:null;
+}
 function staticWaterRoute(p1,p2){
   if(!_routeRiverPromise)_routeRiverPromise=fetch('rivers.geojson?v='+DATAVER.rivers).then(function(r){if(!r.ok)throw 0;return r.json();}).catch(function(){return {features:[]};});
   return _routeRiverPromise.then(function(fc){
@@ -5328,17 +5363,21 @@ async function waterRoute(p1,p2){
   const inChungjuReach=function(p){return p.lat>=36.90&&p.lat<=37.09&&p.lng>=127.97&&p.lng<=128.38;};
   const chungjuCandidate=!localOwol&&!soyangCandidate&&inChungjuReach(p1)&&inChungjuReach(p2);
   const localPromise=localOwol?owolWaterways():soyangCandidate?soyangWaterways():chungjuCandidate?chungjuWaterways():Promise.resolve(null);
-  const [baseStaticRoute,candidateWays,remoteWays]=await Promise.all([staticRoutePromise,localPromise,(localOwol||soyangCandidate||chungjuCandidate)?Promise.resolve(null):(cached?Promise.resolve(cached.j):overpassFetch(q))]);
+  const tileWays=await waterTileData(p1,p2);
+  const [baseStaticRoute,candidateWays,remoteWays]=await Promise.all([
+    staticRoutePromise,localPromise,
+    tileWays||localOwol||soyangCandidate||chungjuCandidate?Promise.resolve(null):(cached?Promise.resolve(cached.j):overpassFetch(q))
+  ]);
   // 전국용 간략화 중심선은 충주호 반도를 가로지를 수 있어 이 구간의 항로로 재사용하지 않는다.
   const staticRoute=chungjuCandidate?null:baseStaticRoute;
   const localSoyang=soyangCandidate&&staticRoute&&staticRoute.riverName==='소양강';
   const localChungju=chungjuCandidate&&baseStaticRoute&&baseStaticRoute.riverName==='남한강';
   const localWays=(localOwol||localSoyang||localChungju)?candidateWays:null;
-  const j=localWays&&localWays.elements&&localWays.elements.length?localWays:((localOwol||soyangCandidate||chungjuCandidate)?await overpassFetch(q):remoteWays);
+  const j=localWays&&localWays.elements&&localWays.elements.length?localWays:(tileWays||((localOwol||soyangCandidate||chungjuCandidate)?await overpassFetch(q):remoteWays));
   if(!j) return {err:'overpass'};
   // 구간별 설명 문구를 출처 영역에 늘리지 않고 OSM 공통 출처 한 번만 표시한다.
-  if(localWays&&!window._localWaterAttributionShown){map.attributionControl.addAttribution(OSM_ATTR);window._localWaterAttributionShown=true;}
-  if(!localWays&&!cached&&!_opAreaCache.some(function(x){return x.s===s&&x.w===w&&x.n===n&&x.e===e;})){
+  if((localWays||tileWays)&&!window._localWaterAttributionShown){map.attributionControl.addAttribution(OSM_ATTR);window._localWaterAttributionShown=true;}
+  if(!tileWays&&!localWays&&!cached&&!_opAreaCache.some(function(x){return x.s===s&&x.w===w&&x.n===n&&x.e===e;})){
     _opAreaCache.push({s:s,w:w,n:n,e:e,j:j});if(_opAreaCache.length>8)_opAreaCache.shift();
   }
   const nodes={}, adj={}, nodeNames={}, graphEdges=[], edgeWayIds=[], wayEnds=[], toR=Math.PI/180;
@@ -5360,6 +5399,7 @@ async function waterRoute(p1,p2){
     const pieces=(el.members||[]).filter(function(m){return (m.role||'outer')===role&&m.geometry&&m.geometry.length>1;}).map(function(m){return m.geometry.map(function(p){return [p.lat,p.lon];});});
     while(pieces.length){let ring=pieces.pop(),joined=true;while(joined&&!samePt(ring[0],ring[ring.length-1])){joined=false;for(let i=pieces.length-1;i>=0;i--){let p=pieces[i];if(samePt(ring[ring.length-1],p[0]))ring=ring.concat(p.slice(1));else if(samePt(ring[ring.length-1],p[p.length-1]))ring=ring.concat(p.slice(0,-1).reverse());else if(samePt(ring[0],p[p.length-1]))ring=p.slice(0,-1).concat(ring);else if(samePt(ring[0],p[0]))ring=p.slice(1).reverse().concat(ring);else continue;pieces.splice(i,1);joined=true;break;}}addClosed(list,ring);}
   }
+  for(const poly of (j.polygons||[])){addClosed(waterOuter,poly.outer);for(const ring of (poly.inner||[]))addClosed(waterInner,ring);}
   for(const el of (j.elements||[])){
     if(el.type==='way'&&el.tags&&el.tags.natural==='water'&&el.geometry&&el.geometry.length>2) addClosed(waterOuter,el.geometry.map(function(p){return [p.lat,p.lon];}));
     if(el.type==='relation'&&el.tags&&el.tags.natural==='water'){addRelationRings(el,'outer',waterOuter);addRelationRings(el,'inner',waterInner);}
@@ -5407,6 +5447,17 @@ async function waterRoute(p1,p2){
     const d=hav(a,b),steps=Math.max(2,Math.ceil(d/8));let dry=0;
     for(let i=0;i<=steps;i++){const t=i/steps;if(!inWater([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]))dry++;}
     return dry===0;
+  }
+  // 원본 OSM 물길 선분과 수면 경계의 수십 m 어긋남만 허용한다. 임의 지름길에는 적용하지 않는다.
+  function mappedCenterlinePassable(a,b){
+    const d=hav(a,b);if(d>150||crossesNavigationBarrier(a,b))return false;
+    const steps=Math.max(2,Math.ceil(d/10));let dryRun=0;
+    for(let i=0;i<=steps;i++){
+      const t=i/steps,p=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+      if(plausibleWater(p))dryRun=0;
+      else if(++dryRun*10>35)return false;
+    }
+    return true;
   }
   function waterSurfacePath(a,b){
     if(!inWater(a)||!inWater(b))return null;
@@ -5496,10 +5547,21 @@ async function waterRoute(p1,p2){
   }
   // OSM 분할 way 끝이 다른 way의 선분 중간에 닿는 합류점도 그래프에 연결한다.
   // 오월교 아래 수로처럼 꼭짓점은 없지만 실제로 이어지는 물길을 놓치지 않기 위함이다.
+  const edgeGrid={};
+  const gridKey=function(y,x){return y+','+x;};
+  for(let i=0;i<graphEdges.length;i++){
+    const edge=graphEdges[i],a=nodes[edge[0]],b=nodes[edge[1]];
+    for(let y=Math.floor(Math.min(a[0],b[0])/.01);y<=Math.floor(Math.max(a[0],b[0])/.01);y++)
+      for(let x=Math.floor(Math.min(a[1],b[1])/.01);x<=Math.floor(Math.max(a[1],b[1])/.01);x++)
+        (edgeGrid[gridKey(y,x)]=edgeGrid[gridKey(y,x)]||[]).push(i);
+  }
   for(const end of wayEnds){
     const k=end.key,origin=nodes[k];if(!origin||(adj[k]||[]).length!==1)continue;
     let best=null;
-    for(let i=0;i<graphEdges.length;i++){
+    const nearby=new Set(),gy=Math.floor(origin[0]/.01),gx=Math.floor(origin[1]/.01);
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)
+      for(const i of (edgeGrid[gridKey(gy+dy,gx+dx)]||[]))nearby.add(i);
+    for(const i of nearby){
       const edge=graphEdges[i];if(edgeWayIds[i]===end.id||edge[0]===k||edge[1]===k)continue;
       const a=nodes[edge[0]],b=nodes[edge[1]];
       if(origin[0]<Math.min(a[0],b[0])-.00012||origin[0]>Math.max(a[0],b[0])+.00012||origin[1]<Math.min(a[1],b[1])-.00015||origin[1]>Math.max(a[1],b[1])+.00015)continue;
@@ -5587,8 +5649,10 @@ async function waterRoute(p1,p2){
   for(let i=1;i<shortened.length;i++){
     const a=coords[coords.length-1],b=shortened[i];
     if(waterOuter.length&&inWater(a)&&inWater(b)&&!waterLineClear(a,b)){
-      const detour=waterSurfacePath(a,b);if(!detour)return repairedStatic?connectSelectedPoints(repairedStatic):{err:'landcross'};
-      coords.push.apply(coords,detour.slice(1));
+      const detour=waterSurfacePath(a,b);
+      if(detour)coords.push.apply(coords,detour.slice(1));
+      else if(mappedCenterlinePassable(a,b))coords.push(b);
+      else return repairedStatic?connectSelectedPoints(repairedStatic):{err:'landcross'};
     }else coords.push(b);
   }
   // 수면으로 확인되지 않은 접근선은 항로 실선과 시각적으로 분리하고, 이후 총거리에는 포함한다.
