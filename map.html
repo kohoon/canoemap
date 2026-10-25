@@ -2858,18 +2858,18 @@ const obstacleLayer=L.layerGroup();
 const _obstacles={};
 function staticWeirId(w){ return 'weir:'+encodeURIComponent(String(w.nm||'보'))+'|'+Number(w.lat).toFixed(5)+'|'+Number(w.lng).toFixed(5); }
 function _obDisplayName(o){const t=OBS_TYPES[o&&o.type]||OBS_TYPES['보'];return (o&&o.name&&String(o.name).trim())?String(o.name).trim():t.label;}
-function obsIcon(type,name){const t=OBS_TYPES[type]||OBS_TYPES['보'],showName=type==='유명지',raw=(name&&String(name).trim())?String(name).trim():t.label,disp=pmEsc(raw);return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+(showName?'':' obs-icon-only')+'" aria-label="'+pmEsc(raw)+'">'+t.e+(showName?' '+disp:'')+'</span>',iconSize:null});}
+function obsIcon(type,name,alwaysLabel){const t=OBS_TYPES[type]||OBS_TYPES['보'],showName=type==='유명지'||!!alwaysLabel,raw=(name&&String(name).trim())?String(name).trim():t.label,disp=pmEsc(raw);return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+(showName?'':' obs-icon-only')+'" aria-label="'+pmEsc(raw)+'">'+t.e+(showName?' '+disp:'')+'</span>',iconSize:null});}
 function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; const t=OBS_TYPES[o.type]||OBS_TYPES['보']; const nm=(o.name&&String(o.name).trim())?pmEsc(String(o.name).trim()):'';
   const kakao=o.type==='식당/카페'?'<div style="margin:8px 0 4px"><a href="'+_obKakaoLink(o)+'" target="_blank" rel="noopener" style="color:#1565c0;font-weight:700">🟡 카카오맵 장소 상세</a></div>':'';
   const matched=o.kakaoPlaceName?'<div style="margin:6px 0 0;color:#60747c;font-size:11.5px">카카오맵 자동 연결: '+pmEsc(o.kakaoPlaceName)+(isFinite(Number(o.kakaoMatchDistance))?' · '+Math.round(Number(o.kakaoMatchDistance))+'m':'')+'</div>':'';
   return '<span class="obs-ic '+t.c+'">'+t.e+' '+(nm||t.label)+'</span>'+(nm?'<small style="color:#99a;margin-left:6px">'+t.label+'</small>':'')+matched+(o.note?'<div style="margin:7px 0 4px;color:#445;font-size:13px">'+linkify(o.note)+'</div>':'<br>')+kakao
     +(isAdmin()?'<a onclick="editObstacle(\''+o.id+'\')" style="color:#1565c0;cursor:pointer;margin-right:10px">✏️ 수정</a><a onclick="moveObstacle(\''+o.id+'\')" style="color:#2e9e5b;cursor:pointer;margin-right:10px">📍 이동</a><a onclick="deleteObstacle(\''+o.id+'\')" style="color:#c62828;cursor:pointer">삭제</a>':''); }
 function renderObstacle(o){ if(!o||o.lat==null||o.del||(_obAdminOnly(o)&&!isAdmin())) return; _obstacles[o.id]=o;
-  const m=L.marker([o.lat,o.lng],{icon:obsIcon(o.type,o.name),pane:'obsPane'});
+  const m=L.marker([o.lat,o.lng],{icon:obsIcon(o.type,o.name,o.alwaysLabel),pane:'obsPane'});
   if(!isTouch&&o.type!=='유명지')m.bindTooltip(pmEsc(_obDisplayName(o)),{direction:'top',opacity:.95});
   if(isAdmin()||o.type==='식당/카페'||o.type==='통과지점') m.bindPopup(obsPopup(o));   // 통과지점은 모바일에서도 모든 회원이 이름·메모 확인
   m.addTo(obstacleLayer); o._m=m; }
-function renderStaticWeir(w){ if(!w||w.lat==null) return; renderObstacle({id:staticWeirId(w),lat:w.lat,lng:w.lng,type:'보',note:'',name:w.nm}); }
+function renderStaticWeir(w){ if(!w||w.lat==null) return; renderObstacle({id:staticWeirId(w),lat:w.lat,lng:w.lng,type:'보',note:'',name:w.nm,alwaysLabel:!!w.alwaysLabel}); }
 // 관리자 인증이 로드 뒤에 될 수 있어, 관리자 활성 시 지형지물 팝업 재바인딩
 function _refreshObsPopups(){ const on=isAdmin(); Object.keys(_obstacles).forEach(function(id){ const o=_obstacles[id]; if(!o||!o._m) return;
   if(on||o.type==='식당/카페'||o.type==='통과지점') o._m.bindPopup(obsPopup(o)); else o._m.unbindPopup(); }); }
@@ -2883,7 +2883,10 @@ async function loadObstacles(adminMode){const seq=++_obstacleLoadSeq,url=WORKER_
 function reloadObstaclesForViewer(){const adminMode=isAdmin();if(!adminMode)_removeAdminOnlyObstacles();loadObstacles(adminMode);}
 obstacleLayer.addTo(map);   // 기본 ON — 별도 토글(통합 패널), 줌<12에서는 pane 게이팅으로 숨김
 _zoomPaneGate();
-WEIRS.forEach(renderStaticWeir);loadObstacles(false);
+WEIRS.forEach(renderStaticWeir);
+// 단양수중보: K-water 외중방리–하진리 구간, VWorld 정사영상에서 확인한 수중보 중앙.
+renderStaticWeir({nm:'단양수중보',lat:36.9267,lng:128.2917,alwaysLabel:true});
+loadObstacles(false);
 // 지형지물 추가(관리자 전용 버튼 — 거리측정 버튼 옆)
 let obsPlaceMode=false;
 const ObstacleCtl=L.Control.extend({ options:{position:'topleft'},
