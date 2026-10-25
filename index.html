@@ -962,7 +962,7 @@
 // 런칭·랜딩 좌표는 정적 HTML에 넣지 않는다. 로그인 후 현재 화면 범위만 보호 API에서 조회한다.
 const POINTS = {type:'FeatureCollection',features:[]};
 // 상수원보호·수상레저금지 면은 임베드하지 않고 줌인(≥11) 시 외부 .geojson 을 fetch(아래 줌게이트).
-const DATAVER = {protect:"d87f5782", wlz:"b675389f", rivers:"94105460", owol:"4f05b0fe", soyang:"e0463e2e", roads:"793584ec", waterplay:"4f7748dc", daiso:"61c73627", hanaro:"50292cc8", hjd:"04d877f9"};   // 콘텐츠 해시 캐시버스팅
+const DATAVER = {protect:"d87f5782", wlz:"b675389f", rivers:"94105460", owol:"4f05b0fe", soyang:"e0463e2e", chungju:"343710c4", roads:"793584ec", waterplay:"4f7748dc", daiso:"61c73627", hanaro:"50292cc8", hjd:"04d877f9"};   // 콘텐츠 해시 캐시버스팅
 let protectLayer = null, wlzLayer = null, waterplayLayer = null;          // 첫 줌인 때 생성
 let _protectLoading = null, _wlzLoading = null, _waterplayLoading = null; // in-flight fetch(중복 방지)
 let _protectWanted = true, _wlzWanted = true, _waterplayWanted = false;
@@ -5093,6 +5093,7 @@ const _opAreaCache=[];   // 더 큰 기존 bbox가 새 요청 bbox를 포함하�
 let _routeRiverPromise=null;
 let _owolWaterwaysPromise=null;
 let _soyangWaterwaysPromise=null;
+let _chungjuWaterwaysPromise=null;
 function owolWaterways(){
   if(!_owolWaterwaysPromise)_owolWaterwaysPromise=fetch('owol_waterways_v2.json?v='+DATAVER.owol).then(function(r){if(!r.ok)throw 0;return r.json();}).catch(function(){return null;});
   return _owolWaterwaysPromise;
@@ -5112,6 +5113,22 @@ function soyangWaterways(){
     ]};
   }).catch(function(){return null;});
   return _soyangWaterwaysPromise;
+}
+function chungjuWaterways(){
+  if(!_chungjuWaterwaysPromise)_chungjuWaterwaysPromise=fetch('chungju_water.geojson?v='+DATAVER.chungju).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(data){
+    const feature=data.features&&data.features[0],geometry=feature&&feature.geometry;
+    const river=(data.features||[]).find(function(f){return f.properties&&f.properties.osm_way===810284748&&f.geometry&&f.geometry.type==='LineString';});
+    if(!geometry||geometry.type!=='Polygon'||!river)return null;
+    const members=geometry.coordinates.map(function(ring,i){return {role:i?'inner':'outer',geometry:ring.map(function(p){return {lat:p[1],lon:p[0]};})};});
+    const extra=(data.features||[]).filter(function(f){return f.properties&&[366899635,366899733].includes(f.properties.osm_way)&&f.geometry&&f.geometry.type==='Polygon';}).map(function(f){
+      return {type:'way',id:f.properties.osm_way,tags:{natural:'water',water:'river'},geometry:f.geometry.coordinates[0].map(function(p){return {lat:p[1],lon:p[0]};})};
+    });
+    return {elements:[
+      {type:'relation',id:1226664,tags:{natural:'water'},members:members},
+      {type:'way',id:810284748,tags:{waterway:'river',name:'남한강'},geometry:river.geometry.coordinates.map(function(p){return {lat:p[1],lon:p[0]};})}
+    ].concat(extra)};
+  }).catch(function(){return null;});
+  return _chungjuWaterwaysPromise;
 }
 function staticWaterRoute(p1,p2){
   if(!_routeRiverPromise)_routeRiverPromise=fetch('rivers.geojson?v='+DATAVER.rivers).then(function(r){if(!r.ok)throw 0;return r.json();}).catch(function(){return {features:[]};});
@@ -5175,11 +5192,16 @@ async function waterRoute(p1,p2){
   // 소양호의 실제 물가 경계를 로컬에 보관해 Overpass 장애 시에도 반도와 만입부를 검증한다.
   const inSoyangReach=function(p){return p.lat>=37.88&&p.lat<=38.11&&p.lng>=127.79&&p.lng<=128.21;};
   const soyangCandidate=!localOwol&&inSoyangReach(p1)&&inSoyangReach(p2);
-  const localPromise=localOwol?owolWaterways():soyangCandidate?soyangWaterways():Promise.resolve(null);
-  const [staticRoute,candidateWays,remoteWays]=await Promise.all([staticRoutePromise,localPromise,(localOwol||soyangCandidate)?Promise.resolve(null):(cached?Promise.resolve(cached.j):overpassFetch(q))]);
+  const inChungjuReach=function(p){return p.lat>=36.90&&p.lat<=37.09&&p.lng>=127.97&&p.lng<=128.38;};
+  const chungjuCandidate=!localOwol&&!soyangCandidate&&inChungjuReach(p1)&&inChungjuReach(p2);
+  const localPromise=localOwol?owolWaterways():soyangCandidate?soyangWaterways():chungjuCandidate?chungjuWaterways():Promise.resolve(null);
+  const [baseStaticRoute,candidateWays,remoteWays]=await Promise.all([staticRoutePromise,localPromise,(localOwol||soyangCandidate||chungjuCandidate)?Promise.resolve(null):(cached?Promise.resolve(cached.j):overpassFetch(q))]);
+  // 전국용 간략화 중심선은 충주호 반도를 가로지를 수 있어 이 구간의 항로로 재사용하지 않는다.
+  const staticRoute=chungjuCandidate?null:baseStaticRoute;
   const localSoyang=soyangCandidate&&staticRoute&&staticRoute.riverName==='소양강';
-  const localWays=(localOwol||localSoyang)?candidateWays:null;
-  const j=localWays&&localWays.elements&&localWays.elements.length?localWays:((localOwol||soyangCandidate)?await overpassFetch(q):remoteWays);
+  const localChungju=chungjuCandidate&&baseStaticRoute&&baseStaticRoute.riverName==='남한강';
+  const localWays=(localOwol||localSoyang||localChungju)?candidateWays:null;
+  const j=localWays&&localWays.elements&&localWays.elements.length?localWays:((localOwol||soyangCandidate||chungjuCandidate)?await overpassFetch(q):remoteWays);
   if(!j) return {err:'overpass'};
   // 구간별 설명 문구를 출처 영역에 늘리지 않고 OSM 공통 출처 한 번만 표시한다.
   if(localWays&&!window._localWaterAttributionShown){map.attributionControl.addAttribution(OSM_ATTR);window._localWaterAttributionShown=true;}
@@ -5426,7 +5448,8 @@ async function waterRoute(p1,p2){
   let raw=path.map(k=>nodes[k]);
   if(near1.wet){const c=near1.connector||[[routeStart.lat,routeStart.lng],nodes[s1]];raw=c.slice(0,-1).concat(raw);}
   if(near2.wet){const c=near2.connector||[[routeEnd.lat,routeEnd.lng],nodes[s2]];raw=raw.concat(c.slice().reverse().slice(1));}
-  const shortened=shortcutWaterPath(raw),coords=[shortened[0]],start=[p1.lat,p1.lng],end=[routeEnd.lat,routeEnd.lng],access=[];
+  // 충주호는 만입부가 길고 수면 폴리곤에 촬영 시점 차이가 있어 직선 단축을 적용하지 않는다.
+  const shortened=localChungju?raw:shortcutWaterPath(raw),coords=[shortened[0]],start=[p1.lat,p1.lng],end=[routeEnd.lat,routeEnd.lng],access=[];
   // OSM 중심선 자체가 섬을 관통할 때도 수면 위 우회 경로로 바꾼다.
   for(let i=1;i<shortened.length;i++){
     const a=coords[coords.length-1],b=shortened[i];
@@ -5947,7 +5970,7 @@ function _offSanitizePlaces(b,u){if(!u||!u.uid)return[];return (_kvPlaces||[]).f
 function _offSanitizeObstacles(b){return Object.keys(_obstacles||{}).map(function(k){return _obstacles[k];}).filter(function(x){return x&&!x.del&&_offInside(+x.lat,+x.lng,b);}).slice(0,1000).map(function(x){return{id:String(x.id||''),lat:+x.lat,lng:+x.lng,type:String(x.type||'보'),note:String(x.note||'').slice(0,200),name:String(x.name||'').slice(0,60),kakaoUrl:String(x.kakaoUrl||'').slice(0,500),kakaoPlaceName:String(x.kakaoPlaceName||'').slice(0,80),kakaoMatchDistance:Number(x.kakaoMatchDistance)||0};});}
 async function saveOfflinePack(){
   if(_offlineBusy)return;if(!navigator.onLine||_offlineDetected){_offToast('온라인 상태에서 저장해 주세요');return;}if(!('caches'in window)||!('indexedDB'in window)){_offToast('이 브라우저는 오프라인 저장을 지원하지 않아요');return;}
-  const course=_offCourse(),b=_offBounds(course),satPlan=_offSatellitePlan(course,b),cacheName=OFFLINE_CACHE_PREFIX+Date.now(),urls=[['protect','./protect_polygons.geojson?v='+DATAVER.protect],['wlz','./wlz.geojson?v='+DATAVER.wlz],['waterplay','./waterplay.geojson?v='+DATAVER.waterplay],['rivers','./rivers.geojson?v='+DATAVER.rivers],['owol','./owol_waterways_v2.json?v='+DATAVER.owol],['soyang','./soyang_water.geojson?v='+DATAVER.soyang],['roads','./roads.geojson?v='+DATAVER.roads]];_offlineBusy=true;_offlineStatus();_offProgress(5,'Esri 위성 '+satPlan.tiles.length+'장 준비 · 예상 '+_offSize(satPlan.estimatedBytes));
+  const course=_offCourse(),b=_offBounds(course),satPlan=_offSatellitePlan(course,b),cacheName=OFFLINE_CACHE_PREFIX+Date.now(),urls=[['protect','./protect_polygons.geojson?v='+DATAVER.protect],['wlz','./wlz.geojson?v='+DATAVER.wlz],['waterplay','./waterplay.geojson?v='+DATAVER.waterplay],['rivers','./rivers.geojson?v='+DATAVER.rivers],['owol','./owol_waterways_v2.json?v='+DATAVER.owol],['soyang','./soyang_water.geojson?v='+DATAVER.soyang],['chungju','./chungju_water.geojson?v='+DATAVER.chungju],['roads','./roads.geojson?v='+DATAVER.roads]];_offlineBusy=true;_offlineStatus();_offProgress(5,'Esri 위성 '+satPlan.tiles.length+'장 준비 · 예상 '+_offSize(satPlan.estimatedBytes));
   try{
     const cache=await caches.open(cacheName),data={};let done=0;
     await Promise.all(urls.map(async function(row){const r=await fetch(row[1],{cache:'reload'});if(!r.ok)throw new Error(row[0]+' '+r.status);if(row[0]!=='rivers'&&row[0]!=='roads')await cache.put(row[1],r.clone());data[row[0]]=await r.json();done++;_offProgress(8+done*8,'지도·안전자료 저장 중… '+done+'/'+urls.length);}));

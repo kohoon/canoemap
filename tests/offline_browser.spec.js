@@ -122,6 +122,56 @@ test('Soyang Lake launching-site legs remain routable without Overpass', async (
   await browser.close();
 });
 
+test('Chungju Dam to Danyang lake route remains connected without Overpass', async () => {
+  const browser = await chromium.launch(process.platform === 'darwin'
+    ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
+    : { headless: true });
+  const context = await browser.newContext();
+  let overpassRequests = 0;
+  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => { overpassRequests++; return route.abort(); });
+  const page = await context.newPage();
+  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+  // Chungju Dam cruise launch → Janghoe-ri launch in Danyang.
+  const result = await page.evaluate(() => waterRoute(
+    { lat: 36.9978073, lng: 128.0046763 },
+    { lat: 36.930608379851996, lng: 128.24650165496178 }));
+  expect(result.err).toBeUndefined();
+  expect(result.km).toBeGreaterThan(30);
+  expect(result.km).toBeLessThan(60);
+  expect(result.waterCoords.length).toBeGreaterThan(100);
+  const water = (await (await page.request.get(baseURL + '/chungju_water.geojson')).json()).features[0].geometry.coordinates;
+  function inRing(point, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const a = ring[i], b = ring[j];
+      if ((a[1] > point[0]) !== (b[1] > point[0]) &&
+        point[1] < (b[0] - a[0]) * (point[0] - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+    }
+    return inside;
+  }
+  let landSamples = 0;
+  for (let i = 1; i < result.waterCoords.length; i++) {
+    const a = result.waterCoords[i - 1], b = result.waterCoords[i];
+    const steps = Math.max(1, Math.ceil(Math.hypot((a[0] - b[0]) * 111000, (a[1] - b[1]) * 88000) / 30));
+    for (let k = 0; k <= steps; k++) {
+      const t = k / steps, point = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      if (!inRing(point, water[0]) || water.slice(1).some((ring) => inRing(point, ring))) landSamples++;
+    }
+  }
+  expect(landSamples).toBe(0);
+  const danyangTown = await page.evaluate(() => waterRoute(
+    { lat: 36.9978073, lng: 128.0046763 }, { lat: 36.977907, lng: 128.371489 }));
+  expect(danyangTown.err).toBeUndefined();
+  expect(danyangTown.km).toBeGreaterThan(result.km);
+  const damShore = await page.evaluate(() => waterRoute(
+    { lat: 37.009403, lng: 127.98892 }, { lat: 36.977907, lng: 128.371489 }));
+  expect(damShore.err).toBeUndefined();
+  expect(damShore.km).toBeGreaterThan(40);
+  expect(overpassRequests).toBe(0);
+  await context.close();
+  await browser.close();
+});
+
 test('signup and Soyang participation forms ask for a Canoemap username, not a cafe nickname', async () => {
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
