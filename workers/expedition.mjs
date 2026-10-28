@@ -10,6 +10,9 @@ export const EXPEDITION_STICKERS = Object.freeze({
   5:['jpg',784,684],6:['png',2288,2108],7:['png',921,878],8:['png',1536,1311],
   9:['jpg',934,858],10:['png',948,939],11:['png',1260,1216]
 });
+export function isSoyangTraverseCourse(course){
+  return !!(course && String(course.owner || '') === 'admin' && String(course.id).replace(/^k/, '') === '1792928342277');
+}
 export function expeditionNumber(course, shareId){
   if(!course)return 0;
   const id=String(shareId||'');

@@ -2877,8 +2877,12 @@ let _courseInfoCourse=null, _courseInfoOpen=false;
 function _curUid(){ const u=getUser(); return (u&&u.uid)||''; }
 // Verified event dates in Korea; not post timestamps or course creation dates.
 const EXPEDITION_DATES = {"1":["2025-05-01","2025-05-02"],"2":["2025-06-06","2025-06-07"],"3":["2025-07-20"],"4":["2025-09-06"],"5":["2025-10-18"],"6":["2025-11-22"],"7":["2026-04-11"],"8":["2026-05-09"],"9":["2026-06-06"],"10":["2026-07-04"],"11":["2026-10-03","2026-10-04"]};
+const SOYANG_TRAVERSE_PARTICIPANTS=['요트맨','토끼사냥꾼','번버리'];
+function isSoyangTraverseCourse(course){
+  return !!(course&&String(course.owner||'')==='admin'&&String(course.id).replace(/^k/,'')==='1792928342277');
+}
 function expeditionDateHtml(course,shareId){
-  const dates=EXPEDITION_DATES[expeditionNumber(course,shareId)];if(!dates)return '';
+  const dates=isSoyangTraverseCourse(course)?['2026-10-22','2026-10-24']:EXPEDITION_DATES[expeditionNumber(course,shareId)];if(!dates)return '';
   return '<div class="expedition-date" aria-label="개최 날짜">📅 '+dates.map(function(date,index){const parts=date.split('-').map(Number);if(index&&date.slice(0,4)===dates[0].slice(0,4))parts.shift();return '<time datetime="'+date+'">'+parts.join('. ')+'.</time>';}).join(' ~ ')+'</div>';
 }
 function _isCourseOwner(course){ const u=_curUid(); if(!u) return false; return String((course&&course.owner)||'')===String(u); }
@@ -2945,9 +2949,12 @@ function expeditionParticipantHtml(records,round){
 }
 
 function expeditionDetail(course,shareId){
-  const n=expeditionNumber(course,shareId);if(!n)return '';
+  const n=expeditionNumber(course,shareId),soyang=!n&&isSoyangTraverseCourse(course);if(!n&&!soyang)return '';
   // Only verified attendance records are rendered; never infer from photos/comments.
-  return '<section class="expedition-detail" aria-label="마이카누 엑스페디션 완주기념"><div class="expedition-sticker"><img class="expedition-art-'+n+'" src="/assets/expedition/expedition_'+String(n).padStart(2,'0')+([2,3,4,5,8,9].indexOf(n)>=0?'.jpg':'.png')+'" fetchpriority="high" alt="마이카누 엑스페디션 '+n+'회 완주기념 스티커"></div><h3>함께한 참가자</h3><div class="expedition-nicknames">'+expeditionParticipantHtml(EXPEDITION_PARTICIPANTS,n)+'</div></section>';
+  const src=soyang?'/assets/expedition/soyang_lake_traverse_2026.png':'/assets/expedition/expedition_'+String(n).padStart(2,'0')+([2,3,4,5,8,9].indexOf(n)>=0?'.jpg':'.png');
+  const alt=soyang?'소양호 종주 완주기념 스티커':'마이카누 엑스페디션 '+n+'회 완주기념 스티커';
+  const people=soyang?SOYANG_TRAVERSE_PARTICIPANTS.map(function(name){return '<span class="expedition-nickname">'+pmEsc(name)+'</span>';}).join(''):expeditionParticipantHtml(EXPEDITION_PARTICIPANTS,n);
+  return '<section class="expedition-detail" aria-label="마이카누 엑스페디션 완주기념"><div class="expedition-sticker"><img class="expedition-art-'+(soyang?'soyang':n)+'" src="'+src+'" fetchpriority="high" alt="'+alt+'"></div><h3>함께한 참가자</h3><div class="expedition-nicknames">'+people+'</div></section>';
 }
 function courseGpx(course){
   const coords=course&&course.coords;

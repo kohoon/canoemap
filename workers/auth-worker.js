@@ -16,7 +16,7 @@ import { normalizeRiverShare, riverShareHtml, riverShareId } from "./river-share
 import { MEASURE_SHARE_CORRECTIONS } from "./measure-share-corrections.mjs";
 import { coursePreviewKey, courseShareHtml, normalizeCourseShareId } from "./course-share.mjs";
 import { applyCourseCorrection, coursePreviewVersionIsCurrent } from "./course-corrections.mjs";
-import { EXPEDITIONS, EXPEDITION_STICKERS, expeditionNumber, normalizeExpedition } from "./expedition.mjs";
+import { EXPEDITIONS, EXPEDITION_STICKERS, expeditionNumber, normalizeExpedition, isSoyangTraverseCourse } from "./expedition.mjs";
 import { STATIC_COURSE_SHARE } from "./static-course-share.mjs";
 import { accessDayWindow, appendMemberAccess, dailyMemberAccess } from "./access-history.mjs";
 import { handleDiaryApi } from "./diary-api.mjs";
@@ -485,12 +485,16 @@ export default {
       const preview = await _coursePreviewRecord(env.PLACES, id, course.name);
       const site = new URL(env.SITE_URL || "https://canoe.crowdbase.kr/");
       site.searchParams.set("course", id);
-      const imageUrl = preview
+      const sticker = isSoyangTraverseCourse(course)
+        ? { imageUrl: new URL("assets/expedition/soyang_lake_traverse_2026.png", site).toString(), imageType: "image/png", imageWidth: 1234, imageHeight: 1275 }
+        : null;
+      const imageUrl = sticker ? sticker.imageUrl : preview
         ? url.origin + "/course-preview/" + encodeURIComponent(id) + ".jpg?v=" + encodeURIComponent(preview.v)
         : BUNDLED_COURSE_PREVIEW_IDS.has(id)
         ? _bundledCoursePreviewUrl(site, id)
         : new URL("og.png", site).toString();
-      const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl });
+      const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl,
+        ...(sticker || {}) });
       return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60" } });
     }
 
