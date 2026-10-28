@@ -2400,10 +2400,11 @@ const COURSE_PALETTE=[
   ['#c2185b','진분홍'],['#6d4c41','갈색'],['#546e7a','회색'],['#263238','검정']
 ];
 const KNOWN_CATS=['엑스페디션','번버리Pick','초심자코스'];
+const SOYANG_TRAVERSE_DISPLAY_NAME='소양호 종주 - 춘천 소양강댐 선착장 ~ 인제 관대리';
 function subcatColor(sc){ return COURSE_COLORS[sc]||COURSE_COLORS['기타']; }
 function validCourseColor(v){ return /^#[0-9a-f]{6}$/i.test(String(v||''))?String(v).toLowerCase():''; }
 function canonicalCourseName(name){return String(name||'').replace(/^(?:마이카누\s+)?엑스페디션(?=\s*#|\s|$)/,'마이카누 엑스페디션').replace(/^마이카누 엑스페디션\s*#\s*12(?=\D|$)/,'마이카누 엑스페디션 #12').replace(/^번버리(?: 픽|Pick)(?=\s|$)/,'번버리Pick');}
-function courseSubcat(name){ name=canonicalCourseName(name).replace(/^마이카누\s+(?=엑스페디션)/,''); if(/^번버리Pick(?:\s|$)/.test(name))return '번버리Pick'; for(var i=0;i<KNOWN_CATS.length;i++){ if(KNOWN_CATS[i]!=='번버리Pick'&&name.indexOf(KNOWN_CATS[i])===0) return KNOWN_CATS[i]; } return '기타'; }
+function courseSubcat(name){ name=canonicalCourseName(name).replace(/^마이카누\s+(?=엑스페디션)/,''); if(name===SOYANG_TRAVERSE_DISPLAY_NAME||/^번버리Pick(?:\s|$)/.test(name))return '번버리Pick'; for(var i=0;i<KNOWN_CATS.length;i++){ if(KNOWN_CATS[i]!=='번버리Pick'&&name.indexOf(KNOWN_CATS[i])===0) return KNOWN_CATS[i]; } return '기타'; }
 const COURSE_WATER={flat:{icon:'≋',label:'평수'},flowing:{icon:'〰',label:'유수'},rapid:{icon:'≈',label:'급류'}};
 const COURSE_TRAVEL={roundtrip:{icon:'↔',label:'왕복'},downriver:{icon:'↘',label:'다운리버'},traverse:{icon:'↗',label:'종주·횡단'}};
 function courseWaterInfo(course){const key=String(course&&course.waterType||'');return Object.prototype.hasOwnProperty.call(COURSE_WATER,key)?COURSE_WATER[key]:null;}
@@ -2868,6 +2869,7 @@ function expeditionNumber(course, shareId){
 function normalizeExpedition(course, shareId){
   if(!course)return course;
   const n=expeditionNumber(course,shareId),meta=EXPEDITIONS[n];
+  if(isSoyangTraverseCourse(course))return {...course,name:String(course.name||'').replace(/^번버리(?: 픽|Pick)\s*/,'')};
   return meta?{...course,name:'마이카누 엑스페디션 #'+n+' · '+meta[0]+' · '+meta[1]}:{...course,name:(course.static||String(course.owner||'')==='admin'?canonicalCourseName(course.name):String(course.name||'').replace(/^번버리(?: 픽|Pick)(?=\s|$)/,'번버리Pick'))};
 }
 

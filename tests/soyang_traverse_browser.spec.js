@@ -23,6 +23,9 @@ for(const mobile of [false,true])test('소양호 종주 스티커와 참가자 '
     hideGate();
     openCourseComments('course_k1792928342277',{id:1792928342277,owner:'admin',name:'번버리Pick 소양호 종주 - 춘천 소양강댐 선착장 ~ 인제 관대리',km:45.2,coords:[[37.9,127.8],[38.1,128.1]]},'k1792928342277');
   });
+  await expect(page.locator('#pmTitle')).toContainText('소양호 종주 - 춘천 소양강댐 선착장 ~ 인제 관대리');
+  await expect(page.locator('#pmTitle')).not.toContainText('번버리Pick');
+  expect(await page.evaluate(()=>courseSubcat(_courseInfoCourse.name))).toBe('번버리Pick');
   const sticker=page.locator('.expedition-sticker img');
   await expect(sticker).toHaveAttribute('src','/assets/expedition/soyang_lake_traverse_2026.png');
   await expect.poll(()=>sticker.evaluate(image=>image.complete&&image.naturalWidth>0)).toBe(true);

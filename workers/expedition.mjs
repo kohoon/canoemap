@@ -26,5 +26,6 @@ export function normalizeExpedition(course, shareId){
   if(!course)return course;
   const n=expeditionNumber(course,shareId),meta=EXPEDITIONS[n];
   const name=String(course.name||'');
+  if(isSoyangTraverseCourse(course))return {...course,name:name.replace(/^번버리(?: 픽|Pick)\s*/,'')};
   return meta?{...course,name:'마이카누 엑스페디션 #'+n+' · '+meta[0]+' · '+meta[1]}:{...course,name:(course.static||String(course.owner||'')==='admin'?name.replace(/^(?:마이카누\s+)?엑스페디션(?=\s*#|\s|$)/,'마이카누 엑스페디션').replace(/^마이카누 엑스페디션\s*#\s*12(?=\D|$)/,'마이카누 엑스페디션 #12'):name).replace(/^번버리(?: 픽|Pick)(?=\s|$)/,'번버리Pick')};
 }

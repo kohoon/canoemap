@@ -1476,7 +1476,7 @@ export default {
           if (!userOk) return J("[]");
           arr = arr.filter((x) => String(x.owner || "") === "admin" && (
             /^(?:마이카누\s+)?엑스페디션/.test(String(x.name || "")) ||
-            (!!url.searchParams.get("featured") && /^번버리(?: 픽|Pick)(?=\s|$)/.test(String(x.name || "")))
+            (!!url.searchParams.get("featured") && (isSoyangTraverseCourse(x) || /^번버리(?: 픽|Pick)(?=\s|$)/.test(String(x.name || ""))))
           ));
           return new Response(JSON.stringify(arr), { headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "private, no-store" } });
         }
