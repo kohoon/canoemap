@@ -568,6 +568,14 @@ __GTAG__
   @media(max-width:620px){#myModal{height:100vh;height:100dvh;bottom:auto}#myModal .pmodal{width:100%;height:88%;max-height:calc(100% - env(safe-area-inset-top,0px) - 16px);box-sizing:border-box;border-radius:14px 14px 0 0}#myBody{height:100%}.my-head{padding:17px 16px 12px}.my-tabs{padding:0 7px}.my-tab{padding:12px 11px 10px}.my-pane{padding:14px 15px 24px}.my-stats{grid-template-columns:repeat(2,1fr)}.my-stat:nth-child(2){border-right:0}.my-stat:nth-child(-n+2){border-bottom:1px solid #e3e9eb}.my-stats.compact .my-stat{border-bottom:0}.my-tools{align-items:stretch}.my-toggle{width:100%;margin-left:0}.my-actions .label{display:none}.my-nick-note,.my-nick-form,.my-nick-error{margin-left:0}}
   #pmLinks{font-size:13px;margin-bottom:10px}
   .pm-memo{color:#556;font-size:13px;margin-top:6px}
+  .course-segments{margin:12px 0 4px;border:1px solid #d9e6e2;border-radius:12px;background:#f8fbfa;overflow:hidden}
+  .course-segments h3{margin:0;padding:10px 12px;color:#24463d;font-size:14px;line-height:1.4}
+  .course-segments table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;font-variant-numeric:tabular-nums}
+  .course-segments th,.course-segments td{padding:8px 12px;border-top:1px solid #e1ebe8;text-align:right;vertical-align:top}
+  .course-segments th:first-child,.course-segments td:first-child{width:44%;text-align:left;overflow-wrap:anywhere}
+  .course-segments th{color:#5c746d;font-size:12px;font-weight:700}
+  .course-segments td{color:#24463d}
+  @media(max-width:480px){.course-segments th,.course-segments td{padding:8px 7px;font-size:12px}.course-segments th:first-child,.course-segments td:first-child{padding-left:10px}}
   .pm-note{font-size:12.5px;font-weight:700;line-height:1.45;border-radius:8px;padding:7px 9px;margin:0 0 8px}
   .pm-note-warn{background:#fff4e5;color:#8a4b00;border:1px solid #ffd59e}
   .course-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
@@ -2893,6 +2901,17 @@ function _canEditCourse(course, shareId){
   if(shareId && String(shareId).charAt(0)!=='k') return false;   // 정적 코스는 관리자만
   return _isCourseOwner(course);
 }
+function courseSegmentDetail(course){
+  const segments=Array.isArray(course&&course.segments)?course.segments.slice(0,40).filter(function(s){return s&&Number.isFinite(Number(s.km))&&Number(s.km)>=0;}):[];
+  if(!segments.length)return '';
+  let cumulative=0;
+  const rows=segments.map(function(segment,index){
+    const km=Number(segment.km);cumulative+=km;
+    const name=String(segment.name||('구간 '+(index+1))).slice(0,30);
+    return '<tr><td>'+pmEsc(name)+'</td><td>'+km.toFixed(2)+' km</td><td>'+cumulative.toFixed(2)+' km</td></tr>';
+  }).join('');
+  return '<section class="course-segments" aria-label="구간별 거리"><h3>구간별 거리</h3><table><thead><tr><th scope="col">구간</th><th scope="col">거리</th><th scope="col">누적</th></tr></thead><tbody>'+rows+'</tbody></table></section>';
+}
 function openCourseComments(key,course,shareId){
   course=normalizeExpedition(course||{},shareId);
   _courseInfoCourse=course; _courseInfoOpen=false;
@@ -2917,7 +2936,7 @@ function openCourseComments(key,course,shareId){
     if(String(shareId).charAt(0)==='k'){ const kid=String(shareId).slice(1);
       _cadm='<div class="pm-padmin"><a class="course-btn ghost" onclick="editCourse(\''+kid+'\')">✏️ 수정</a><a class="course-btn danger" onclick="deleteCourse(\''+kid+'\')">🗑 삭제</a></div>'; }
     else { _cadm='<div class="pm-padmin"><a class="course-btn ghost" onclick="editStaticCourse(\''+shareId+'\')">✏️ 수정</a><a class="course-btn danger" onclick="deleteStaticCourse(\''+shareId+'\')">🗑 삭제</a></div>'; } }
-  document.getElementById('pmLinks').innerHTML=expeditionDateHtml(course,shareId)+(character?'<div class="course-character-meta">'+character+'</div>':'')+(km?'<div class="pm-memo">약 '+km+'km</div>':'')
+  document.getElementById('pmLinks').innerHTML=expeditionDateHtml(course,shareId)+(character?'<div class="course-character-meta">'+character+'</div>':'')+(km?'<div class="pm-memo">약 '+km+'km</div>':'')+courseSegmentDetail(course)
     +((actions||_cadm)?'<div class="course-actions">'+actions+'</div>':'')
     +_cadm
     +'<div id="courseAnalysisPanel" class="cm-analysis" style="display:none"></div>'
