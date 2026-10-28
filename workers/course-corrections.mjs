@@ -26,6 +26,9 @@ const CHEONGMI_CORRECTED_NAME = "청미천 - 여주 원부리 ~ 여주 도리";
 const CHEONGMI_BAD_START = [37.225698, 127.726579];
 const CHEONGMI_BAD_END = [37.161783, 127.633426];
 const CHEONGMI_PREVIEW_MIN_VERSION = Date.UTC(2026, 9, 5, 8, 30);
+const SOYANG_TRAVERSE_ID = "1792928342277";
+const SOYANG_TRAVERSE_OLD_NAME = "번버리Pick 소양호 종주 - 춘천 소양강댐 선착장 ~ 인제 관대리";
+const SOYANG_TRAVERSE_NAME = "소양호 종주 - 춘천 소양강댐 선착장 ~ 인제 관대리";
 
 function samePoint(a, b) {
   return Array.isArray(a) && Math.abs(Number(a[0]) - b[0]) < 1e-7 && Math.abs(Number(a[1]) - b[1]) < 1e-7;
@@ -35,6 +38,9 @@ function samePoint(a, b) {
 // 원본의 잘못된 좌표 서명이 그대로일 때만 적용하므로 이후 관리자 수정은 덮어쓰지 않는다.
 export function applyCourseCorrection(course) {
   if (!course || !Array.isArray(course.coords)) return course;
+  if (String(course.id) === SOYANG_TRAVERSE_ID && String(course.owner || "") === "admin" && course.name === SOYANG_TRAVERSE_OLD_NAME) {
+    return { ...course, name: SOYANG_TRAVERSE_NAME };
+  }
   if (String(course.id) === PAROHO_ID && PAROHO_BAD_PREFIX.every((point, index) => samePoint(course.coords[index], point))) {
     const coords = [course.coords[0], PAROHO_PROJECTED_ENTRY, ...course.coords.slice(2)];
     const segments = Array.isArray(course.segments)

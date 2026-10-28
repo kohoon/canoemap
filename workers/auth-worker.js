@@ -1436,7 +1436,7 @@ export default {
         entry.count++;
         if (Number(raw.t || raw.id) > entry.lastAt) { entry.lastAt = Number(raw.t || raw.id) || 0; if (nickname) entry.nickname = nickname; }
         owners.set(ownerId, entry);
-        return { id: String(raw.id || "").slice(0, 24), name: String(raw.name || "코스").slice(0, 80), km: Number(raw.km) || 0,
+        return { id: String(raw.id || "").slice(0, 24), name: String(applyCourseCorrection(raw).name || "코스").slice(0, 80), km: Number(raw.km) || 0,
           ownerId, nickname: nickname || (isAdmin ? "관리자" : "이름 없음"), role: entry.role,
           createdAt: Number(raw.t || raw.id) || 0, updatedAt: Number(raw.updatedAt || raw.t || raw.id) || 0 };
       }));
