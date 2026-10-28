@@ -228,8 +228,9 @@
   .wxd-w{font-size:10.5px}
   .wxd-p{font-size:10px;color:#1565c0;min-height:13px}
   #rvModal .rv-pmodal{box-sizing:border-box;width:min(900px,calc(100% - 32px));max-width:900px;max-height:90vh}
-  .rv-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-right:34px}
-  .rv-head h3{margin-right:0}
+  .rv-head{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:2;background:#fff}
+  .rv-head h3{flex:1;min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #rvModal .rv-head .pmodal-x{position:static;flex:none}
   .rv-share{flex:none;border:1px solid #90caf9;background:#eaf5ff;color:#0d579b;border-radius:999px;padding:7px 11px;font:700 12px sans-serif;cursor:pointer}
   #rvView{width:100%;height:70vh;max-height:640px;min-height:300px;border-radius:10px;overflow:hidden;background:#000;margin-top:4px}
   #rvDate{font-size:12px;color:#778;margin-top:7px;min-height:15px;text-align:right}
@@ -612,8 +613,10 @@
     .pmodal{padding:16px 14px 20px}
     .cm-palette{grid-template-columns:repeat(6,32px)}
     #tripbar{bottom:12px;bottom:max(12px,calc(env(safe-area-inset-bottom,0px) + 8px))}.trip-live{padding:9px 7px;gap:3px}.trip-live b{font-size:13px}.trip-live small{font-size:9.5px}.tb-start{padding:12px 15px;font-size:14px}.tb-pause,.tb-refresh{padding:11px 10px;font-size:12px}
-    #rvModal .rv-pmodal{width:100%;max-width:none;max-height:92vh}
-    #rvView{height:68vh;max-height:none;min-height:320px}
+    #rvModal{height:100vh;height:100dvh;bottom:auto;box-sizing:border-box;padding-top:max(8px,env(safe-area-inset-top,0px))}
+    #rvModal .rv-pmodal{width:100%;max-width:none;max-height:100%;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;padding-bottom:max(20px,env(safe-area-inset-bottom,0px))}
+    #rvModal .rv-head{margin:-16px -14px 8px;padding:16px 14px 8px;border-bottom:1px solid #edf1f2}
+    #rvView{height:min(55dvh,520px);max-height:none;min-height:180px}
     #gate{justify-content:center;padding:14px;background:linear-gradient(180deg,rgba(5,27,23,.24) 0%,rgba(5,27,23,.05) 33%,rgba(5,27,23,.5) 100%)}
     .gate-brand{top:20px;left:18px}.gate-brand .gate-logo{width:48px;height:48px}.gate-brand .canoe-ico{width:36px}.gate-brand-name{font-size:20px}
     .gate-hero-copy{left:19px;right:19px;bottom:auto;top:112px;max-width:none}.gate-map-badge{margin-bottom:9px}.gate-hero-copy h1{font-size:27px;line-height:1.23}.gate-hero-copy p{font-size:12px;margin-top:7px}
@@ -756,8 +759,8 @@
 </div>
 <div id="rvModal" class="pmodal-wrap">
   <div class="pmodal-bg" onclick="closeRvModal()"></div>
-  <div class="pmodal rv-pmodal"><button class="pmodal-x" onclick="closeRvModal()">✕</button>
-    <div class="rv-head"><h3 id="rvTitle">🛣️ 로드뷰</h3><button type="button" class="rv-share" onclick="shareRoadview()">↗ URL 공유</button></div>
+  <div class="pmodal rv-pmodal">
+    <div class="rv-head"><h3 id="rvTitle">🛣️ 로드뷰</h3><button type="button" class="rv-share" onclick="shareRoadview()">↗ URL 공유</button><button type="button" class="pmodal-x" aria-label="로드뷰 닫기" onclick="closeRvModal()">✕</button></div>
     <div id="rvView"></div>
     <div id="rvDate"></div>
     <div id="rvMsg">근처에 로드뷰가 없습니다.</div>
