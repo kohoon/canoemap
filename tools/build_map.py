@@ -451,6 +451,12 @@ __GTAG__
   .meas-seg-net{position:relative;z-index:1;color:#bf360c;font:800 11px/1.15 sans-serif;padding:6px 7px 4px;white-space:nowrap}
   .meas-seg-cum{position:relative;z-index:1;color:#00695c;font:800 10px/1.15 sans-serif;padding:4px 7px 6px;border-top:1px solid #f1e4dc;white-space:nowrap}
   .meas-seg-num{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#ef6c00;color:#fff;font-size:9px;margin-right:3px;vertical-align:middle}
+  .leaflet-div-icon.course-segment-marker{display:flex;align-items:center;justify-content:center;background:transparent;border:0}
+  .course-segment-dot{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border:2px solid #fff;border-radius:50%;background:#ef6c00;color:#fff;box-shadow:0 2px 7px rgba(0,0,0,.35);font:800 12px/1 sans-serif}
+  .course-segment-dot.approx{border-style:dashed}
+  .leaflet-tooltip.course-segment-tooltip{padding:0;background:transparent;border:0;box-shadow:none}
+  .leaflet-tooltip.course-segment-tooltip:before{display:none}
+  .course-segment-estimate{padding:3px 7px 5px;border-top:1px solid #f1e4dc;color:#667;font:700 9px/1.2 sans-serif}
   .locbtn{cursor:pointer;background:#fff;width:var(--mc-control-height);height:var(--mc-control-height);border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3);user-select:none;display:flex;align-items:center;justify-content:center}
   .locbtn.loading{opacity:.45}
   .locbtn.active{background:#1976d2;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 3px rgba(25,118,210,.2)}
@@ -2800,6 +2806,7 @@ let _pmPlace=null,_pmSlug=null;
 function setCommentInputLimit(limit){ const input=document.getElementById('pmInput'); input.maxLength=limit; input.placeholder='코멘트 (최대 '+limit+'자)'; }
 function openPlaceModal(pl){
   if(pl&&pl.cat==='런칭/랜딩 후보지'&&!isAdmin()) return;
+  _courseSegmentPointGrp.clearLayers();
   _pmPlace=pl; _pmSlug=placeSlug(pl.lat,pl.lng);
   _pmTarget=_pmSlug; _pmKind='p'; _pmName=pl.name||'장소'; _pmLL=[pl.lat,pl.lng];
   setCommentInputLimit(100);
@@ -2883,6 +2890,43 @@ function normalizeExpedition(course, shareId){
 
 const _courseByCid={};
 COURSES.features.forEach(function(f){ _applyCourseOver(f); const p=f.properties||{}; if(p.cid!=null) _courseByCid[String(p.cid)]={id:p.cid,static:true,name:p.name||'코스',km:p.km||0,color:validCourseColor(p.color),waterType:p.waterType||'',travelMode:p.travelMode||'',coords:(f.geometry&&f.geometry.coordinates||[]).map(function(c){return [c[1],c[0]];})}; });
+const _courseSegmentPointGrp=L.layerGroup();
+let _courseSegmentPointHost=null;
+function _coursePointAtFraction(coords,fraction){
+  if(!Array.isArray(coords)||coords.length<2)return null;
+  const lengths=[];let total=0;
+  for(let i=1;i<coords.length;i++){const length=map.distance(coords[i-1],coords[i]);lengths.push(length);total+=length;}
+  if(!total)return null;
+  let target=Math.max(0,Math.min(1,fraction))*total;
+  for(let i=0;i<lengths.length;i++){
+    if(target<=lengths[i]||i===lengths.length-1){const t=lengths[i]?Math.max(0,Math.min(1,target/lengths[i])):0;return [coords[i][0]+(coords[i+1][0]-coords[i][0])*t,coords[i][1]+(coords[i+1][1]-coords[i][1])*t];}
+    target-=lengths[i];
+  }
+  return null;
+}
+function _renderCourseSegmentPoints(course){
+  if(_courseSegmentPointHost)_courseSegmentPointHost.removeLayer(_courseSegmentPointGrp);
+  _courseSegmentPointHost=null;
+  _courseSegmentPointGrp.clearLayers();
+  const segments=Array.isArray(course&&course.segments)?course.segments.slice(0,40).filter(function(s){return s&&Number.isFinite(Number(s.km))&&Number(s.km)>=0;}):[];
+  if(segments.length<2||!Array.isArray(course.coords)||course.coords.length<2)return;
+  const total=segments.reduce(function(sum,s){return sum+Number(s.km);},0);
+  if(!total)return;
+  const layer=_kvCourseLayers[String(course.id)];
+  _courseSegmentPointHost=layer&&layer.grp||map;
+  _courseSegmentPointHost.addLayer(_courseSegmentPointGrp);
+  let cumulative=0;
+  segments.slice(0,-1).forEach(function(segment,index){
+    const km=Number(segment.km);cumulative+=km;
+    const end=segment.end,exact=Array.isArray(end)&&end.length===2&&Number.isFinite(Number(end[0]))&&Number.isFinite(Number(end[1]))&&Math.abs(Number(end[0]))<=90&&Math.abs(Number(end[1]))<=180;
+    const point=exact?[Number(end[0]),Number(end[1])]:_coursePointAtFraction(course.coords,cumulative/total);
+    if(!point)return;
+    const number=index+1,icon=L.divIcon({className:'course-segment-marker',html:'<span class="course-segment-dot'+(exact?'':' approx')+'" aria-hidden="true">'+number+'</span>',iconSize:[44,44],iconAnchor:[22,22]});
+    const marker=L.marker(point,{icon:icon,title:exact?'경유'+number+' 구간 거리':'경유'+number+' 구간 거리 · 위치 추정',zIndexOffset:800}).addTo(_courseSegmentPointGrp);
+    marker.bindTooltip(_segmentDistanceCardHtml(number,km,cumulative,!exact),{direction:'top',offset:[0,-18],opacity:1,className:'course-segment-tooltip'});
+    if(isTouch)marker.on('click',function(){marker.openTooltip();});
+  });
+}
 let _courseInfoCourse=null, _courseInfoOpen=false;
 function _curUid(){ const u=getUser(); return (u&&u.uid)||''; }
 // Verified event dates in Korea; not post timestamps or course creation dates.
@@ -2914,6 +2958,7 @@ function courseSegmentDetail(course){
 }
 function openCourseComments(key,course,shareId){
   course=normalizeExpedition(course||{},shareId);
+  _renderCourseSegmentPoints(course);
   _courseInfoCourse=course; _courseInfoOpen=false;
   const name=course.name||'코스', km=course.km||0;
   _pmPlace={name:name}; _pmSlug=key;
@@ -4881,10 +4926,13 @@ function _segName(i,totalPts){
   return '경유'+i+'~경유'+(i+1);
 }
 function _fmtMeasKm(km){ return Number(km||0).toFixed(2).replace(/0$/,'').replace(/\.0$/,''); }
+function _segmentDistanceCardHtml(n,km,cumulativeKm,approx){
+  return '<div class="meas-seg-card"><div class="meas-seg-net"><span class="meas-seg-num">'+n+'</span>구간 '+_fmtMeasKm(km)+' km</div><div class="meas-seg-cum">Σ 누적 '+_fmtMeasKm(cumulativeKm)+' km</div>'+(approx?'<div class="course-segment-estimate">위치 추정</div>':'')+'</div>';
+}
 function _addSegLabel(grp, coords, i, km, cumulativeKm){
   if(!coords||!coords.length) return;
   const end=coords[coords.length-1], n=i+1;
-  const html='<div class="meas-seg-card"><div class="meas-seg-net"><span class="meas-seg-num">'+n+'</span>구간 '+_fmtMeasKm(km)+' km</div><div class="meas-seg-cum">Σ 누적 '+_fmtMeasKm(cumulativeKm)+' km</div></div>';
+  const html=_segmentDistanceCardHtml(n,km,cumulativeKm);
   L.marker(end,{icon:L.divIcon({className:'meas-seg-label',html:html,iconSize:[112,52],iconAnchor:[56,66]}),interactive:false,zIndexOffset:700+i}).addTo(grp);
 }
 function _drawMeasAccess(grp, access){
@@ -4980,7 +5028,7 @@ function finishMeasure(){
     const first=measPts[0],lastPt=measPts[measPts.length-1];
     _lastCourse={coords:cc, km:Math.round(km*100)/100, riverName:riverName,
       start:{lat:first.lat,lng:first.lng,label:first._measLabel||''},end:{lat:lastPt.lat,lng:lastPt.lng,label:lastPt._measLabel||''},
-      segments:measSegs.map(function(sg,i){ return {name:_segName(i,totalPts), km:Math.round(sg.km*100)/100, mode:sg.straight?'straight':'water'}; })};
+      segments:measSegs.map(function(sg,i){ return {name:_segName(i,totalPts), km:Math.round(sg.km*100)/100, mode:sg.straight?'straight':'water', end:[measPts[i+1].lat,measPts[i+1].lng]}; })};
     resultBtns+=' <button class="addplace-btn" onclick="saveCoursePrompt()">💾 코스로 등록</button>';
   }
   L.popup({closeButton:true}).setLatLng(end).setContent('<b>측정 '+km.toFixed(2)+'km</b><br>'+resultBtns).openOn(map);

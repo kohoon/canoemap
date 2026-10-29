@@ -23,7 +23,7 @@ for(const mobile of [false,true])test('저장된 코스 구간 거리 '+(mobile?
     hideGate();
     openCourseComments('course_k42',{id:42,owner:'admin',name:'테스트 코스',km:6.6,
       coords:[[37.9,127.8],[38.1,128.1]],
-      segments:[{name:'출발~경유1',km:1.2,mode:'water'},{name:'경유1~경유2',km:2.35,mode:'water'},{name:'경유2~도착',km:3.05,mode:'straight'}]},'k42');
+      segments:[{name:'출발~경유1',km:1.2,mode:'water',end:[37.95,127.9]},{name:'경유1~경유2',km:2.35,mode:'water'},{name:'경유2~도착',km:3.05,mode:'straight',end:[38.1,128.1]}]},'k42');
   });
   const section=page.locator('.course-segments');
   await expect(section).toBeVisible();
@@ -34,7 +34,19 @@ for(const mobile of [false,true])test('저장된 코스 구간 거리 '+(mobile?
     '경유2~도착3.05 km6.60 km'
   ]);
   expect(await section.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
+  await page.evaluate(()=>{closePlaceModal();map.setView([38,127.95],10);});
+  const markers=page.locator('.course-segment-marker');
+  await expect(markers).toHaveCount(2);
+  await expect(markers.nth(1).locator('.approx')).toHaveCount(1);
+  if(mobile)await markers.first().tap();
+  else await markers.first().hover();
+  await expect(page.locator('.course-segment-tooltip')).toContainText('구간 1.2 km');
+  await expect(page.locator('.course-segment-tooltip')).toContainText('누적 1.2 km');
+  if(mobile)await markers.nth(1).tap();
+  else await markers.nth(1).hover();
+  await expect(page.locator('.course-segment-tooltip').last()).toContainText('위치 추정');
   await page.evaluate(()=>openCourseComments('course_k43',{id:43,owner:'admin',name:'구간 데이터 없는 코스',km:6.6},'k43'));
   await expect(page.locator('.course-segments')).toHaveCount(0);
+  await expect(page.locator('.course-segment-marker')).toHaveCount(0);
   await page.close();
 });

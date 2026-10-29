@@ -253,6 +253,19 @@ function _launchCat(v, name) {
 }
 function _courseWaterValue(value) { return ["flat", "flowing", "rapid"].includes(String(value || "")) ? String(value) : ""; }
 function _courseTravelValue(value) { return ["roundtrip", "downriver", "traverse"].includes(String(value || "")) ? String(value) : ""; }
+function _courseSegmentValue(segment) {
+  const value = {
+    name: String((segment && segment.name) || "구간").slice(0, 30),
+    km: Number(segment && segment.km) || 0,
+    mode: String((segment && segment.mode) || "").slice(0, 12),
+  };
+  const end = segment && segment.end;
+  if (Array.isArray(end) && end.length === 2) {
+    const lat = Number(end[0]), lng = Number(end[1]);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) value.end = [lat, lng];
+  }
+  return value;
+}
 async function _recentAdditions(KV, seen = new Set(), limit = 4) {
   const now = Date.now(), cutoff = now - 7 * 24 * 60 * 60 * 1000;
   const withinWeek = (t) => Number.isSafeInteger(t) && t >= cutoff && t <= now;
@@ -1598,11 +1611,7 @@ export default {
             if (coords.length < 2 || coords.some((p) => !Number.isFinite(p[0]) || !Number.isFinite(p[1]) || Math.abs(p[0]) > 90 || Math.abs(p[1]) > 180)) return new Response("bad", { status: 400, headers: cors });
             it.coords = coords;
           }
-          if (b.segments != null) it.segments = Array.isArray(b.segments) ? b.segments.slice(0, 40).map((s) => ({
-            name: String((s && s.name) || "구간").slice(0, 30),
-            km: Number(s && s.km) || 0,
-            mode: String((s && s.mode) || "").slice(0, 12),
-          })) : [];
+          if (b.segments != null) it.segments = Array.isArray(b.segments) ? b.segments.slice(0, 40).map(_courseSegmentValue) : [];
           it.updatedAt = Date.now();
           savedCourse = it;
         } else if (b.action === "add" || b.action === "adduser" || !b.action) {
@@ -1613,11 +1622,7 @@ export default {
           const owner = adminOk ? "admin" : uid;
           const existing = clientId ? arr.find((x) => String(x.owner || "") === String(owner) && String(x.clientId || "") === clientId) : null;
           if (existing) return J(JSON.stringify({ ok: true, course: existing, duplicate: true }));
-          const segments = Array.isArray(b.segments) ? b.segments.slice(0, 40).map((s) => ({
-            name: String((s && s.name) || "구간").slice(0, 30),
-            km: Number(s && s.km) || 0,
-            mode: String((s && s.mode) || "").slice(0, 12),
-          })) : [];
+          const segments = Array.isArray(b.segments) ? b.segments.slice(0, 40).map(_courseSegmentValue) : [];
           const now = Date.now();
           const color = /^#[0-9a-f]{6}$/i.test(String(b.color || "")) ? String(b.color).toLowerCase() : "";
           savedCourse = { id: now, name: String(b.name || "코스").slice(0, 80), color: color, waterType: _courseWaterValue(b.waterType), travelMode: _courseTravelValue(b.travelMode), coords: coords, km: Number(b.km) || 0, segments: segments, t: now, owner: owner, nick: String(b.nick || "").slice(0, 20), clientId: clientId };
