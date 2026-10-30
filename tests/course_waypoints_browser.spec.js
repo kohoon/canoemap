@@ -43,6 +43,7 @@ for(const mobile of [false,true])test('course detail waypoint add/remove '+(mobi
   await page.evaluate(()=>{_wpEditor.legs[0].mode='water';waterRoute=async()=>{throw Error('unexpected route recalculation');};});
   await page.locator('#map').click({position:{x:pos.x,y:pos.y}});
   await expect(page.locator('.wp-list')).toContainText('경유지 1');
+  await page.getByRole('textbox',{name:'경유지 1 이름'}).fill('용산리');
   let saved;
   await page.route('**/course',route=>{
     if(route.request().method()==='POST'){saved=JSON.parse(route.request().postData());return route.fulfill({json:{ok:true}});}
@@ -54,5 +55,36 @@ for(const mobile of [false,true])test('course detail waypoint add/remove '+(mobi
   expect(saved.action).toBe('editstatic');
   expect(saved.segments).toHaveLength(2);
   expect(saved.coords).toHaveLength(3);
+  expect(saved.segments[0].waypointName).toBe('용산리');
+  expect(saved.segments.map(s=>s.name)).toEqual(['출발~용산리','용산리~도착']);
+  await page.close();
+});
+
+for(const mobile of [false,true])test('new course suggests dong or ri waypoint name '+(mobile?'mobile':'desktop'),async({browser})=>{
+  const page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:900},isMobile:mobile,hasTouch:mobile});
+  await page.goto(base+'/index.html');
+  await page.evaluate(()=>{
+    hideGate();_adminOk=true;
+    vworldReverse=async()=>({parcel:'강원특별자치도 춘천시 동면 용산리 123'});
+    _lastCourse={km:2,coords:[[37,127],[37.01,127.01],[37.02,127.02]],start:{lat:37,lng:127},end:{lat:37.02,lng:127.02},segments:[
+      {name:'출발~경유1',km:1,mode:'straight',end:[37.01,127.01]},
+      {name:'경유1~도착',km:1,mode:'straight',end:[37.02,127.02]}]};
+    openCourseModal('add');
+  });
+  const input=page.locator('[data-course-waypoint="0"]');
+  await expect(input).toHaveValue('용산리');
+  await input.fill('장학리');
+  expect(await input.inputValue()).toBe('장학리');
+  expect(await page.locator('#courseModal .pmodal').evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true);
+  await page.locator('#cmName').fill('테스트 코스');
+  let saved;
+  await page.route('**/course',route=>{
+    if(route.request().method()==='POST'){saved=JSON.parse(route.request().postData());return route.fulfill({status:400,body:'bad'});}
+    return route.continue();
+  });
+  await page.getByRole('button',{name:'코스 등록'}).click();
+  await expect.poll(()=>saved).toBeTruthy();
+  expect(saved.segments[0].waypointName).toBe('장학리');
+  expect(saved.segments.map(s=>s.name)).toEqual(['출발~장학리','장학리~도착']);
   await page.close();
 });

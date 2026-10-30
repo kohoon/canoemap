@@ -258,6 +258,7 @@ function _courseSegmentValue(segment) {
     name: String((segment && segment.name) || "구간").slice(0, 30),
     km: Number(segment && segment.km) || 0,
     mode: String((segment && segment.mode) || "").slice(0, 12),
+    waypointName: String((segment && segment.waypointName) || "").trim().slice(0, 40),
   };
   const end = segment && segment.end;
   if (Array.isArray(end) && end.length === 2) {

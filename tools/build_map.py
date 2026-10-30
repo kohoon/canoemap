@@ -457,6 +457,7 @@ __GTAG__
   .leaflet-tooltip.course-segment-tooltip{padding:0;background:transparent;border:0;box-shadow:none}
   .leaflet-tooltip.course-segment-tooltip:before{display:none}
   .course-segment-estimate{padding:3px 7px 5px;border-top:1px solid #f1e4dc;color:#667;font:700 9px/1.2 sans-serif}
+  .course-segment-name{padding:5px 7px 2px;color:#174f47;font:800 11px/1.2 sans-serif;overflow-wrap:anywhere}
   .locbtn{cursor:pointer;background:#fff;width:var(--mc-control-height);height:var(--mc-control-height);border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.3);user-select:none;display:flex;align-items:center;justify-content:center}
   .locbtn.loading{opacity:.45}
   .locbtn.active{background:#1976d2;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 3px rgba(25,118,210,.2)}
@@ -673,6 +674,8 @@ __GTAG__
   .wp-row-label{font-size:14px;color:#203d33}
   .wp-leg{margin-top:8px;color:#667a73;font-size:12px}
   .wp-row .course-btn,.wp-actions .course-btn{min-height:34px;padding:7px 10px;font-size:12px;white-space:normal;text-align:center}
+  .wp-name,.cm-waypoint-row input{box-sizing:border-box;width:100%;min-width:0;min-height:38px;padding:8px 10px;border:1px solid #cbded7;border-radius:8px;background:#fff;color:#203d33;font:600 13px sans-serif}
+  .wp-name{margin:7px 0 2px}.cm-waypoint-list{max-height:180px;overflow-y:auto;margin:6px 0 12px}.cm-waypoint-row{display:grid;grid-template-columns:70px minmax(0,1fr);align-items:center;gap:8px;margin-bottom:6px;font:600 12px sans-serif;color:#456}
   .wp-actions .sg-submit{width:auto;min-height:40px;margin:0;padding:9px 18px}
   @media(max-width:600px){.wp-leg{flex-wrap:wrap}.wp-leg .course-btn{width:100%}.wp-list{max-height:42vh}}
   .cm-palette{display:grid;grid-template-columns:repeat(8,32px);gap:8px;margin:6px 0 13px}
@@ -2932,8 +2935,9 @@ function _renderCourseSegmentPoints(course){
     const point=exact?[Number(end[0]),Number(end[1])]:_coursePointAtFraction(course.coords,cumulative/total);
     if(!point)return;
     const number=index+1,icon=L.divIcon({className:'course-segment-marker',html:'<span class="course-segment-dot'+(exact?'':' approx')+'" aria-hidden="true">'+number+'</span>',iconSize:[44,44],iconAnchor:[22,22]});
-    const marker=L.marker(point,{icon:icon,title:exact?'경유'+number+' 구간 거리':'경유'+number+' 구간 거리 · 위치 추정',zIndexOffset:800}).addTo(_courseSegmentPointGrp);
-    marker.bindTooltip(_segmentDistanceCardHtml(number,km,cumulative,!exact),{direction:'top',offset:[0,-18],opacity:1,className:'course-segment-tooltip'});
+    const waypointName=String(segment.waypointName||'').slice(0,40);
+    const marker=L.marker(point,{icon:icon,title:(waypointName||'경유'+number)+' 구간 거리'+(exact?'':' · 위치 추정'),zIndexOffset:800}).addTo(_courseSegmentPointGrp);
+    marker.bindTooltip(_segmentDistanceCardHtml(number,km,cumulative,!exact,waypointName),{direction:'top',offset:[0,-18],opacity:1,className:'course-segment-tooltip'});
     if(isTouch)marker.on('click',function(){marker.openTooltip();});
   });
 }
@@ -4937,8 +4941,8 @@ function _segName(i,totalPts){
   return '경유'+i+'~경유'+(i+1);
 }
 function _fmtMeasKm(km){ return Number(km||0).toFixed(2).replace(/0$/,'').replace(/\.0$/,''); }
-function _segmentDistanceCardHtml(n,km,cumulativeKm,approx){
-  return '<div class="meas-seg-card"><div class="meas-seg-net"><span class="meas-seg-num">'+n+'</span>구간 '+_fmtMeasKm(km)+' km</div><div class="meas-seg-cum">Σ 누적 '+_fmtMeasKm(cumulativeKm)+' km</div>'+(approx?'<div class="course-segment-estimate">위치 추정</div>':'')+'</div>';
+function _segmentDistanceCardHtml(n,km,cumulativeKm,approx,waypointName){
+  return '<div class="meas-seg-card">'+(waypointName?'<div class="course-segment-name">'+pmEsc(waypointName)+'</div>':'')+'<div class="meas-seg-net"><span class="meas-seg-num">'+n+'</span>구간 '+_fmtMeasKm(km)+' km</div><div class="meas-seg-cum">Σ 누적 '+_fmtMeasKm(cumulativeKm)+' km</div>'+(approx?'<div class="course-segment-estimate">위치 추정</div>':'')+'</div>';
 }
 function _addSegLabel(grp, coords, i, km, cumulativeKm){
   if(!coords||!coords.length) return;
@@ -5219,6 +5223,41 @@ async function _coursePointName(x){
   let addr=(r&&(r.parcel||r.road))||'';if(!addr)try{addr=await nominatimReverse(x.lat,x.lng);}catch(e){}
   return _shortCoursePlace('',addr);
 }
+function _courseLocalityName(address){
+  const words=String(address||'').split(/[\s,]+/).map(function(word){return word.replace(/[()]/g,'');});
+  return words.filter(function(word){return /^[가-힣0-9·-]+[동리]$/.test(word);}).slice(-1)[0]||'';
+}
+async function _courseWaypointName(point){
+  if(!Array.isArray(point)||point.length!==2)return '';
+  let address='';try{const result=await vworldReverse(point[0],point[1]);address=result&&(result.parcel||result.road)||'';}catch(e){}
+  let name=_courseLocalityName(address);
+  if(!name){try{name=_courseLocalityName(await Promise.race([nominatimReverse(point[0],point[1]),new Promise(function(resolve){setTimeout(function(){resolve('');},5000);})]));}catch(e){}}
+  return name;
+}
+function _courseSegmentName(index,segments){
+  const start=index?(segments[index-1].waypointName||'경유'+index):'출발';
+  const end=index===segments.length-1?'도착':(segments[index].waypointName||'경유'+(index+1));
+  return start+'~'+end;
+}
+let _courseWaypointPromise=null;
+async function _fillCourseWaypointNames(course){
+  if(!course||!Array.isArray(course.segments))return;
+  await Promise.all(course.segments.slice(0,-1).map(async function(segment,index){
+    if(segment.waypointName)return;
+    const name=await _courseWaypointName(segment.end);
+    if(!name||_lastCourse!==course)return;
+    const input=document.querySelector('#cmBody [data-course-waypoint="'+index+'"]');
+    if(input&&input.dataset.edited==='1')return;
+    segment.waypointName=name;
+    if(input)input.value=name;
+  }));
+  document.querySelectorAll('#cmBody [data-course-waypoint]').forEach(function(input){if(!input.value)input.placeholder='동·리 이름을 입력하세요';});
+}
+function _cmWaypointName(input){
+  const course=_lastCourse,index=Number(input.dataset.courseWaypoint);
+  if(!course||!course.segments||!course.segments[index])return;
+  input.dataset.edited='1';course.segments[index].waypointName=input.value.trim().slice(0,40);
+}
 async function _suggestCourseName(){
   const c=_lastCourse;if(!c||!c.start||!c.end)return;
   const names=await Promise.all([_coursePointName(c.start),_coursePointName(c.end)]);if(_cmMode!=='add'||_lastCourse!==c||_cmNameTouched)return;
@@ -5237,12 +5276,13 @@ function openCourseModal(mode, course){
   if(!color) color=subcatColor(cat);
   const segs=((mode==='add'&&_lastCourse&&_lastCourse.segments)?_lastCourse.segments:((course&&course.segments)||[]));
   const segHtml=segs&&segs.length?'<div class="cm-note">'+segs.map(function(s){return pmEsc(s.name||'구간')+' '+Number(s.km||0).toFixed(2)+'km';}).join(' · ')+'</div>':'';
+  const waypointHtml=mode==='add'&&segs&&segs.length>1?'<div class="sg-label">경유지명</div><div class="cm-waypoint-list">'+segs.slice(0,-1).map(function(s,i){return '<label class="cm-waypoint-row"><span>경유지 '+(i+1)+'</span><input type="text" data-course-waypoint="'+i+'" maxlength="40" placeholder="동·리 이름을 찾는 중" oninput="_cmWaypointName(this)"></label>';}).join('')+'</div>':'';
   let seg=''; for(let i=0;i<COURSE_CATS.length;i++){ const c=COURSE_CATS[i]; if(c==='번버리Pick'&&!isAdmin())continue; seg+='<button class="seg-b'+(c===cat?' on':'')+'" data-cat="'+c+'" onclick="cmPickCat(this)">'+(c==='엑스페디션'?'마이카누 엑스페디션':c)+'</button>'; }
   const palette=COURSE_PALETTE.map(function(x){const on=x[0]===color;return '<button type="button" class="cm-color'+(on?' on':'')+'" data-color="'+x[0]+'" style="background:'+x[0]+'" title="'+x[1]+'" aria-label="'+x[1]+'" aria-pressed="'+(on?'true':'false')+'" onclick="cmPickColor(this)"></button>';}).join('');
   document.getElementById('cmBody').innerHTML=
     '<h3>'+((mode==='edit'||mode==='editstatic')?'✏️ 코스 수정':'💾 코스 등록')+'</h3>'
     +(km?'<div class="cm-stat"><b>'+km.toFixed(2)+'</b> km · '+npts+'개 점</div>':'')
-    +segHtml
+    +segHtml+waypointHtml
     +'<div class="sg-label">카테고리 (색상 분류)</div><div class="seg">'+seg+'</div>'
     +'<div class="sg-label">코스 색상</div><div class="cm-palette" id="cmPalette">'+palette+'</div>'
     +'<div class="sg-label">수면 환경 · 코스명 앞 아이콘</div>'+_cmCharacterButtons('water',[['','? 미확인'],['flat','≋ 평수'],['flowing','〰 유수'],['rapid','≈ 급류']],waterType)
@@ -5259,6 +5299,8 @@ function openCourseModal(mode, course){
   document.getElementById('cmName').value=desc;
   document.getElementById('courseModal').classList.add('open');
   document.getElementById('cmSave').onclick=doSaveCourse;
+  document.querySelectorAll('#cmBody [data-course-waypoint]').forEach(function(input){input.value=(segs[Number(input.dataset.courseWaypoint)]||{}).waypointName||'';});
+  _courseWaypointPromise=mode==='add'?_fillCourseWaypointNames(_lastCourse):null;
   cmPreview();
   if(mode==='add')_suggestCourseName();
   setTimeout(function(){ const i=document.getElementById('cmName'); if(i) i.focus(); }, 60);
@@ -5268,6 +5310,11 @@ function editCourse(id){ const c=_kvCourses[id]; if(c && _canEditCourse(c, 'k'+i
 function editStaticCourse(cid){ const c=_courseByCid[String(cid)]; if(c && isAdmin()) openCourseModal('editstatic', c); }
 let _wpEditor=null, _wpPicking=false;
 function _wpCoordsKm(coords){let m=0;for(let i=1;i<coords.length;i++)m+=map.distance(coords[i-1],coords[i]);return m/1000;}
+function _wpStoredName(segment){
+  if(segment.waypointName)return String(segment.waypointName).slice(0,40);
+  const tail=String(segment.name||'').split('~').pop().trim();
+  return tail&&!/^(?:경유\s*\d+|도착)$/.test(tail)?tail.slice(0,40):'';
+}
 function _wpLegs(course){
   const coords=course.coords,segments=Array.isArray(course.segments)?course.segments:[];
   if(!segments.length)return [{coords:coords.slice(),km:Number(course.km)||_wpCoordsKm(coords),mode:'water'}];
@@ -5282,7 +5329,7 @@ function _wpLegs(course){
     const part=[previous].concat(coords.slice(from+1,to+1));
     if(map.distance(part[part.length-1],end)>1)part.push(end);
     if(part.length<2)part.push(end);
-    legs.push({coords:part,km:Number(s.km)||_wpCoordsKm(part),mode:s.mode==='straight'?'straight':'water'});
+    legs.push({coords:part,km:Number(s.km)||_wpCoordsKm(part),mode:s.mode==='straight'?'straight':'water',waypointName:last?'':_wpStoredName(s)});
     from=to;previous=end;
   });
   return legs.length?legs:[{coords:coords.slice(),km:Number(course.km)||_wpCoordsKm(coords),mode:'water'}];
@@ -5292,6 +5339,7 @@ function _wpRender(message){
   const legs=state.legs,body=document.getElementById('cmBody');
   const rows=legs.map(function(leg,i){
     return '<div class="wp-row"><div class="wp-row-label"><b>'+(i===0?'출발지':'경유지 '+i)+'</b>'+(i?'<button type="button" class="course-btn ghost" onclick="_wpRemove('+i+')">삭제</button>':'')+'</div>'
+      +(i?'<input class="wp-name" type="text" data-wp-index="'+i+'" maxlength="40" placeholder="경유지명" aria-label="경유지 '+i+' 이름" oninput="_wpNameChange(this)">':'')
       +'<div class="wp-leg"><span>구간 '+(i+1)+' · '+Number(leg.km).toFixed(2)+' km</span><button type="button" class="course-btn ghost" onclick="_wpPick('+i+')">이 구간에 경유지 추가</button></div></div>';
   }).join('');
   body.innerHTML='<h3>경유지 편집</h3><div class="cm-note">지도의 위치를 선택해 경유지를 추가하거나, 기존 경유지를 삭제할 수 있습니다.</div>'
@@ -5299,6 +5347,21 @@ function _wpRender(message){
     +'<div class="cm-stat">전체 '+legs.reduce(function(n,s){return n+Number(s.km);},0).toFixed(2)+' km · 경유지 '+(legs.length-1)+'개</div>'
     +'<div class="wp-actions"><button type="button" class="course-btn ghost" onclick="closeCourseModal()">취소</button><button type="button" class="sg-submit" onclick="_wpSave()">변경 저장</button></div>'
     +'<div id="cmMsg" role="status">'+pmEsc(message||'')+'</div>';
+  body.querySelectorAll('.wp-name').forEach(function(input){input.value=legs[Number(input.dataset.wpIndex)-1].waypointName||'';});
+}
+function _wpNameChange(input){
+  const state=_wpEditor,index=Number(input.dataset.wpIndex)-1;
+  if(!state||!state.legs[index])return;
+  input.dataset.edited='1';state.legs[index].waypointName=input.value.trim().slice(0,40);
+}
+async function _wpAutoName(state,leg){
+  const name=await _courseWaypointName(leg.coords[leg.coords.length-1]);
+  if(!name||state!==_wpEditor||leg.waypointName)return;
+  const index=state.legs.indexOf(leg);
+  if(index<0||index>=state.legs.length-1)return;
+  const input=document.querySelector('#cmBody .wp-name[data-wp-index="'+(index+1)+'"]');
+  if(input&&input.dataset.edited==='1')return;
+  leg.waypointName=name;if(input)input.value=name;
 }
 function openWaypointEditor(shareId){
   const id=String(shareId),course=id.charAt(0)==='k'?_kvCourses[id.slice(1)]:_courseByCid[id];
@@ -5353,18 +5416,19 @@ function _wpSplitExisting(leg,clicked){
   const latlng=map.containerPointToLatLng([nearest.x,nearest.y]),point=[latlng.lat,latlng.lng];
   if(map.distance(point,leg.coords[0])<3||map.distance(point,leg.coords[leg.coords.length-1])<3)return null;
   const left=leg.coords.slice(0,nearest.index).concat([point]),right=[point].concat(leg.coords.slice(nearest.index));
-  return [{coords:left,km:_wpCoordsKm(left),mode:leg.mode},{coords:right,km:_wpCoordsKm(right),mode:leg.mode}];
+  return [{coords:left,km:_wpCoordsKm(left),mode:leg.mode,waypointName:''},{coords:right,km:_wpCoordsKm(right),mode:leg.mode,waypointName:leg.waypointName||''}];
 }
 async function _wpMapClick(e){
   if(!_wpPicking||!_wpEditor)return;
   const index=_wpPickIndex,state=_wpEditor,old=state.legs[index],point=[e.latlng.lat,e.latlng.lng];_wpEndPick();
   document.getElementById('courseModal').classList.add('open');
   const onExisting=_wpSplitExisting(old,point);
-  if(onExisting){state.legs.splice(index,1,onExisting[0],onExisting[1]);_wpRender();return;}
+  if(onExisting){state.legs.splice(index,1,onExisting[0],onExisting[1]);_wpRender();_wpAutoName(state,onExisting[0]);return;}
   state.busy=true;_wpRender('인접 구간의 물길 계산 중…');
   try{
     const parts=await Promise.all([_wpRoute(old.coords[0],point,old.mode),_wpRoute(point,old.coords[old.coords.length-1],old.mode)]);
-    if(_wpEditor!==state)return;state.legs.splice(index,1,parts[0],parts[1]);state.busy=false;_wpRender();
+    if(_wpEditor!==state)return;parts[0].waypointName='';parts[1].waypointName=old.waypointName||'';
+    state.legs.splice(index,1,parts[0],parts[1]);state.busy=false;_wpRender();_wpAutoName(state,parts[0]);
   }catch(err){if(_wpEditor===state){state.busy=false;_wpRender(err.message||'경유지를 추가하지 못했습니다.');}}
 }
 async function _wpRemove(index){
@@ -5372,7 +5436,8 @@ async function _wpRemove(index){
   const a=state.legs[index-1],b=state.legs[index],mode=a.mode==='straight'&&b.mode==='straight'?'straight':'water';
   state.busy=true;_wpRender('인접 구간의 물길 계산 중…');
   try{const merged=await _wpRoute(a.coords[0],b.coords[b.coords.length-1],mode);
-    if(_wpEditor!==state)return;state.legs.splice(index-1,2,merged);state.busy=false;_wpRender();
+    if(_wpEditor!==state)return;merged.waypointName=b.waypointName||'';
+    state.legs.splice(index-1,2,merged);state.busy=false;_wpRender();
   }catch(err){if(_wpEditor===state){state.busy=false;_wpRender(err.message||'경유지를 삭제하지 못했습니다.');}}
 }
 async function _wpSave(){
@@ -5380,7 +5445,7 @@ async function _wpSave(){
   const legs=state.legs,coords=legs.reduce(function(out,leg,i){out.push.apply(out,i?leg.coords.slice(1):leg.coords);return out;},[]);
   if(coords.length>5000||legs.length>40){_wpRender('경로가 너무 깁니다. 구간 수 또는 경로 점을 줄여 주세요.');return;}
   const km=Math.round(legs.reduce(function(n,leg){return n+Number(leg.km);},0)*100)/100;
-  const segments=legs.map(function(leg,i){return {name:_segName(i,legs.length+1),km:Math.round(Number(leg.km)*100)/100,mode:leg.mode,end:leg.coords[leg.coords.length-1]};});
+  const segments=legs.map(function(leg,i){return {name:_courseSegmentName(i,legs),waypointName:i<legs.length-1?(leg.waypointName||''):'',km:Math.round(Number(leg.km)*100)/100,mode:leg.mode,end:leg.coords[leg.coords.length-1]};});
   const body=state.id.charAt(0)==='k'?(isAdmin()?{action:'edit',adminKey:adminKey(),courseId:state.course.id}:{action:'edituser',id:u.uid,tok:u.tok||'',courseId:state.course.id}):{action:'editstatic',adminKey:adminKey(),cid:state.id};
   Object.assign(body,{name:state.course.name,km:km,coords:coords,segments:segments});
   state.busy=true;_wpRender('저장 중…');
@@ -5402,6 +5467,17 @@ async function doSaveCourse(){
   msg.style.color='#888'; msg.textContent='저장 중…';
   const base=WORKER_URL.replace(/\/+$/,'')+'/course';
   try{
+    if(_cmMode==='add'&&_lastCourse){
+      msg.textContent='경유지명 확인 중…';
+      if(_courseWaypointPromise)await _courseWaypointPromise;
+      const segments=_lastCourse.segments||[];
+      segments.forEach(function(segment,index){
+        const input=document.querySelector('#cmBody [data-course-waypoint="'+index+'"]');
+        segment.waypointName=index<segments.length-1?String(input?input.value:(segment.waypointName||'')).trim().slice(0,40):'';
+        segment.name=_courseSegmentName(index,segments);
+      });
+      msg.textContent='저장 중…';
+    }
     let body;
     if(_cmMode==='editstatic'&&_cmCourse){ body={action:'editstatic',adminKey:adminKey(),cid:String(_cmCourse.id),name:name,km:_cmCourse.km,color:color,waterType:waterType,travelMode:travelMode}; }
     else if(_cmMode==='edit'&&_cmCourse){
