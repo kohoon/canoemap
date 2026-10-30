@@ -52,23 +52,24 @@ test('Mokdo to Suju Palbong uses the nearby river instead of a distant shoreline
   const browser = await chromium.launch(process.platform === 'darwin'
     ? { headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' }
     : { headless: true });
-  const context = await browser.newContext();
-  await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => route.abort());
-  const page = await context.newPage();
-  await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
-  const result = await page.evaluate(() => waterRoute(
-    { lat: 36.8753204, lng: 127.8567213 }, { lat: 36.90643, lng: 127.93427 }));
-  expect(result.err).toBeUndefined();
-  expect(result.km).toBeGreaterThan(5);
-  expect(result.access && result.access[0]).toBeTruthy();
-  const accessMeters = await page.evaluate((access) => map.distance(access[0][0], access[0][1]), result.access);
-  expect(accessMeters).toBeLessThan(500);
-  const reverse = await page.evaluate(() => waterRoute(
-    { lat: 36.90643, lng: 127.93427 }, { lat: 36.8753204, lng: 127.8567213 }));
-  expect(reverse.err).toBeUndefined();
-  const reverseAccessMeters = await page.evaluate((access) => map.distance(access[access.length - 1][0], access[access.length - 1][1]), reverse.access);
-  expect(reverseAccessMeters).toBeLessThan(500);
-  await context.close();
+  for (const mobile of [false, true]) {
+    const context = await browser.newContext({ viewport: mobile ? { width: 390, height: 844 } : { width: 1280, height: 800 }, isMobile: mobile });
+    await context.route(/https:\/\/[^/]*overpass[^/]*\/api\/interpreter/, (route) => route.abort());
+    const page = await context.newPage();
+    await page.goto(baseURL + '/', { waitUntil: 'domcontentloaded' });
+    for (const start of [{ lat: 36.8753204, lng: 127.8567213 }, { lat: 36.8690236, lng: 127.8536208 }]) {
+      const result = await page.evaluate((p) => waterRoute(p, { lat: 36.90643, lng: 127.93427 }), start);
+      expect(result.err).toBeUndefined();
+      expect(result.km).toBeGreaterThan(5);
+      const accessMeters = await page.evaluate((access) => map.distance(access[0][0], access[0][1]), result.access);
+      expect(accessMeters).toBeLessThan(500);
+      const reverse = await page.evaluate((p) => waterRoute({ lat: 36.90643, lng: 127.93427 }, p), start);
+      expect(reverse.err).toBeUndefined();
+      const reverseAccessMeters = await page.evaluate((access) => map.distance(access[access.length - 1][0], access[access.length - 1][1]), reverse.access);
+      expect(reverseAccessMeters).toBeLessThan(500);
+    }
+    await context.close();
+  }
   await browser.close();
 });
 

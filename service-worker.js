@@ -1,4 +1,4 @@
-const APP_CACHE = 'mycanoe-app-v17';
+const APP_CACHE = 'mycanoe-app-v18';
 const LEGACY_PACK_CACHE = 'mycanoe-offline-pack-v1';
 const PACK_CACHE_PREFIX = 'mycanoe-offline-pack-v2-';
 const ESRI_IMAGERY_HOST = 'server.arcgisonline.com';
@@ -40,7 +40,8 @@ self.addEventListener('activate', (event) => {
 async function cachedNavigation(request) {
   const cache = await caches.open(APP_CACHE);
   try {
-    const response = await fetch(request);
+    // Reloads must obtain current app code; stale HTML can keep an old route algorithm alive.
+    const response = await fetch(request, { cache: 'no-store' });
     if (response.ok) await cache.put('./index.html', response.clone());
     return response;
   } catch (error) {
