@@ -1544,7 +1544,7 @@ export default {
           ctx.waitUntil(clearCourseCache());
           return J(JSON.stringify({ ok: true }));
         }
-        if (b.action === "editstatic") {   // 정적 코스는 원본 GeoJSON 비파괴, 표시 메타만 KV 오버라이드
+        if (b.action === "editstatic") {   // 정적 코스 원본 GeoJSON 비파괴, KV 오버라이드
           if (!adminOk) return new Response("forbidden", { status: 403, headers: cors });
           const cid = String(b.cid || "").slice(0, 20); if (!cid) return new Response("bad", { status: 400, headers: cors });
           let over = {}; try { over = JSON.parse((await KV.get("course_over")) || "{}"); } catch (e) {}
@@ -1559,6 +1559,12 @@ export default {
             if (color) over[cid].color = color;
             if (b.waterType != null) over[cid].waterType = _courseWaterValue(b.waterType);
             if (b.travelMode != null) over[cid].travelMode = _courseTravelValue(b.travelMode);
+            if (b.coords != null) {
+              const coords = Array.isArray(b.coords) ? b.coords.map((p) => [Number(p && p[0]), Number(p && p[1])]) : [];
+              if (coords.length < 2 || coords.length > 5000 || coords.some((p) => !Number.isFinite(p[0]) || !Number.isFinite(p[1]) || Math.abs(p[0]) > 90 || Math.abs(p[1]) > 180)) return new Response("bad", { status: 400, headers: cors });
+              over[cid].coords = coords;
+            }
+            if (b.segments != null) over[cid].segments = Array.isArray(b.segments) ? b.segments.slice(0, 40).map(_courseSegmentValue) : [];
             over[cid].updatedAt = Date.now();
           }
           await KV.put("course_over", JSON.stringify(over));

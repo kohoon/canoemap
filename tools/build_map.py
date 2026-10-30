@@ -667,6 +667,14 @@ __GTAG__
   .cm-quick a{color:#1565c0;cursor:pointer;font-weight:700;text-decoration:underline}
   .cm-note{font-size:11.5px;color:#8a93a0;margin-top:7px}
   .cm-note b{color:#d500f9}
+  .wp-list{max-height:min(48vh,420px);overflow-y:auto;margin:14px 0;border:1px solid #d8e5df;border-radius:12px}
+  .wp-row{padding:11px 12px;border-bottom:1px solid #e8efeb}
+  .wp-row-label,.wp-leg,.wp-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .wp-row-label{font-size:14px;color:#203d33}
+  .wp-leg{margin-top:8px;color:#667a73;font-size:12px}
+  .wp-row .course-btn,.wp-actions .course-btn{min-height:34px;padding:7px 10px;font-size:12px;white-space:normal;text-align:center}
+  .wp-actions .sg-submit{width:auto;min-height:40px;margin:0;padding:9px 18px}
+  @media(max-width:600px){.wp-leg{flex-wrap:wrap}.wp-leg .course-btn{width:100%}.wp-list{max-height:42vh}}
   .cm-palette{display:grid;grid-template-columns:repeat(8,32px);gap:8px;margin:6px 0 13px}
   .cm-color{width:32px;height:32px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #b9c4ca;cursor:pointer;padding:0;position:relative}
   .cm-color.on{box-shadow:0 0 0 3px #263238}
@@ -2597,6 +2605,8 @@ function _applyCourseOver(f){
     if(validCourseColor(o.color)) p.color=validCourseColor(o.color);
     if(o.waterType!=null) p.waterType=o.waterType;
     if(o.travelMode!=null) p.travelMode=o.travelMode;
+    if(Array.isArray(o.segments)) p.segments=o.segments;
+    if(Array.isArray(o.coords)&&o.coords.length>=2&&f.geometry) f.geometry.coordinates=o.coords.map(function(c){return [c[1],c[0]];});
     f.properties=p;
   }
   p.name=normalizeExpedition({id:cid,static:true,name:p.name},String(cid)).name;
@@ -2660,7 +2670,7 @@ function _renderStaticCourses(){
   const focusId=String(_courseFocusId||'').trim();
   COURSES.features.forEach(function(f){ _applyCourseOver(f); const p=f.properties||{}; p.name=canonicalCourseName(p.name);
     if(focusId && String(p.cid)===focusId) _courseFocusFound=true;
-    if(p.cid!=null) _courseByCid[String(p.cid)]={id:p.cid, static:true, name:p.name||'코스', km:p.km||0, color:validCourseColor(p.color), waterType:p.waterType||'', travelMode:p.travelMode||'', coords:(f.geometry&&f.geometry.coordinates||[]).map(function(c){return [c[1],c[0]];})};
+    if(p.cid!=null) _courseByCid[String(p.cid)]={id:p.cid, static:true, name:p.name||'코스', km:p.km||0, color:validCourseColor(p.color), waterType:p.waterType||'', travelMode:p.travelMode||'', segments:p.segments||[], coords:(f.geometry&&f.geometry.coordinates||[]).map(function(c){return [c[1],c[0]];})};
     const sc=courseSubcat(p.name); if(sc==='엑스페디션'&&p.cid!=null)_staticExpeditionCids.add(String(p.cid)); (groups[sc]=groups[sc]||[]).push(f);
   });
   Object.keys(groups).forEach(function(sc){
@@ -2889,7 +2899,7 @@ function normalizeExpedition(course, shareId){
 }
 
 const _courseByCid={};
-COURSES.features.forEach(function(f){ _applyCourseOver(f); const p=f.properties||{}; if(p.cid!=null) _courseByCid[String(p.cid)]={id:p.cid,static:true,name:p.name||'코스',km:p.km||0,color:validCourseColor(p.color),waterType:p.waterType||'',travelMode:p.travelMode||'',coords:(f.geometry&&f.geometry.coordinates||[]).map(function(c){return [c[1],c[0]];})}; });
+COURSES.features.forEach(function(f){ _applyCourseOver(f); const p=f.properties||{}; if(p.cid!=null) _courseByCid[String(p.cid)]={id:p.cid,static:true,name:p.name||'코스',km:p.km||0,color:validCourseColor(p.color),waterType:p.waterType||'',travelMode:p.travelMode||'',segments:p.segments||[],coords:(f.geometry&&f.geometry.coordinates||[]).map(function(c){return [c[1],c[0]];})}; });
 const _courseSegmentPointGrp=L.layerGroup();
 let _courseSegmentPointHost=null;
 function _coursePointAtFraction(coords,fraction){
@@ -2981,6 +2991,7 @@ function openCourseComments(key,course,shareId){
     if(String(shareId).charAt(0)==='k'){ const kid=String(shareId).slice(1);
       _cadm='<div class="pm-padmin"><a class="course-btn ghost" onclick="editCourse(\''+kid+'\')">✏️ 수정</a><a class="course-btn danger" onclick="deleteCourse(\''+kid+'\')">🗑 삭제</a></div>'; }
     else { _cadm='<div class="pm-padmin"><a class="course-btn ghost" onclick="editStaticCourse(\''+shareId+'\')">✏️ 수정</a><a class="course-btn danger" onclick="deleteStaticCourse(\''+shareId+'\')">🗑 삭제</a></div>'; } }
+  if(_cadm&&canAnalyze) _cadm=_cadm.replace('</div>','<button type="button" class="course-btn ghost" onclick="openWaypointEditor(\''+shareId+'\')">경유지 편집</button></div>');
   document.getElementById('pmLinks').innerHTML=expeditionDateHtml(course,shareId)+(character?'<div class="course-character-meta">'+character+'</div>':'')+(km?'<div class="pm-memo">약 '+km+'km</div>':'')+courseSegmentDetail(course)
     +((actions||_cadm)?'<div class="course-actions">'+actions+'</div>':'')
     +_cadm
@@ -5159,7 +5170,7 @@ async function renderCourseAnalysis(course,targetId){
     });
   });
 }
-function closeCourseModal(){ document.getElementById('courseModal').classList.remove('open'); }
+function closeCourseModal(){ document.getElementById('courseModal').classList.remove('open');_wpEditor=null;if(_wpPicking)_wpEndPick(); }
 function _splitCourse(name){   // 이름 -> {cat, no, desc}
   name=canonicalCourseName(name).replace(/^마이카누\s+(?=엑스페디션)/,'');
   for(let i=0;i<COURSE_CATS.length-1;i++){
@@ -5255,6 +5266,100 @@ function openCourseModal(mode, course){
 function saveCoursePrompt(){ openCourseModal('add'); }
 function editCourse(id){ const c=_kvCourses[id]; if(c && _canEditCourse(c, 'k'+id)) openCourseModal('edit', c); }
 function editStaticCourse(cid){ const c=_courseByCid[String(cid)]; if(c && isAdmin()) openCourseModal('editstatic', c); }
+let _wpEditor=null, _wpPicking=false;
+function _wpCoordsKm(coords){let m=0;for(let i=1;i<coords.length;i++)m+=map.distance(coords[i-1],coords[i]);return m/1000;}
+function _wpLegs(course){
+  const coords=course.coords,segments=Array.isArray(course.segments)?course.segments:[];
+  if(!segments.length)return [{coords:coords.slice(),km:Number(course.km)||_wpCoordsKm(coords),mode:'water'}];
+  const legs=[];let from=0,previous=coords[0],cumulative=0,total=segments.reduce(function(n,s){return n+(Number(s.km)||0);},0);
+  segments.forEach(function(s,i){
+    cumulative+=Number(s.km)||0;
+    const last=i===segments.length-1;
+    const end=last?coords[coords.length-1]:(Array.isArray(s.end)&&s.end.length===2?s.end:_coursePointAtFraction(coords,total?cumulative/total:(i+1)/segments.length));
+    if(!end)return;
+    let to=coords.length-1;
+    if(!last){to=from;let best=Infinity;for(let j=from+1;j<coords.length-1;j++){const d=map.distance(coords[j],end);if(d<best){best=d;to=j;}}}
+    const part=[previous].concat(coords.slice(from+1,to+1));
+    if(map.distance(part[part.length-1],end)>1)part.push(end);
+    if(part.length<2)part.push(end);
+    legs.push({coords:part,km:Number(s.km)||_wpCoordsKm(part),mode:s.mode==='straight'?'straight':'water'});
+    from=to;previous=end;
+  });
+  return legs.length?legs:[{coords:coords.slice(),km:Number(course.km)||_wpCoordsKm(coords),mode:'water'}];
+}
+function _wpRender(message){
+  const state=_wpEditor;if(!state)return;
+  const legs=state.legs,body=document.getElementById('cmBody');
+  const rows=legs.map(function(leg,i){
+    return '<div class="wp-row"><div class="wp-row-label"><b>'+(i===0?'출발지':'경유지 '+i)+'</b>'+(i?'<button type="button" class="course-btn ghost" onclick="_wpRemove('+i+')">삭제</button>':'')+'</div>'
+      +'<div class="wp-leg"><span>구간 '+(i+1)+' · '+Number(leg.km).toFixed(2)+' km</span><button type="button" class="course-btn ghost" onclick="_wpPick('+i+')">이 구간에 경유지 추가</button></div></div>';
+  }).join('');
+  body.innerHTML='<h3>경유지 편집</h3><div class="cm-note">지도의 위치를 선택해 경유지를 추가하거나, 기존 경유지를 삭제할 수 있습니다.</div>'
+    +'<div class="wp-list">'+rows+'<div class="wp-row-label"><b>도착지</b></div></div>'
+    +'<div class="cm-stat">전체 '+legs.reduce(function(n,s){return n+Number(s.km);},0).toFixed(2)+' km · 경유지 '+(legs.length-1)+'개</div>'
+    +'<div class="wp-actions"><button type="button" class="course-btn ghost" onclick="closeCourseModal()">취소</button><button type="button" class="sg-submit" onclick="_wpSave()">변경 저장</button></div>'
+    +'<div id="cmMsg" role="status">'+pmEsc(message||'')+'</div>';
+}
+function openWaypointEditor(shareId){
+  const id=String(shareId),course=id.charAt(0)==='k'?_kvCourses[id.slice(1)]:_courseByCid[id];
+  if(!course||!_canEditCourse(course,id)||!Array.isArray(course.coords)||course.coords.length<2)return;
+  _wpEditor={id:id,course:course,legs:_wpLegs(course),busy:false};
+  closePlaceModal();_wpRender();document.getElementById('courseModal').classList.add('open');
+}
+async function _wpRoute(a,b,mode){
+  if(mode==='straight'){const coords=[a,b];return {coords:coords,km:_wpCoordsKm(coords),mode:mode};}
+  const result=await waterRoute({lat:a[0],lng:a[1]},{lat:b[0],lng:b[1]});
+  if(!result||result.err||!Array.isArray(result.coords)||result.coords.length<2)throw Error('물길을 연결하지 못했습니다. 다른 위치를 선택해 주세요.');
+  return {coords:result.coords,km:Number(result.km)||_wpCoordsKm(result.coords),mode:'water'};
+}
+function _wpEndPick(){
+  _wpPicking=false;map.getContainer().style.cursor='';measHint(false);
+  const button=document.getElementById('wpPickCancel');if(button)button.remove();
+  map.off('click',_wpMapClick);document.removeEventListener('keydown',_wpPickKey);
+}
+function _wpPickKey(e){if(e.key==='Escape'){_wpEndPick();_wpRender();document.getElementById('courseModal').classList.add('open');}}
+let _wpPickIndex=-1;
+function _wpPick(index){
+  if(!_wpEditor||_wpEditor.busy||_wpPicking||measureMode)return;
+  _wpPickIndex=index;_wpPicking=true;document.getElementById('courseModal').classList.remove('open');
+  map.getContainer().style.cursor='crosshair';measHint('지도에서 새 경유지를 선택하세요');
+  const button=document.createElement('button');button.id='wpPickCancel';button.type='button';button.textContent='경유지 선택 취소';
+  button.style.cssText='position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:4000;padding:12px 18px;border:1px solid #b9d3ce;border-radius:12px;background:white;color:#173e37;font-weight:700;box-shadow:0 3px 15px #0003';
+  button.onclick=function(){_wpEndPick();_wpRender();document.getElementById('courseModal').classList.add('open');};document.body.appendChild(button);
+  document.addEventListener('keydown',_wpPickKey);map.on('click',_wpMapClick);
+}
+async function _wpMapClick(e){
+  if(!_wpPicking||!_wpEditor)return;
+  const index=_wpPickIndex,state=_wpEditor,old=state.legs[index],point=[e.latlng.lat,e.latlng.lng];_wpEndPick();
+  state.busy=true;document.getElementById('courseModal').classList.add('open');_wpRender('인접 구간의 물길 계산 중…');
+  try{
+    const parts=await Promise.all([_wpRoute(old.coords[0],point,old.mode),_wpRoute(point,old.coords[old.coords.length-1],old.mode)]);
+    if(_wpEditor!==state)return;state.legs.splice(index,1,parts[0],parts[1]);state.busy=false;_wpRender();
+  }catch(err){if(_wpEditor===state){state.busy=false;_wpRender(err.message||'경유지를 추가하지 못했습니다.');}}
+}
+async function _wpRemove(index){
+  const state=_wpEditor;if(!state||state.busy||index<1||index>=state.legs.length)return;
+  const a=state.legs[index-1],b=state.legs[index],mode=a.mode==='straight'&&b.mode==='straight'?'straight':'water';
+  state.busy=true;_wpRender('인접 구간의 물길 계산 중…');
+  try{const merged=await _wpRoute(a.coords[0],b.coords[b.coords.length-1],mode);
+    if(_wpEditor!==state)return;state.legs.splice(index-1,2,merged);state.busy=false;_wpRender();
+  }catch(err){if(_wpEditor===state){state.busy=false;_wpRender(err.message||'경유지를 삭제하지 못했습니다.');}}
+}
+async function _wpSave(){
+  const state=_wpEditor,u=getUser();if(!state||state.busy||!_canEditCourse(state.course,state.id))return;
+  const legs=state.legs,coords=legs.reduce(function(out,leg,i){out.push.apply(out,i?leg.coords.slice(1):leg.coords);return out;},[]);
+  if(coords.length>5000||legs.length>40){_wpRender('경로가 너무 깁니다. 구간 수 또는 경로 점을 줄여 주세요.');return;}
+  const km=Math.round(legs.reduce(function(n,leg){return n+Number(leg.km);},0)*100)/100;
+  const segments=legs.map(function(leg,i){return {name:_segName(i,legs.length+1),km:Math.round(Number(leg.km)*100)/100,mode:leg.mode,end:leg.coords[leg.coords.length-1]};});
+  const body=state.id.charAt(0)==='k'?(isAdmin()?{action:'edit',adminKey:adminKey(),courseId:state.course.id}:{action:'edituser',id:u.uid,tok:u.tok||'',courseId:state.course.id}):{action:'editstatic',adminKey:adminKey(),cid:state.id};
+  Object.assign(body,{name:state.course.name,km:km,coords:coords,segments:segments});
+  state.busy=true;_wpRender('저장 중…');
+  try{const response=await fetch(WORKER_URL.replace(/\/+$/,'')+'/course',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!response.ok)throw Error(response.status===403?'수정 권한을 확인해 주세요.':'저장에 실패했습니다.');
+    state.course.coords=coords;state.course.km=km;state.course.segments=segments;
+    bumpCourseVersion();await _prepareCoursePreview(state.id,state.course);location.reload();
+  }catch(err){if(_wpEditor===state){state.busy=false;_wpRender(err.message||'저장에 실패했습니다.');}}
+}
 async function doSaveCourse(){
   const u=getUser();
   if(!isAdmin() && (!u||!u.uid)) return;

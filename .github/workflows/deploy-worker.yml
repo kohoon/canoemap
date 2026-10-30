@@ -47,6 +47,9 @@ jobs:
       - name: Verify admin course ownership transfer
         run: node tests/test_admin_courses_worker.mjs
 
+      - name: Verify static course waypoint overrides
+        run: node tests/test_course_waypoints_worker.mjs
+
       - name: Verify daily admin access log
         run: node tests/test_admin_access_worker.mjs
 
