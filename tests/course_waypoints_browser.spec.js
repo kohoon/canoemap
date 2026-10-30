@@ -20,22 +20,28 @@ for(const mobile of [false,true])test('course detail waypoint add/remove '+(mobi
   expect(legacyLegs).toHaveLength(3);
   expect(legacyLegs.map(x=>x.coords.at(-1))).toEqual([[37.01,127.01],[37.02,127.02],[37.03,127.03]]);
   await page.evaluate(()=>{
-    hideGate();_adminOk=true;
+    hideGate();_adminOk=true;map.setView([37.01,127.01],12);
+    const hit=L.polyline([[37,127],[37.02,127.02]],{color:'#f0f',weight:22,opacity:0}).addTo(map);
+    hit.on('click',e=>{if(e.originalEvent)L.DomEvent.stopPropagation(e.originalEvent);});
     _courseByCid['9999']={id:'9999',static:true,name:'테스트 코스',km:5,coords:[[37,127],[37.02,127.02]],segments:[{name:'출발~도착',km:5,mode:'straight',end:[37.02,127.02]}]};
     openCourseComments('course_c9999',_courseByCid['9999'],'9999');
+    measureMode=true;
   });
   await page.getByRole('button',{name:'경유지 편집'}).click();
+  expect(await page.evaluate(()=>measureMode)).toBe(false);
   await expect(page.locator('#courseModal')).toHaveClass(/open/);
   await expect(page.locator('.wp-list')).toContainText('도착지');
   await page.getByRole('button',{name:'이 구간에 경유지 추가'}).click();
   await expect(page.locator('#wpPickCancel')).toBeVisible();
-  await page.evaluate(()=>map.fire('click',{latlng:L.latLng(37.01,127.01)}));
+  const pos=await page.evaluate(()=>map.latLngToContainerPoint([37.01,127.01]));
+  await page.locator('#map').click({position:{x:pos.x,y:pos.y}});
   await expect(page.locator('.wp-list')).toContainText('경유지 1');
   expect(await page.locator('#courseModal .pmodal').evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true);
   await page.getByRole('button',{name:'삭제'}).click();
   await expect(page.locator('.wp-list')).not.toContainText('경유지 1');
   await page.getByRole('button',{name:'이 구간에 경유지 추가'}).click();
-  await page.evaluate(()=>map.fire('click',{latlng:L.latLng(37.01,127.01)}));
+  await page.evaluate(()=>{_wpEditor.legs[0].mode='water';waterRoute=async()=>{throw Error('unexpected route recalculation');};});
+  await page.locator('#map').click({position:{x:pos.x,y:pos.y}});
   await expect(page.locator('.wp-list')).toContainText('경유지 1');
   let saved;
   await page.route('**/course',route=>{

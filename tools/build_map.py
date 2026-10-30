@@ -5303,6 +5303,7 @@ function _wpRender(message){
 function openWaypointEditor(shareId){
   const id=String(shareId),course=id.charAt(0)==='k'?_kvCourses[id.slice(1)]:_courseByCid[id];
   if(!course||!_canEditCourse(course,id)||!Array.isArray(course.coords)||course.coords.length<2)return;
+  if(measureMode)cancelMeasure();
   _wpEditor={id:id,course:course,legs:_wpLegs(course),busy:false};
   closePlaceModal();_wpRender();document.getElementById('courseModal').classList.add('open');
 }
@@ -5315,23 +5316,52 @@ async function _wpRoute(a,b,mode){
 function _wpEndPick(){
   _wpPicking=false;map.getContainer().style.cursor='';measHint(false);
   const button=document.getElementById('wpPickCancel');if(button)button.remove();
-  map.off('click',_wpMapClick);document.removeEventListener('keydown',_wpPickKey);
+  map.getContainer().removeEventListener('click',_wpMapClickCapture,true);
+  document.removeEventListener('keydown',_wpPickKey);
 }
 function _wpPickKey(e){if(e.key==='Escape'){_wpEndPick();_wpRender();document.getElementById('courseModal').classList.add('open');}}
 let _wpPickIndex=-1;
 function _wpPick(index){
-  if(!_wpEditor||_wpEditor.busy||_wpPicking||measureMode)return;
+  if(!_wpEditor||_wpEditor.busy||_wpPicking)return;
   _wpPickIndex=index;_wpPicking=true;document.getElementById('courseModal').classList.remove('open');
   map.getContainer().style.cursor='crosshair';measHint('지도에서 새 경유지를 선택하세요');
   const button=document.createElement('button');button.id='wpPickCancel';button.type='button';button.textContent='경유지 선택 취소';
   button.style.cssText='position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:4000;padding:12px 18px;border:1px solid #b9d3ce;border-radius:12px;background:white;color:#173e37;font-weight:700;box-shadow:0 3px 15px #0003';
   button.onclick=function(){_wpEndPick();_wpRender();document.getElementById('courseModal').classList.add('open');};document.body.appendChild(button);
-  document.addEventListener('keydown',_wpPickKey);map.on('click',_wpMapClick);
+  document.addEventListener('keydown',_wpPickKey);
+  map.getContainer().addEventListener('click',_wpMapClickCapture,true);
+}
+function _wpMapClickCapture(event){
+  if(!_wpPicking||event.target.closest('.leaflet-control,#wpPickCancel'))return;
+  // 코스 선·마커가 Leaflet 클릭 전파를 멈추더라도 편집 중인 지도 탭을 먼저 받는다.
+  event.preventDefault();event.stopImmediatePropagation();
+  const rect=map.getContainer().getBoundingClientRect();
+  const point=map.containerPointToLatLng([event.clientX-rect.left,event.clientY-rect.top]);
+  _wpMapClick({latlng:point});
+}
+function _wpSplitExisting(leg,clicked){
+  const target=map.latLngToContainerPoint(clicked);let nearest=null;
+  for(let i=1;i<leg.coords.length;i++){
+    const a=map.latLngToContainerPoint(leg.coords[i-1]),b=map.latLngToContainerPoint(leg.coords[i]);
+    const dx=b.x-a.x,dy=b.y-a.y,length2=dx*dx+dy*dy;
+    if(!length2)continue;
+    const t=Math.max(0,Math.min(1,((target.x-a.x)*dx+(target.y-a.y)*dy)/length2));
+    const x=a.x+t*dx,y=a.y+t*dy,distance=Math.hypot(target.x-x,target.y-y);
+    if(!nearest||distance<nearest.distance)nearest={index:i,x:x,y:y,distance:distance};
+  }
+  if(!nearest||nearest.distance>30)return null;
+  const latlng=map.containerPointToLatLng([nearest.x,nearest.y]),point=[latlng.lat,latlng.lng];
+  if(map.distance(point,leg.coords[0])<3||map.distance(point,leg.coords[leg.coords.length-1])<3)return null;
+  const left=leg.coords.slice(0,nearest.index).concat([point]),right=[point].concat(leg.coords.slice(nearest.index));
+  return [{coords:left,km:_wpCoordsKm(left),mode:leg.mode},{coords:right,km:_wpCoordsKm(right),mode:leg.mode}];
 }
 async function _wpMapClick(e){
   if(!_wpPicking||!_wpEditor)return;
   const index=_wpPickIndex,state=_wpEditor,old=state.legs[index],point=[e.latlng.lat,e.latlng.lng];_wpEndPick();
-  state.busy=true;document.getElementById('courseModal').classList.add('open');_wpRender('인접 구간의 물길 계산 중…');
+  document.getElementById('courseModal').classList.add('open');
+  const onExisting=_wpSplitExisting(old,point);
+  if(onExisting){state.legs.splice(index,1,onExisting[0],onExisting[1]);_wpRender();return;}
+  state.busy=true;_wpRender('인접 구간의 물길 계산 중…');
   try{
     const parts=await Promise.all([_wpRoute(old.coords[0],point,old.mode),_wpRoute(point,old.coords[old.coords.length-1],old.mode)]);
     if(_wpEditor!==state)return;state.legs.splice(index,1,parts[0],parts[1]);state.busy=false;_wpRender();
