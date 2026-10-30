@@ -5448,7 +5448,15 @@ async function waterRoute(p1,p2){
   }
   const landStart=waterOuter.length&&!inWater([p1.lat,p1.lng]);
   const shoreStart=landStart?nearestShore(p1):null;
-  const routeStart=shoreStart?{lat:shoreStart[0],lng:shoreStart[1]}:p1;
+  // 수면 폴리곤이 빠진 구간에서는 먼 물가보다 가까운 하천 중심선에 붙인다.
+  // 출발점도 도착점과 같은 기준으로 처리해야 엉뚱한 만입부를 거치지 않는다.
+  const startShoreDist=shoreStart?hav([p1.lat,p1.lng],shoreStart):1e18;
+  let graphStart=null;
+  if(landStart)for(const edge of graphEdges){
+    const candidate=edgeProjection([p1.lat,p1.lng],edge);
+    if(candidate.dist<=5000&&candidate.dist+25<startShoreDist&&(!graphStart||candidate.dist<graphStart.dist))graphStart=candidate;
+  }
+  const routeStart=graphStart?{lat:graphStart.p[0],lng:graphStart.p[1]}:shoreStart?{lat:shoreStart[0],lng:shoreStart[1]}:p1;
   const landEnd=waterOuter.length&&!inWater([p2.lat,p2.lng]);
   const shoreEnd=landEnd?nearestShore(p2):null;
   // 영상 촬영시점·수위 차이로 OSM 물가가 짧게 잡힐 수 있다. 연결된 하천선이 더 가까우면 그쪽까지 간다.
