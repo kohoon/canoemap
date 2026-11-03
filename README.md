@@ -39,6 +39,8 @@ python3 tools/build_waterplay.py
 python3 tools/build_map.py
 ```
 
+다이소·하나로마트는 매주 월요일 오전 6시(한국시간)에 공식 목록을 자동 수집하고 운영 지도 및 투어에 배포합니다. GitHub Actions의 `Refresh store locations weekly`에서 수동 실행도 가능합니다. 수집 실패, 지역 누락, 매장 수 급감 등 검증 실패 시 기존 데이터를 유지합니다. 예약 실행은 GitHub Actions 상황에 따라 지연될 수 있습니다.
+
 전국 다이소 지점은 ㈜아성다이소 공식 매장검색을 지역별로 조회해 갱신합니다. 공식 검색의 10건 제한을 피하기 위해 시·군·구 및 필요한 읍·면·동 단위로 세분화하며, 아직 개점일이 되지 않은 예정 매장은 제외합니다.
 
 ```bash
