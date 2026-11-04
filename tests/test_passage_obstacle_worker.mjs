@@ -32,3 +32,18 @@ assert.equal((await post({ action: 'edit', obsId: item.id, type: '통과지점',
 assert.equal(JSON.parse(data.get('obstacles'))[0].note, '우측으로 통과');
 
 console.log('passage obstacle worker regression: ok');
+
+// Private landmark types must never escape through the public API.
+for (const type of ['캠핑사이트', '계곡']) {
+  assert.equal((await post({ action: 'add', type, lat: 37, lng: 127 })).status, 403);
+  const response = await post({ action: 'add', adminKey: env.ADMIN_KEY, type, name: type + ' 시험', lat: 37, lng: 127 });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).obstacle.type, type);
+}
+const publicItems = await (await worker.fetch(new Request(endpoint + 's'), env, ctx)).json();
+assert.equal(publicItems.some(x => ['캠핑사이트', '계곡'].includes(x.type)), false);
+assert.equal(publicItems.some(x => x.type === '통과지점'), true);
+assert.equal((await post({action:'list-admin',adminKey:'wrong'})).status,403);
+const privateItems = await (await post({action:'list-admin',adminKey:env.ADMIN_KEY})).json();
+assert.equal(privateItems.filter(x => ['캠핑사이트', '계곡'].includes(x.type)).length,2);
+console.log('private campsite and valley access: ok');

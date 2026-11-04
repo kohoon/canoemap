@@ -1970,7 +1970,7 @@ test('campsites are visible only while administrator mode is active', async () =
     : { headless: true });
   const context = await browser.newContext({ viewport: { width: 1200, height: 800 } });
   await context.addInitScript(() => localStorage.setItem('mc_admin', 'test-admin-key'));
-  const campsite = { id: 'camp-test', lat: 36.3, lng: 127.8, type: '캠핑사이트', name: '관리자 캠프', note: '관리자 전용', t: 1 };
+  const campsite = { id: 'camp-test', lat: 36.3, lng: 127.8, type: '캠핑사이트', name: '관리자 캠프 🔒 관리자 전용', note: '관리자 전용', t: 1 };
   const publicFood = { id: 'food-test', lat: 36.301, lng: 127.801, type: '식당/카페', name: '공개 식당', note: '', t: 1 };
   let savedCampsite = null;
   await context.route('https://mycanoe-map.kohoon0140.workers.dev/**', async (route) => {
@@ -2000,14 +2000,14 @@ test('campsites are visible only while administrator mode is active', async () =
   await page.evaluate(() => hideGate());
   await page.evaluate(() => map.setView([36.3, 127.8], 14, { animate: false }));
   await expect(page.locator('.obs-camp')).toHaveCount(1);
-  await expect(page.locator('.obs-camp')).toHaveText('🏕️');
+  await expect(page.locator('.obs-camp')).toHaveText('🏕️🔒');
   await page.locator('.obs-camp').hover({ timeout: 3000 });
-  await expect(page.getByRole('tooltip', { name: '관리자 캠프' })).toBeVisible({ timeout: 3000 });
+  await expect(page.getByRole('tooltip', { name: '관리자 캠프 🔒 관리자 전용' })).toBeVisible({ timeout: 3000 });
   expect(await page.evaluate(() => _localSearch('관리자 캠프').some((item) => item.o?.id === 'camp-test'))).toBe(true);
 
   await page.evaluate(() => openObsModal('add', { lat: 36.3, lng: 127.8 }));
   const typeButtons = page.locator('#obBody .seg-b[data-ty]');
-  await expect(typeButtons).toHaveCount(10);
+  await expect(typeButtons).toHaveCount(12);
   for (let i = 0; i < await typeButtons.count(); i++) {
     await typeButtons.nth(i).click({ timeout: 3000 });
     await expect(page.locator('#obNameRow')).toBeVisible({ timeout: 3000 });

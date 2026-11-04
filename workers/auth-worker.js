@@ -1780,13 +1780,13 @@ export default {
       const J = (s) => new Response(s, { headers: { ...cors, "Content-Type": "application/json" } });
       if (req.method === "GET") {
         let arr = []; try { arr = JSON.parse((KV && await KV.get("obstacles")) || "[]"); } catch (e) {}
-        const publicItems = (Array.isArray(arr) ? arr : []).filter((x) => x && x.type !== "캠핑사이트");
+        const publicItems = (Array.isArray(arr) ? arr : []).filter((x) => x && !["캠핑사이트", "계곡"].includes(x.type));
         return new Response(JSON.stringify(publicItems), { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" } });
       }
       if (req.method === "POST") {
         let b = {}; try { b = await req.json(); } catch (e) {}
         if (!KV) return new Response("no-store", { status: 500, headers: cors });
-        const TYPES = ["보", "징검다리", "잠수교", "용치", "낮은바닥", "여울", "통과지점", "유명지", "강풍지대", "식당/카페", "캠핑사이트"];
+        const TYPES = ["보", "징검다리", "잠수교", "용치", "낮은바닥", "여울", "통과지점", "유명지", "강풍지대", "식당/카페", "캠핑사이트", "계곡"];
         const cleanKakaoUrl = (value) => {
           const raw = String(value || "").trim(); if (!raw) return "";
           try {
