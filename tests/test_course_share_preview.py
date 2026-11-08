@@ -86,10 +86,11 @@ class CourseSharePreviewTests(unittest.TestCase):
             const courses = [
               {id: 1790000000010, owner:'admin', name:'엑스페디션#10 동강', km:22, t:1},
               {id: 1790000000011, owner:'admin', name:'엑스페디션#11 북한강', km:25, t:2},
+              {id: 1791275207765, owner:'admin', name:'마이카누 엑스페디션 #12 · 금강 · 용방연주길', km:24.7, t:3},
             ];
             const env = {SITE_URL:'https://canoe.crowdbase.kr/', PLACES:{get:async key => key==='courses'?JSON.stringify(courses):null}};
             const output=[];
-            for(let n=1;n<=11;n++){
+            for(let n=1;n<=12;n++){
               const response=await worker.fetch(new Request('https://worker.example/e/'+n),env,{});
               output.push({status:response.status,html:await response.text()});
             }
@@ -97,7 +98,9 @@ class CourseSharePreviewTests(unittest.TestCase):
             const bundled=await worker.fetch(new Request('https://worker.example/c/k1790337080336'),
               {...env,PLACES:{get:async key => key==='courses' ? JSON.stringify([...courses,
                 {id:1790337080336,owner:'admin',name:'마이카누 엑스페디션 #11 · 북한강 · 구만오월길',km:25.13,t:3}]) : null}},{});
-            console.log(JSON.stringify({output,direct:await direct.text(),bundled:await bundled.text()}));
+            const round12=await worker.fetch(new Request('https://worker.example/c/k1791275207765'),env,{});
+            const unknown=await worker.fetch(new Request('https://worker.example/e/13'),env,{});
+            console.log(JSON.stringify({output,direct:await direct.text(),bundled:await bundled.text(),round12:await round12.text(),unknown:unknown.status}));
         """)
         result = subprocess.run(["node", "--input-type=module", "-e", script], cwd=ROOT,
                                 check=True, capture_output=True, text=True)
@@ -108,6 +111,10 @@ class CourseSharePreviewTests(unittest.TestCase):
             self.assertIn(f"assets/expedition/expedition_{n:02d}.{extension}", row["html"])
             self.assertIn("&amp;detail=1", row["html"])
             self.assertIn(f"마이카누 엑스페디션 #{n}", row["html"])
+        self.assertEqual(payload["unknown"], 404)
+        self.assertIn("?course=k1791275207765&amp;detail=1", payload["round12"])
+        self.assertIn("금강 · 용방연주길 · 약 24.7km", payload["round12"])
+        self.assertIn("?course=k1790000000011&amp;detail=1", payload["direct"])
         self.assertIn("og.png", payload["direct"])
         self.assertNotIn("assets/expedition/expedition_11.png", payload["direct"])
         self.assertIn('assets/course-previews/k1790337080336.jpg', payload["bundled"])

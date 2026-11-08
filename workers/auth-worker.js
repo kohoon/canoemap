@@ -477,7 +477,7 @@ export default {
     }
 
     // 회차별 고정 주소: 스티커 미리보기와 코스 상세창으로 이동한다.
-    const expeditionShareMatch = url.pathname.match(/^\/e\/([1-9]|10|11)\/?$/);
+    const expeditionShareMatch = url.pathname.match(/^\/e\/([1-9][0-9]{0,2})\/?$/);
     if (expeditionShareMatch && req.method === "GET") {
       const round = Number(expeditionShareMatch[1]);
       const course = await _expeditionShareRecord(env, round);
@@ -499,6 +499,7 @@ export default {
       const preview = await _coursePreviewRecord(env.PLACES, id, course.name);
       const site = new URL(env.SITE_URL || "https://canoe.crowdbase.kr/");
       site.searchParams.set("course", id);
+      site.searchParams.set("detail", "1");
       const sticker = isSoyangTraverseCourse(course)
         ? { imageUrl: new URL("assets/expedition/soyang_lake_traverse_2026.png", site).toString(), imageType: "image/png", imageWidth: 1234, imageHeight: 1275 }
         : null;
