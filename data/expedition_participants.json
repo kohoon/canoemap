@@ -893,5 +893,45 @@
     "participantId": "expedition-person-0007",
     "nickname": "잠실벗",
     "expedition": 11
+  },
+  {
+    "participantId": "expedition-person-0015",
+    "nickname": "사포녀",
+    "expedition": 12
+  },
+  {
+    "participantId": "expedition-person-0016",
+    "nickname": "엑스맨",
+    "expedition": 12
+  },
+  {
+    "participantId": "expedition-person-0017",
+    "nickname": "인키",
+    "expedition": 12
+  },
+  {
+    "participantId": "expedition-person-0001",
+    "nickname": "카누맨",
+    "expedition": 12
+  },
+  {
+    "participantId": "expedition-person-0002",
+    "nickname": "카누맨2",
+    "expedition": 12
+  },
+  {
+    "participantId": "expedition-person-0039",
+    "nickname": "곡성사는채은",
+    "expedition": 12
+  },
+  {
+    "participantId": "expedition-person-0045",
+    "nickname": "러키",
+    "expedition": 12
+  },
+  {
+    "participantId": "expedition-person-0044",
+    "nickname": "차돌",
+    "expedition": 12
   }
 ]

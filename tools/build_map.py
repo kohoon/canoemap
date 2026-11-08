@@ -2887,7 +2887,7 @@ const EXPEDITIONS = Object.freeze({
   1:['남한강','탄금강천길'],2:['남한강','장회서창길'],3:['평창강','대상선암길'],
   4:['남한강','영월영춘길'],5:['금강','섬바위소이나루길'],6:['금강','연주장계길'],
   7:['금강','방우용화길'],8:['금강','천내구강길'],9:['금강','금정백지길'],
-  10:['동강','문산삼옥길'],11:['북한강','구만오월길']
+  10:['동강','문산삼옥길'],11:['북한강','구만오월길'],12:['금강','용방연주길']
 });
 function expeditionNumber(course, shareId){
   if(!course)return 0;
@@ -2948,7 +2948,7 @@ function _renderCourseSegmentPoints(course){
 let _courseInfoCourse=null, _courseInfoOpen=false;
 function _curUid(){ const u=getUser(); return (u&&u.uid)||''; }
 // Verified event dates in Korea; not post timestamps or course creation dates.
-const EXPEDITION_DATES = {"1":["2025-05-01","2025-05-02"],"2":["2025-06-06","2025-06-07"],"3":["2025-07-20"],"4":["2025-09-06"],"5":["2025-10-18"],"6":["2025-11-22"],"7":["2026-04-11"],"8":["2026-05-09"],"9":["2026-06-06"],"10":["2026-07-04"],"11":["2026-10-03","2026-10-04"]};
+const EXPEDITION_DATES = {"1":["2025-05-01","2025-05-02"],"2":["2025-06-06","2025-06-07"],"3":["2025-07-20"],"4":["2025-09-06"],"5":["2025-10-18"],"6":["2025-11-22"],"7":["2026-04-11"],"8":["2026-05-09"],"9":["2026-06-06"],"10":["2026-07-04"],"11":["2026-10-03","2026-10-04"],"12":["2026-11-07","2026-11-08"]};
 const SOYANG_TRAVERSE_PARTICIPANTS=['요트맨','토끼사냥꾼','번버리'];
 function isSoyangTraverseCourse(course){
   return !!(course&&String(course.owner||'')==='admin'&&String(course.id).replace(/^k/,'')==='1792928342277');
