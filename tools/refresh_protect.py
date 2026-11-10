@@ -177,7 +177,9 @@ def main():
         for attempt in range(3):
             try:
                 return fetch_page(key, domain, KOR_BBOX, page)
-            except Exception:
+            except Exception as error:
+                reason = getattr(error, "reason", None)
+                print(f'VWorld transport failure: {type(error).__name__}; HTTP {getattr(error, "code", "n/a")}; reason {type(reason).__name__}', flush=True)
                 # Request exceptions can contain the API key in their URL.
                 if attempt == 2:
                     raise RuntimeError('VWorld request failed after three attempts') from None

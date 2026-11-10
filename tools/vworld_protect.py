@@ -53,7 +53,7 @@ def fetch_page(key, domain, box, page, size=1000):
         "size": str(size), "page": str(page), "format": "json",
     }
     url = API + "?" + urllib.parse.urlencode(params)
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Referer": domain.rstrip("/") + "/"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.loads(r.read().decode("utf-8"))
 
