@@ -16,6 +16,7 @@ V-World 데이터 API로 전국 '상수원보호구역'(LT_C_UM710, 면) 을 받
 import argparse
 import csv
 import json
+import re
 import sys
 import time
 import urllib.parse
@@ -34,6 +35,13 @@ DATA_ID = "LT_C_UM710"  # 상수원보호
 
 # 대한민국 대략 BBOX (경도 min,max / 위도 min,max) — EPSG:4326
 KOR_BBOX = (124.5, 33.0, 131.9, 38.7)
+
+
+def is_protection(properties):
+    code = properties.get('ucode')
+    if code:
+        return code == 'UMI100'
+    return bool(re.search(r'UMI100\d+$', str(properties.get('mnum', ''))))
 
 
 def fetch_page(key, domain, box, page, size=1000):
@@ -138,7 +146,7 @@ def main():
             try:
                 resp = fetch_page(args.key, args.domain, box, page)
             except Exception as e:
-                print(f"  [타일 {ti}] page {page} 요청 실패: {e}")
+                print(f"  [타일 {ti}] page {page} 요청 실패: {type(e).__name__}")
                 break
             feats, status, msg = extract_features(resp)
             if status != "OK":
@@ -150,6 +158,8 @@ def main():
                 break
             for f in feats:
                 props = f.get("properties") or {}
+                if not is_protection(props):
+                    continue
                 mnum = props.get("mnum") or props.get("id") or f.get("id")
                 if mnum in seen:
                     continue

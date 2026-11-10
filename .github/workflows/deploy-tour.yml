@@ -36,6 +36,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install geometry validation dependency
+        run: python3 -m pip install shapely==2.1.2
+
       - name: Verify Python tests
         run: python3 -m unittest discover -s tests -p 'test_*.py'
 

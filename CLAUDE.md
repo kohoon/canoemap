@@ -31,7 +31,7 @@ tools/deploy_tour.sh             # Cloudflare Pages mycanoe-tour 정적 자원 �
 - 커밋 메시지 끝: `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` (기존 히스토리 관례).
 
 ## 데이터 갱신 명령 (원천 갱신 시에만)
-- 상수원보호: `tools/rebuild_protect.py`(오프라인, 키 불요) / `tools/build_polygons.py`(deprecated 온라인 크롤러)
+- 상수원보호: `tools/refresh_protect.py`(VWorld UMI100 검증·주간 갱신) / `tools/rebuild_protect.py`(기존 로컬 캐시 재생성)
 - 코스: `tools/trace_course.py`(OSM 물길추적) → `data/courses.geojson`
 - 수위관측소: `tools/build_hrfco.py`(HRFCO 키) · 보: 빌드시 자동(원천만 `tools/build_weirs.py`)
 - 내수면 금지구역: `tools/build_wlz_inland.py` · 로드뷰: `tools/build_roadview.py`(카카오 JS 키)

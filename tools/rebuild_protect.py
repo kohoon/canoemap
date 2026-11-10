@@ -197,12 +197,17 @@ def process_record(verts):
 def main():
     if not SRC.exists():
         raise SystemExit(f"[!] 원본 없음: {SRC} (protect_geom.json 로컬 필요)")
+    from vworld_protect import is_protection
+
     raw = json.loads(SRC.read_text(encoding="utf-8"))
     feats = []
     nv = 0
     skipped = 0
     multi = 0
     for it in raw:
+        if not is_protection(it):
+            skipped += 1
+            continue
         verts = it.get("verts")
         if isinstance(verts, str):
             verts = json.loads(verts)
@@ -219,7 +224,7 @@ def main():
         else:
             nv += len(geom["coordinates"][0])
         s = ((str(it.get("sido") or "")) + " " + (str(it.get("sigg") or ""))).strip()
-        feats.append({"type": "Feature", "geometry": geom, "properties": {"s": s}})
+        feats.append({"type": "Feature", "geometry": geom, "properties": {"s": s, "mnum": it["mnum"], "ucode": "UMI100"}})
     fc = {"type": "FeatureCollection", "features": feats}
     OUT.write_text(json.dumps(fc, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     kb = OUT.stat().st_size / 1024
