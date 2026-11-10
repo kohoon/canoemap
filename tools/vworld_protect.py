@@ -14,6 +14,8 @@ V-World 데이터 API로 전국 '상수원보호구역'(LT_C_UM710, 면) 을 받
   protect_points.csv   (확인용)
 """
 import argparse
+import http.client
+import subprocess
 import csv
 import json
 import re
@@ -54,8 +56,19 @@ def fetch_page(key, domain, box, page, size=1000):
     }
     url = API + "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Referer": domain.rstrip("/") + "/"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.loads(r.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except (http.client.RemoteDisconnected, urllib.error.URLError):
+        # Some VWorld gateways close urllib connections from hosted runners.
+        result = subprocess.run([
+            "curl", "--silent", "--show-error", "--fail", "--http1.1",
+            "--tls-max", "1.2", "--connect-timeout", "10", "--max-time", "30",
+            "--user-agent", "Mozilla/5.0", "--referer", domain.rstrip("/") + "/", url,
+        ], capture_output=True, timeout=35)
+        if result.returncode:
+            raise RuntimeError("VWorld curl transport failed with exit " + str(result.returncode)) from None
+        return json.loads(result.stdout.decode("utf-8"))
 
 
 def extract_features(resp):
