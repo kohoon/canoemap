@@ -148,7 +148,13 @@ def validate_snapshot(snapshot, previous):
 
 def write_snapshot(snapshot, root=ROOT):
     target = root / OUTPUT
-    validate_snapshot(snapshot, json.loads(target.read_text()))
+    previous = json.loads(target.read_text())
+    validate_snapshot(snapshot, previous)
+    old_meta = {k: v for k, v in previous.get('metadata', {}).items() if k != 'refreshedAt'}
+    new_meta = {k: v for k, v in snapshot['metadata'].items() if k != 'refreshedAt'}
+    if previous.get('features') == snapshot['features'] and old_meta == new_meta:
+        print('VWorld source unchanged; existing snapshot verified.', flush=True)
+        return
     payload = json.dumps(snapshot, ensure_ascii=False, separators=(',', ':')).encode()
     digest = hashlib.sha1(payload).hexdigest()[:8]
     updates = {target: payload}
