@@ -57,7 +57,7 @@ def display_geometry(geometry):
     result['coordinates'] = rounded(result['coordinates'])
     # Rounding very small rings can collapse them; use the original coordinates.
     if original.is_valid and not shape(result).is_valid:
-        return dict(mapping(original))
+        return geometry
     return result
 
 

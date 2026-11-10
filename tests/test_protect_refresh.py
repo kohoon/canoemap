@@ -51,6 +51,7 @@ class ProtectionRefreshTests(unittest.TestCase):
         tiny = [[[128, 36], [128.00000001, 36], [128.00000001, 36.00000001], [128, 36.00000001], [128, 36]]]
         geometry = {'type': 'MultiPolygon', 'coordinates': [[first[0], hole], tiny]}
         actual = display_geometry(geometry)
+        self.assertEqual(actual, json.loads(json.dumps(actual)))
         self.assertEqual(actual['type'], 'MultiPolygon')
         self.assertEqual(len(actual['coordinates']), 2)
         self.assertEqual(len(actual['coordinates'][0]), 2)
@@ -85,6 +86,18 @@ class ProtectionRefreshTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 write_snapshot(incomplete, root)
             self.assertEqual(before, {p: p.read_bytes() for p in root.rglob('*') if p.is_file()})
+
+    def test_unchanged_refresh_does_not_create_an_empty_weekly_commit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            previous = {'type': 'FeatureCollection', 'metadata': {'typeCode': 'UMI100', 'refreshedAt': '2026-11-10'}, 'features': [feature() for _ in range(100)]}
+            target = root / 'protect_polygons.geojson'
+            target.write_text(json.dumps(previous))
+            before = target.read_bytes()
+            current = json.loads(before)
+            current['metadata']['refreshedAt'] = '2026-11-17'
+            write_snapshot(current, root)
+            self.assertEqual(target.read_bytes(), before)
 
     def test_published_snapshot_is_typed_and_cache_keys_match(self):
         path = ROOT / 'protect_polygons.geojson'
