@@ -14,7 +14,7 @@ from shapely.geometry import shape
 def feature(identity='48700001273020260091UMI1000001001', code='UMI100'):
     return {
         'type': 'Feature',
-        'properties': {'mnum': identity, 'ucode': code, 'sido_name': '전남광주통합특별시', 'sigg_name': '구례군', 'uname': '상수원보호구역', 'dyear': '2026', 'dnum': '0091'},
+        'properties': {'s': '전남광주통합특별시 구례군', 'mnum': identity, 'ucode': code, 'sido_name': '전남광주통합특별시', 'sigg_name': '구례군', 'uname': '상수원보호구역', 'dyear': '2026', 'dnum': '0091'},
         'geometry': {'type': 'Polygon', 'coordinates': [[[127, 35], [127.01, 35], [127.01, 35.01], [127, 35.01], [127, 35]]]},
     }
 
