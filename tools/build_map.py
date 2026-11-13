@@ -145,6 +145,8 @@ WATERPLAY_VER = _datahash("waterplay.geojson")
 DAISO_VER = _datahash("daiso_stores.geojson")
 HANARO_VER = _datahash("hanaro_stores.geojson")
 HJD_VER = _datahash("admin_dong_index.json")
+walking_trails = json.loads((DATA / "walking_trails.geojson").read_text(encoding="utf-8"))
+
 _cf = DATA / "courses.geojson"
 courses = json.loads(_cf.read_text(encoding="utf-8")) if _cf.exists() else {"type": "FeatureCollection", "features": []}
 _mdlf = DATA / "military_demarcation_line.geojson"
@@ -1169,6 +1171,7 @@ const LAKES = DAMS.map(function(d){ return {name:d.lake,aliases:[d.nm],lat:d.lat
 ]);   // 통합검색용 주요 호수·저수지 이름과 관용 별칭
 const HRFCO_KEY = "__HRFCO_KEY__";   // 수위 API(도메인잠금 없음 — 남용 시 재발급)
 const COURSES = __COURSES__;
+const WALKING_TRAILS = __WALKING_TRAILS__;
 const EXPEDITION_PARTICIPANTS = __PARTICIPANTS__;
 const MILITARY_DEMARCATION_LINE = __MILITARY_DEMARCATION_LINE__; // 남·북 DMZ OSM 관계가 공통으로 쓰는 군사분계선
 const VKEY = "__VKEY__";   // V-World 키(도메인잠금). 브라우저가 직접 호출. 비면 Nominatim
@@ -3100,6 +3103,20 @@ function _obKakaoLink(o){
   return 'https://map.kakao.com/link/map/'+encodeURIComponent(nm)+','+Number(o.lat)+','+Number(o.lng);
 }
 const obstacleLayer=L.layerGroup();
+// 공식 고시 도면을 좌표화한 육로. 지형지물 토글·줌 게이트와 함께 표시한다.
+const walkingTrailLayer=L.layerGroup().addTo(obstacleLayer);
+WALKING_TRAILS.features.forEach(function(feature){
+  const p=feature.properties;
+  L.geoJSON(feature,{pane:'obsPane',interactive:false,style:{color:'#fff',weight:8,opacity:.9}}).addTo(walkingTrailLayer);
+  L.geoJSON(feature,{
+    pane:'obsPane',
+    style:{color:'#8d4e28',weight:5,opacity:1,dashArray:'8 6',lineCap:'round'},
+    onEachFeature:function(f,line){
+      line.bindTooltip(pmEsc(p.name)+' · 육로',{sticky:true});
+      line.bindPopup('<b>'+pmEsc(p.name)+' · 육로</b><br>지정 거리 '+Number(p.designatedDistanceKm).toFixed(2)+' km<br><a href="'+pmEsc(p.sourceUrl)+'" target="_blank" rel="noopener">'+pmEsc(p.sourceTitle)+' ↗</a>',{maxWidth:260});
+    }
+  }).addTo(walkingTrailLayer);
+});
 const _obstacles={};
 function staticWeirId(w){ return 'weir:'+encodeURIComponent(String(w.nm||'보'))+'|'+Number(w.lat).toFixed(5)+'|'+Number(w.lng).toFixed(5); }
 function _obDisplayName(o){const t=OBS_TYPES[o&&o.type]||OBS_TYPES['보'];return (o&&o.name&&String(o.name).trim())?String(o.name).trim():t.label;}
@@ -6618,6 +6635,7 @@ html = (HTML
         .replace("__WEIRS__", json.dumps(weirs, ensure_ascii=False, separators=(",", ":")))
         .replace("__HRFCO_KEY__", HRFCO_KEY)
         .replace("__COURSES__", json.dumps(courses, ensure_ascii=False, separators=(",", ":")))
+        .replace("__WALKING_TRAILS__", json.dumps(walking_trails, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c"))
         .replace("__PARTICIPANTS__", json.dumps(participant_records, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c"))
         .replace("__MILITARY_DEMARCATION_LINE__", json.dumps(military_demarcation_line, ensure_ascii=False, separators=(",", ":")))
         .replace("__VKEY__", VKEY)
