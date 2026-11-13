@@ -963,6 +963,16 @@ __GTAG__
   }
 .expedition-date{margin:0 0 8px;color:#52675c;font-size:14px;line-height:1.6}.expedition-detail{margin:18px 0 20px}.expedition-sticker{display:flex;justify-content:center;align-items:center;background:#f1f3f6;border-radius:18px;padding:20px}.expedition-sticker img{display:block;width:100%;max-width:300px;max-height:330px;object-fit:contain}.expedition-detail h3{font-size:17px;margin:22px 0 10px;color:#294b3b}.expedition-nicknames{display:flex;flex-wrap:wrap;gap:10px 16px;line-height:1.8;color:#52675c}.expedition-nicknames .pm-empty{padding:0;text-align:left}.expedition-sticker img[src*="_02."]{max-width:220px}@media(max-width:480px){.expedition-sticker{padding:18px}.expedition-sticker img{max-width:240px;max-height:280px}}
 .expedition-sticker{overflow:hidden}.expedition-art-5{clip-path:polygon(6.12245% 9.06433%,92.72959% 9.06433%,49.36224% 95.02924%)}.expedition-art-6{clip-path:polygon(6.99301% 87.28653%,50.17483% 9.01328%,92.65734% 87.28653%)}.expedition-art-7{clip-path:polygon(2.82302% 1.48064%,96.52552% 1.48064%,96.52552% 8.88383%,76.54723% 44.30524%,90.77090% 60.47836%,95.11401% 78.47380%,80.89034% 80.41002%,65.58089% 80.41002%,49.72856% 98.29157%,32.46471% 77.67654%,4.56026% 72.32346%,7.92617% 64.12301%,15.74376% 59.56720%,21.93268% 47.26651%,2.82302% 8.88383%)}.expedition-art-8{clip-path:polygon(1.49740% 96.49123%,50.26042% 1.60183%,98.95833% 96.49123%)}.expedition-art-11{clip-path:inset(11.18421% 13.80952% 11.10197% 11.90476%);transform:scale(1.28)}
+
+  #combinedRoutesModal .pmodal{box-sizing:border-box;width:min(560px,100%);max-width:560px;max-height:calc(90dvh - env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+  #combinedRoutesModal h3{margin:0 30px 16px 0}
+  #combinedRoutesModal select,#combinedRoutesModal input{box-sizing:border-box;width:100%;min-height:44px;border:1px solid #cbd9dc;border-radius:9px;padding:9px;font:14px sans-serif;background:#fff}
+  #combinedRoutesModal .sg-label{display:block;margin:14px 0 7px}
+  .combined-row{display:flex;align-items:center;gap:6px;padding:9px 0;border-bottom:1px solid #e2e9eb}
+  .combined-row span{flex:1;min-width:0;font:14px/1.4 sans-serif;overflow-wrap:anywhere}
+  .combined-row button,.combined-input button{flex:none;min-width:38px;min-height:40px;border:1px solid #cbd9dc;border-radius:8px;background:#f3f7f7;color:#174e47;font:700 15px sans-serif}
+  .combined-input{display:flex;gap:7px}.combined-input input{min-width:0;flex:1}.combined-input button{padding:0 12px}
+  #combinedMsg{font:13px/1.5 sans-serif;color:#b54732;margin-top:7px}#combinedShow:disabled{opacity:.45}
 </style>
 </head>
 <body>
@@ -1418,7 +1428,7 @@ const isAndroid = /android/i.test(ua);
 
 function _reviewPinFromUrl(){const raw=new URLSearchParams(location.search).get('pin');if(!raw)return null;const parts=raw.split(',');if(parts.length!==2)return null;const lat=Number(parts[0]),lng=Number(parts[1]);return Number.isFinite(lat)&&lat>=32&&lat<=40&&Number.isFinite(lng)&&lng>=123&&lng<=132?{lat,lng}:null;}
 const _reviewPin=_reviewPinFromUrl();
-function _mapUrlOwnsView(){ const q=new URLSearchParams(location.search); return !!_reviewPin||q.has('course')||q.has('measure')||q.has('place')||q.has('trail')||q.has('river')||q.get('view')==='roadview'; }
+function _mapUrlOwnsView(){ const q=new URLSearchParams(location.search); return !!_reviewPin||q.has('course')||q.has('measure')||q.has('place')||q.has('trail')||q.has('routes')||q.has('river')||q.get('view')==='roadview'; }
 function _savedMapView(){
   if(_mapUrlOwnsView())return null;
   try{const v=JSON.parse(localStorage.getItem('mc_map_view_v1')||'null'),lat=Number(v&&v.lat),lng=Number(v&&v.lng),zoom=Number(v&&v.zoom);
@@ -2623,6 +2633,11 @@ function _applyCourseOver(f){
   return f;
 }
 function _applyCourseFocus(){
+  if(combinedRouteRefs().length){
+    Object.values(_staticCidLayers).forEach(function(entries){entries.forEach(function(e){e.grp.removeLayer(e.l);});});
+    Object.values(_kvCourseLayers).forEach(function(e){e.ls.forEach(function(line){e.grp.removeLayer(line);});});
+    if(typeof _scheduleCourseStripes==='function')_scheduleCourseStripes();return;
+  }
   const focusId=String(_courseFocusId||'').trim();
   const isFocused=!!focusId;
   const focusStatic = isFocused && focusId.charAt(0)!=='k' ? focusId : '';
@@ -2991,6 +3006,7 @@ function openCourseComments(key,course,shareId){
   _clearPhoto(); renderRateRow();
   const canAnalyze=!!(course.coords && course.coords.length>=2);
   const actions=[
+    (shareId?'<button type="button" class="course-btn ghost" onclick="openCombinedRoutes(\'course:'+shareId+'\')">코스 묶기</button>':''),
     (shareId?'<a class="course-btn" onclick="shareCourse(\''+shareId+'\')">🔗 공유</a>':''),
     (TOUR_MODE&&canAnalyze&&!_trk&&!_tourStopping?'<button class="course-btn on" id="pmTourRecord" type="button">🛶 이 코스로 투어 기록</button>':''),
     (canAnalyze?'<a class="course-btn ghost" onclick="toggleCourseAnalysis()">📊 분석</a>':''),
@@ -3136,6 +3152,7 @@ function _walkingPopup(o){
   const source=official?'<br><a href="'+pmEsc(seed.sourceUrl)+'" target="_blank" rel="noopener">'+pmEsc(seed.sourceTitle)+' ↗</a>':'';
   return '<b>'+pmEsc(o.name||'육로')+'</b><small style="margin-left:6px">육로</small><br>'+title+' '+km.toFixed(2)+' km'+(o.note?'<div style="margin:7px 0">'+linkify(o.note)+'</div>':'')+source
     +'<div style="display:flex;gap:8px;align-items:center;margin-top:10px"><button type="button" class="addplace-btn" onclick="shareWalkingTrail(decodeURIComponent(\''+safeId+'\'))">URL 공유</button>'
+    +'<button type="button" class="addplace-btn" onclick="openCombinedRoutes(decodeURIComponent(\'trail:'+safeId.replace(/^trail%3A/,'')+'\'))">코스 묶기</button>'
     +(isAdmin()?'<button type="button" class="addplace-btn" onclick="editObstacle(decodeURIComponent(\''+safeId+'\'))">수정</button><button type="button" class="addplace-btn" onclick="deleteObstacle(decodeURIComponent(\''+safeId+'\'))">삭제</button>':'')+'</div>';
 }
 function _renderWalkingTrail(o){
@@ -3146,7 +3163,7 @@ function _renderWalkingTrail(o){
   const line=L.geoJSON(feature,{pane:pane,style:{color:'#8d4e28',weight:5,opacity:1,dashArray:'8 6',lineCap:'round'}}).addTo(group);
   line.bindTooltip(pmEsc(o.name||'육로')+' · 육로',{sticky:true});
   line.bindPopup(function(){return _walkingPopup(o);},{maxWidth:280});
-  group.addTo(walkingTrailLayer);o._m=group;o._trailLine=line;
+  if(!isCombinedTrail(o.id))group.addTo(walkingTrailLayer);o._m=group;o._trailLine=line;
 }
 function focusWalkingTrail(id){
   const o=_obstacles[id];if(!o||o.type!=='육로'||!o._m)return false;
@@ -3162,6 +3179,7 @@ function focusWalkingTrail(id){
   current._trailLine.openPopup(bounds.getCenter());return true;
 }
 function _focusWalkingTrailFromUrl(){
+  if(combinedRouteRefs().length)return;
   const raw=new URLSearchParams(location.search).get('trail');if(!raw||_trailUrlFocused)return;
   const id=_obstacles[raw]?raw:'trail:'+raw;
   if(focusWalkingTrail(id))_trailUrlFocused=true;
@@ -4785,6 +4803,7 @@ function _findSharedKvCourse(list,kid){
   return gap<=5000?best:null;   // 구버전은 등록 직후 브라우저/서버 ID가 수 ms 어긋날 수 있음
 }
 function focusCourseFromUrl(){
+  if(combinedRouteRefs().length)return;
   let id=null; const m=(location.search||'').match(/[?&]course=([^&]+)/); if(m) id=decodeURIComponent(m[1]);
   if(!id) return;
   const showDetail=new URLSearchParams(location.search).get('detail')==='1';
@@ -4815,6 +4834,11 @@ async function deleteStaticCourse(cid){ if(!isAdmin()) return; if(!confirm('이 
     if(r.ok){ _hideStaticCourse(cid); closePlaceModal(); map.closePopup(); gaEvent('course_hide'); } else alert('실패(권한 확인)'); }catch(e){ alert('오류'); } }
 function _hideStaticCourse(cid){ _hiddenStaticCids.add(String(cid)); const arr=_staticCidLayers[String(cid)]; if(arr) arr.forEach(function(e){ e.grp.removeLayer(e.l); }); _scheduleCourseStripes();_pcDockScheduleRender(); }
 function _applyCourseFocus(){
+  if(combinedRouteRefs().length){
+    Object.values(_staticCidLayers).forEach(function(entries){entries.forEach(function(e){e.grp.removeLayer(e.l);});});
+    Object.values(_kvCourseLayers).forEach(function(e){e.ls.forEach(function(line){e.grp.removeLayer(line);});});
+    if(typeof _scheduleCourseStripes==='function')_scheduleCourseStripes();return;
+  }
   const id=String(_courseFocusId||'').trim();
   const isFocused=!!id;
   const isKv=isFocused && id.charAt(0)==='k';
@@ -4841,6 +4865,8 @@ function _applyCourseFocus(){
   });
   _scheduleCourseStripes();
 }
+
+__COMBINED_ROUTES__
 
 // ---- 장소 검색 (Nominatim) ----
 const SearchCtl = L.Control.extend({ options:{position:'topleft'},
@@ -6709,6 +6735,7 @@ _pcDockLayout();
 """
 
 html = (HTML
+        .replace("__COMBINED_ROUTES__", (BASE / "tools" / "combined_routes.js").read_text(encoding="utf-8"))
         .replace("__PROTECT_VER__", PROTECT_VER)   # 상수원/수상레저 면은 임베드 대신 외부 fetch(아래 버전 토큰)
         .replace("__WLZ_VER__", WLZ_VER)
         .replace("__RIVERS_VER__", RIVERS_VER)
