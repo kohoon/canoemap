@@ -1787,7 +1787,7 @@ export default {
       if (req.method === "POST") {
         let b = {}; try { b = await req.json(); } catch (e) {}
         if (!KV) return new Response("no-store", { status: 500, headers: cors });
-        const TYPES = ["보", "징검다리", "잠수교", "용치", "낮은바닥", "여울", "통과지점", "유명지", "강풍지대", "식당/카페", "캠핑사이트", "계곡"];
+        const TYPES = ["보", "징검다리", "잠수교", "용치", "낮은바닥", "여울", "통과지점", "유명지", "강풍지대", "식당/카페", "캠핑사이트", "계곡", "육로"];
         const cleanKakaoUrl = (value) => {
           const raw = String(value || "").trim(); if (!raw) return "";
           try {
@@ -1818,9 +1818,38 @@ export default {
         };
         const seedAdd = b.action === "add" && String(b.obsId || "").startsWith("weir:") && (!b.type || b.type === "보");
         if (!seedAdd && (!env.ADMIN_KEY || String(b.adminKey) !== String(env.ADMIN_KEY))) return new Response("forbidden", { status: 403, headers: cors });
+        let walkingGeometry = null;
+        if (b.action !== "delete") {
+          const existing = arr.find((x) => String(x.id) === String(b.obsId));
+          const type = TYPES.includes(b.type) ? b.type : (existing?.type || "보");
+          if (type === "육로") {
+            const geometry = b.geometry ?? existing?.geometry;
+            const lines = geometry?.type === "LineString" ? [geometry.coordinates]
+              : geometry?.type === "MultiLineString" ? geometry.coordinates : null;
+            if (!Array.isArray(lines) || !lines.length || lines.length > 500) return new Response("bad-trail-geometry", { status: 400, headers: cors });
+            let count = 0;
+            const coordinates = [];
+            for (const line of lines) {
+              if (!Array.isArray(line) || line.length < 2) return new Response("bad-trail-geometry", { status: 400, headers: cors });
+              count += line.length;
+              if (count > 20000) return new Response("trail-too-large", { status: 400, headers: cors });
+              const clean = [];
+              for (const point of line) {
+                if (!Array.isArray(point) || point.length < 2 || !Number.isFinite(point[0]) || !Number.isFinite(point[1]) || Math.abs(point[0]) > 180 || Math.abs(point[1]) > 85) return new Response("bad-trail-coordinate", { status: 400, headers: cors });
+                clean.push([point[0], point[1]]);
+              }
+              coordinates.push(clean);
+            }
+            walkingGeometry = { type: "MultiLineString", coordinates };
+          }
+        }
         if (b.action === "delete") {
-          const it = arr.find((x) => String(x.id) === String(b.obsId));
-          if (it && String(b.obsId || "").startsWith("weir:")) {
+          let it = arr.find((x) => String(x.id) === String(b.obsId));
+          if (!it && String(b.obsId || "").startsWith("trail:")) {
+            it = { id: String(b.obsId), type: "육로" };
+            arr.unshift(it);
+          }
+          if (it && /^(weir:|trail:)/.test(String(b.obsId || ""))) {
             it.del = true;
             it.t = Date.now();
           } else {
@@ -1867,6 +1896,15 @@ export default {
           await syncKakaoPlace(created, "");
           arr.unshift(created);
           if (arr.length > 500) arr = arr.slice(0, 500);
+        }
+        if (created) {
+          if (walkingGeometry) {
+            created.geometry = walkingGeometry;
+            const points = walkingGeometry.coordinates.flat();
+            const xs = points.map((point) => point[0]), ys = points.map((point) => point[1]);
+            created.lng = (Math.min(...xs) + Math.max(...xs)) / 2;
+            created.lat = (Math.min(...ys) + Math.max(...ys)) / 2;
+          } else delete created.geometry;
         }
         await KV.put("obstacles", JSON.stringify(arr));
         return J(JSON.stringify({ ok: true, obstacle: created }));

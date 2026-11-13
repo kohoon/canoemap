@@ -1022,7 +1022,7 @@ const ua = navigator.userAgent;
 const isiOS = /iphone|ipad|ipod/i.test(ua);
 const isAndroid = /android/i.test(ua);
 
-function _mapUrlOwnsView(){ const q=new URLSearchParams(location.search); return q.has('course')||q.has('measure')||q.has('place')||q.has('river')||q.get('view')==='roadview'; }
+function _mapUrlOwnsView(){ const q=new URLSearchParams(location.search); return q.has('course')||q.has('measure')||q.has('place')||q.has('trail')||q.has('river')||q.get('view')==='roadview'; }
 function _savedMapView(){
   if(_mapUrlOwnsView())return null;
   try{const v=JSON.parse(localStorage.getItem('mc_map_view_v1')||'null'),lat=Number(v&&v.lat),lng=Number(v&&v.lng),zoom=Number(v&&v.zoom);
@@ -2432,7 +2432,7 @@ function _zoomPaneGate(){ const on=map.getZoom()>=13?'':'none';
   map.getPane('damPane').style.display=map.getZoom()>=10?'':'none';
   map.getPane('obsPane').style.display=map.getZoom()>=13?'':'none'; }
 map.on('zoomend', _zoomPaneGate);
-const OBS_TYPES={'보':{c:'obs-bo',e:'🚧',label:'보'},'징검다리':{c:'obs-jing',e:'🪨',label:'징검다리'},'잠수교':{c:'obs-lowbridge',e:'🌉',label:'잠수교'},'용치':{c:'obs-dragons',e:'🔺',label:'용치'},'낮은바닥':{c:'obs-shal',e:'〰️',label:'얕음'},'여울':{c:'obs-yeoul',e:'🌊',label:'여울'},'유명지':{c:'obs-spot',e:'⭐',label:'유명지'},'강풍지대':{c:'obs-wind',e:'💨',label:'강풍지대'},'식당/카페':{c:'obs-food',e:'🍽️',label:'식당/카페'},'캠핑사이트':{c:'obs-camp',e:'🏕️',label:'캠핑사이트',adminOnly:true},'계곡':{c:'obs-valley',e:'🏞️',label:'계곡',adminOnly:true}};
+const OBS_TYPES={'보':{c:'obs-bo',e:'🚧',label:'보'},'징검다리':{c:'obs-jing',e:'🪨',label:'징검다리'},'잠수교':{c:'obs-lowbridge',e:'🌉',label:'잠수교'},'용치':{c:'obs-dragons',e:'🔺',label:'용치'},'낮은바닥':{c:'obs-shal',e:'〰️',label:'얕음'},'여울':{c:'obs-yeoul',e:'🌊',label:'여울'},'유명지':{c:'obs-spot',e:'⭐',label:'유명지'},'강풍지대':{c:'obs-wind',e:'💨',label:'강풍지대'},'식당/카페':{c:'obs-food',e:'🍽️',label:'식당/카페'},'캠핑사이트':{c:'obs-camp',e:'🏕️',label:'캠핑사이트',adminOnly:true},'계곡':{c:'obs-valley',e:'🏞️',label:'계곡',adminOnly:true},'육로':{c:'obs-land',e:'🥾',label:'육로'}};
 function _obHasName(ty){ return !!OBS_TYPES[ty]; }
 function _obHasKakao(ty){ return ty==='식당/카페'; }
 function _obAdminOnly(o){ return !!o&&!!(OBS_TYPES[o.type]||{}).adminOnly; }
@@ -2450,31 +2450,88 @@ function _obKakaoLink(o){
   return 'https://map.kakao.com/link/map/'+encodeURIComponent(nm)+','+Number(o.lat)+','+Number(o.lng);
 }
 const obstacleLayer=L.layerGroup();
-const WALKING_TRAILS = {"type":"FeatureCollection","features":[{"type":"Feature","id":"uljin-wangpicheon-botdorang","properties":{"name":"왕피천 봇도랑길","mode":"walking","designatedDistanceKm":3.1,"tracedDistanceKm":3.036,"sourceTitle":"울진군 고시 제2026-180호","sourceDate":"2026-09-29","sourceUrl":"https://www.uljin.go.kr/index.uljin?ancmtMgtNo=36097&menuCd=DOM_000000103002007001&type=view","sourceDocument":"왕피천 봇도랑길 노선도 용지도 1부.pdf","geometryMethod":"공식 지적평면도 붉은 노선 벡터 중심선 추출·지적 경계 좌표 정합","sourceSha256":"96cd0f17cddd6476aad90d8d0032db6a31002c6b7f641e3cfd4aad2bae3c7dbd"},"geometry":{"type":"MultiLineString","coordinates":[[[129.3465839,36.9299022],[129.3465538,36.9299372]],[[129.3465839,36.9299022],[129.3465542,36.9298575]],[[129.3471449,36.9300491],[129.3469638,36.9300312],[129.3468384,36.9300279],[129.3466734,36.9299647],[129.3465839,36.9299022]],[[129.3474968,36.9271316],[129.3475047,36.9271531],[129.3474912,36.9272371],[129.3474196,36.9273436],[129.3472924,36.9274633],[129.3472394,36.9275399],[129.3472304,36.9276257],[129.3472404,36.9277768],[129.3472343,36.927967],[129.3472583,36.9281404],[129.34728,36.9283045],[129.3473457,36.9284461],[129.347326,36.9285023],[129.3473226,36.9285606],[129.3473525,36.9286645],[129.3473634,36.9287522],[129.347355,36.9288695],[129.3473595,36.9289911],[129.3473775,36.9291122],[129.3474018,36.9292975],[129.3474071,36.9294954],[129.3473937,36.9296263],[129.3472553,36.9298533],[129.347234,36.9299344],[129.3471449,36.9300491]],[[129.3471449,36.9300491],[129.3473397,36.9300877],[129.3475855,36.9301949],[129.3477598,36.9302411],[129.3478347,36.9302593],[129.3479142,36.9302775],[129.3481634,36.9302389],[129.3483867,36.9302857],[129.3485434,36.930329],[129.3487222,36.9303909],[129.3489316,36.9304796],[129.3493087,36.9304859],[129.3496613,36.9304377],[129.3498241,36.9303833],[129.3499462,36.930303],[129.3499712,36.9302591],[129.3499837,36.9302228],[129.3500033,36.9301671],[129.3502677,36.9300871],[129.350321,36.9300996],[129.3504029,36.9300809],[129.3505218,36.930099],[129.3507274,36.9300509],[129.3508272,36.930065],[129.350872,36.929994],[129.3509894,36.9299276],[129.3511468,36.929822],[129.3513197,36.9297729],[129.3515278,36.9297278],[129.3517643,36.9296407],[129.3521565,36.9294372],[129.3523525,36.9292722],[129.3524971,36.9292119],[129.352572,36.9290987],[129.3526048,36.9290775],[129.3526913,36.9290504],[129.3528307,36.9291318],[129.3529355,36.9290817],[129.3530231,36.9290066],[129.3531984,36.9289794],[129.3532834,36.9289732],[129.3534462,36.928971],[129.3535512,36.9289724],[129.3536048,36.9289908],[129.353733,36.9289972],[129.353861,36.9289884],[129.3541548,36.9289411],[129.3542639,36.9289096],[129.3544604,36.928941],[129.3545993,36.9290039],[129.3546234,36.9289962],[129.3546644,36.9289978],[129.3547113,36.9290887],[129.3548123,36.9291383],[129.3549287,36.9292337],[129.3550149,36.9293414],[129.3551378,36.9293896],[129.3551886,36.9294892],[129.355206,36.9296011],[129.3552284,36.9297238],[129.3552038,36.9298547],[129.3552599,36.9300029],[129.3552839,36.9301094],[129.3553972,36.9302548],[129.3555152,36.9303542],[129.3555497,36.930547],[129.3555459,36.9308101],[129.3554342,36.9309844],[129.355297,36.9311103],[129.3550912,36.9312943],[129.354947,36.9313743],[129.3548348,36.9314381],[129.3547257,36.9314735],[129.3545948,36.9315062],[129.3545446,36.9315536],[129.354493,36.9316522],[129.3544278,36.9317199],[129.3543625,36.9317605],[129.3541893,36.931755],[129.354018,36.9318829],[129.3538474,36.9319343],[129.3535599,36.9319636],[129.353358,36.9318873],[129.3532821,36.9318363],[129.3531929,36.9318069],[129.3530197,36.9317777],[129.3528533,36.9317593],[129.3527557,36.9317286],[129.3525796,36.9317966],[129.3524591,36.9318927],[129.3523941,36.9319968],[129.3523239,36.9320806],[129.3522815,36.9322237],[129.3522794,36.9323489],[129.3522638,36.9324612],[129.3522079,36.9325908],[129.3522035,36.9326829],[129.3522898,36.9327239],[129.3523534,36.932862],[129.3525673,36.9330064],[129.3527146,36.9330667],[129.3529083,36.9331723],[129.3530325,36.9332284],[129.3533002,36.9332065],[129.3534975,36.933179],[129.3536561,36.9331971],[129.3538217,36.9331156]],[[129.3538216,36.9331162],[129.3538217,36.9331156]],[[129.3538217,36.9331156],[129.3538217,36.9331156]],[[129.3538217,36.9331156],[129.3538226,36.9331005]],[[129.3538226,36.9331005],[129.3538226,36.9331005]],[[129.3538226,36.9331005],[129.3538227,36.9330999]],[[129.3538226,36.9331005],[129.3540402,36.9331495],[129.3542298,36.9331527],[129.3544154,36.9330923],[129.3545645,36.9331087],[129.3547115,36.9331032],[129.354868,36.9331078],[129.3549385,36.9331236],[129.3550365,36.9332],[129.3551006,36.9332091],[129.3551824,36.9331937],[129.3553232,36.9331983],[129.3554117,36.9332756],[129.3555169,36.9333023],[129.355601,36.9333341],[129.3556812,36.9334198],[129.3557622,36.9334322],[129.355848,36.9333831],[129.3559457,36.9333861],[129.3560909,36.9334422],[129.3562036,36.9335101],[129.3564099,36.933609],[129.3567254,36.933732],[129.3569379,36.9337979],[129.3571125,36.9338505],[129.3572914,36.9339335],[129.357422,36.9340224],[129.357516,36.9341578],[129.3577022,36.9343126],[129.3578558,36.9343941],[129.3579159,36.9346033],[129.3578358,36.934705],[129.3578015,36.9348605],[129.3577725,36.9349663],[129.3576762,36.9350875],[129.3575975,36.9352137],[129.3575996,36.9353],[129.3575581,36.9354094],[129.3575351,36.9355268],[129.3575273,36.9356455],[129.357538,36.9357871],[129.3575188,36.9359828],[129.3575601,36.9361877],[129.3574953,36.9363511],[129.3574068,36.9364593],[129.3573839,36.9365929],[129.3572959,36.9369369],[129.3571813,36.9371466],[129.3570425,36.9373585],[129.3569683,36.9375875],[129.3568724,36.9377713],[129.3567671,36.9379763],[129.3567206,36.938083],[129.356706,36.9382085],[129.3567152,36.9383677],[129.3566404,36.9385908],[129.3564966,36.9387391],[129.3564239,36.9389231],[129.3563384,36.9390397],[129.3563791,36.93922],[129.3563995,36.9393194],[129.3564831,36.9394431],[129.3566255,36.9395775],[129.356532,36.9396839]]]}}]};
-// 공식 고시 도면을 좌표화한 육로. 지형지물 토글·줌 게이트와 함께 표시한다.
+const WALKING_TRAILS = {"type":"FeatureCollection","features":[{"type":"Feature","id":"uljin-wangpicheon-botdorang","properties":{"name":"왕피천 봇도랑길","mode":"walking","designatedDistanceKm":3.1,"tracedDistanceKm":3.036,"sourceTitle":"울진군 고시 제2026-180호","sourceDate":"2026-09-29","sourceUrl":"https://www.uljin.go.kr/index.uljin?ancmtMgtNo=36097&menuCd=DOM_000000103002007001&type=view","sourceDocument":"왕피천 봇도랑길 노선도 용지도 1부.pdf","geometryMethod":"공식 지적평면도 붉은 노선 벡터 중심선 추출·지적 경계 좌표 정합","sourceSha256":"96cd0f17cddd6476aad90d8d0032db6a31002c6b7f641e3cfd4aad2bae3c7dbd","type":"육로"},"geometry":{"type":"MultiLineString","coordinates":[[[129.3465839,36.9299022],[129.3465538,36.9299372]],[[129.3465839,36.9299022],[129.3465542,36.9298575]],[[129.3471449,36.9300491],[129.3469638,36.9300312],[129.3468384,36.9300279],[129.3466734,36.9299647],[129.3465839,36.9299022]],[[129.3474968,36.9271316],[129.3475047,36.9271531],[129.3474912,36.9272371],[129.3474196,36.9273436],[129.3472924,36.9274633],[129.3472394,36.9275399],[129.3472304,36.9276257],[129.3472404,36.9277768],[129.3472343,36.927967],[129.3472583,36.9281404],[129.34728,36.9283045],[129.3473457,36.9284461],[129.347326,36.9285023],[129.3473226,36.9285606],[129.3473525,36.9286645],[129.3473634,36.9287522],[129.347355,36.9288695],[129.3473595,36.9289911],[129.3473775,36.9291122],[129.3474018,36.9292975],[129.3474071,36.9294954],[129.3473937,36.9296263],[129.3472553,36.9298533],[129.347234,36.9299344],[129.3471449,36.9300491]],[[129.3471449,36.9300491],[129.3473397,36.9300877],[129.3475855,36.9301949],[129.3477598,36.9302411],[129.3478347,36.9302593],[129.3479142,36.9302775],[129.3481634,36.9302389],[129.3483867,36.9302857],[129.3485434,36.930329],[129.3487222,36.9303909],[129.3489316,36.9304796],[129.3493087,36.9304859],[129.3496613,36.9304377],[129.3498241,36.9303833],[129.3499462,36.930303],[129.3499712,36.9302591],[129.3499837,36.9302228],[129.3500033,36.9301671],[129.3502677,36.9300871],[129.350321,36.9300996],[129.3504029,36.9300809],[129.3505218,36.930099],[129.3507274,36.9300509],[129.3508272,36.930065],[129.350872,36.929994],[129.3509894,36.9299276],[129.3511468,36.929822],[129.3513197,36.9297729],[129.3515278,36.9297278],[129.3517643,36.9296407],[129.3521565,36.9294372],[129.3523525,36.9292722],[129.3524971,36.9292119],[129.352572,36.9290987],[129.3526048,36.9290775],[129.3526913,36.9290504],[129.3528307,36.9291318],[129.3529355,36.9290817],[129.3530231,36.9290066],[129.3531984,36.9289794],[129.3532834,36.9289732],[129.3534462,36.928971],[129.3535512,36.9289724],[129.3536048,36.9289908],[129.353733,36.9289972],[129.353861,36.9289884],[129.3541548,36.9289411],[129.3542639,36.9289096],[129.3544604,36.928941],[129.3545993,36.9290039],[129.3546234,36.9289962],[129.3546644,36.9289978],[129.3547113,36.9290887],[129.3548123,36.9291383],[129.3549287,36.9292337],[129.3550149,36.9293414],[129.3551378,36.9293896],[129.3551886,36.9294892],[129.355206,36.9296011],[129.3552284,36.9297238],[129.3552038,36.9298547],[129.3552599,36.9300029],[129.3552839,36.9301094],[129.3553972,36.9302548],[129.3555152,36.9303542],[129.3555497,36.930547],[129.3555459,36.9308101],[129.3554342,36.9309844],[129.355297,36.9311103],[129.3550912,36.9312943],[129.354947,36.9313743],[129.3548348,36.9314381],[129.3547257,36.9314735],[129.3545948,36.9315062],[129.3545446,36.9315536],[129.354493,36.9316522],[129.3544278,36.9317199],[129.3543625,36.9317605],[129.3541893,36.931755],[129.354018,36.9318829],[129.3538474,36.9319343],[129.3535599,36.9319636],[129.353358,36.9318873],[129.3532821,36.9318363],[129.3531929,36.9318069],[129.3530197,36.9317777],[129.3528533,36.9317593],[129.3527557,36.9317286],[129.3525796,36.9317966],[129.3524591,36.9318927],[129.3523941,36.9319968],[129.3523239,36.9320806],[129.3522815,36.9322237],[129.3522794,36.9323489],[129.3522638,36.9324612],[129.3522079,36.9325908],[129.3522035,36.9326829],[129.3522898,36.9327239],[129.3523534,36.932862],[129.3525673,36.9330064],[129.3527146,36.9330667],[129.3529083,36.9331723],[129.3530325,36.9332284],[129.3533002,36.9332065],[129.3534975,36.933179],[129.3536561,36.9331971],[129.3538217,36.9331156]],[[129.3538216,36.9331162],[129.3538217,36.9331156]],[[129.3538217,36.9331156],[129.3538217,36.9331156]],[[129.3538217,36.9331156],[129.3538226,36.9331005]],[[129.3538226,36.9331005],[129.3538226,36.9331005]],[[129.3538226,36.9331005],[129.3538227,36.9330999]],[[129.3538226,36.9331005],[129.3540402,36.9331495],[129.3542298,36.9331527],[129.3544154,36.9330923],[129.3545645,36.9331087],[129.3547115,36.9331032],[129.354868,36.9331078],[129.3549385,36.9331236],[129.3550365,36.9332],[129.3551006,36.9332091],[129.3551824,36.9331937],[129.3553232,36.9331983],[129.3554117,36.9332756],[129.3555169,36.9333023],[129.355601,36.9333341],[129.3556812,36.9334198],[129.3557622,36.9334322],[129.355848,36.9333831],[129.3559457,36.9333861],[129.3560909,36.9334422],[129.3562036,36.9335101],[129.3564099,36.933609],[129.3567254,36.933732],[129.3569379,36.9337979],[129.3571125,36.9338505],[129.3572914,36.9339335],[129.357422,36.9340224],[129.357516,36.9341578],[129.3577022,36.9343126],[129.3578558,36.9343941],[129.3579159,36.9346033],[129.3578358,36.934705],[129.3578015,36.9348605],[129.3577725,36.9349663],[129.3576762,36.9350875],[129.3575975,36.9352137],[129.3575996,36.9353],[129.3575581,36.9354094],[129.3575351,36.9355268],[129.3575273,36.9356455],[129.357538,36.9357871],[129.3575188,36.9359828],[129.3575601,36.9361877],[129.3574953,36.9363511],[129.3574068,36.9364593],[129.3573839,36.9365929],[129.3572959,36.9369369],[129.3571813,36.9371466],[129.3570425,36.9373585],[129.3569683,36.9375875],[129.3568724,36.9377713],[129.3567671,36.9379763],[129.3567206,36.938083],[129.356706,36.9382085],[129.3567152,36.9383677],[129.3566404,36.9385908],[129.3564966,36.9387391],[129.3564239,36.9389231],[129.3563384,36.9390397],[129.3563791,36.93922],[129.3563995,36.9393194],[129.3564831,36.9394431],[129.3566255,36.9395775],[129.356532,36.9396839]]]}}]};
+// 육로도 일반 지형지물과 같은 ID·검색·관리자 편집 흐름을 사용한다.
 const walkingTrailLayer=L.layerGroup().addTo(obstacleLayer);
-WALKING_TRAILS.features.forEach(function(feature){
-  const p=feature.properties;
-  L.geoJSON(feature,{pane:'obsPane',interactive:false,style:{color:'#fff',weight:8,opacity:.9}}).addTo(walkingTrailLayer);
-  L.geoJSON(feature,{
-    pane:'obsPane',
-    style:{color:'#8d4e28',weight:5,opacity:1,dashArray:'8 6',lineCap:'round'},
-    onEachFeature:function(f,line){
-      line.bindTooltip(pmEsc(p.name)+' · 육로',{sticky:true});
-      line.bindPopup('<b>'+pmEsc(p.name)+' · 육로</b><br>지정 거리 '+Number(p.designatedDistanceKm).toFixed(2)+' km<br><a href="'+pmEsc(p.sourceUrl)+'" target="_blank" rel="noopener">'+pmEsc(p.sourceTitle)+' ↗</a>',{maxWidth:260});
-    }
-  }).addTo(walkingTrailLayer);
-});
+map.createPane('walkingFocusPane');map.getPane('walkingFocusPane').style.zIndex='640';
+const _walkingTrailSeeds={};
+let _activeWalkingTrailId='';
 const _obstacles={};
+let _trailUrlFocused=false;
+function walkingTrailUrl(id){
+  const u=new URL('/',['localhost','127.0.0.1'].includes(location.hostname)?location.origin:'https://canoe.crowdbase.kr/');
+  u.searchParams.set('trail',String(id).replace(/^trail:/,''));
+  return u.toString();
+}
+function shareWalkingTrail(id){
+  const o=_obstacles[id];if(!o)return;
+  const url=walkingTrailUrl(id);
+  if(navigator.share){navigator.share({title:o.name||'육로',url:url}).catch(function(e){if(e.name!=='AbortError')prompt('육로 URL 복사',url);});}
+  else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){_obToast('육로 URL을 복사했습니다');}).catch(function(){prompt('육로 URL 복사',url);});}
+  else prompt('육로 URL 복사',url);
+}
+function _walkingDistance(geometry){
+  const lines=geometry.type==='LineString'?[geometry.coordinates]:geometry.coordinates;
+  let meters=0;
+  lines.forEach(function(line){for(let i=1;i<line.length;i++)meters+=map.distance([line[i-1][1],line[i-1][0]],[line[i][1],line[i][0]]);});
+  return meters/1000;
+}
+function _walkingPopup(o){
+  const seed=_walkingTrailSeeds[o.id],official=seed&&JSON.stringify(seed.geometry)===JSON.stringify(o.geometry);
+  const km=official?seed.designatedDistanceKm:_walkingDistance(o.geometry);
+  const title=official?'지정 거리':'거리';
+  const safeId=encodeURIComponent(String(o.id)).replace(/'/g,'%27');
+  const source=official?'<br><a href="'+pmEsc(seed.sourceUrl)+'" target="_blank" rel="noopener">'+pmEsc(seed.sourceTitle)+' ↗</a>':'';
+  return '<b>'+pmEsc(o.name||'육로')+'</b><small style="margin-left:6px">육로</small><br>'+title+' '+km.toFixed(2)+' km'+(o.note?'<div style="margin:7px 0">'+linkify(o.note)+'</div>':'')+source
+    +'<div style="display:flex;gap:8px;align-items:center;margin-top:10px"><button type="button" class="addplace-btn" onclick="shareWalkingTrail(decodeURIComponent(\''+safeId+'\'))">URL 공유</button>'
+    +(isAdmin()?'<button type="button" class="addplace-btn" onclick="editObstacle(decodeURIComponent(\''+safeId+'\'))">수정</button><button type="button" class="addplace-btn" onclick="deleteObstacle(decodeURIComponent(\''+safeId+'\'))">삭제</button>':'')+'</div>';
+}
+function _renderWalkingTrail(o){
+  if(!o.geometry||!['LineString','MultiLineString'].includes(o.geometry.type))return;
+  const pane=o.id===_activeWalkingTrailId?'walkingFocusPane':'obsPane';
+  const group=L.featureGroup(),feature={type:'Feature',properties:{},geometry:o.geometry};
+  L.geoJSON(feature,{pane:pane,interactive:false,style:{color:'#fff',weight:8,opacity:.9}}).addTo(group);
+  const line=L.geoJSON(feature,{pane:pane,style:{color:'#8d4e28',weight:5,opacity:1,dashArray:'8 6',lineCap:'round'}}).addTo(group);
+  line.bindTooltip(pmEsc(o.name||'육로')+' · 육로',{sticky:true});
+  line.bindPopup(function(){return _walkingPopup(o);},{maxWidth:280});
+  group.addTo(walkingTrailLayer);o._m=group;o._trailLine=line;
+}
+function focusWalkingTrail(id){
+  const o=_obstacles[id];if(!o||o.type!=='육로'||!o._m)return false;
+  obstacleLayer.addTo(map);
+  if(_activeWalkingTrailId!==id){
+    const previous=_obstacles[_activeWalkingTrailId];_activeWalkingTrailId=id;
+    if(previous)renderObstacle(Object.assign({},previous));
+    renderObstacle(Object.assign({},o));
+  }
+  const current=_obstacles[id],bounds=current._m.getBounds(),size=map.getSize();
+  map.fitBounds(bounds,{paddingTopLeft:[24,size.x<600?190:32],paddingBottomRight:[24,90],maxZoom:16,animate:false});
+  _zoomPaneGate();
+  current._trailLine.openPopup(bounds.getCenter());return true;
+}
+function _focusWalkingTrailFromUrl(){
+  const raw=new URLSearchParams(location.search).get('trail');if(!raw||_trailUrlFocused)return;
+  const id=_obstacles[raw]?raw:'trail:'+raw;
+  if(focusWalkingTrail(id))_trailUrlFocused=true;
+}
+WALKING_TRAILS.features.forEach(function(feature){
+  const p=feature.properties,bounds=L.geoJSON(feature).getBounds(),center=bounds.getCenter();
+  const item=Object.assign({},p,{id:'trail:'+feature.id,type:'육로',lat:center.lat,lng:center.lng,geometry:feature.geometry,note:''});
+  _walkingTrailSeeds[item.id]=item;renderObstacle(Object.assign({},item));
+});
+setTimeout(_focusWalkingTrailFromUrl,0);
 function staticWeirId(w){ return 'weir:'+encodeURIComponent(String(w.nm||'보'))+'|'+Number(w.lat).toFixed(5)+'|'+Number(w.lng).toFixed(5); }
 function _obDisplayName(o){const t=OBS_TYPES[o&&o.type]||OBS_TYPES['보'];return (o&&o.name&&String(o.name).trim())?String(o.name).trim():t.label;}
 function obsIcon(type,name){const t=OBS_TYPES[type]||OBS_TYPES['보'],showName=type==='유명지',raw=(name&&String(name).trim())?String(name).trim():t.label,disp=pmEsc(raw);return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+(showName?'':' obs-icon-only')+'" aria-label="'+pmEsc(raw+(_obAdminOnly({type:type})?' · 관리자 전용':''))+'">'+t.e+(showName?' '+disp:'')+(_obAdminOnly({type:type})?'<span class="obs-private-lock" aria-hidden="true">🔒</span>':'')+'</span>',iconSize:null});}
-function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; const t=OBS_TYPES[o.type]||OBS_TYPES['보']; const nm=(o.name&&String(o.name).trim())?pmEsc(String(o.name).trim()):'';
+function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; if(o.type==='육로')return _walkingPopup(o); const t=OBS_TYPES[o.type]||OBS_TYPES['보']; const nm=(o.name&&String(o.name).trim())?pmEsc(String(o.name).trim()):'';
   const kakao=o.type==='식당/카페'?'<div style="margin:8px 0 4px"><a href="'+_obKakaoLink(o)+'" target="_blank" rel="noopener" style="color:#1565c0;font-weight:700">🟡 카카오맵 장소 상세</a></div>':'';
   const matched=o.kakaoPlaceName?'<div style="margin:6px 0 0;color:#60747c;font-size:11.5px">카카오맵 자동 연결: '+pmEsc(o.kakaoPlaceName)+(isFinite(Number(o.kakaoMatchDistance))?' · '+Math.round(Number(o.kakaoMatchDistance))+'m':'')+'</div>':'';
   return '<span class="obs-ic '+t.c+'">'+t.e+' '+(nm||t.label)+'</span>'+(nm?'<small style="color:#99a;margin-left:6px">'+t.label+'</small>':'')+(_obAdminOnly(o)?' '+_adminOnlyBadge():'')+matched+(o.note?'<div style="margin:7px 0 4px;color:#445;font-size:13px">'+linkify(o.note)+'</div>':'<br>')+kakao
     +(isAdmin()?'<a onclick="editObstacle(\''+o.id+'\')" style="color:#1565c0;cursor:pointer;margin-right:10px">✏️ 수정</a><a onclick="moveObstacle(\''+o.id+'\')" style="color:#2e9e5b;cursor:pointer;margin-right:10px">📍 이동</a><a onclick="deleteObstacle(\''+o.id+'\')" style="color:#c62828;cursor:pointer">삭제</a>':''); }
-function renderObstacle(o){ if(!o||o.lat==null||o.del||(_obAdminOnly(o)&&!isAdmin())) return; _obstacles[o.id]=o;
+function renderObstacle(o){ if(!o||o.lat==null||(_obAdminOnly(o)&&!isAdmin())) return;
+  const previous=_obstacles[o.id];if(previous&&previous._m){if(previous.type==='육로')walkingTrailLayer.removeLayer(previous._m);else obstacleLayer.removeLayer(previous._m);}
+  if(o.del){delete _obstacles[o.id];return;}
+  _obstacles[o.id]=o;if(o.type==='육로'){_renderWalkingTrail(o);return;}
   const m=L.marker([o.lat,o.lng],{icon:obsIcon(o.type,o.name),pane:'obsPane'});
   if(!isTouch&&o.type!=='유명지')m.bindTooltip(pmEsc(_obDisplayName(o))+(_obAdminOnly(o)?' '+_adminOnlyBadge():''),{direction:'top',opacity:.95});
   if(isAdmin()||o.type==='식당/카페') m.bindPopup(obsPopup(o));   // 식당/카페 상세는 일반 사용자에게도 공개
@@ -2482,13 +2539,14 @@ function renderObstacle(o){ if(!o||o.lat==null||o.del||(_obAdminOnly(o)&&!isAdmi
 function renderStaticWeir(w){ if(!w||w.lat==null) return; renderObstacle({id:staticWeirId(w),lat:w.lat,lng:w.lng,type:'보',note:'',name:w.nm}); }
 // 관리자 인증이 로드 뒤에 될 수 있어, 관리자 활성 시 지형지물 팝업 재바인딩
 function _refreshObsPopups(){ const on=isAdmin(); Object.keys(_obstacles).forEach(function(id){ const o=_obstacles[id]; if(!o||!o._m) return;
+  if(o.type==='육로')return;
   if(on||o.type==='식당/카페') o._m.bindPopup(obsPopup(o)); else o._m.unbindPopup(); }); }
 let _obstacleLoadSeq=0;
-function _clearStoredObstacles(){Object.keys(_obstacles).forEach(function(id){if(String(id).indexOf('weir:')===0)return;const o=_obstacles[id];if(o&&o._m)obstacleLayer.removeLayer(o._m);delete _obstacles[id];});}
-function _removeAdminOnlyObstacles(){Object.keys(_obstacles).forEach(function(id){const o=_obstacles[id];if(!_obAdminOnly(o))return;if(o&&o._m)obstacleLayer.removeLayer(o._m);delete _obstacles[id];});}
+function _clearStoredObstacles(){Object.keys(_obstacles).forEach(function(id){if(String(id).indexOf('weir:')===0||_walkingTrailSeeds[id])return;const o=_obstacles[id];if(o&&o._m){if(o.type==='육로')walkingTrailLayer.removeLayer(o._m);else obstacleLayer.removeLayer(o._m);}delete _obstacles[id];});}
+function _removeAdminOnlyObstacles(){Object.keys(_obstacles).forEach(function(id){const o=_obstacles[id];if(!_obAdminOnly(o))return;if(o&&o._m){if(o.type==='육로')walkingTrailLayer.removeLayer(o._m);else obstacleLayer.removeLayer(o._m);}delete _obstacles[id];});}
 async function loadObstacles(adminMode){const seq=++_obstacleLoadSeq,url=WORKER_URL.replace(/\/+$/,'')+'/obstacles';try{
   const r=adminMode?await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'list-admin',adminKey:adminKey()})}):await fetch(url,{cache:'no-store'});
-  if(!r.ok)throw 0;const list=await r.json();if(seq!==_obstacleLoadSeq)return;_clearStoredObstacles();(list||[]).forEach(function(o){if(o&&!o.del)renderObstacle(o);});
+  if(!r.ok)throw 0;const list=await r.json();if(seq!==_obstacleLoadSeq)return;_clearStoredObstacles();(list||[]).forEach(function(o){if(o)renderObstacle(Object.assign({},_walkingTrailSeeds[o.id]||{},o));});_focusWalkingTrailFromUrl();
 }catch(e){}}
 function reloadObstaclesForViewer(){if(TOUR_MODE)return;const adminMode=isAdmin();if(!adminMode)_removeAdminOnlyObstacles();loadObstacles(adminMode);}
 obstacleLayer.addTo(map);   // 기본 ON — 별도 토글(통합 패널), 줌<12에서는 pane 게이팅으로 숨김
@@ -2509,19 +2567,45 @@ function toggleObsPlace(){ obsPlaceMode=!obsPlaceMode; const b=document.getEleme
 map.on('click', function(e){ if(!obsPlaceMode) return; toggleObsPlace(); openObsModal('add',{lat:e.latlng.lat,lng:e.latlng.lng}); });
 // 지형지물 모달
 let _obMode='add', _obCur=null, _obLL=null;
+let _obTrailGeometry=null,_obTrailEntries=[];
+async function readObstacleTrail(file){
+  if(!isAdmin()||!file)return;
+  const status=document.getElementById('obTrailStatus'),select=document.getElementById('obTrailEntry');
+  if(file.size>5*1024*1024){status.textContent='5MB 이하의 GPX 파일을 선택해 주세요.';return;}
+  const previous=_obTrailGeometry;document.getElementById('obSave').disabled=true;
+  try{
+    const core=await import(new URL('/diary/core.mjs',['localhost','127.0.0.1'].includes(location.hostname)?location.origin:'https://canoe.crowdbase.kr/').href);
+    _obTrailEntries=core.parseGpx(await file.text());
+    select.replaceChildren();
+    _obTrailEntries.forEach(function(entry,index){const option=document.createElement('option');option.value=String(index);option.textContent=entry.label;select.appendChild(option);});
+    select.hidden=_obTrailEntries.length<2;selectObstacleTrail(0);
+  }catch(e){_obTrailGeometry=previous;status.textContent=e.message||'GPX 파일을 읽지 못했습니다.';}
+  finally{document.getElementById('obSave').disabled=false;}
+}
+function selectObstacleTrail(index){
+  const entry=_obTrailEntries[Number(index)];if(!entry)return;
+  const lines=entry.parts.filter(function(part){return part.length>=2;}).map(function(part){return part.map(function(p){return [p.lon,p.lat];});});
+  if(!lines.length)throw new Error('두 지점 이상 이어진 경로가 필요합니다.');
+  if(lines.some(function(line){return line.some(function(p){return !Number.isFinite(p[0])||!Number.isFinite(p[1])||Math.abs(p[0])>180||Math.abs(p[1])>85;});}))throw new Error('경로 좌표를 확인해 주세요.');
+  _obTrailGeometry={type:'MultiLineString',coordinates:lines};
+  const name=document.getElementById('obName');if(!name.value)name.value=entry.label.slice(0,40);
+  document.getElementById('obTrailStatus').textContent='경로 '+_walkingDistance(_obTrailGeometry).toFixed(2)+' km';
+}
+
 function closeObsModal(){ document.getElementById('obsModal').classList.remove('open'); }
 function _obToast(m){ const h=document.getElementById('hint'); if(!h) return; h.textContent=m; h.style.opacity='1'; clearTimeout(window._obHid); window._obHid=setTimeout(function(){h.style.opacity='0';},3800); }
 function _obType(){ const e=document.querySelector('#obBody .seg-b.on'); return e?e.getAttribute('data-ty'):'보'; }
 function obPick(el){ const bs=document.querySelectorAll('#obBody .seg-b'); for(let i=0;i<bs.length;i++) bs[i].classList.remove('on'); el.classList.add('on');
   const ty=el.getAttribute('data-ty'), row=document.getElementById('obNameRow'), kr=document.getElementById('obKakaoRow');
-  if(row) row.style.display=_obHasName(ty)?'block':'none'; if(kr) kr.style.display=_obHasKakao(ty)?'block':'none'; }
+  if(row) row.style.display=_obHasName(ty)?'block':'none'; if(kr) kr.style.display=_obHasKakao(ty)?'block':'none'; const tr=document.getElementById('obTrailRow');if(tr)tr.hidden=ty!=='육로'; }
 function openObsModal(mode,data){ if(!isAdmin()) return;
   _obMode=mode; let ty='보', note='', name='', kakaoUrl='', kakaoAuto='';
   if(mode==='edit'){ _obCur=data; _obLL={lat:data.lat,lng:data.lng}; ty=data.type; note=data.note||''; name=data.name||'';
     if(data.kakaoPlaceId) kakaoAuto='현재 자동 연결: '+pmEsc(data.kakaoPlaceName||name)+(isFinite(Number(data.kakaoMatchDistance))?' · '+Math.round(Number(data.kakaoMatchDistance))+'m':'')+' (저장 시 다시 검색)';
     else kakaoUrl=data.kakaoUrl||''; }
   else { _obCur=null; _obLL={lat:data.lat,lng:data.lng}; }
-  const tys=['보','징검다리','잠수교','용치','낮은바닥','여울','유명지','강풍지대','식당/카페','캠핑사이트','계곡'];
+  _obTrailGeometry=mode==='edit'&&data.type==='육로'?data.geometry:null;_obTrailEntries=[];
+  const tys=['보','징검다리','잠수교','용치','낮은바닥','여울','유명지','강풍지대','식당/카페','캠핑사이트','계곡','육로'];
   let seg=''; for(let i=0;i<tys.length;i++){ const t=tys[i],info=OBS_TYPES[t]; seg+='<button class="seg-b'+(t===ty?' on':'')+'" data-ty="'+t+'" onclick="obPick(this)">'+info.e+' '+t+(info.adminOnly?_adminOnlyBadge():'')+'</button>'; }
   document.getElementById('obBody').innerHTML=
     '<h3>'+(mode==='edit'?'✏️ 지형지물 수정':'🗺️ 지형지물 추가')+'</h3>'
@@ -2531,6 +2615,7 @@ function openObsModal(mode,data){ if(!isAdmin()) return;
     +'<div id="obKakaoRow" style="display:'+(_obHasKakao(ty)?'block':'none')+'"><div class="sg-label">카카오맵 장소 URL (직접 지정할 때만)</div>'
     +'<input id="obKakaoUrl" maxlength="500" placeholder="비워두면 이름과 좌표로 자동 연결" value="'+pmEsc(kakaoUrl)+'">'
     +(kakaoAuto?'<div style="margin:-5px 0 10px;color:#60747c;font-size:11.5px">'+kakaoAuto+'</div>':'')+'</div>'
+    +'<div id="obTrailRow"'+(ty==='육로'?'':' hidden')+'><div class="sg-label">육로 경로 GPX</div><input type="file" accept=".gpx,application/gpx+xml" onchange="readObstacleTrail(this.files[0])"><select id="obTrailEntry" hidden onchange="selectObstacleTrail(this.value)"></select><div id="obTrailStatus">'+(_obTrailGeometry?'현재 경로 '+_walkingDistance(_obTrailGeometry).toFixed(2)+' km':'')+'</div></div>'
     +'<div class="sg-label">메모 (선택)</div>'
     +'<textarea id="obNote" rows="2" placeholder="예: 우안 하선 후 30m 우회. 수위 높을 때 위험" maxlength="200">'+pmEsc(note)+'</textarea>'
     +'<button class="sg-submit" id="obSave">'+(mode==='edit'?'수정 완료':'추가')+'</button><div id="obMsg"></div>';
@@ -2542,14 +2627,17 @@ async function doSaveObs(){ if(!isAdmin()||!_obLL) return;
   const msg=document.getElementById('obMsg'); msg.style.color='#888'; msg.textContent='저장 중…';
   const kuEl=document.getElementById('obKakaoUrl'), kuRaw=(_obHasKakao(type)&&kuEl)?(kuEl.value||'').trim():'', kakaoUrl=_obKakaoUrl(kuRaw);
   if(kuRaw&&!kakaoUrl){ msg.style.color='#c0392b'; msg.textContent='카카오맵 장소 링크를 확인하세요'; return; }
+  if(type==='육로'&&!_obTrailGeometry){msg.style.color='#c0392b';msg.textContent='육로 GPX 경로를 입력해 주세요.';return;}
   const base=WORKER_URL.replace(/\/+$/,'')+'/obstacle';
   try{ let body;
     if(_obMode==='edit'&&_obCur){ body={action:'edit',adminKey:adminKey(),obsId:_obCur.id,type:type,note:note,name:name,kakaoUrl:kakaoUrl}; }
     else { body={action:'add',adminKey:adminKey(),lat:_obLL.lat,lng:_obLL.lng,type:type,note:note,name:name,kakaoUrl:kakaoUrl}; }
+    body.lat=_obLL.lat;body.lng=_obLL.lng;
+    if(type==='육로'){body.geometry=_obTrailGeometry;const center=L.geoJSON(_obTrailGeometry).getBounds().getCenter();body.lat=center.lat;body.lng=center.lng;}
     const r=await fetch(base,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(r.ok){ const d=await r.json().catch(function(){return {};}); gaEvent('obstacle_'+_obMode); closeObsModal();
       const saved=(d&&d.obstacle)||{id:Date.now(),lat:_obLL.lat,lng:_obLL.lng,type:type,note:note,name:name,kakaoUrl:kakaoUrl};
-      if(_obMode==='edit'&&_obCur){ if(_obCur._m) obstacleLayer.removeLayer(_obCur._m); renderObstacle(Object.assign({},_obCur,saved,{_m:null})); }
+      if(_obMode==='edit'&&_obCur){ if(_obCur._m){if(_obCur.type==='육로')walkingTrailLayer.removeLayer(_obCur._m);else obstacleLayer.removeLayer(_obCur._m);} renderObstacle(Object.assign({},_obCur,saved,{_m:null})); }
       else renderObstacle(saved);
       map.closePopup();
       if(type==='식당/카페'&&!kuRaw) _obToast(saved.kakaoUrl?'카카오맵 '+(saved.kakaoPlaceName||name)+' 자동 연결 완료':'일치 장소가 없어 좌표 링크로 연결했어요');
@@ -2567,7 +2655,7 @@ async function saveObstacleMove(id, lat, lng, m){ if(!isAdmin()) return; const o
 async function deleteObstacle(id){ if(!isAdmin()) return; if(!confirm('이 지형지물을 삭제할까요?')) return;
   const o=_obstacles[id];
   try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/obstacle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',adminKey:adminKey(),obsId:id})});
-    if(r.ok){ if(o&&o._m) obstacleLayer.removeLayer(o._m); delete _obstacles[id]; map.closePopup(); } }catch(e){} }
+    if(r.ok){ if(o&&o._m){if(o.type==='육로')walkingTrailLayer.removeLayer(o._m);else obstacleLayer.removeLayer(o._m);} delete _obstacles[id]; map.closePopup(); } }catch(e){} }
 async function loadComments(){ if(!WORKER_URL||!_pmSlug) return;
   try{ const r=await fetch(WORKER_URL.replace(/\/+$/,'')+'/comments?place='+encodeURIComponent(_pmSlug),{cache:'no-store'}); renderComments(await r.json()); }
   catch(e){ renderComments({}); document.getElementById('pmCmts').innerHTML='<div class="pm-empty">코멘트를 불러오지 못했어요(잠시 후 다시)</div>'; } }
@@ -3416,12 +3504,12 @@ const _legendPrefLayers={
 let _legendPrefsReady=false,_legendPrefsApplying=false,_legendPrefsTouched=false,_legendPrefsTimer=null,_pendingServerLegendPrefs=null,_legendPrefsDesired={};
 function _legendPrefsClean(value){const out={};Object.keys(_legendPrefLayers).forEach(function(key){if(value&&typeof value[key]==='boolean')out[key]=value[key];});return out;}
 function _legendPrefsStorageKey(){const u=getUser();return u&&u.uid?'mc_legend_prefs_'+String(u.uid).slice(0,40):'';}
-function _legendPrefsSnapshot(){const out={},courseRequired=new URLSearchParams(location.search).has('course');Object.keys(_legendPrefLayers).forEach(function(key){out[key]=(key==='courses'&&courseRequired&&typeof _legendPrefsDesired.courses==='boolean')?_legendPrefsDesired.courses:map.hasLayer(_legendPrefLayers[key]);});return out;}
+function _legendPrefsSnapshot(){const out={},courseRequired=new URLSearchParams(location.search).has('course');Object.keys(_legendPrefLayers).forEach(function(key){out[key]=((key==='courses'&&courseRequired)||(key==='obstacles'&&new URLSearchParams(location.search).has('trail')))&&typeof _legendPrefsDesired[key]==='boolean'?_legendPrefsDesired[key]:map.hasLayer(_legendPrefLayers[key]);});return out;}
 function _legendPrefsWriteLocal(prefs){const key=_legendPrefsStorageKey();if(!key)return;try{localStorage.setItem(key,JSON.stringify(_legendPrefsClean(prefs)));}catch(e){}}
 function _legendPrefsReadLocal(){const key=_legendPrefsStorageKey();if(!key)return {};try{return _legendPrefsClean(JSON.parse(localStorage.getItem(key)||'{}'));}catch(e){return {};}}
 function _applyLegendPrefs(value){
   const prefs=_legendPrefsClean(value),courseRequired=new URLSearchParams(location.search).has('course');Object.assign(_legendPrefsDesired,prefs);_legendPrefsApplying=true;
-  Object.keys(prefs).forEach(function(key){const layer=_legendPrefLayers[key],wanted=(key==='courses'&&courseRequired)?true:prefs[key];if(wanted&&!map.hasLayer(layer))map.addLayer(layer);else if(!wanted&&map.hasLayer(layer))map.removeLayer(layer);});
+  Object.keys(prefs).forEach(function(key){const layer=_legendPrefLayers[key],wanted=((key==='courses'&&courseRequired)||(key==='obstacles'&&new URLSearchParams(location.search).has('trail')))?true:prefs[key];if(wanted&&!map.hasLayer(layer))map.addLayer(layer);else if(!wanted&&map.hasLayer(layer))map.removeLayer(layer);});
   _legendPrefsApplying=false;if(_layerControl&&_layerControl._update)_layerControl._update();
 }
 function _sendLegendPrefs(){
@@ -3964,7 +4052,7 @@ function _localSearch(q){
       out.push({kind:'kvplace', label:(pl.cat==='명소'?'📍 ':'🛶 ')+nm, lat:pl.lat, lng:pl.lng, pl:pl}); });
   Object.keys(_obstacles||{}).forEach(function(k){ const o=_obstacles[k]; const nm=o.name||'';
     if(_obAdminOnly(o)&&!isAdmin())return;
-    if(nm && nm.replace(/\s/g,'').toLowerCase().indexOf(nq)>=0){ const t=OBS_TYPES[o.type]||OBS_TYPES['보'];
+    if((nm && nm.replace(/\s/g,'').toLowerCase().indexOf(nq)>=0)||(o.type==='육로'&&nq==='육로')){ const t=OBS_TYPES[o.type]||OBS_TYPES['보'];
       out.push({kind:'obs', label:t.e+' '+nm+(_obAdminOnly(o)?' 🔒 관리자 전용':''), lat:o.lat, lng:o.lng, o:o}); } });
   if(isAdmin()){
     Object.keys(_kvCourses||{}).forEach(function(k){ const c=_kvCourses[k]; const nm=c.name||'';
@@ -4027,6 +4115,7 @@ document.getElementById('srchForm').addEventListener('submit', async (ev)=>{
     else if(x.kind==='place'){ map.setView([x.lat,x.lng],15); openPlaceModal(featPlace(x.feat)); }
     else if(x.kind==='course'){ const cs=x.feat.geometry.coordinates.map(function(c){return [c[1],c[0]];}); _fitAndPop(cs, x.feat.properties.name, x.feat.properties.km); }
     else if(x.kind==='kvplace'){ map.setView([x.lat,x.lng],15); openPlaceModal(x.pl); }
+    else if(x.kind==='obs'&&x.o.type==='육로'){focusWalkingTrail(x.o.id);}
     else if(x.kind==='obs'){ map.setView([x.lat,x.lng],16); L.popup().setLatLng([x.lat,x.lng]).setContent(obsPopup(x.o)).openOn(map); }
     else if(x.kind==='kvcourse'){ _fitAndPop(x.c.coords, x.c.name, x.c.km); }
     else { map.setView([x.lat,x.lng],14); pin.setPopupContent('<b>'+(x.disp||q).slice(0,50)+'</b>'+extLinks(x.lat,x.lng,q)).openPopup(); }
@@ -4423,6 +4512,8 @@ async function doSaveCourse(){
       if(isAdmin()) body={action:'add',adminKey:adminKey(),name:name,color:color,coords:_lastCourse.coords,km:_lastCourse.km,segments:_lastCourse.segments||[]};
       else body={action:'adduser',id:u.uid,tok:u.tok||'',nick:u.nick||'',name:name,color:color,coords:_lastCourse.coords,km:_lastCourse.km,segments:_lastCourse.segments||[]};
     }
+    body.lat=_obLL.lat;body.lng=_obLL.lng;
+    if(type==='육로'){body.geometry=_obTrailGeometry;const center=L.geoJSON(_obTrailGeometry).getBounds().getCenter();body.lat=center.lat;body.lng=center.lng;}
     const r=await fetch(base,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     let saved={}; try{ saved=await r.json(); }catch(e){}
     if(r.ok){

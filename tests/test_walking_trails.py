@@ -15,6 +15,7 @@ class WalkingTrailTests(unittest.TestCase):
         self.assertEqual(props['sourceTitle'], '울진군 고시 제2026-180호')
         self.assertEqual(props['designatedDistanceKm'], 3.10)
         self.assertEqual(props['mode'], 'walking')
+        self.assertEqual(props['type'], '육로')
         self.assertEqual(trail['geometry']['type'], 'MultiLineString')
         distance = 0
         for line in trail['geometry']['coordinates']:
@@ -34,6 +35,8 @@ class WalkingTrailTests(unittest.TestCase):
             self.assertEqual(json.loads(embedded), collection, filename)
             self.assertIn('walkingTrailLayer=L.layerGroup().addTo(obstacleLayer)', html)
             self.assertIn("dashArray:'8 6'", html)
+            self.assertIn('function walkingTrailUrl(id)', html)
+            self.assertIn("q.has('trail')", html)
 
 
 if __name__ == '__main__':
