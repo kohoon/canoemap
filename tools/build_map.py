@@ -3102,6 +3102,7 @@ function courseCmt(kind,id,fromMap){
 // ---- 지형지물(보/징검다리/잠수교/용치/낮은바닥/여울/유명지/강풍지대/식당·카페/캠핑사이트) ----
 // 줌 게이팅: 마커를 전용 pane에 넣고 줌<12(런칭/랜딩 아이콘 전환 기준)에서는 pane 자체를 숨김
 // (레이어 토글과 독립 — 체크 상태 유지한 채 줌으로만 표시/숨김)
+map.createPane('walkingTrailPane'); map.getPane('walkingTrailPane').style.zIndex='510';
 map.createPane('obsPane'); map.getPane('obsPane').style.zIndex='640';
 map.createPane('wlPane');  map.getPane('wlPane').style.zIndex='650';
 map.createPane('damPane'); map.getPane('damPane').style.zIndex='648';
@@ -3110,7 +3111,8 @@ map.createPane('launchPane'); map.getPane('launchPane').style.zIndex='690';   //
 function _zoomPaneGate(){ const on=map.getZoom()>=13?'':'none';
   map.getPane('wlPane').style.display=on; map.getPane('cctvPane').style.display=on;
   map.getPane('damPane').style.display=map.getZoom()>=10?'':'none';
-  map.getPane('obsPane').style.display=map.getZoom()>=13?'':'none'; }
+  map.getPane('obsPane').style.display=map.getZoom()>=13?'':'none';
+  map.getPane('walkingTrailPane').style.display=map.getZoom()>=13?'':'none'; }
 map.on('zoomend', _zoomPaneGate);
 const OBS_TYPES={'보':{c:'obs-bo',e:'🚧',label:'보'},'징검다리':{c:'obs-jing',e:'🪨',label:'징검다리'},'잠수교':{c:'obs-lowbridge',e:'🌉',label:'잠수교'},'용치':{c:'obs-dragons',e:'🔺',label:'용치'},'낮은바닥':{c:'obs-shal',e:'〰️',label:'얕음'},'여울':{c:'obs-yeoul',e:'🌊',label:'여울'},'통과지점':{c:'obs-pass',e:'↓',label:'통과지점'},'유명지':{c:'obs-spot',e:'⭐',label:'유명지'},'강풍지대':{c:'obs-wind',e:'💨',label:'강풍지대'},'식당/카페':{c:'obs-food',e:'🍽️',label:'식당/카페'},'캠핑사이트':{c:'obs-camp',e:'🏕️',label:'캠핑사이트',adminOnly:true},'계곡':{c:'obs-valley',e:'🏞️',label:'계곡',adminOnly:true},'육로':{c:'obs-land',e:'🥾',label:'육로'}};
 function _obHasName(ty){ return !!OBS_TYPES[ty]; }
@@ -3132,7 +3134,7 @@ function _obKakaoLink(o){
 const obstacleLayer=L.layerGroup();
 // 육로도 일반 지형지물과 같은 ID·검색·관리자 편집 흐름을 사용한다.
 const walkingTrailLayer=L.layerGroup().addTo(obstacleLayer);
-map.createPane('walkingFocusPane');map.getPane('walkingFocusPane').style.zIndex='640';
+map.createPane('walkingFocusPane');map.getPane('walkingFocusPane').style.zIndex='510';
 const _walkingTrailSeeds={};
 let _activeWalkingTrailId='';
 const _obstacles={};
@@ -3168,7 +3170,7 @@ function _walkingPopup(o){
 }
 function _renderWalkingTrail(o){
   if(!o.geometry||!['LineString','MultiLineString'].includes(o.geometry.type))return;
-  const pane=o.id===_activeWalkingTrailId?'walkingFocusPane':'obsPane';
+  const pane=o.id===_activeWalkingTrailId?'walkingFocusPane':'walkingTrailPane';
   const group=L.featureGroup(),feature={type:'Feature',properties:{},geometry:o.geometry};
   L.geoJSON(feature,{pane:pane,interactive:false,style:{color:'#fff',weight:8,opacity:.9}}).addTo(group);
   const line=L.geoJSON(feature,{pane:pane,style:{color:'#8d4e28',weight:5,opacity:1,dashArray:'8 6',lineCap:'round'}}).addTo(group);
