@@ -278,6 +278,7 @@ __GTAG__
   .obs-wind{background:#7e57c2}
   .obs-dragons{background:#455a64}
   .obs-food{background:#00897b}
+  .obs-food.obs-icon-only{width:34px;height:34px;font-size:18px}
   .obs-camp{background:#33691e}
   .obs-valley{background:#00796b}
   .admin-only-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 5px;border:1px solid #ccd5dc;border-radius:5px;background:#eef2f5;color:#455a64;font:600 10px/1.35 sans-serif;white-space:nowrap;vertical-align:middle}
@@ -289,8 +290,8 @@ __GTAG__
   .wp-ring{display:block;width:18px;height:18px;box-sizing:border-box;border:5px solid #1976d2;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5),0 0 0 2px rgba(255,255,255,.9)}
   .wp-ring.risk{width:20px;height:20px;border-color:#d32f2f;box-shadow:0 1px 5px rgba(0,0,0,.55),0 0 0 2px #fff}
   #obName,#obKakaoUrl{width:100%;box-sizing:border-box;padding:9px;border:1px solid #ccd;border-radius:9px;font-size:13.5px;margin-bottom:10px}
-  .leaflet-div-icon.obs-div{background:transparent;border:0;width:auto!important;height:auto!important}
-  .obs-div .obs-ic{position:absolute;transform:translate(-50%,-50%)}
+  .obs-div{background:transparent;border:0}
+  .obs-div .obs-ic{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
   #obBody .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
   #obBody .seg-b{padding:9px 5px;font-size:12px}
   #obBody .seg-b[data-ty="캠핑사이트"]{grid-column:2}
@@ -2318,6 +2319,7 @@ if(isTouch){
   map.doubleClickZoom.disable();   // 더블탭 줌 끄고 주소 보기로 사용(줌은 좌하단 버튼)
   const el=map.getContainer(); let lastTap=0, lx=0, ly=0;
   el.addEventListener('touchend', function(e){
+    if(e.target.closest&&e.target.closest('.leaflet-marker-icon,.leaflet-popup,.leaflet-control')){lastTap=0;return;}
     if(measureMode) return;
     if(e.changedTouches.length!==1) return;
     const t=e.changedTouches[0], now=Date.now();
@@ -3201,7 +3203,7 @@ WALKING_TRAILS.features.forEach(function(feature){
 setTimeout(_focusWalkingTrailFromUrl,0);
 function staticWeirId(w){ return 'weir:'+encodeURIComponent(String(w.nm||'보'))+'|'+Number(w.lat).toFixed(5)+'|'+Number(w.lng).toFixed(5); }
 function _obDisplayName(o){const t=OBS_TYPES[o&&o.type]||OBS_TYPES['보'];return (o&&o.name&&String(o.name).trim())?String(o.name).trim():t.label;}
-function obsIcon(type,name,alwaysLabel){const t=OBS_TYPES[type]||OBS_TYPES['보'],showName=type==='유명지'||!!alwaysLabel,raw=(name&&String(name).trim())?String(name).trim():t.label,disp=pmEsc(raw);return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+(showName?'':' obs-icon-only')+'" aria-label="'+pmEsc(raw+(_obAdminOnly({type:type})?' · 관리자 전용':''))+'">'+t.e+(showName?' '+disp:'')+(_obAdminOnly({type:type})?'<span class="obs-private-lock" aria-hidden="true">🔒</span>':'')+'</span>',iconSize:null});}
+function obsIcon(type,name,alwaysLabel){const t=OBS_TYPES[type]||OBS_TYPES['보'],showName=type==='유명지'||!!alwaysLabel,raw=(name&&String(name).trim())?String(name).trim():t.label,disp=pmEsc(raw);return L.divIcon({className:'obs-div',html:'<span class="obs-ic '+t.c+(showName?'':' obs-icon-only')+'" aria-label="'+pmEsc(raw+(_obAdminOnly({type:type})?' · 관리자 전용':''))+'">'+t.e+(showName?' '+disp:'')+(_obAdminOnly({type:type})?'<span class="obs-private-lock" aria-hidden="true">🔒</span>':'')+'</span>',iconSize:[44,44],iconAnchor:[22,22]});}
 function obsPopup(o){ if(_obAdminOnly(o)&&!isAdmin())return ''; if(o.type==='육로')return _walkingPopup(o); const t=OBS_TYPES[o.type]||OBS_TYPES['보']; const nm=(o.name&&String(o.name).trim())?pmEsc(String(o.name).trim()):'';
   const kakao=o.type==='식당/카페'?'<div style="margin:8px 0 4px"><a href="'+_obKakaoLink(o)+'" target="_blank" rel="noopener" style="color:#1565c0;font-weight:700">🟡 카카오맵 장소 상세</a></div>':'';
   const matched=o.kakaoPlaceName?'<div style="margin:6px 0 0;color:#60747c;font-size:11.5px">카카오맵 자동 연결: '+pmEsc(o.kakaoPlaceName)+(isFinite(Number(o.kakaoMatchDistance))?' · '+Math.round(Number(o.kakaoMatchDistance))+'m':'')+'</div>':'';
