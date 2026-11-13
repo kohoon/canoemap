@@ -52,7 +52,7 @@ for(const width of [1360,390]){
       expect(await page.evaluate(()=>_combinedErrors)).toEqual([]);
       expect(await page.evaluate(()=>map.getCenter().lng)).toBeGreaterThan(129);
       await page.locator('#combinedRouteBar button').filter({hasText:'공유'}).click();
-      const shared=await page.evaluate(()=>window.__shared);expect(new URL(shared).searchParams.get('routes')).toBe(refs.join(','));
+      const shared=await page.evaluate(()=>window.__shared);expect(new URL(shared).pathname).toBe('/routes');expect(new URL(shared).searchParams.get('routes')).toBe(refs.join(','));
       await page.locator('#combinedRouteBar button').filter({hasText:'구간'}).click();
       await expect(page.locator('#combinedRoutesModal')).toHaveClass(/open/);
       await expect(page.locator('.combined-row')).toHaveCount(2);

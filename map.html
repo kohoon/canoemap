@@ -4725,7 +4725,7 @@ function combinedRouteRefs() {
   const refs = raw.split(',').map(normalizeCombinedRef);
   return refs.every(Boolean) ? [...new Set(refs)] : [];
 }
-function combinedRouteUrl(refs) {
+function combinedRouteViewUrl(refs) {
   const clean = [...new Set(refs.map(normalizeCombinedRef).filter(Boolean))];
   const u = new URL(
     '/',
@@ -4735,6 +4735,14 @@ function combinedRouteUrl(refs) {
   );
   u.searchParams.set('routes', clean.join(','));
   return u.toString();
+}
+function combinedRouteUrl(refs) {
+  const url = new URL('/routes', WORKER_URL);
+  url.searchParams.set(
+    'routes',
+    [...new Set(refs.map(normalizeCombinedRef).filter(Boolean))].join(',')
+  );
+  return url.toString();
 }
 function isCombinedTrail(id) {
   return combinedRouteRefs().includes('trail:' + String(id).replace(/^trail:/, ''));
@@ -5265,7 +5273,7 @@ function openCombinedRoutes(seed) {
     };
     document.getElementById('combinedAdd').onclick = addCombinedUrl;
     document.getElementById('combinedShow').onclick = function () {
-      const u = new URL(combinedRouteUrl(_combinedDraft));
+      const u = new URL(combinedRouteViewUrl(_combinedDraft));
       history.pushState(null, '', u.pathname + u.search);
       modal.classList.remove('open');
       showCombinedRoutes();

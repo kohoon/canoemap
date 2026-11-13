@@ -11,6 +11,7 @@ import {
   NICK_CHANGE_INTERVAL_MS,
   publicMemberSummary,
 } from "./member-security.mjs";
+import { parseCombinedRefs, combinedPreviewRecords, combinedPreviewVersion, combinedPreviewImage, combinedShareHtml } from "./combined-preview.mjs";
 import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
 import { normalizeRiverShare, riverShareHtml, riverShareId } from "./river-share.mjs";
 import { MEASURE_SHARE_CORRECTIONS } from "./measure-share-corrections.mjs";
@@ -423,6 +424,32 @@ export default {
     // B: 쓰기성 POST는 우리 사이트 Origin에서만(타 사이트 브라우저 JS 차단). Origin 없으면 통과(이미지/툴).
     if (req.method === "POST" && !_allowedOrigin(req, env)) {
       return new Response("forbidden-origin", { status: 403, headers: { "Access-Control-Allow-Origin": req.headers.get("Origin") || "*" } });
+    }
+
+    // A public card resolves the same existing course/trail references as the map.
+    if (url.pathname === "/routes" || url.pathname === "/routes-preview.png") {
+      if (req.method !== "GET" && req.method !== "HEAD") return new Response("method", { status: 405 });
+      const refs = parseCombinedRefs(url.searchParams.get("routes"));
+      if (!refs?.length) return new Response("invalid routes", { status: 400 });
+      try {
+        const { records, missing } = await combinedPreviewRecords(env, refs);
+        if (!records.length) return new Response("routes not found", { status: 404 });
+        const version = await combinedPreviewVersion(records, missing);
+        if (url.pathname === "/routes-preview.png") {
+          if (req.method === "HEAD") return new Response(null, { headers: { "Content-Type": "image/png", "Access-Control-Allow-Origin": "*" } });
+          const image = await combinedPreviewImage(env, records, version);
+          return new Response(image, { headers: { "Content-Type": "image/png", "Content-Length": String(image.byteLength), "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*", "ETag": '"' + version + '"' } });
+        }
+        const site = new URL(env.SITE_URL || "https://canoe.crowdbase.kr/");
+        site.searchParams.set("routes", refs.join(","));
+        const canonical = new URL("/routes", url.origin);canonical.searchParams.set("routes", refs.join(","));
+        const image = new URL("/routes-preview.png", url.origin);image.searchParams.set("routes", refs.join(","));image.searchParams.set("v", version);
+        const html = combinedShareHtml({ records, missing, shareUrl: canonical.href, targetUrl: site.href, imageUrl: image.href });
+        return new Response(req.method === "HEAD" ? null : html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60" } });
+      } catch (error) {
+        const missing = ["route-not-found", "invalid-route"].includes(error.message);
+        return new Response(missing ? "route not found" : "preview unavailable", { status: missing ? 404 : 503, headers: { "Cache-Control": "no-store" } });
+      }
     }
 
     // 물줄기별 지도 이미지가 포함된 공유 카드. 기존 ?river= 링크는 그대로 유지한다.

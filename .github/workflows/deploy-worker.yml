@@ -73,6 +73,9 @@ jobs:
       - name: Verify river share preview
         run: node tests/test_river_share.mjs
 
+      - name: Verify combined route preview images
+        run: node tests/test_combined_preview.mjs
+
       - name: Deploy Cloudflare Worker
         run: npx --yes wrangler deploy --config wrangler.toml
         env:
