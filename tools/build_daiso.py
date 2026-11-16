@@ -28,6 +28,10 @@ REGIONS = [
     "서울", "경기", "인천", "강원", "광주", "대전", "울산", "세종",
     "충북", "충남", "전북", "전남", "경북", "경남", "대구", "부산", "제주",
 ]
+# Upstream now searches the former Gwangju districts under Jeonnam. Keep the
+# current snapshot's 17-region contract until the map's region migration; these
+# labels are compatibility buckets, not a claim about current administrative units.
+GWANGJU_DISTRICTS = frozenset({"광산구", "동구", "서구", "남구", "북구"})
 
 
 def read_url(url: str, attempts: int = 3) -> str:
@@ -125,7 +129,7 @@ def fetch_stores(region: str, gugun: str = "", dong: str = "") -> list[dict]:
     parser = StoreParser()
     parser.feed(body)
     for store in parser.stores:
-        store["region"] = region
+        store["region"] = "광주" if region == "전남" and gugun in GWANGJU_DISTRICTS else region
     return parser.stores
 
 
