@@ -1,0 +1,69 @@
+name: QA only - validate nationwide store refresh
+on:
+  push:
+    branches: ['qa/store-refresh-validation-20261116']
+permissions:
+  contents: read
+jobs:
+  validate-only:
+    if: github.ref == 'refs/heads/qa/store-refresh-validation-20261116'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Collect official nationwide store layers and enforce existing guards
+        run: python3 -u tools/refresh_stores.py
+      - name: Verify refreshed store layers
+        run: python3 -m unittest discover -s tests -p 'test_*_layer.py'
+      - name: Verify counts, five Gwangju districts and cache-only edits
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import collections, hashlib, json, pathlib, re, subprocess
+          expected = {'광산구', '동구', '서구', '남구', '북구'}
+          hashes = {}
+          for layer in ('daiso', 'hanaro'):
+              path = layer + '_stores.geojson'
+              baseline = json.loads(subprocess.check_output(['git', 'show', 'HEAD:' + path]))
+              fresh_bytes = pathlib.Path(path).read_bytes()
+              fresh = json.loads(fresh_bytes)
+              hashes[layer] = hashlib.sha1(fresh_bytes).hexdigest()[:8]
+              before, after = baseline['features'], fresh['features']
+              counts = [collections.Counter(f['properties']['region'] for f in items) for items in (before, after)]
+              if layer == 'daiso':
+                  keys = [(f['properties']['name'].replace(' ', ''), *(round(float(x), 7) for x in f['geometry']['coordinates'])) for f in after]
+              else:
+                  keys = [f['properties']['id'] for f in after]
+              duplicates = len(keys) - len(set(keys))
+              district_counts = collections.Counter()
+              for f in after:
+                  p = f['properties']
+                  if p['region'] != '광주':
+                      continue
+                  m = re.search(r'(?:전남광주통합특별시|광주광역시|광주)\s+(광산구|동구|서구|남구|북구)(?:\s|$)', p.get('address') or '')
+                  district_counts[p.get('district') or (m[1] if m else 'unmatched')] += 1
+              print(f'{layer}: stores {len(before)} -> {len(after)}; regions {len(counts[0])} -> {len(counts[1])}; duplicates {duplicates}; missing details {fresh["metadata"].get("missingOfficialDetails", "not reported")}; Gwangju {dict(district_counts)}')
+              if not counts[0].keys() <= counts[1].keys() or duplicates:
+                  raise SystemExit(f'{layer}: missing coverage or duplicate keys')
+              if layer == 'daiso' and not expected <= district_counts.keys():
+                  raise SystemExit(f'{layer}: at least one former Gwangju district missing from the refreshed data')
+          for path in ('index.html', 'map.html', 'test.html', 'tour/legacy.html'):
+              baseline = subprocess.check_output(['git', 'show', 'HEAD:' + path])
+              expected_bytes = baseline
+              for layer, digest in hashes.items():
+                  pattern = rb'(\b' + layer.encode() + rb':\s*")[a-f0-9]+(")'
+                  expected_bytes, n = re.subn(pattern, lambda m: m[1] + digest.encode() + m[2], expected_bytes)
+                  if n != 1:
+                      raise SystemExit(f'{path}: expected one cache key per store layer')
+              if pathlib.Path(path).read_bytes() != expected_bytes:
+                  raise SystemExit(f'{path}: changes other than expected cache keys')
+              print(f'{path}: both cache keys match, all other bytes unchanged')
+          print('Geometry, count and coverage guards passed; nothing was published.')
+          PY
