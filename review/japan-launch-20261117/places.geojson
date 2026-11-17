@@ -1,0 +1,3661 @@
+{
+  "type": "FeatureCollection",
+  "name": "일본 123개 수역 런칭·랜딩 조사",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          144.3258606,
+          43.5579182
+        ]
+      },
+      "properties": {
+        "number": 1,
+        "waterbody": "釧路川",
+        "region": "北海道",
+        "name": "屈斜路湖ウォータースポーツ交流公園",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "기존 眺湖橋 진수지는 2025년 7월 2일 폐쇄. 대체 屈斜路ウォータースポーツ交流公園 지정 슬립은 유료(1일 520엔), 5월 1일~10월 22일 8~16시 운영 안내. 구시로강 입강신고·시설 접수 조건 확인 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://masyuko.or.jp/news/canoe_2507/",
+        "sources": [
+          "https://kushiro-canoe.net/入船届",
+          "https://masyuko.or.jp/news/canoe_2507/",
+          "https://www.town.teshikaga.hokkaido.jp/kurashi/soshikiichiran/kankyoseikatsuka/3/1/896.html",
+          "https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          144.3112721,
+          43.5780882
+        ]
+      },
+      "properties": {
+        "number": 2,
+        "waterbody": "屈斜路湖",
+        "region": "北海道",
+        "name": "和琴半島 東側浜",
+        "coordinate_type": "reported_water_access",
+        "permission": "conditional",
+        "permission_note": "환경성 지정 발착 구역 이용. 친수·수영 구역 진수 금지.",
+        "access": "런칭·랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인.",
+        "source": "https://hokkaidowilds.org/water/lake-kussharo-steam-vents-canoeing",
+        "sources": [
+          "https://hokkaido.env.go.jp/kushiro/content/000333848.pdf",
+          "https://hokkaido.env.go.jp/kushiro/page_00001.html",
+          "https://hokkaidowilds.org/water/lake-kussharo-steam-vents-canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.4073766,
+          42.7437908
+        ]
+      },
+      "properties": {
+        "number": 3,
+        "waterbody": "支笏湖",
+        "region": "北海道",
+        "name": "モラップキャンプ場 湖畔",
+        "coordinate_type": "reported_water_access",
+        "permission": "conditional",
+        "permission_note": "환경성 허용 진수지. 캠핑장 유료 이용·접수 조건 확인.",
+        "access": "런칭·랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://hokkaidowilds.org/water/lake-shikotsu-circumnavigation",
+        "sources": [
+          "https://hokkaido.env.go.jp/content/000195926.pdf",
+          "https://www.shikotuko.jp/ja/checklist/",
+          "https://hokkaidowilds.org/water/lake-shikotsu-circumnavigation"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.5756683,
+          42.8092412
+        ]
+      },
+      "properties": {
+        "number": 4,
+        "waterbody": "千歳川",
+        "region": "北海道",
+        "name": "第一鳥柵舞橋 下流河原",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "현지 운영자의 강 투어 출발 지점. 개인艇 동반 투어 할인 확인. 단독 이용·주차 조건 미확인.",
+        "access": "런칭 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://hokkaidowilds.org/water/chitose-river-daytrip",
+        "sources": [
+          "https://r.goope.jp/pennennolde/reservation",
+          "https://hokkaidowilds.org/water/chitose-river-daytrip"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.6405444,
+          42.8186805
+        ]
+      },
+      "properties": {
+        "number": 4,
+        "waterbody": "千歳川",
+        "region": "北海道",
+        "name": "千歳市スポーツセンター前 河原",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "현지 운영자의 강 투어 출발 지점. 개인艇 동반 투어 할인 확인. 단독 이용·주차 조건 미확인.",
+        "access": "랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인.",
+        "source": "https://hokkaidowilds.org/water/chitose-river-daytrip",
+        "sources": [
+          "https://r.goope.jp/pennennolde/reservation",
+          "https://hokkaidowilds.org/water/chitose-river-daytrip"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.7180595,
+          42.7658081
+        ]
+      },
+      "properties": {
+        "number": 5,
+        "waterbody": "美々川",
+        "region": "北海道",
+        "name": "松美々橋 カヌーポート",
+        "coordinate_type": "reported_water_access",
+        "permission": "conditional",
+        "permission_note": "시 지정 카누 포트 이용. 포트 밖 승하선·야간 이용 금지. 이용 연락 절차 확인.",
+        "access": "런칭 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인.",
+        "source": "https://hokkaidowilds.org/water/bibi-river-canoeing",
+        "sources": [
+          "https://www.city.tomakomai.hokkaido.jp/shizen/koen/koenichiran/tappukoppu.html",
+          "https://hokkaidowilds.org/water/bibi-river-canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.710439,
+          42.7233239
+        ]
+      },
+      "properties": {
+        "number": 5,
+        "waterbody": "美々川",
+        "region": "北海道",
+        "name": "タップコップ親水公園 カヌーポート",
+        "coordinate_type": "reported_water_access",
+        "permission": "conditional",
+        "permission_note": "시 지정 카누 포트 이용. 포트 밖 승하선·야간 이용 금지. 이용 연락 절차 확인.",
+        "access": "랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://hokkaidowilds.org/water/bibi-river-canoeing",
+        "sources": [
+          "https://www.city.tomakomai.hokkaido.jp/shizen/koen/koenichiran/tappukoppu.html",
+          "https://hokkaidowilds.org/water/bibi-river-canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.9182296,
+          42.6113464
+        ]
+      },
+      "properties": {
+        "number": 6,
+        "waterbody": "洞爺湖",
+        "region": "北海道",
+        "name": "仲洞爺キャンプ場 湖畔",
+        "coordinate_type": "reported_water_access",
+        "permission": "conditional",
+        "permission_note": "도야 지구 공식 비동력선 발착 장소. 시설 주차장·해변 이용 규칙 준수.",
+        "access": "런칭·랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인.",
+        "source": "https://hokkaidowilds.org/water/lake-toya-center-island-from-nakatoya-campground",
+        "sources": [
+          "https://www.town.sobetsu.lg.jp/uploads/20240815_hidouryokusen_rule.pdf",
+          "https://www.ezonature.com/仲洞爺アクティビティベース/",
+          "https://toya-guide.com/",
+          "https://www.ezonature.com/",
+          "https://hokkaidowilds.org/water/lake-toya-center-island-from-nakatoya-campground"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          143.1055575,
+          43.2732195
+        ]
+      },
+      "properties": {
+        "number": 7,
+        "waterbody": "然別湖",
+        "region": "北海道",
+        "name": "然別湖温泉 湖畔",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "특별 낚시 개방 운영자는 반입 접수 후 1·2의 만에서 발착 안내. 일반 패들링 적용 조건 별도 확인.",
+        "access": "런칭·랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://hokkaidowilds.org/water/lake-shikaribetsu-overnight-canoe-tour",
+        "sources": [
+          "https://www.shikaribetsu.com/c/faq/",
+          "https://www.shikaribetsu.com/c/access/",
+          "https://hokkaidowilds.org/water/lake-shikaribetsu-overnight-canoe-tour"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          144.085954,
+          43.439946
+        ]
+      },
+      "properties": {
+        "number": 8,
+        "waterbody": "阿寒湖",
+        "region": "北海道",
+        "name": "阿寒湖 遊覧船整備場北側の浜",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "호수 카누 이용 사례 확인. 개인 반입·구역 규칙과 진수 지점의 최신 관리 조건 미확인.",
+        "access": "런칭·랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인.",
+        "source": "https://hokkaidowilds.org/water/lake-akan-paddling",
+        "sources": [
+          "https://hokkaidowilds.org/canoe/lake-akan-canoeing",
+          "https://hokkaidowilds.org/water/lake-akan-paddling"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          144.2230189,
+          43.9952689
+        ]
+      },
+      "properties": {
+        "number": 9,
+        "waterbody": "網走湖",
+        "region": "北海道",
+        "name": "呼人浦キャンプ場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "관광협회가 안내하는 아바시리호 카누 현장. 개인 반입 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://visit-abashiri.jp/play/a3fd2e952aad065dff3ecf0af1579f50096a5cd2.html",
+        "sources": [
+          "https://visit-abashiri.jp/play/a3fd2e952aad065dff3ecf0af1579f50096a5cd2.html",
+          "https://club.montbell.jp/privilege/fshop/friendareafield/disp.php?friendarea_field_id=0000104"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          144.0978866,
+          43.8368519
+        ]
+      },
+      "properties": {
+        "number": 10,
+        "waterbody": "網走川",
+        "region": "北海道",
+        "name": "美幌町 河原",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "호수 유출부로 이어지는 운영자 투어 이용 사례. 개인 반입과 강 하류 상륙 지점 미확인.",
+        "access": "런칭 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인.",
+        "source": "https://hokkaidowilds.org/water/abashiri-river-canoeing",
+        "sources": [
+          "https://www.jalan.net/kankou/spt_guide000000224014/activity/l0000597A4/?showplan=ichiran_guide",
+          "https://news.mynavi.jp/article/20120720-a202/",
+          "https://hokkaidowilds.org/water/abashiri-river-canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          144.2647602,
+          44.0235297
+        ]
+      },
+      "properties": {
+        "number": 10,
+        "waterbody": "網走川",
+        "region": "北海道",
+        "name": "網走市 中央橋・網走橋間 河岸",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "호수 유출부로 이어지는 운영자 투어 이용 사례. 개인 반입과 강 하류 상륙 지점 미확인.",
+        "access": "랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인.",
+        "source": "https://hokkaidowilds.org/water/abashiri-river-canoeing",
+        "sources": [
+          "https://www.jalan.net/kankou/spt_guide000000224014/activity/l0000597A4/?showplan=ichiran_guide",
+          "https://news.mynavi.jp/article/20120720-a202/",
+          "https://hokkaidowilds.org/water/abashiri-river-canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.7408462,
+          44.8843522
+        ]
+      },
+      "properties": {
+        "number": 11,
+        "waterbody": "天塩川",
+        "region": "北海道",
+        "name": "天塩町 天塩川河川公園",
+        "coordinate_type": "reported_water_access",
+        "permission": "conditional",
+        "permission_note": "정이 운영하는 카누 포트·잔교. 포트 이용 허가 신청 필요. 5~10월 이용 안내.",
+        "access": "랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://hokkaidowilds.org/water/teshio-river-multiday-canoe-trip",
+        "sources": [
+          "https://www.teshiotown.hokkaido.jp/?page_id=670",
+          "https://hokkaidowilds.org/water/teshio-river-multiday-canoe-trip"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.6112607,
+          45.2597497
+        ]
+      },
+      "properties": {
+        "number": 12,
+        "waterbody": "勇知川",
+        "region": "北海道",
+        "name": "勇知川 カヤック乗り場",
+        "coordinate_type": "reference_only",
+        "permission": "unverified",
+        "permission_note": "하류 카약 투어 현장 확인. 개인 카누 반입과 발착 장소 공개 자료 추가 확인 필요.",
+        "access": "시설·수역 참고 위치. 실제 발착점은 공개 자료로 확정하지 못함.",
+        "source": "https://www.env.go.jp/nature/nationalparks/try/all/act1178.html",
+        "sources": [
+          "https://www.env.go.jp/nature/nationalparks/try/all/act1178.html",
+          "https://www.cartogiraffe.com/%E6%97%A5%E6%9C%AC/%E5%8C%97%E6%B5%B7%E9%81%93%E5%9C%B0%E6%96%B9/%E5%8C%97%E6%B5%B7%E9%81%93/%E5%AE%97%E8%B0%B7%E7%B7%8F%E5%90%88%E6%8C%AF%E8%88%88%E5%B1%80/%E7%A8%9A%E5%86%85%E5%B8%82/%E6%8A%9C%E6%B5%B7%E6%9D%91/%E5%8B%87%E7%9F%A5/%E5%8B%87%E7%9F%A5%E5%B7%9D/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.6680273,
+          41.9872943
+        ]
+      },
+      "properties": {
+        "number": 13,
+        "waterbody": "大沼",
+        "region": "北海道",
+        "name": "大沼 西岸 線路沿いの浜",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "나나에정의 오누마. 아쓰마정의 동명 캠핑장과 구별. 개인 반입·물가 접근 조건 확인 필요.",
+        "access": "런칭·랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인.",
+        "source": "https://hokkaidowilds.org/water/onuma-quasi-national-park-canoeing",
+        "sources": [
+          "https://www.town.nanae.hokkaido.jp/hotnews/detail/00000297.html",
+          "https://hokkaidowilds.org/water/onuma-quasi-national-park-canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.4991729,
+          42.8066158
+        ]
+      },
+      "properties": {
+        "number": 14,
+        "waterbody": "尻別川",
+        "region": "北海道",
+        "name": "栄橋 カヌー発着点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "하류 약 5km 카누 투어 확인. 개인 발착 장소·반입 조건 추가 확인 필요.",
+        "access": "런칭 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인.",
+        "source": "https://hokkaidowilds.org/water/lower-shiribetsu-river-canoeing",
+        "sources": [
+          "https://www.jalan.net/kankou/spt_guide000000180904/activity/l000024764/",
+          "https://www.noc-hokkaido.jp/canoeing/1/",
+          "https://hokkaidowilds.org/water/lower-shiribetsu-river-canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.4536902,
+          42.8196127
+        ]
+      },
+      "properties": {
+        "number": 14,
+        "waterbody": "尻別川",
+        "region": "北海道",
+        "name": "名駒 カヌー上陸点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "하류 약 5km 카누 투어 확인. 개인 발착 장소·반입 조건 추가 확인 필요.",
+        "access": "랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://hokkaidowilds.org/water/lower-shiribetsu-river-canoeing",
+        "sources": [
+          "https://www.jalan.net/kankou/spt_guide000000180904/activity/l000024764/",
+          "https://www.noc-hokkaido.jp/canoeing/1/",
+          "https://hokkaidowilds.org/water/lower-shiribetsu-river-canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          142.4920901,
+          43.1572352
+        ]
+      },
+      "properties": {
+        "number": 15,
+        "waterbody": "かなやま湖",
+        "region": "北海道",
+        "name": "かなやま湖畔キャンプ場 砂浜",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "호반 캠핑장 주변 카누 이용 확인. 개인 반입·주차 규정 미확인.",
+        "access": "런칭·랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인.",
+        "source": "https://hokkaidowilds.org/water/lake-kanayama-canoeing",
+        "sources": [
+          "https://www.minamifurano-kousya.com/camp.php",
+          "https://club.montbell.jp/privilege/fshop/friendareafield/disp.php?friendarea_field_id=0000007",
+          "https://hokkaidowilds.org/water/lake-kanayama-canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          142.1832071,
+          44.3073593
+        ]
+      },
+      "properties": {
+        "number": 16,
+        "waterbody": "朱鞠内湖",
+        "region": "北海道",
+        "name": "朱鞠内湖 前浜 公共進水場",
+        "coordinate_type": "reported_water_access",
+        "permission": "conditional",
+        "permission_note": "반입 신고·지정 장비·복수인 이용 규칙. 발착은 마에하마·캠핑장 내부로 한정.",
+        "access": "런칭·랜딩 지점으로 현장 패들링 보고서에 명시. 현재 시설 이용 조건은 별도 확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://hokkaidowilds.org/water/lake-shumarinai-canoeing",
+        "sources": [
+          "https://www.shumarinai.jp/fishing/trouts/rules02/",
+          "https://hokkaidowilds.org/water/lake-shumarinai-canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          144.5106903,
+          43.1534789
+        ]
+      },
+      "properties": {
+        "number": 17,
+        "waterbody": "塘路湖",
+        "region": "北海道",
+        "name": "塘路元村キャンプ場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "환경성 카누 스테이션 안내 시설. 구시로강으로 이동할 때 개인 입강신고·지정 포트 규칙 확인. 캠핑장 진수·주차의 최신 접수 조건은 현장 확인 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.oldplace946.com/summer-activity/",
+        "sources": [
+          "https://www.oldplace946.com/summer-activity/",
+          "https://www.kushiro-shitsugen-np.jp/fureai/motomura/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          143.8728138,
+          43.6462657
+        ]
+      },
+      "properties": {
+        "number": 18,
+        "waterbody": "チミケップ湖",
+        "region": "北海道",
+        "name": "チミケップ湖キャンプ場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "관광협회 안내 카누 현장. 개인 반입의 최신 관리 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://visit-abashiri.jp/play/a3fd2e952aad065dff3ecf0af1579f50096a5cd2.html",
+        "sources": [
+          "https://www.okhotskool.jp/okhotsk_info/1169/",
+          "https://www.kanritsuriba.com/cgi-bin/doutou/timikeppuko/wakasagi.cgi"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.9348104,
+          40.4468755
+        ]
+      },
+      "properties": {
+        "number": 19,
+        "waterbody": "十和田湖",
+        "region": "東北",
+        "name": "レークパークうたるべ",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "우타루베 캠핑장 운영자가 캠핑장 외 개인 카누·카약 진수 장소로 안내.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://utarube-campground.com/",
+        "sources": [
+          "https://utarube-campground.com/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.3586292,
+          40.7362504
+        ]
+      },
+      "properties": {
+        "number": 20,
+        "waterbody": "小川原湖",
+        "region": "東北",
+        "name": "小川原湖畔キャンプ場 三沢市",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "관광협회 카누·카약 이용 소개. 수영 부표 구역 진입 금지. 개인 진수 범위 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://kite-misawa.com/camp/",
+        "sources": [
+          "https://kite-misawa.com/camp/",
+          "https://ogawarako.co.jp/park/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.2586844,
+          40.2159924
+        ]
+      },
+      "properties": {
+        "number": 21,
+        "waterbody": "米代川",
+        "region": "東北",
+        "name": "道の駅ふたつい カヌー艇庫",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 카누 체험 수변. 개인艇 이용·하류 상륙 절차 미확인.",
+        "access": "자료에서 안내한 시설 주변의 물가·슬로프를 Esri와 국토지리원 영상으로 대조한 후보. 현장 통행·시설 이용 조건은 별도 확인 필요.",
+        "source": "https://www.city.noshiro.lg.jp/res/kanko/experience/menu/16984",
+        "sources": [
+          "https://www.city.noshiro.lg.jp/res/kanko/experience/menu/16984",
+          "https://www.mlit.go.jp/river/kankyo/main/kankyou/machizukuri/map/tohoku/futatsui_kimimachi.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.6968276,
+          39.734471
+        ]
+      },
+      "properties": {
+        "number": 22,
+        "waterbody": "田沢湖",
+        "region": "東北",
+        "name": "田沢湖 春山",
+        "coordinate_type": "imagery_water_access",
+        "permission": "allowed",
+        "permission_note": "센보쿠시가 개인 카누 승하선 구역으로 명시. 유람선 발착·항로 피하기.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.city.semboku.akita.jp/sightseeing/spot/04_tazawako_1.html",
+        "sources": [
+          "https://www.city.semboku.akita.jp/sightseeing/spot/04_tazawako_1.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.133534,
+          38.2984044
+        ]
+      },
+      "properties": {
+        "number": 23,
+        "waterbody": "最上川",
+        "region": "東北",
+        "name": "スタート地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "관광협회가 다마노이·유키야 발착장 명시. 개인 시설 이용 조건 미확인.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/tohoku/mogami/",
+        "sources": [
+          "https://asahimachi-kanko.jp/detail/?no=198",
+          "https://canoe-map.com/tohoku/mogami/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.167443,
+          38.333305
+        ]
+      },
+      "properties": {
+        "number": 23,
+        "waterbody": "最上川",
+        "region": "東北",
+        "name": "ゴールの駐車場",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "관광협회가 다마노이·유키야 발착장 명시. 개인 시설 이용 조건 미확인.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/tohoku/mogami/",
+        "sources": [
+          "https://asahimachi-kanko.jp/detail/?no=198",
+          "https://canoe-map.com/tohoku/mogami/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.9002359,
+          37.9295158
+        ]
+      },
+      "properties": {
+        "number": 24,
+        "waterbody": "白川湖",
+        "region": "東北",
+        "name": "白川荘 カヌー乗り場",
+        "coordinate_type": "facility_lead",
+        "permission": "conditional",
+        "permission_note": "댐 수면 이용 신고 후 시라카와소 뒤편 지정 슬로프. 주차·접수 방법 사전 확인.",
+        "access": "시설·대표 지도 좌표. 실제 진수 가능한 물가 위치 추가 확인 필요.",
+        "source": "https://www.iikanjini.info/suibotsurin",
+        "sources": [
+          "https://www.iikanjini.info/suibotsurin",
+          "https://shirakawasou.com/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.0115677,
+          38.4533143
+        ]
+      },
+      "properties": {
+        "number": 25,
+        "waterbody": "月山湖",
+        "region": "東北",
+        "name": "フェリシア月山カヌーセンター 湖岸",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 관광자료의 카누 현장. 상시 체험 불가·사전 예약. 개인 반입 조건 미확인.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://www.town.nishikawa.yamagata.jp/site/gassan-cc/index-2.html",
+        "sources": [
+          "https://www.town.nishikawa.yamagata.jp/site/gassan-cc/index-2.html",
+          "https://www.gassan-info.com/facility/32a814e9c0ebe9d46a6beebaab0a7cf5f1afc59c.html",
+          "https://www.yumiharidaira.com/asobi/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.0437722,
+          37.6811093
+        ]
+      },
+      "properties": {
+        "number": 26,
+        "waterbody": "桧原湖",
+        "region": "東北",
+        "name": "桧原湖 ママキャンプ場",
+        "coordinate_type": "facility_lead",
+        "permission": "unverified",
+        "permission_note": "최신 첫 화면에 캠핑장 영업 포기·텐트 숙박 불가 공지. 가이드 카누 체험은 별도 운영. 과거 개인 반입 안내의 현재 적용 여부 재확인 필요.",
+        "access": "시설 위치 확인. 실제 물가 발착점 추가 대조 필요.",
+        "source": "https://www.mama.camp/",
+        "sources": [
+          "https://www.mama.camp/",
+          "https://www.mama.camp/camp"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.0965583,
+          37.6672528
+        ]
+      },
+      "properties": {
+        "number": 27,
+        "waterbody": "小野川湖",
+        "region": "東北",
+        "name": "小野川湖 庄助キャンプ場",
+        "coordinate_type": "facility_lead",
+        "permission": "conditional",
+        "permission_note": "공식 개인 반입 엔트리 비용 안내. 카누·SUP 1일 1,000엔 안전관리비.",
+        "access": "시설·대표 지도 좌표. 실제 진수 가능한 물가 위치 추가 확인 필요.",
+        "source": "https://onogawakoshousuke.com/",
+        "sources": [
+          "https://onogawakoshousuke.com/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.114864,
+          37.6601215
+        ]
+      },
+      "properties": {
+        "number": 28,
+        "waterbody": "秋元湖",
+        "region": "東北",
+        "name": "秋元湖 BSC2024",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "BSC 시설·슬로프 이용료 표에 반입 카누 1,000엔. 히바라호 시설은 해당 반입 미취급.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://reserver.co.jp/shop/bayside/",
+        "sources": [
+          "https://www.bsc2024.jp/pdf/price.pdf",
+          "https://www.bsc2024.jp/",
+          "https://reserver.co.jp/shop/bayside/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.1162118,
+          37.5236249
+        ]
+      },
+      "properties": {
+        "number": 29,
+        "waterbody": "猪苗代湖",
+        "region": "東北",
+        "name": "天神浜オートキャンプ場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "행사 주최자 안내에 개인 카누·카약 반입 이용 확인. 일반 영업일 진수 접수 조건 확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.gooutcamp.jp/inawashiro/guideline/",
+        "sources": [
+          "https://www.gooutcamp.jp/inawashiro/guideline/",
+          "https://www.gooutcamp.jp/_inawashiro/vol5/activity/activity/post-2/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.0045798,
+          39.6698436
+        ]
+      },
+      "properties": {
+        "number": 30,
+        "waterbody": "御所湖",
+        "region": "東北",
+        "name": "御所湖広域公園 艇庫桟橋",
+        "coordinate_type": "imagery_water_access",
+        "permission": "suspended",
+        "permission_note": "2026년 최근 공지에 수심 부족·유목으로 카누 체험 당분간 중단. 개인 반입 허용 미확인.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://www.iwate-sc.jp/facilities/goshoko-boat",
+        "sources": [
+          "https://www.iwate-sc.jp/facilities/goshoko-boat",
+          "https://iwate-sposhin.jp/goshoko/",
+          "https://iwate-sposhin.jp/23571/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.1259805,
+          39.2711053
+        ]
+      },
+      "properties": {
+        "number": 31,
+        "waterbody": "北上川",
+        "region": "東北",
+        "name": "北上川 展勝地 対岸河畔",
+        "coordinate_type": "reference_only",
+        "permission": "unverified",
+        "permission_note": "개인艇 동반 카약 투어 사례 확인. 실제 발착 지점·현재 반입 조건 추가 조사 필요.",
+        "access": "북상강변 관광 자산 지도 참고점. 정확한 카누 발착점 미확인.",
+        "source": "https://www.kitakamicity.jp/tachibanap.php",
+        "sources": [
+          "https://www.hakkoda-gc.com/pg1667.html",
+          "https://www.kitakamicity.jp/tachibanap.php"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.4509786,
+          36.7506492
+        ]
+      },
+      "properties": {
+        "number": 32,
+        "waterbody": "中禅寺湖",
+        "region": "関東",
+        "name": "菖蒲ヶ浜キャンプ村",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "개인 패들링 이용 사례의 진수지. 카약 낚시와 레저 이용 규정 구분. 최신 반입 조건 확인 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://tokyoflyfishing.com/fishery-ja/lake-ja/lake-chuzenji-ja/",
+        "sources": [
+          "https://tokyoflyfishing.com/fishery-ja/lake-ja/lake-chuzenji-ja/",
+          "https://chuzenjiko-cruise.com/contact.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.9311922,
+          37.0570234
+        ]
+      },
+      "properties": {
+        "number": 33,
+        "waterbody": "板室ダム湖",
+        "region": "関東",
+        "name": "板室ダム湖 カヌー乗り場",
+        "coordinate_type": "reference_only",
+        "permission": "unverified",
+        "permission_note": "공식 가이드 투어 현장. 개인 반입·시설 이용 허용 확인 필요.",
+        "access": "시설·수역 참고 위치. 실제 발착점은 공개 자료로 확정하지 못함.",
+        "source": "https://www.tochigiji.or.jp/spot/s12547/",
+        "sources": [
+          "https://www.tochigiji.or.jp/spot/s12547/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.110128,
+          36.0819196
+        ]
+      },
+      "properties": {
+        "number": 34,
+        "waterbody": "荒川",
+        "region": "関東",
+        "name": "親鼻橋からのツアースタート地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "지도 핀은 나가토로 현장 투어링 발착점. 개인 진수·시설 사용 허가는 미확인. 별도 HAGURE Base 시설은 운영자 안내에서 자기艇 다마요도호 출항 가능.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/ken/arakawa/",
+        "sources": [
+          "https://www.kanute.co.jp/hagurebase/",
+          "https://canoe-map.com/ken/arakawa/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.1187158,
+          36.1138101
+        ]
+      },
+      "properties": {
+        "number": 34,
+        "waterbody": "荒川",
+        "region": "関東",
+        "name": "ゴール地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "지도 핀은 나가토로 현장 투어링 발착점. 개인 진수·시설 사용 허가는 미확인. 별도 HAGURE Base 시설은 운영자 안내에서 자기艇 다마요도호 출항 가능.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/ken/arakawa/",
+        "sources": [
+          "https://www.kanute.co.jp/hagurebase/",
+          "https://canoe-map.com/ken/arakawa/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.1770443,
+          35.8000244
+        ]
+      },
+      "properties": {
+        "number": 35,
+        "waterbody": "多摩川",
+        "region": "関東",
+        "name": "乗艇/上陸：発電所",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "미타케 리버스포츠 현장·투어링 지도 확인. 주차와 하천 진입 동선은 구간별 확인.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/ken/tokyo/%e5%be%a1%e5%b2%b3%ef%bc%88%e5%a4%9a%e6%91%a9%e5%b7%9d%ef%bc%89%e3%82%ab%e3%83%8c%e3%83%bc%e3%83%84%e3%83%bc%e3%83%aa%e3%83%b3%e3%82%b0%e3%83%9e%e3%83%83%e3%83%97%e3%80%80%e6%94%be%e6%b0%b4%e5%8f%a3/",
+        "sources": [
+          "https://mitakerc.net/info",
+          "https://tamazon-canoe.shop-pro.jp/?mode=f1",
+          "https://canoe-map.com/ken/tokyo/%e5%be%a1%e5%b2%b3%ef%bc%88%e5%a4%9a%e6%91%a9%e5%b7%9d%ef%bc%89%e3%82%ab%e3%83%8c%e3%83%bc%e3%83%84%e3%83%bc%e3%83%aa%e3%83%b3%e3%82%b0%e3%83%9e%e3%83%83%e3%83%97%e3%80%80%e6%94%be%e6%b0%b4%e5%8f%a3/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.2546487,
+          35.7847535
+        ]
+      },
+      "properties": {
+        "number": 35,
+        "waterbody": "多摩川",
+        "region": "関東",
+        "name": "乗艇/上陸：釜の淵",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "미타케 리버스포츠 현장·투어링 지도 확인. 주차와 하천 진입 동선은 구간별 확인.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/ken/tokyo/%e5%be%a1%e5%b2%b3%ef%bc%88%e5%a4%9a%e6%91%a9%e5%b7%9d%ef%bc%89%e3%82%ab%e3%83%8c%e3%83%bc%e3%83%84%e3%83%bc%e3%83%aa%e3%83%b3%e3%82%b0%e3%83%9e%e3%83%83%e3%83%97%e3%80%80%e6%94%be%e6%b0%b4%e5%8f%a3/",
+        "sources": [
+          "https://mitakerc.net/info",
+          "https://tamazon-canoe.shop-pro.jp/?mode=f1",
+          "https://canoe-map.com/ken/tokyo/%e5%be%a1%e5%b2%b3%ef%bc%88%e5%a4%9a%e6%91%a9%e5%b7%9d%ef%bc%89%e3%82%ab%e3%83%8c%e3%83%bc%e3%83%84%e3%83%bc%e3%83%aa%e3%83%b3%e3%82%b0%e3%83%9e%e3%83%83%e3%83%97%e3%80%80%e6%94%be%e6%b0%b4%e5%8f%a3/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.1156898,
+          35.8115815
+        ]
+      },
+      "properties": {
+        "number": 36,
+        "waterbody": "白丸湖",
+        "region": "関東",
+        "name": "カヌー乗り場",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "운영자·개인艇 참가 행사 확인. 백마루 주차장과 실제 물가 진입점 구별 필요.",
+        "access": "현장 투어링 지도에 발착으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/ken/tokyo/shiromaru/",
+        "sources": [
+          "https://www.canoebar.jp/access/shiromaru/",
+          "https://www.canoebar.jp/",
+          "https://canoe-map.com/ken/tokyo/shiromaru/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.5153232,
+          35.6412365
+        ]
+      },
+      "properties": {
+        "number": 37,
+        "waterbody": "栗山川",
+        "region": "関東",
+        "name": "光クリーンパーク 栗山川発着エリア",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "지자체 학교 활동에서 요코시바보~후레아이교 사이 카누 이용 확인. 개인 시설 이용 미확인.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://www.town.yokoshibahikari.chiba.jp/map/list/list114.html",
+        "sources": [
+          "https://www.bgf.or.jp/center/center0088/",
+          "https://www.j-rca.org/menu231/",
+          "https://www.town.yokoshibahikari.chiba.jp/map/list/list114.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.0761986,
+          35.224377
+        ]
+      },
+      "properties": {
+        "number": 38,
+        "waterbody": "亀山湖",
+        "region": "関東",
+        "name": "笹地区湖畔公園 出艇ポイント",
+        "coordinate_type": "reported_water_access",
+        "permission": "conditional",
+        "permission_note": "댐 관리사무소 공식 보트·카누 발항 안내 장소. 공원 이용 규칙 준수.",
+        "access": "현장 카약 보고서가 지정 발항점으로 좌표 명시. 최신 시설 이용 규칙 별도 확인.",
+        "source": "https://kayak.diy39.com/kameyamako/",
+        "sources": [
+          "https://www.pref.chiba.lg.jp/d-kameyama/jimusyokaronoonegai.html",
+          "https://kayak.diy39.com/kameyamako/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.2210757,
+          35.5278272
+        ]
+      },
+      "properties": {
+        "number": 39,
+        "waterbody": "宮ヶ瀬湖",
+        "region": "関東",
+        "name": "神奈川県立宮ヶ瀬湖カヌー場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "현 공식 안내에 캐나디안 카누·카약·SUP 반입 가능. 신청·시설 이용 절차 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://cocospo.go.jp/facility/22166",
+        "sources": [
+          "https://www.pref.kanagawa.jp/docs/u5r/cnt/f550/tabi-016.html",
+          "https://cocospo.go.jp/facility/22166"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.7939783,
+          36.6271886
+        ]
+      },
+      "properties": {
+        "number": 40,
+        "waterbody": "四万湖",
+        "region": "関東",
+        "name": "四万湖 カヌー乗り場",
+        "coordinate_type": "reference_only",
+        "permission": "unverified",
+        "permission_note": "카누 업체 현장·개인 이용 사례 확인. 개인 진수·주차의 공식 최신 조건 미확인.",
+        "access": "시설·수역 참고 위치. 실제 발착점은 공개 자료로 확정하지 못함.",
+        "source": "https://shimacanoe.com/",
+        "sources": [
+          "https://shimacanoe.com/",
+          "https://samurai-member.com/%40shima-canoe"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.7845104,
+          36.7015317
+        ]
+      },
+      "properties": {
+        "number": 41,
+        "waterbody": "奥四万湖",
+        "region": "関東",
+        "name": "稲包せせらぎ公園 発着進入路",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "군마현 수면 이용 규칙에 자기책임 자유 이용. 관리사무소 이용대장 등록·잠긴 진입로 개방 요청. 진입로는 직원 상주 평일 10~16시. 겨울 관리도로 폐쇄 기간 제외.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://www.openstreetmap.org/way/1215249770",
+        "sources": [
+          "https://www.pref.gunma.jp/uploaded/attachment/137623.pdf",
+          "https://www.openstreetmap.org/way/1215249770",
+          "https://nakanojo-kanko.jp/shima/experience/奥四万湖カヌー/",
+          "https://hoshino-blog.com/kayak-okusima"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.3784684,
+          36.8229666
+        ]
+      },
+      "properties": {
+        "number": 42,
+        "waterbody": "菅沼",
+        "region": "関東",
+        "name": "菅沼キャンプ村",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "숙박자만 카누·카약 반입 가능. 사전 연락·동의서·셀프레스큐 장비. 당일 반입 불가, SUP 반입 금지.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.sugenuma.com/charge",
+        "sources": [
+          "https://www.sugenuma.com/charge"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.05709,
+          36.8813813
+        ]
+      },
+      "properties": {
+        "number": 43,
+        "waterbody": "洞元湖",
+        "region": "関東",
+        "name": "洞元湖 駐車場",
+        "coordinate_type": "reference_only",
+        "permission": "restricted",
+        "permission_note": "관광협회가 일반인 주차와 이 주차장을 통한 개인 진수 불가 안내. 현지 투어 신청 필요.",
+        "access": "시설·수역 참고 위치. 실제 발착점은 공개 자료로 확정하지 못함.",
+        "source": "https://www.enjoy-minakami.jp/spot/8029/",
+        "sources": [
+          "https://www.enjoy-minakami.jp/spot/8029/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.8931862,
+          36.7226466
+        ]
+      },
+      "properties": {
+        "number": 45,
+        "waterbody": "赤谷湖",
+        "region": "関東",
+        "name": "赤谷湖 ペンションボート",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "온천관광협회가 개인 카누·SUP 진수지로 로손 아래 유료 잔교 지정. 입호 신고 조건 확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://sarugakyo-navi.jp/news/持ち込みカヌー・sup出艇場所",
+        "sources": [
+          "https://sarugakyo-navi.jp/news/持ち込みカヌー・sup出艇場所"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.0568159,
+          36.9116265
+        ]
+      },
+      "properties": {
+        "number": 46,
+        "waterbody": "奥利根湖",
+        "region": "関東",
+        "name": "矢木沢ダム ボートスロープ",
+        "coordinate_type": "reference_only",
+        "permission": "conditional",
+        "permission_note": "수자원기구 규칙에 카누·카약 허용. 개방 기간·수면 금지구역 준수. 일반 손노젓기艇은 특정 차량 신청 대상에서 제외.",
+        "access": "시설·수역 참고 위치. 실제 발착점은 공개 자료로 확정하지 못함.",
+        "source": "https://www.water.go.jp/kanto/numata/16_riyoukyougikai/riyoukyougikai.html",
+        "sources": [
+          "https://www.water.go.jp/kanto/numata/16_riyoukyougikai/riyoukyougikai.html",
+          "https://www.water.go.jp/kanto/numata/03_yagisawa/sinnsei_top/sinnsei_top.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.2442474,
+          36.5634155
+        ]
+      },
+      "properties": {
+        "number": 47,
+        "waterbody": "那珂川",
+        "region": "関東",
+        "name": "スタート地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "개인 다운리버 발착 사례. 보는 피해서 접근하고 발착·주차 조건 현장 안내 확인 필요.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/ken/ibaraki/nakagawa-syokyu/",
+        "sources": [
+          "https://storm.cx/%E6%96%BD%E8%A8%AD%E7%B4%B9%E4%BB%8B/",
+          "https://hoshino-blog.com/kayak-nakagawa",
+          "https://canoe-map.com/ken/ibaraki/nakagawa-syokyu/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.3301716,
+          36.5468802
+        ]
+      },
+      "properties": {
+        "number": 47,
+        "waterbody": "那珂川",
+        "region": "関東",
+        "name": "ゴール地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "개인 다운리버 발착 사례. 보는 피해서 접근하고 발착·주차 조건 현장 안내 확인 필요.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/ken/ibaraki/nakagawa-syokyu/",
+        "sources": [
+          "https://storm.cx/%E6%96%BD%E8%A8%AD%E7%B4%B9%E4%BB%8B/",
+          "https://hoshino-blog.com/kayak-nakagawa",
+          "https://canoe-map.com/ken/ibaraki/nakagawa-syokyu/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.2067512,
+          36.8283186
+        ]
+      },
+      "properties": {
+        "number": 48,
+        "waterbody": "野尻湖",
+        "region": "甲信北陸",
+        "name": "野尻湖 緑水風の空間",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "국립공원 안내가 자기艇 진수지로 추천. 시설·어업조합의 반입 등록 규칙 적용 여부 확인 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://myoko-togakushi.jp/nature/nature09/",
+        "sources": [
+          "https://myoko-togakushi.jp/nature/nature09/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.8441013,
+          36.6101325
+        ]
+      },
+      "properties": {
+        "number": 49,
+        "waterbody": "青木湖",
+        "region": "甲信北陸",
+        "name": "青木湖桐野キャンプ場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "나가노 공식 관광 안내에서 카누·카약·SUP 반입 가능, 사전 예약 안내.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://db.go-nagano.net/themelist/detail/id%3D543",
+        "sources": [
+          "https://db.go-nagano.net/themelist/detail/id%3D543"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.8326318,
+          36.5605701
+        ]
+      },
+      "properties": {
+        "number": 50,
+        "waterbody": "木崎湖",
+        "region": "甲信北陸",
+        "name": "木崎湖POW WOW",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "공식 데이캠프 이용으로 카누·카약 반입 진수 가능. 혼잡한 연휴에는 거절될 수 있음.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://kizakiko-powwow.com/access/",
+        "sources": [
+          "https://kizakiko-powwow.com/stay/daycamp/",
+          "https://kizakiko-powwow.com/access/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.1021056,
+          36.0414277
+        ]
+      },
+      "properties": {
+        "number": 51,
+        "waterbody": "諏訪湖",
+        "region": "甲信北陸",
+        "name": "諏訪湖 ヨットハーバー",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "스와시 공식 요트하버 카약 출항 1척 1일 810엔. 4/1~11/30 개장, 관리인 지시·시설 규정 준수.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://cocospo.go.jp/facility/29777",
+        "sources": [
+          "https://www.city.suwa.lg.jp/soshiki/29/53865.html",
+          "https://www.suwako-kanko.com/faq/",
+          "https://cocospo.go.jp/facility/29777"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.4197479,
+          36.9349271
+        ]
+      },
+      "properties": {
+        "number": 52,
+        "waterbody": "千曲川",
+        "region": "甲信北陸",
+        "name": "湯滝カヌーポート 温泉・橋周辺",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 행사 패들스포츠 도착 포트. 개인艇 동반 상품 있음. 일반일 시설 이용 조건 미확인.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://note.com/atsushi_canoe/n/ne00200fb1066",
+        "sources": [
+          "https://shinetsu-activity.jp/play/play-cat/water-sports/",
+          "https://nozawahospitality.com/ja/activities/canoeing",
+          "https://note.com/atsushi_canoe/n/ne00200fb1066"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.424516,
+          36.9053779
+        ]
+      },
+      "properties": {
+        "number": 53,
+        "waterbody": "北竜湖",
+        "region": "甲信北陸",
+        "name": "北竜湖 カヌー乗り場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "호반 매점·관광안내소 인근 체험 현장. 개인艇 반입 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.jalan.net/kankou/spt_guide000000181730/activity/l000003D7C/",
+        "sources": [
+          "https://www.jalan.net/kankou/spt_guide000000181730/activity/l000003D7C/",
+          "https://nozawahospitality.com/ja/activities/canoeing"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.9015402,
+          36.3228668
+        ]
+      },
+      "properties": {
+        "number": 54,
+        "waterbody": "万水川",
+        "region": "甲信北陸",
+        "name": "トラック 1 の出発地",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "현지 투어링 지도에 발착·주차 지점. 체육시설 주차장이므로 패들러의 주차 권리·관리 조건 확인 필요.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/ken/nagano/yorozui/",
+        "sources": [
+          "https://canoe-map.com/ken/nagano/yorozui/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.9303284,
+          36.3848314
+        ]
+      },
+      "properties": {
+        "number": 54,
+        "waterbody": "万水川",
+        "region": "甲信北陸",
+        "name": "ゴール",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "현지 투어링 지도에 발착·주차 지점. 체육시설 주차장이므로 패들러의 주차 권리·관리 조건 확인 필요.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/ken/nagano/yorozui/",
+        "sources": [
+          "https://canoe-map.com/ken/nagano/yorozui/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.9548267,
+          36.5019081
+        ]
+      },
+      "properties": {
+        "number": 55,
+        "waterbody": "犀川",
+        "region": "甲信北陸",
+        "name": "スタート地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "시 자료에서 사이강 하행 투어 종착점 확인. 실제 상륙 지점은 인접 강안과 구별해 확인.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/ken/nagano/saikawa/",
+        "sources": [
+          "https://onamods.livedoor.blog/archives/cat_46917.html?p=2",
+          "https://kayak.diy39.com/yorozuigawa/",
+          "https://canoe-map.com/ken/nagano/saikawa/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.9893951,
+          36.5601959
+        ]
+      },
+      "properties": {
+        "number": 55,
+        "waterbody": "犀川",
+        "region": "甲信北陸",
+        "name": "ゴール地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "시 자료에서 사이강 하행 투어 종착점 확인. 실제 상륙 지점은 인접 강안과 구별해 확인.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/ken/nagano/saikawa/",
+        "sources": [
+          "https://onamods.livedoor.blog/archives/cat_46917.html?p=2",
+          "https://kayak.diy39.com/yorozuigawa/",
+          "https://canoe-map.com/ken/nagano/saikawa/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.237099,
+          36.1048943
+        ]
+      },
+      "properties": {
+        "number": 56,
+        "waterbody": "白樺湖",
+        "region": "甲信北陸",
+        "name": "八ヶ岳アドベンチャーツアーズ 白樺湖",
+        "coordinate_type": "facility_lead",
+        "permission": "restricted",
+        "permission_note": "운영자 공식 FAQ가 개인 SUP·카누 반입 이용 불가 안내. 체험 투어 이용 지점.",
+        "access": "시설·대표 지도 좌표. 실제 진수 가능한 물가 위치 추가 확인 필요.",
+        "source": "https://www.yatsugatakeadventure.com/access/",
+        "sources": [
+          "https://www.yatsugatakeadventure.com/access/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.5557755,
+          35.8063689
+        ]
+      },
+      "properties": {
+        "number": 57,
+        "waterbody": "おんたけ湖",
+        "region": "甲信北陸",
+        "name": "おんたけ湖 カヌー乗り場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 관광자료의 카누 현장. 개인 반입·시설 접근 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://kiso-nagano.ne.jp/ontakeko-canoe/",
+        "sources": [
+          "https://www.ontakeko-run.com/visit/",
+          "https://db.go-nagano.net/topics_detail6/id%3D19265",
+          "https://kiso-nagano.ne.jp/ontakeko-canoe/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.4705056,
+          35.8093208
+        ]
+      },
+      "properties": {
+        "number": 58,
+        "waterbody": "自然湖",
+        "region": "甲信北陸",
+        "name": "自然湖 ツアー集合・発着エリア",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "운영자 안내에 개인 카누 반입 일률 금지 없음. 관리 구역 사용은 사전 조율. 접이식·고무보트·SUP 자제 요청.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://www.shizenko.jp/precautions/",
+        "sources": [
+          "https://www.shizenko.jp/precautions/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.7708575,
+          35.9897047
+        ]
+      },
+      "properties": {
+        "number": 59,
+        "waterbody": "奥木曽湖",
+        "region": "甲信北陸",
+        "name": "奥木曽湖 正沢親水公園",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 관광자료 카누 출발점. 개인 수면 이용 연락·관리 절차 확인 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.kodamanomori.jp/canoe/",
+        "sources": [
+          "https://www.kodamanomori.jp/canoe/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.7257356,
+          35.5018704
+        ]
+      },
+      "properties": {
+        "number": 60,
+        "waterbody": "河口湖",
+        "region": "甲信北陸",
+        "name": "河口湖 レイクサイドコテージ 足和田キャンプ場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "야마나시 관광자료에 시설 앞 호안 카누 출항 확인. 개인 반입의 최신 요금·접수 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.yamanashi-kankou.jp/kankou/spot/p2_3100.html",
+        "sources": [
+          "https://www.yamanashi-kankou.jp/kankou/spot/p2_3100.html",
+          "https://travel.watch.impress.co.jp/docs/news/1606547.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.684351,
+          35.5021557
+        ]
+      },
+      "properties": {
+        "number": 61,
+        "waterbody": "西湖",
+        "region": "甲信北陸",
+        "name": "西湖 自由キャンプ場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "호수 카누 이용 사례 확인. 개인 반입·진수 범위의 공식 최신 규정 확인 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://saiko-jiyuu.camp/",
+        "sources": [
+          "https://www.pica-resort.jp/saiko/activity/canoe/index.html",
+          "https://www.pica-resort.jp/funtastic_camp_2026/activity/canoe.html",
+          "https://saiko-jiyuu.camp/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.6034174,
+          35.489379
+        ]
+      },
+      "properties": {
+        "number": 62,
+        "waterbody": "精進湖",
+        "region": "甲信北陸",
+        "name": "精進湖キャンピングコテージ",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "시설 공식 안내에서 개인 카누 반입 자유·자기책임 이용 명시. 캠핑장 접수·호안 이용 조건 확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://shojiko.jp/doc/activity.html",
+        "sources": [
+          "https://shojiko.jp/doc/activity.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.575331,
+          35.4724708
+        ]
+      },
+      "properties": {
+        "number": 63,
+        "waterbody": "本栖湖",
+        "region": "甲信北陸",
+        "name": "浩庵キャンプ場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "캠핑장 호반 개인 카누 이용 사례. 본장과 텐트촌의 반입 규정 구별·예약 조건 확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://kouan-motosuko.com/",
+        "sources": [
+          "https://kouan-motosuko.com/",
+          "https://kouan-motosuko.com/activity/index.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.8564598,
+          35.4180345
+        ]
+      },
+      "properties": {
+        "number": 64,
+        "waterbody": "山中湖",
+        "region": "甲信北陸",
+        "name": "山中湖マリンハウスmomo",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "MOMO 공식 마리나에 개인 카누·카약·SUP 보관 요금은 명시. 방문객 반입 요금의 카누 적용과 당일 진수 허용은 별도 문의 필요. 보관 주간 2,000엔과 당일 진수료를 구별해야 함.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://lake-yamanakako.com/spot/10012",
+        "sources": [
+          "https://momo-lakeyamanaka.com/marina/",
+          "https://lake-yamanakako.com/spot/10012"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.7578579,
+          35.8762993
+        ]
+      },
+      "properties": {
+        "number": 65,
+        "waterbody": "九頭竜湖",
+        "region": "甲信北陸",
+        "name": "九頭竜レイクサイドモビレージ",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "에코트랙 공식 패들링 안내에 접수 후 유료 카약 출항 명시. 반입 보트 사전 예약 안내 확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://d-kuzuryu.jp/",
+        "sources": [
+          "https://www.japanecotrack.net/api/pdfs/areas/20220420101347_ptVgE.pdf",
+          "https://d-kuzuryu.jp/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.2310809,
+          36.2669208
+        ]
+      },
+      "properties": {
+        "number": 66,
+        "waterbody": "北潟湖",
+        "region": "甲信北陸",
+        "name": "北潟湖 カヌーポロ競技場",
+        "coordinate_type": "facility_lead",
+        "permission": "unverified",
+        "permission_note": "시 카누 시설. 대회 자기艇 허용과 일반 개인 이용은 구별. 일반 이용 허가 확인 필요.",
+        "access": "공개 자료의 시설 위치. 실제 진수 동선은 추가 확인 필요.",
+        "source": "https://info.pref.fukui.lg.jp/fukuikokutai2018/sp/kokutai/game/demo/canoe-polo.html",
+        "sources": [
+          "https://info.pref.fukui.lg.jp/fukuikokutai2018/sp/kokutai/game/demo/canoe-polo.html",
+          "https://www.city.awara.lg.jp/mobile/mokuteki/education/education04/education0401/p003427.html",
+          "https://www.pref.fukui.lg.jp/doc/awara-seinen/r8-jigyou/r81031.html",
+          "https://cocospo.go.jp/facility/29035"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.8936632,
+          35.5602774
+        ]
+      },
+      "properties": {
+        "number": 67,
+        "waterbody": "三方湖",
+        "region": "甲信北陸",
+        "name": "三方湖 福井県立三方青年の家",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 활동 안내의 호수 출항 현장. 교육시설·가이드 투어의 개인艇 이용 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://fupo.jp/event/yuugurekayakku_1019/",
+        "sources": [
+          "https://www.pref.fukui.lg.jp/doc/mikata-seinen/riyounotebiki_d/fil/siori_r8.pdf",
+          "https://fupo.jp/event/yuugurekayakku_1019/",
+          "https://www.town.fukui-mihama.lg.jp/soshiki/9/9943.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.453592,
+          37.6836243
+        ]
+      },
+      "properties": {
+        "number": 68,
+        "waterbody": "阿賀野川",
+        "region": "甲信北陸",
+        "name": "阿賀野川 揚川ダム カヌー乗り場",
+        "coordinate_type": "reference_only",
+        "permission": "unverified",
+        "permission_note": "2026 아가정 관광협회 체험 개최 수역. 개인 진수·접수 조건 미확인.",
+        "access": "시설·수역 참고 위치. 실제 발착점은 공개 자료로 확정하지 못함.",
+        "source": "https://www.pref.niigata.lg.jp/green2rhythm/370208.html",
+        "sources": [
+          "https://www.pref.niigata.lg.jp/green2rhythm/370208.html",
+          "https://www.hrr.mlit.go.jp/agano/office/kyoninka.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.9103197,
+          35.5518056
+        ]
+      },
+      "properties": {
+        "number": 69,
+        "waterbody": "長良川",
+        "region": "東海",
+        "name": "スタート地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "나가라강 현지 투어링 발착 자료 확인. 주차·개인 이용의 최신 시설 조건 확인 필요.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/kinki/gifu/nagara-2/",
+        "sources": [
+          "https://www.kisosansenkoen.jp/~nagaragawa/mnagaragawa_canoeex.html",
+          "https://fieldday.jp/archives/759",
+          "https://canoe-map.com/kinki/gifu/nagara-2/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.895458,
+          35.50428
+        ]
+      },
+      "properties": {
+        "number": 69,
+        "waterbody": "長良川",
+        "region": "東海",
+        "name": "下流のゴール",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "나가라강 현지 투어링 발착 자료 확인. 주차·개인 이용의 최신 시설 조건 확인 필요.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/kinki/gifu/nagara-2/",
+        "sources": [
+          "https://www.kisosansenkoen.jp/~nagaragawa/mnagaragawa_canoeex.html",
+          "https://fieldday.jp/archives/759",
+          "https://canoe-map.com/kinki/gifu/nagara-2/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.0329669,
+          35.4376378
+        ]
+      },
+      "properties": {
+        "number": 70,
+        "waterbody": "木曽川",
+        "region": "東海",
+        "name": "スタート",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "기소강 현지 투어링 지도 발착·상륙 지점 확인. 공원 수변 사용·주차 조건 확인 필요.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/kinki/gifu/kiso/",
+        "sources": [
+          "https://www.aichinow.pref.aichi.jp/spots/detail/2309/",
+          "https://canoe-map.com/kinki/gifu/kiso/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.9637451,
+          35.4032525
+        ]
+      },
+      "properties": {
+        "number": 70,
+        "waterbody": "木曽川",
+        "region": "東海",
+        "name": "ゴール地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "기소강 현지 투어링 지도 발착·상륙 지점 확인. 공원 수변 사용·주차 조건 확인 필요.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/kinki/gifu/kiso/",
+        "sources": [
+          "https://www.aichinow.pref.aichi.jp/spots/detail/2309/",
+          "https://canoe-map.com/kinki/gifu/kiso/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.8947906,
+          34.9803933
+        ]
+      },
+      "properties": {
+        "number": 71,
+        "waterbody": "気田川",
+        "region": "東海",
+        "name": "上流の出発地",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "게타강 투어링 발착·상륙 이용 사례. 캠핑장 주차·접수 조건 별도 확인.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/ken/shizuoka/ketagawa/",
+        "sources": [
+          "https://inacanoe.ninja-web.net/page005.html",
+          "https://sosin.naturum.ne.jp/c20225178.html",
+          "https://canoe-map.com/ken/shizuoka/ketagawa/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.8373587,
+          34.9363527
+        ]
+      },
+      "properties": {
+        "number": 71,
+        "waterbody": "気田川",
+        "region": "東海",
+        "name": "下流コースのゴール",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "게타강 투어링 발착·상륙 이용 사례. 캠핑장 주차·접수 조건 별도 확인.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/ken/shizuoka/ketagawa/",
+        "sources": [
+          "https://inacanoe.ninja-web.net/page005.html",
+          "https://sosin.naturum.ne.jp/c20225178.html",
+          "https://canoe-map.com/ken/shizuoka/ketagawa/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.8152926,
+          34.9129443
+        ]
+      },
+      "properties": {
+        "number": 72,
+        "waterbody": "天竜川",
+        "region": "東海",
+        "name": "天竜相津マリーナ",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "시가 안내하는 후나기라 댐호 카누 수역. 개인艇 반입·진수 허가 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.city.hamamatsu.shizuoka.jp/tn-machi/boat/",
+        "sources": [
+          "https://www.city.hamamatsu.shizuoka.jp/tn-machi/boat/",
+          "https://jp-hamamatsu.com/tenryu-ward/tenryu-yuransen/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.5469134,
+          34.7906466
+        ]
+      },
+      "properties": {
+        "number": 73,
+        "waterbody": "浜名湖",
+        "region": "東海",
+        "name": "浜名湖レークサイドプラザ",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "호텔 앞 호수 카누 출항 공식 확인. 개인艇 반입·시설 사용 허가 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://hamamatsuat.hamamatsu-daisuki.net/experience/820/",
+        "sources": [
+          "https://hamamatsuat.hamamatsu-daisuki.net/experience/820/",
+          "https://www.listel-hamanako.jp/experience/activity/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.6350253,
+          34.4327729
+        ]
+      },
+      "properties": {
+        "number": 74,
+        "waterbody": "宮川",
+        "region": "東海",
+        "name": "宮リバー度会パーク",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "미야강·이치노세강 투어링 도착지 이용 사례. 개인 시설 사용 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.kankomie.or.jp/spot/3542",
+        "sources": [
+          "https://www.kankomie.or.jp/spot/3542"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.5957359,
+          34.3831565
+        ]
+      },
+      "properties": {
+        "number": 75,
+        "waterbody": "一之瀬川",
+        "region": "東海",
+        "name": "一之瀬川 現地パドル記録 出発点",
+        "coordinate_type": "recorded_trip_endpoint",
+        "permission": "unverified",
+        "permission_note": "이치노세강 다운리버 이용 사례. 발착점과 현재 수위·주차·토지 접근 확인 필요.",
+        "access": "개인 패들링 공개 GPS 기록의 시작점. 실제 입수 위치와 소폭 차이 가능.",
+        "source": "https://yamap.com/activities/51360964",
+        "sources": [
+          "https://yamap.com/activities/51360964",
+          "https://yamap.com/activities/51341535"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.6335514,
+          34.4331336
+        ]
+      },
+      "properties": {
+        "number": 75,
+        "waterbody": "一之瀬川",
+        "region": "東海",
+        "name": "宮リバー度会パーク 到着点",
+        "coordinate_type": "recorded_trip_endpoint",
+        "permission": "unverified",
+        "permission_note": "이치노세강 다운리버 이용 사례. 발착점과 현재 수위·주차·토지 접근 확인 필요.",
+        "access": "같은 공개 GPS 기록의 종료점. 물가·주차 동선 대조 필요.",
+        "source": "https://yamap.com/activities/51360964",
+        "sources": [
+          "https://yamap.com/activities/51360964",
+          "https://yamap.com/activities/51341535"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.3970387,
+          34.4694595
+        ]
+      },
+      "properties": {
+        "number": 76,
+        "waterbody": "櫛田川",
+        "region": "東海",
+        "name": "香肌峡 カヌー乗り場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "마쓰사카 관광자료의 구시다강 카누 현장. 개인艇 이용·진수 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.guidoor.jp/places/3477",
+        "sources": [
+          "https://matsusaka-info.jp/report/detail/post-21.html",
+          "https://www.kankomie.or.jp/special/fortravelagencies/experience.html",
+          "https://www.guidoor.jp/places/3477"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          136.111409,
+          35.4814694
+        ]
+      },
+      "properties": {
+        "number": 78,
+        "waterbody": "琵琶湖",
+        "region": "近畿",
+        "name": "奥琵琶湖キャンプ場",
+        "coordinate_type": "facility_lead",
+        "permission": "conditional",
+        "permission_note": "운영자가 개인 카누 이용에 편리한 호반 접근 안내. 시설 접수·반입 조건 확인 필요.",
+        "access": "개인 카누 이용을 소개한 캠핑장 위치. 인접 호텔 해변과 구별해 실제 캠핑장 진수 동선 확인 필요.",
+        "source": "https://okubiwako-camp.com/service.html",
+        "sources": [
+          "https://okubiwako-camp.com/service.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.9158325,
+          34.9285126
+        ]
+      },
+      "properties": {
+        "number": 79,
+        "waterbody": "瀬田川",
+        "region": "近畿",
+        "name": "スタート地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "세타강 현지 투어링 발착 자료 확인. 난고 아라이제키·방류 구간과 구별해 계획 필요.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/kinki/shiga/seta/",
+        "sources": [
+          "https://ducs.jp/?page_id=52",
+          "https://www.mlit.go.jp/river/toukei_chousa/kasen/jiten/nihon_kawa/0608_setagawa/0608_setagawa_03.html",
+          "https://canoe-map.com/kinki/shiga/seta/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.8985596,
+          34.9141808
+        ]
+      },
+      "properties": {
+        "number": 79,
+        "waterbody": "瀬田川",
+        "region": "近畿",
+        "name": "ゴール",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "세타강 현지 투어링 발착 자료 확인. 난고 아라이제키·방류 구간과 구별해 계획 필요.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/kinki/shiga/seta/",
+        "sources": [
+          "https://ducs.jp/?page_id=52",
+          "https://www.mlit.go.jp/river/toukei_chousa/kasen/jiten/nihon_kawa/0608_setagawa/0608_setagawa_03.html",
+          "https://canoe-map.com/kinki/shiga/seta/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.3982697,
+          35.2668713
+        ]
+      },
+      "properties": {
+        "number": 80,
+        "waterbody": "由良川",
+        "region": "近畿",
+        "name": "和知 カヌークラブハウス",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "교탄바정 공식 카누 체험 현장. 사전 예약·경험자 또는 지도자 필요. 개인艇 반입 조건 미확인.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://www.openstreetmap.org/way/545021594",
+        "sources": [
+          "https://www.openstreetmap.org/way/545021594",
+          "https://www.bgf.or.jp/center/center0361/",
+          "https://www.town.kyotamba.kyoto.jp/kakukakarasagasu/kyoikuiinkai_shakaikyoikuka/gyomuannai/1/1241.html",
+          "https://www.kyoto-kankou.or.jp/info_search/9574",
+          "https://www.kyotamba.org/tourism-category/tourism-category-805/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          134.82531,
+          35.634252
+        ]
+      },
+      "properties": {
+        "number": 81,
+        "waterbody": "円山川",
+        "region": "近畿",
+        "name": "兵庫県立円山川公苑",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "공식 FAQ에 개인 카누 반입 가능. 강 이용은 경험·기상·이용 수역·출귀정 신고 조건 적용.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://maruyamagawa.com/qa/",
+        "sources": [
+          "https://maruyamagawa.com/qa/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.7891998,
+          34.3798332
+        ]
+      },
+      "properties": {
+        "number": 82,
+        "waterbody": "吉野川（奈良）",
+        "region": "近畿",
+        "name": "スタート地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "나라 요시노강 현지 투어링 발착 자료 확인. 개인艇·주차·수변 접근 최신 조건 미확인.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/kinki/nara/yoshino/",
+        "sources": [
+          "https://mobila-carlife.jp/activity/48718/",
+          "https://www.tabione.com/course_input/?company=073123&crse=0001&from_date=2026-09-07&plan=0003&shop=S30119",
+          "https://canoe-map.com/kinki/nara/yoshino/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.748764,
+          34.3541985
+        ]
+      },
+      "properties": {
+        "number": 82,
+        "waterbody": "吉野川（奈良）",
+        "region": "近畿",
+        "name": "ゴール",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "나라 요시노강 현지 투어링 발착 자료 확인. 개인艇·주차·수변 접근 최신 조건 미확인.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/kinki/nara/yoshino/",
+        "sources": [
+          "https://mobila-carlife.jp/activity/48718/",
+          "https://www.tabione.com/course_input/?company=073123&crse=0001&from_date=2026-09-07&plan=0003&shop=S30119",
+          "https://canoe-map.com/kinki/nara/yoshino/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.3979217,
+          33.9626482
+        ]
+      },
+      "properties": {
+        "number": 83,
+        "waterbody": "日高川",
+        "region": "近畿",
+        "name": "日高川 美山漕艇場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "정 안내에서 쓰바야마 댐호 보트 이용 사전 신청 필요. 일반 하천 구간과 구별.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.japan47go.travel/ja/detail/119bc041-f5c3-41e6-8529-d38c2a60786d",
+        "sources": [
+          "https://town.hidakagawa.lg.jp/contact/",
+          "https://www.town.hidakagawa.lg.jp/tyousei/hidakawagawa-town/en/eng_tourism_a.html",
+          "https://www.japan47go.travel/ja/detail/119bc041-f5c3-41e6-8529-d38c2a60786d"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.6885221,
+          33.5837232
+        ]
+      },
+      "properties": {
+        "number": 84,
+        "waterbody": "古座川",
+        "region": "近畿",
+        "name": "スタート地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "현지 카누 하행 코스의 출항 지점. 개인艇·주차·하류 상륙 조건 추가 확인.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/kinki/wakayama/koza/",
+        "sources": [
+          "https://www.pref.wakayama.lg.jp/prefg/081300/d00214848.html",
+          "https://www.pref.wakayama.lg.jp/prefg/081300/d00214566.html",
+          "https://canoe-map.com/kinki/wakayama/koza/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.7208099,
+          33.5457878
+        ]
+      },
+      "properties": {
+        "number": 84,
+        "waterbody": "古座川",
+        "region": "近畿",
+        "name": "ゴール",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "현지 카누 하행 코스의 출항 지점. 개인艇·주차·하류 상륙 조건 추가 확인.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/kinki/wakayama/koza/",
+        "sources": [
+          "https://www.pref.wakayama.lg.jp/prefg/081300/d00214848.html",
+          "https://www.pref.wakayama.lg.jp/prefg/081300/d00214566.html",
+          "https://canoe-map.com/kinki/wakayama/koza/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.856796,
+          33.837629
+        ]
+      },
+      "properties": {
+        "number": 85,
+        "waterbody": "熊野川",
+        "region": "近畿",
+        "name": "小船梅林 キャンプ場 河原",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "구마노강 본류 투어링·야영 수변. 기타야마강 지류의 오가와구치와 구별. 개인 접근 조건 확인 필요.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://www.hatinosu.net/camp/archives/2203/",
+        "sources": [
+          "https://www.tb-kumano.jp/en/activities/water-sports-tours/",
+          "https://www.hatinosu.net/camp/archives/2203/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.8863939,
+          33.8928386
+        ]
+      },
+      "properties": {
+        "number": 86,
+        "waterbody": "北山川",
+        "region": "近畿",
+        "name": "玉置口 公開パドル記録 出発点",
+        "coordinate_type": "recorded_trip_endpoint",
+        "permission": "unverified",
+        "permission_note": "현지 카누·카약 투어링 발착·상륙 이용 사례. 개인 접근 조건·댐 방류 확인 필요.",
+        "access": "카누 하행 공개 GPS 시작점. 현지 발착·주차 규칙 미확인.",
+        "source": "https://yamap.com/activities/33101274",
+        "sources": [
+          "https://mixi.jp/view_bbs.pl?comm_id=369646&id=76868627",
+          "https://yamap.com/activities/33101274"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.8554183,
+          33.8648432
+        ]
+      },
+      "properties": {
+        "number": 86,
+        "waterbody": "北山川",
+        "region": "近畿",
+        "name": "九重 公開パドル記録 到着点",
+        "coordinate_type": "recorded_trip_endpoint",
+        "permission": "unverified",
+        "permission_note": "현지 카누·카약 투어링 발착·상륙 이용 사례. 개인 접근 조건·댐 방류 확인 필요.",
+        "access": "같은 카누 하행 공개 GPS 종료점. 현장 상륙 조건 미확인.",
+        "source": "https://yamap.com/activities/33101274",
+        "sources": [
+          "https://mixi.jp/view_bbs.pl?comm_id=369646&id=76868627",
+          "https://yamap.com/activities/33101274"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          134.0776259,
+          34.6793808
+        ]
+      },
+      "properties": {
+        "number": 88,
+        "waterbody": "吉井川",
+        "region": "中国",
+        "name": "瀬戸町 吉井川河川公園",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 카누 경기·수상스포츠 이용 수역. 일반 개인艇 발착 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.cgr.mlit.go.jp/okakawa/kawao/kawa/spot/yoshigawa-main.html",
+        "sources": [
+          "https://www.cgr.mlit.go.jp/okakawa/kawao/kawa/spot/yoshigawa-main.html",
+          "https://www.cgr.mlit.go.jp/okakawa/situmon/yokuaru/si_qa.htm"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          132.7219128,
+          34.8392949
+        ]
+      },
+      "properties": {
+        "number": 89,
+        "waterbody": "江の川",
+        "region": "中国",
+        "name": "江の川カヌー公園さくぎ",
+        "coordinate_type": "imagery_water_access",
+        "permission": "allowed",
+        "permission_note": "공식 FAQ가 개인 카누·SUP 반입 자유 이용 명시. PFD·셀프레스큐·낚시와 카누 교실 배려, 야간·증수 이용 자제.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://genkimurasakugi.or.jp/faq/",
+        "sources": [
+          "https://genkimurasakugi.or.jp/faq/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          131.8082117,
+          34.5541784
+        ]
+      },
+      "properties": {
+        "number": 90,
+        "waterbody": "高津川",
+        "region": "中国",
+        "name": "道の駅シルクウェイにちはら",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 하천계획에 휴게소 뒤 카누 이용 확인. 개인 발착·주차 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://tsurineo.com/p/r396tnnz",
+        "sources": [
+          "https://www.cgr.mlit.go.jp/hamada/kasen/PDF/r6kasenkeikaku-t.pdf",
+          "https://tsurineo.com/p/r396tnnz",
+          "https://www.sanin-chuo.co.jp/articles/-/646809"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          133.41545,
+          35.232795
+        ]
+      },
+      "properties": {
+        "number": 91,
+        "waterbody": "日野川",
+        "region": "中国",
+        "name": "日野川 せせらぎの水辺休憩所",
+        "coordinate_type": "reference_only",
+        "permission": "unverified",
+        "permission_note": "정 공식 카누 코스·시설. 대여에는 경험자 조건. 개인艇 시설 이용 확인 필요.",
+        "access": "시설·수역 참고 위치. 실제 발착점은 공개 자료로 확정하지 못함.",
+        "source": "https://www.town.hino.tottori.jp/dd.aspx?menuid=1275",
+        "sources": [
+          "https://www.town.hino.tottori.jp/dd.aspx?menuid=1275",
+          "https://www.tottori-guide.jp/tourism/tour/view/278"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          133.8830007,
+          35.4916306
+        ]
+      },
+      "properties": {
+        "number": 92,
+        "waterbody": "東郷湖",
+        "region": "中国",
+        "name": "東郷湖羽合臨海公園 カヌー乗り場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공원 운영자의 호수·하시즈강 카누 투어. 개인艇 반입·진수 허용 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.yurihama-kankou.jp/2016/09/14/%E6%9D%B1%E9%83%B7%E6%B9%96-%E3%83%89%E3%83%A9%E3%82%B4%E3%83%B3%E3%82%AB%E3%83%8C%E3%83%BC%E4%BD%93%E9%A8%93/",
+        "sources": [
+          "https://www.yurihama-kankou.jp/2016/09/14/%E6%9D%B1%E9%83%B7%E6%B9%96-%E3%83%89%E3%83%A9%E3%82%B4%E3%83%B3%E3%82%AB%E3%83%8C%E3%83%BC%E4%BD%93%E9%A8%93/",
+          "https://www.togo-rinkai.com/%E3%82%A2%E3%82%AF%E3%83%86%E3%82%A3%E3%83%93%E3%83%86%E3%82%A3/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          132.6082195,
+          34.6570324
+        ]
+      },
+      "properties": {
+        "number": 93,
+        "waterbody": "八千代湖",
+        "region": "中国",
+        "name": "土師ダム カヌー艇庫",
+        "coordinate_type": "reference_only",
+        "permission": "unverified",
+        "permission_note": "국토교통성 카누 수면·신청 창구 안내. 이용 신고·지정 수역 확인 필요.",
+        "access": "시설·수역 참고 위치. 실제 발착점은 공개 자료로 확정하지 못함.",
+        "source": "https://www.ikuchan.or.jp/service/shop/01488_0001.html",
+        "sources": [
+          "https://www.cgr.mlit.go.jp/haji/sports/canoe/index2014.htm",
+          "https://www.cgr.mlit.go.jp/haji/guide/index05.htm",
+          "https://www.ikuchan.or.jp/service/shop/01488_0001.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          131.3082076,
+          34.1030834
+        ]
+      },
+      "properties": {
+        "number": 94,
+        "waterbody": "小野湖",
+        "region": "中国",
+        "name": "アクトビレッジおの",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "야마구치현 우베시 오노호 카누 체험 현장. 미야자키현 동명 호수와 구별. 개인艇 반입 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://ube-kankou.or.jp/sightseeing/nature-park/post-26.html",
+        "sources": [
+          "https://ube-kankou.or.jp/sightseeing/nature-park/post-26.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          132.970871,
+          33.1821289
+        ]
+      },
+      "properties": {
+        "number": 95,
+        "waterbody": "四万十川",
+        "region": "四国",
+        "name": "トラック 1 の出発地",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "시설 아래 강에서 카누 체험·하행 투어. 개인艇 시설 이용·접수 조건 미확인.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/shikoku/%e9%ab%98%e7%9f%a5%e7%9c%8c/shimanto/",
+        "sources": [
+          "https://kawarakko.com/guide",
+          "https://canoe-map.com/shikoku/%e9%ab%98%e7%9f%a5%e7%9c%8c/shimanto/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          132.9134216,
+          33.2265015
+        ]
+      },
+      "properties": {
+        "number": 95,
+        "waterbody": "四万十川",
+        "region": "四国",
+        "name": "消防署　ゴール",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "시설 아래 강에서 카누 체험·하행 투어. 개인艇 시설 이용·접수 조건 미확인.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/shikoku/%e9%ab%98%e7%9f%a5%e7%9c%8c/shimanto/",
+        "sources": [
+          "https://kawarakko.com/guide",
+          "https://canoe-map.com/shikoku/%e9%ab%98%e7%9f%a5%e7%9c%8c/shimanto/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          133.2357178,
+          33.5698662
+        ]
+      },
+      "properties": {
+        "number": 96,
+        "waterbody": "仁淀川",
+        "region": "四国",
+        "name": "スタート地点",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "고치현 계획에 니요도강 카누 발착장 명시. 개인 발착·주차의 최신 조건 미확인.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/shikoku/%e9%ab%98%e7%9f%a5%e7%9c%8c/niyodo/",
+        "sources": [
+          "https://niyodogawa-rivercruise.com/canoe",
+          "https://www.town.niyodogawa.kochi.jp/download/?fid=19810&id=2948&t=LD",
+          "https://canoe-map.com/shikoku/%e9%ab%98%e7%9f%a5%e7%9c%8c/niyodo/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          133.2620847,
+          33.5602322
+        ]
+      },
+      "properties": {
+        "number": 96,
+        "waterbody": "仁淀川",
+        "region": "四国",
+        "name": "ゴール",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "고치현 계획에 니요도강 카누 발착장 명시. 개인 발착·주차의 최신 조건 미확인.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/shikoku/%e9%ab%98%e7%9f%a5%e7%9c%8c/niyodo/",
+        "sources": [
+          "https://niyodogawa-rivercruise.com/canoe",
+          "https://www.town.niyodogawa.kochi.jp/download/?fid=19810&id=2948&t=LD",
+          "https://canoe-map.com/shikoku/%e9%ab%98%e7%9f%a5%e7%9c%8c/niyodo/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          133.7831516,
+          34.0226576
+        ]
+      },
+      "properties": {
+        "number": 97,
+        "waterbody": "吉野川（四国）",
+        "region": "四国",
+        "name": "池田湖水際公園 徳島県",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "시코쿠 요시노강의 이케다 댐호 수변. 가고시마 이케다호와 구별. 개인艇 규칙 확인 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://nishi-awa.jp/reserve/2235/",
+        "sources": [
+          "https://nishi-awa.jp/reserve/2235/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          134.5031316,
+          33.8614496
+        ]
+      },
+      "properties": {
+        "number": 98,
+        "waterbody": "那賀川",
+        "region": "四国",
+        "name": "ゴールのキャンプできる場所",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "정 공식 카누 코스·B&G시설. 급류 구간. 개인艇·시설 사용 허가 미확인.",
+        "access": "현장 투어링 지도에 런칭으로 표시. 자료 작성 이후 접근 조건은 미확인. 항공사진에서 인접 물가로 위치 보정.",
+        "source": "https://canoe-map.com/shikoku/tokushima/nakagawaue/",
+        "sources": [
+          "https://www.bgf.or.jp/center/center0454/",
+          "https://www.town.tokushima-naka.lg.jp/soshiki/1009/kankoguide/play/3598.html",
+          "https://canoe-map.com/shikoku/tokushima/nakagawaue/",
+          "https://canoe-map.com/shikoku/tokushima/nakagawasita/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          134.5049591,
+          33.8906479
+        ]
+      },
+      "properties": {
+        "number": 98,
+        "waterbody": "那賀川",
+        "region": "四国",
+        "name": "ゴール",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "정 공식 카누 코스·B&G시설. 급류 구간. 개인艇·시설 사용 허가 미확인.",
+        "access": "현장 투어링 지도에 랜딩으로 표시. 자료 작성 이후 접근 조건은 미확인.",
+        "source": "https://canoe-map.com/shikoku/tokushima/nakagawasita/",
+        "sources": [
+          "https://www.bgf.or.jp/center/center0454/",
+          "https://www.town.tokushima-naka.lg.jp/soshiki/1009/kankoguide/play/3598.html",
+          "https://canoe-map.com/shikoku/tokushima/nakagawaue/",
+          "https://canoe-map.com/shikoku/tokushima/nakagawasita/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          133.9301992,
+          34.2832052
+        ]
+      },
+      "properties": {
+        "number": 99,
+        "waterbody": "府中湖",
+        "region": "四国",
+        "name": "坂出市府中湖カヌー競技場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "시 이용 신청 시설. 단체·합숙 안내와 일반 관광 개인 이용 조건 구별 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://k-boat.co.jp/site/s/3701.htm",
+        "sources": [
+          "https://k-boat.co.jp/site/s/3701.htm",
+          "https://www.city.sakaide.lg.jp/soshiki/syougaigakusyu/fuchuko-canoe-riyoushinseisyo.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          133.5424598,
+          33.7506624
+        ]
+      },
+      "properties": {
+        "number": 100,
+        "waterbody": "さめうら湖",
+        "region": "四国",
+        "name": "さめうらカヌーテラス",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "댐 관리자는 반입 선박의 등록·관리 절차를 안내하지만, 카누테라스 소개에는 자기 비동력艇 반입 금지 안내가 있음. 개인 카누는 전담 운영자 확인 전 허용 확정 불가.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://kochi-tabi.jp/search_spot.html?id=16271",
+        "sources": [
+          "https://www.water.go.jp/yoshino/ikeda/sameura/komen_riyou.html",
+          "https://www.kochidon.net/shop/shop.shtml?s=1212",
+          "https://www.lovesameura.com/application.html",
+          "https://kochi-tabi.jp/search_spot.html?id=16271"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          132.5669604,
+          33.5389717
+        ]
+      },
+      "properties": {
+        "number": 101,
+        "waterbody": "肱川",
+        "region": "四国",
+        "name": "肱川 畑の前 カヌー発着場",
+        "coordinate_type": "reference_only",
+        "permission": "unverified",
+        "permission_note": "국토교통성 공식 카누 발착장. 하구까지 약14km 소개. 개인 접근·주차 조건 미확인.",
+        "access": "시설·수역 참고 위치. 실제 발착점은 공개 자료로 확정하지 못함.",
+        "source": "https://www.ozucastle.com/activity/canoe_sup",
+        "sources": [
+          "https://www.ozucastle.com/activity/canoe_sup",
+          "https://ozu.niye.go.jp/program/outdoor/canoe.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.4940151,
+          33.319071
+        ]
+      },
+      "properties": {
+        "number": 103,
+        "waterbody": "筑後川",
+        "region": "九州",
+        "name": "筑後川漕艇場 久留米市",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "시 카누 시설·2026 카누 행사 현장. 개인艇 이용 신청 조건 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.kurumecanoe.com/",
+        "sources": [
+          "https://www.kurumecanoe.com/",
+          "https://www.city.kurume.fukuoka.jp/1060manabi/2040sports/3010shisetsu/4120sonota/2015-0421-1541-553.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.8774816,
+          33.8848562
+        ]
+      },
+      "properties": {
+        "number": 104,
+        "waterbody": "紫川",
+        "region": "九州",
+        "name": "北九州市 水環境館",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "무라사키강 체험 발착 현장. 일반 개인·단체에 장비·艇庫 대여는 하지 않음. 개인艇 진수 허용 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://mizukankyokan.jp/guide/",
+        "sources": [
+          "https://mizukankyokan.jp/guide/",
+          "https://mizukankyokan.jp/%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E4%BA%88%E7%B4%84/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.7669628,
+          32.2141746
+        ]
+      },
+      "properties": {
+        "number": 105,
+        "waterbody": "球磨川",
+        "region": "九州",
+        "name": "HASSENBA 球磨川発船場",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "HASSENBA~와타 발선장 래프팅 운영 확인. 개인 카누의 해당 선착장 사용·단독 진수 허용은 미확인.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://www.kumagawa.co.jp/rafting/",
+        "sources": [
+          "https://kumagawa-raft.com/qa/",
+          "https://www.kumagawa.co.jp/qanda/",
+          "https://www.kumagawa.co.jp/rafting/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.909678,
+          32.632782
+        ]
+      },
+      "properties": {
+        "number": 107,
+        "waterbody": "緑川ダム湖",
+        "region": "九州",
+        "name": "緑川ダム カヌー乗り場",
+        "coordinate_type": "reference_only",
+        "permission": "unverified",
+        "permission_note": "관리소가 카누·요트·SUP 이용 소개. 개인 보트는 댐 관리소 문의 필요.",
+        "access": "시설·수역 참고 위치. 실제 발착점은 공개 자료로 확정하지 못함.",
+        "source": "https://misato-camp.com/2552/",
+        "sources": [
+          "https://misato-camp.com/2552/",
+          "https://www.qsr.mlit.go.jp/midori/contact.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          131.4033676,
+          31.9498954
+        ]
+      },
+      "properties": {
+        "number": 109,
+        "waterbody": "大淀川",
+        "region": "九州",
+        "name": "大淀川学習館 水辺の楽校 周辺",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "시 공식 카누 체험 수역·새 해양클럽 확인. 개인艇 발착·관리 절차 미확인.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://www.miyazaki-city.tourism.or.jp/spot/10139",
+        "sources": [
+          "https://www.miyazaki-city.tourism.or.jp/spot/10139",
+          "https://oyodo-river.org/promotion-activities/eco-tour/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.6545516,
+          30.313073
+        ]
+      },
+      "properties": {
+        "number": 112,
+        "waterbody": "安房川",
+        "region": "九州",
+        "name": "安房川 屋久島山荘前",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "현지 운영자 안보강 투어 발착 현장. 개인艇과 사유지·잔교 이용 허용 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://yakushima-asobi.com/guide-tour/sup-sea.php",
+        "sources": [
+          "https://yakushima-asobi.com/guide-tour/sup-sea.php",
+          "https://kaze-yakushima.com/canoe/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.5709672,
+          30.4322459
+        ]
+      },
+      "properties": {
+        "number": 113,
+        "waterbody": "宮之浦川",
+        "region": "九州",
+        "name": "宮之浦港 パックラフト出発点",
+        "coordinate_type": "recorded_trip_endpoint",
+        "permission": "unverified",
+        "permission_note": "현지 운영자의 미야노우라강 투어 수역. 개인艇·발착 시설 사용 조건 미확인.",
+        "access": "개인 팩래프트 공개 GPS 시작점. 기록 시작과 실제 입수 위치 차이 가능.",
+        "source": "https://yamap.com/activities/51249618",
+        "sources": [
+          "https://www.yakushima-guide.jp/_src/1921/%E5%B1%8B%E4%B9%85%E5%B3%B6%E3%82%AC%E3%82%A4%E3%83%89%E3%82%AF%E3%83%A9%E3%83%96%E3%80%80%E9%81%8B%E8%A1%8C%E8%A6%8F%E5%AE%9A.pdf?v=1678069580065",
+          "https://www.yakushima-guide.jp/_src/1921/%E5%B1%8B%E4%B9%85%E5%B3%B6%E3%82%AC%E3%82%A4%E3%83%89%E3%82%AF%E3%83%A9%E3%83%96%E3%80%80%E9%81%8B%E8%A1%8C%E8%A6%8F%E5%AE%9A.pdf?v=1769492576426",
+          "https://yamap.com/activities/51249618"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.568138,
+          30.4200919
+        ]
+      },
+      "properties": {
+        "number": 113,
+        "waterbody": "宮之浦川",
+        "region": "九州",
+        "name": "宮之浦川 消防署横 到着点",
+        "coordinate_type": "recorded_trip_endpoint",
+        "permission": "unverified",
+        "permission_note": "현지 운영자의 미야노우라강 투어 수역. 개인艇·발착 시설 사용 조건 미확인.",
+        "access": "공개 기록이 소방서 옆 종료로 설명한 GPS 종료점. 항구·사유시설의 개인 사용 허가 미확인.",
+        "source": "https://yamap.com/activities/51249618",
+        "sources": [
+          "https://www.yakushima-guide.jp/_src/1921/%E5%B1%8B%E4%B9%85%E5%B3%B6%E3%82%AC%E3%82%A4%E3%83%89%E3%82%AF%E3%83%A9%E3%83%96%E3%80%80%E9%81%8B%E8%A1%8C%E8%A6%8F%E5%AE%9A.pdf?v=1678069580065",
+          "https://www.yakushima-guide.jp/_src/1921/%E5%B1%8B%E4%B9%85%E5%B3%B6%E3%82%AC%E3%82%A4%E3%83%89%E3%82%AF%E3%83%A9%E3%83%96%E3%80%80%E9%81%8B%E8%A1%8C%E8%A6%8F%E5%AE%9A.pdf?v=1769492576426",
+          "https://yamap.com/activities/51249618"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.4217257,
+          30.273974
+        ]
+      },
+      "properties": {
+        "number": 114,
+        "waterbody": "栗生川",
+        "region": "九州",
+        "name": "栗生川 公開パックラフト記録 出発点",
+        "coordinate_type": "recorded_trip_endpoint",
+        "permission": "unverified",
+        "permission_note": "환경성·현지 운영자 카누 출발 수역. 개인艇·도로 접근 조건 미확인.",
+        "access": "개인 팩래프트 공개 GPS 시작점. 운반·입수 시각 차이 가능.",
+        "source": "https://yamap.com/activities/51221284",
+        "sources": [
+          "https://www.env.go.jp/nature/nationalparks/try/all/act372.html",
+          "https://sangakutaro.com/yakushima-guide/kurio.html",
+          "https://yamap.com/activities/51221284"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.4225438,
+          30.2677346
+        ]
+      },
+      "properties": {
+        "number": 114,
+        "waterbody": "栗生川",
+        "region": "九州",
+        "name": "栗生川 公開パックラフト記録 到着点",
+        "coordinate_type": "recorded_trip_endpoint",
+        "permission": "unverified",
+        "permission_note": "환경성·현지 운영자 카누 출발 수역. 개인艇·도로 접근 조건 미확인.",
+        "access": "같은 공개 GPS 종료점. 바다 이동 포함 기록이므로 구간 현장 확인 필요.",
+        "source": "https://yamap.com/activities/51221284",
+        "sources": [
+          "https://www.env.go.jp/nature/nationalparks/try/all/act372.html",
+          "https://sangakutaro.com/yakushima-guide/kurio.html",
+          "https://yamap.com/activities/51221284"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          129.412545,
+          28.261898
+        ]
+      },
+      "properties": {
+        "number": 115,
+        "waterbody": "住用川・役勝川河口",
+        "region": "九州",
+        "name": "黒潮の森マングローブパーク",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 맹그로브 카누 현장. 개인艇 반입·잔교 이용·보호구역 규칙 확인 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.mangrovepark.com/canueing-trial",
+        "sources": [
+          "https://www.mangrovepark.com/canueing-trial"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.5579999,
+          31.2510771
+        ]
+      },
+      "properties": {
+        "number": 116,
+        "waterbody": "池田湖",
+        "region": "九州",
+        "name": "池田湖 カヤック体験 艇庫周辺",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "시 자료에 인근 카약艇庫·수상체험 확인. 개인艇 반입·진수 시설 이용 미확인.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://www.kagoshima-kankou.com/guide/53669",
+        "sources": [
+          "https://ibusuki.or.jp/tourism/view/ikedalake/",
+          "https://www.kagoshima-kankou.com/guide/53669"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          128.1439928,
+          26.604313
+        ]
+      },
+      "properties": {
+        "number": 117,
+        "waterbody": "慶佐次川",
+        "region": "沖縄",
+        "name": "東村ふれあいヒルギ公園",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "게사시강 맹그로브 투어 수변. 개인艇·지정 구역·조석·보전 이용 규칙 확인 필요.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.yanbaru-club.com/",
+        "sources": [
+          "https://www.yanbaru-club.com/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          127.9432793,
+          26.4539958
+        ]
+      },
+      "properties": {
+        "number": 118,
+        "waterbody": "億首川",
+        "region": "沖縄",
+        "name": "ネイチャーみらい館 億首川側",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 맹그로브 카누 현장. 개인艇 반입·진수 시설 사용 미확인.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://kin-eco.com/?page_id=735",
+        "sources": [
+          "https://kin-eco.com/?page_id=735"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          127.7470342,
+          26.3636743
+        ]
+      },
+      "properties": {
+        "number": 119,
+        "waterbody": "比謝川",
+        "region": "沖縄",
+        "name": "嘉手納町 比謝川自然体験センター",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "공식 카약 현장. 개인艇 반입·발착 시설 사용 미확인.",
+        "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
+        "source": "https://www.town.kadena.okinawa.jp/facility/shi7031.html",
+        "sources": [
+          "https://hijagawa.com/",
+          "https://www.town.kadena.okinawa.jp/facility/shi7031.html"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.212826,
+          24.3579119
+        ]
+      },
+      "properties": {
+        "number": 120,
+        "waterbody": "宮良川",
+        "region": "沖縄",
+        "name": "ぱいぬ島観光 庭先カヌー発着",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "현지 운영자 맹그로브 카누 현장. 개인艇·잔교 사용 허용 미확인.",
+        "access": "발착 안내·시설 위치와 Esri·국토지리원 항공사진의 인접 물가를 대조한 후보. 통행·시설 사용 권한과 현재 수위는 별도 확인 필요.",
+        "source": "https://canoetour-ikema.com/canoetour/",
+        "sources": [
+          "https://canoetour-ikema.com/canoetour/",
+          "https://yaeyama.ne.jp/standard_canoe/"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.778913,
+          24.402977
+        ]
+      },
+      "properties": {
+        "number": 121,
+        "waterbody": "浦内川",
+        "region": "沖縄",
+        "name": "浦内川観光 下流船着場",
+        "coordinate_type": "facility_lead",
+        "permission": "unverified",
+        "permission_note": "운영자 카누·유람선 수변. 개인艇 시설 이용·항로 규칙 미확인. 원류 제한구역은 별도 승인.",
+        "access": "공개 자료의 시설 위치. 실제 진수 동선은 추가 확인 필요.",
+        "source": "https://urauchigawa.com/access/",
+        "sources": [
+          "https://urauchigawa.com/access/",
+          "https://www.okinawastory.jp/spot/1058"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.8801318,
+          24.2797389
+        ]
+      },
+      "properties": {
+        "number": 122,
+        "waterbody": "仲間川",
+        "region": "沖縄",
+        "name": "仲間橋 周辺発着エリア",
+        "coordinate_type": "reference_only",
+        "permission": "unverified",
+        "permission_note": "보전이용협정의 구간·인원 규칙. 개인艇·발착 시설 사용과 가이드 조건 미확인.",
+        "access": "나카마교 주변 수역 참고 위치. 정확한 카누 진수 잔교와 개인 시설 이용 권한 미확인.",
+        "source": "https://www.kanpira.com/nakama_river.htm",
+        "sources": [
+          "https://www.pref.okinawa.jp/_res/projects/default_project/_page_/001/004/312/nakamagawa_kyoutei.pdf",
+          "https://www.kanpira.com/nakama_river.htm"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.8125656,
+          24.3890939
+        ]
+      },
+      "properties": {
+        "number": 123,
+        "waterbody": "ヒナイ川",
+        "region": "沖縄",
+        "name": "マーレ川カヤック乗場",
+        "coordinate_type": "reported_water_access",
+        "permission": "guide_required",
+        "permission_note": "제한 필드. 다케토미정 사전 입역 승인·등록 인솔 가이드 필요. 자기艇 동반 허용은 별도 확인.",
+        "access": "공개 지도에 카약 승선장·카누 발착장으로 명시. 입역 승인·등록 가이드 조건 적용.",
+        "source": "https://yamap.com/model-courses/29645",
+        "sources": [
+          "https://iriomote-ecotourism.jp/tokutei-entry-flow/",
+          "https://iriomote-ecotourism.jp/field-usage-plan/",
+          "https://yamap.com/model-courses/29645"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.8204159,
+          24.3856888
+        ]
+      },
+      "properties": {
+        "number": 123,
+        "waterbody": "ヒナイ川",
+        "region": "沖縄",
+        "name": "ピナイサーラの滝 カヌー発着場",
+        "coordinate_type": "reported_water_access",
+        "permission": "guide_required",
+        "permission_note": "제한 필드. 다케토미정 사전 입역 승인·등록 인솔 가이드 필요. 자기艇 동반 허용은 별도 확인.",
+        "access": "공개 지도에 카약 승선장·카누 발착장으로 명시. 입역 승인·등록 가이드 조건 적용.",
+        "source": "https://yamap.com/model-courses/29645",
+        "sources": [
+          "https://iriomote-ecotourism.jp/tokutei-entry-flow/",
+          "https://iriomote-ecotourism.jp/field-usage-plan/",
+          "https://yamap.com/model-courses/29645"
+        ],
+        "checked_at": "2026-11-17"
+      }
+    }
+  ]
+}
