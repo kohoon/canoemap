@@ -1710,7 +1710,7 @@ async function checkLandOwnership(){
     box.innerHTML='<div class="land-own-card"><div class="land-own-head"><b>토지 정보</b><span class="land-own-badge '+cat+'">'+pmEsc(d.label||'확인 불가')+'</span></div>'
       +'<div class="land-own-grid"><span>소유구분</span><b>'+pmEsc(d.ownerType||'미분류')+'</b><span>지목</span><b>'+pmEsc(d.landCategory||'—')+'</b><span>면적</span><b>'+area+'</b><span>기준일</span><b>'+pmEsc(d.updatedAt||'—')+'</b></div>'
       +'<a class="land-own-link" target="_blank" rel="noopener" href="https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?isNoScr=script&mode=search&pnu='+encodeURIComponent(pnu)+'">토지이음 상세보기&nbsp;↗</a></div>';
-    if(d.geometry){_landOwnershipLayer=L.geoJSON({type:'Feature',geometry:d.geometry,properties:{}},{style:{color:_landOwnerColor(cat),weight:3,fillColor:_landOwnerColor(cat),fillOpacity:.2,dashArray:cat==='private'?'7 5':null}}).addTo(map);}
+    if(d.geometry){_landOwnershipLayer=L.geoJSON({type:'Feature',geometry:d.geometry,properties:{}},{interactive:false,style:{color:_landOwnerColor(cat),weight:3,fillColor:_landOwnerColor(cat),fillOpacity:.2,dashArray:cat==='private'?'7 5':null}}).addTo(map);}
     gaEvent('land_ownership_check',{result:cat});
   }catch(e){
     const code=String(e&&e.message||'');
@@ -1877,6 +1877,12 @@ if(isTouch){
 })();
 
 // ---- 상수원보호구역 면 (외부 .geojson, 줌인 시 지연 로드) ----
+// 같은 Canvas 안에서 배경 경로를 아래로 내려 빈 영역의 클릭도 함께 판정한다.
+function _restoreBackgroundPathOrder(){
+  [wlzLayer,protectLayer,_roadData,_riverStream,_riverMain].forEach(function(layer){
+    if(layer&&map.hasLayer(layer))layer.bringToBack();
+  });
+}
 function _lazyLoadProtect(){
   if(protectLayer) return Promise.resolve(protectLayer);
   if(_protectLoading) return _protectLoading;
@@ -1893,6 +1899,7 @@ function _lazyLoadProtect(){
           fillRule:(f.properties||{}).displayMerged?'evenodd':'nonzero'};},
         onEachFeature:function(f,l){ if(f.properties&&f.properties.s) l.bindPopup('<b>상수원보호구역</b><br>'+f.properties.s); }
       });
+      protectLayer.on('add',_restoreBackgroundPathOrder);
       return protectLayer;
     })
     .catch(function(e){ _protectLoading=null; throw e; });
@@ -1931,6 +1938,7 @@ function _lazyLoadWlz(){
             +(p.note?'<br><small>'+pmEsc(p.note)+'</small>':'')
             +(p.office?'<br><small>'+pmEsc(p.office)+'</small>':'')); }
       });
+      wlzLayer.on('add',_restoreBackgroundPathOrder);
       return wlzLayer;
     })
     .catch(function(e){ _wlzLoading=null; throw e; });
@@ -3609,7 +3617,7 @@ function _loadAdminRivers(){
   _riverLoading=fetch('rivers.geojson?v='+DATAVER.rivers).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(fc){
     _riverFeatures=fc.features||[];
     const opts=function(kind){return {filter:function(f){return (f.properties||{}).kind===kind;},style:kind==='river'?{color:RIVER_SKY_COLOR,weight:6.5,opacity:.96}:{color:RIVER_SKY_COLOR,weight:4.5,opacity:.88},onEachFeature:function(f,l){const n=(f.properties||{}).name;if(n)l.bindTooltip(pmEsc(n),{sticky:true,direction:'top'});}};};
-    _riverMain=L.geoJSON(fc,opts('river')); _riverStream=L.geoJSON(fc,opts('stream')); _riverAdminGroup.addLayer(_riverMain); _riverZoomGate();
+    _riverMain=L.geoJSON(fc,opts('river')).on('add',_restoreBackgroundPathOrder); _riverStream=L.geoJSON(fc,opts('stream')).on('add',_restoreBackgroundPathOrder); _riverAdminGroup.addLayer(_riverMain); _riverZoomGate();
   }).catch(function(){alert('하천 데이터를 불러오지 못했습니다');}).finally(function(){_riverLoading=null;}); return _riverLoading;
 }
 function _syncAdminRiverLayer(on){
@@ -3693,7 +3701,7 @@ function _roadDisplay(p){const m=_roadMeta[p.kind]||_roadMeta.local,ref=String(p
 function _loadAdminRoads(){
   if(!isAdmin())return Promise.resolve();if(_roadData)return Promise.resolve();if(_roadLoading)return _roadLoading;
   _roadLoading=fetch('roads.geojson?v='+DATAVER.roads).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(fc){
-    if(!isAdmin())return;_roadFeatures=fc.features||[];_roadData=L.geoJSON(fc,{style:function(f){const m=_roadMeta[(f.properties||{}).kind]||_roadMeta.local;return {color:m.color,weight:m.weight,opacity:.86};},onEachFeature:function(f,l){l.bindTooltip(pmEsc(_roadDisplay(f.properties||{})),{sticky:true,direction:'top'});}});_roadAdminGroup.addLayer(_roadData);
+    if(!isAdmin())return;_roadFeatures=fc.features||[];_roadData=L.geoJSON(fc,{style:function(f){const m=_roadMeta[(f.properties||{}).kind]||_roadMeta.local;return {color:m.color,weight:m.weight,opacity:.86};},onEachFeature:function(f,l){l.bindTooltip(pmEsc(_roadDisplay(f.properties||{})),{sticky:true,direction:'top'});}}).on('add',_restoreBackgroundPathOrder);_roadAdminGroup.addLayer(_roadData);
   }).catch(function(){alert('도로 데이터를 불러오지 못했습니다');}).finally(function(){_roadLoading=null;});return _roadLoading;
 }
 function _syncAdminRoadLayer(on){
@@ -5486,7 +5494,7 @@ map.on('locationfound', function(e){
   _setLocateState(true,false);
   const radius=Math.min(e.accuracy||0,2000);
   if(_locCircle)_locCircle.setLatLng(e.latlng).setRadius(radius);
-  else _locCircle=L.circle(e.latlng,{radius:radius,color:'#1976d2',weight:1,fillColor:'#42a5f5',fillOpacity:.15}).addTo(map);
+  else _locCircle=L.circle(e.latlng,{interactive:false,radius:radius,color:'#1976d2',weight:1,fillColor:'#42a5f5',fillOpacity:.15}).addTo(map);
   if(_locMarker)_locMarker.setLatLng(e.latlng);
   else _locMarker=L.marker(e.latlng,{icon:_locIcon(_locMode),zIndexOffset:1000,interactive:false}).addTo(map);
   _ensureLocSurfaceData(e.latlng).then(function(){if(_locWatching&&_locLastEvent===e)_setLocationMode(_classifyLocationMode(e),true);});
@@ -5567,7 +5575,7 @@ async function startTrip(resume,course){
   if(!navigator.geolocation){ toastMsg('이 기기는 위치를 지원하지 않습니다'); return; }
   const track=(resume&&resume.track)||[],breaks=(resume&&resume.breaks)||[],selected=(resume&&resume.course)||course||null;
   _trk={track:track,breaks:breaks,startMs:(resume&&resume.startMs)||Date.now(),pausedMs:Number(resume&&resume.pausedMs)||0,paused:!!(resume&&resume.paused),pauseType:(resume&&resume.pauseType)||'',pauseStarted:Number(resume&&resume.pauseStarted)||0,watchId:null,wakeLock:null,timer:null,course:selected,courseStartAlong:resume&&resume.courseStartAlong!=null?resume.courseStartAlong:(selected&&selected.directionFixed?0:null),courseDirection:Number(resume&&resume.courseDirection)||(selected&&selected.directionFixed?1:0),courseCurrent:null,progress:Number(resume&&resume.progress)||0,estimatedCoords:(resume&&resume.estimatedCoords)||[],estimated:!!(resume&&resume.estimated),breakPending:false,motion:[],stationarySince:0,moveHits:0,
-    line:L.polyline(_tourLineParts(track,breaks),{color:'#ff3d00',weight:5,opacity:.92}).addTo(map),estimateLine:L.polyline((resume&&resume.estimatedCoords)||[],{color:'#ff9800',weight:5,opacity:.82,dashArray:'8 7'}).addTo(map),planLine:selected?L.polyline(selected.coords,{color:'#1565c0',weight:7,opacity:.48,dashArray:'12 8'}).addTo(map):null,posMarker:null};
+    line:L.polyline(_tourLineParts(track,breaks),{interactive:false,color:'#ff3d00',weight:5,opacity:.92}).addTo(map),estimateLine:L.polyline((resume&&resume.estimatedCoords)||[],{interactive:false,color:'#ff9800',weight:5,opacity:.82,dashArray:'8 7'}).addTo(map),planLine:selected?L.polyline(selected.coords,{interactive:false,color:'#1565c0',weight:7,opacity:.48,dashArray:'12 8'}).addTo(map):null,posMarker:null};
   if(selected&&selected.coords&&selected.coords.length>1)try{map.fitBounds(L.latLngBounds(selected.coords).pad(.15));}catch(e){}
   if(!_trk.paused||_trk.pauseType==='auto')_tourStartWatch();if(!_trk.paused)await _tourWake(_trk);
   _trk.timer=setInterval(updateTripUI,1000);
@@ -5582,7 +5590,7 @@ function _tourAutoMotion(np,c){
 }
 function onTripPos(pos){if(!_trk)return;const c=pos.coords;if(c.accuracy>50)return;const np=[+c.latitude.toFixed(6),+c.longitude.toFixed(6),Date.now()];if(!_tourAutoMotion(np,c))return;const t=_trk.track,last=t[t.length-1],gap=last&&np[2]-last[2]>30000;
   if(last&&!_trk.breakPending){const d=map.distance([last[0],last[1]],[np[0],np[1]]),dt=(np[2]-last[2])/1000;if(d<5)return;if(dt>0&&d/dt>15)return;}
-  if((gap||_trk.breakPending)&&t.length)_trk.breaks.push(t.length);_trk.breakPending=false;t.push(np);if(!_trk.posMarker)_trk.posMarker=L.circleMarker([np[0],np[1]],{radius:8,color:'#fff',weight:3,fillColor:'#00bcd4',fillOpacity:1}).addTo(map);else _trk.posMarker.setLatLng([np[0],np[1]]);_tourUpdateCourse(_trk,np);_tourSetLines(_trk);tripBackup();if(gap)_estimateTourTo(np,true);updateTripUI();}
+  if((gap||_trk.breakPending)&&t.length)_trk.breaks.push(t.length);_trk.breakPending=false;t.push(np);if(!_trk.posMarker)_trk.posMarker=L.circleMarker([np[0],np[1]],{interactive:false,radius:8,color:'#fff',weight:3,fillColor:'#00bcd4',fillOpacity:1}).addTo(map);else _trk.posMarker.setLatLng([np[0],np[1]]);_tourUpdateCourse(_trk,np);_tourSetLines(_trk);tripBackup();if(gap)_estimateTourTo(np,true);updateTripUI();}
 function pauseTour(manual,pauseAt){const t=_trk;if(!t||t.paused)return;t.paused=true;t.pauseType=manual===false?'auto':'manual';t.pauseStarted=pauseAt||Date.now();t.moveHits=0;if(t.pauseType==='manual')_tourStopWatch(t);try{if(t.wakeLock)t.wakeLock.release();}catch(e){}t.wakeLock=null;tripBackup();updateTripUI();toastMsg(t.pauseType==='auto'?'⏸ 이동이 없어 자동 휴식':'⏸ 휴식 시작');}
 function resumeTour(auto){const t=_trk;if(!t||!t.paused)return;t.pausedMs+=Math.max(0,Date.now()-t.pauseStarted);t.paused=false;t.pauseType='';t.pauseStarted=0;t.stationarySince=0;t.moveHits=0;t.motion=[];t.breakPending=true;if(!auto)_tourStartWatch();_tourWake(t);tripBackup();updateTripUI();toastMsg(auto?'▶ 이동 감지 — 투어 자동 재개':'▶ 투어 재개');}
 function tripPauseToggle(){if(!_trk)return;if(_trk.paused)resumeTour(false);else pauseTour(true);}

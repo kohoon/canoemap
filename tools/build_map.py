@@ -2168,7 +2168,7 @@ async function checkLandOwnership(){
     box.innerHTML='<div class="land-own-card"><div class="land-own-head"><b>토지 정보</b><span class="land-own-badge '+cat+'">'+pmEsc(d.label||'확인 불가')+'</span></div>'
       +'<div class="land-own-grid"><span>소유구분</span><b>'+pmEsc(d.ownerType||'미분류')+'</b><span>지목</span><b>'+pmEsc(d.landCategory||'—')+'</b><span>면적</span><b>'+area+'</b><span>기준일</span><b>'+pmEsc(d.updatedAt||'—')+'</b></div>'
       +'<a class="land-own-link" target="_blank" rel="noopener" href="https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?isNoScr=script&mode=search&pnu='+encodeURIComponent(pnu)+'">토지이음 상세보기&nbsp;↗</a></div>';
-    if(d.geometry){_landOwnershipLayer=L.geoJSON({type:'Feature',geometry:d.geometry,properties:{}},{style:{color:_landOwnerColor(cat),weight:3,fillColor:_landOwnerColor(cat),fillOpacity:.2,dashArray:cat==='private'?'7 5':null}}).addTo(map);}
+    if(d.geometry){_landOwnershipLayer=L.geoJSON({type:'Feature',geometry:d.geometry,properties:{}},{interactive:false,style:{color:_landOwnerColor(cat),weight:3,fillColor:_landOwnerColor(cat),fillOpacity:.2,dashArray:cat==='private'?'7 5':null}}).addTo(map);}
     gaEvent('land_ownership_check',{result:cat});
   }catch(e){
     const code=String(e&&e.message||'');
@@ -2340,6 +2340,12 @@ if(isTouch){
 })();
 
 // ---- 상수원보호구역 면 (외부 .geojson, 줌인 시 지연 로드) ----
+// 같은 Canvas 안에서 배경 경로를 아래로 내려 빈 영역의 클릭도 함께 판정한다.
+function _restoreBackgroundPathOrder(){
+  [wlzLayer,protectLayer,_roadData,_riverStream,_riverMain].forEach(function(layer){
+    if(layer&&map.hasLayer(layer))layer.bringToBack();
+  });
+}
 function _lazyLoadProtect(){
   if(protectLayer) return Promise.resolve(protectLayer);
   if(_protectLoading) return _protectLoading;
@@ -2356,6 +2362,7 @@ function _lazyLoadProtect(){
           fillRule:(f.properties||{}).displayMerged?'evenodd':'nonzero'};},
         onEachFeature:function(f,l){ if(f.properties&&f.properties.s) l.bindPopup('<b>상수원보호구역</b><br>'+f.properties.s); }
       });
+      protectLayer.on('add',_restoreBackgroundPathOrder);
       return protectLayer;
     })
     .catch(function(e){ _protectLoading=null; throw e; });
@@ -2394,6 +2401,7 @@ function _lazyLoadWlz(){
             +(p.note?'<br><small>'+pmEsc(p.note)+'</small>':'')
             +(p.office?'<br><small>'+pmEsc(p.office)+'</small>':'')); }
       });
+      wlzLayer.on('add',_restoreBackgroundPathOrder);
       return wlzLayer;
     })
     .catch(function(e){ _wlzLoading=null; throw e; });
@@ -4393,7 +4401,7 @@ function _loadAdminRivers(){
   _riverLoading=fetch('rivers.geojson?v='+DATAVER.rivers).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(fc){
     _riverFeatures=fc.features||[];
     const opts=function(kind){return {filter:function(f){return (f.properties||{}).kind===kind;},style:kind==='river'?{color:RIVER_SKY_COLOR,weight:6.5,opacity:.96}:{color:RIVER_SKY_COLOR,weight:4.5,opacity:.88},onEachFeature:function(f,l){const n=(f.properties||{}).name;if(n)l.bindTooltip(pmEsc(n),{sticky:true,direction:'top'});}};};
-    _riverMain=L.geoJSON(fc,opts('river')); _riverStream=L.geoJSON(fc,opts('stream')); _riverAdminGroup.addLayer(_riverMain); _riverZoomGate();
+    _riverMain=L.geoJSON(fc,opts('river')).on('add',_restoreBackgroundPathOrder); _riverStream=L.geoJSON(fc,opts('stream')).on('add',_restoreBackgroundPathOrder); _riverAdminGroup.addLayer(_riverMain); _riverZoomGate();
   }).catch(function(){alert('하천 데이터를 불러오지 못했습니다');}).finally(function(){_riverLoading=null;}); return _riverLoading;
 }
 function _syncAdminRiverLayer(on){
@@ -4512,7 +4520,7 @@ function _roadDisplay(p){const m=_roadMeta[p.kind]||_roadMeta.local,ref=String(p
 function _loadAdminRoads(){
   if(!isAdmin())return Promise.resolve();if(_roadData)return Promise.resolve();if(_roadLoading)return _roadLoading;
   _roadLoading=fetch('roads.geojson?v='+DATAVER.roads).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(fc){
-    if(!isAdmin())return;_roadFeatures=fc.features||[];_roadData=L.geoJSON(fc,{style:function(f){const m=_roadMeta[(f.properties||{}).kind]||_roadMeta.local;return {color:m.color,weight:m.weight,opacity:.86};},onEachFeature:function(f,l){l.bindTooltip(pmEsc(_roadDisplay(f.properties||{})),{sticky:true,direction:'top'});}});_roadAdminGroup.addLayer(_roadData);
+    if(!isAdmin())return;_roadFeatures=fc.features||[];_roadData=L.geoJSON(fc,{style:function(f){const m=_roadMeta[(f.properties||{}).kind]||_roadMeta.local;return {color:m.color,weight:m.weight,opacity:.86};},onEachFeature:function(f,l){l.bindTooltip(pmEsc(_roadDisplay(f.properties||{})),{sticky:true,direction:'top'});}}).on('add',_restoreBackgroundPathOrder);_roadAdminGroup.addLayer(_roadData);
   }).catch(function(){alert('도로 데이터를 불러오지 못했습니다');}).finally(function(){_roadLoading=null;});return _roadLoading;
 }
 function _syncAdminRoadLayer(on){
@@ -6230,7 +6238,7 @@ map.on('locationfound', function(e){
   _setLocateState(true,false);
   const radius=Math.min(e.accuracy||0,2000);
   if(_locCircle)_locCircle.setLatLng(e.latlng).setRadius(radius);
-  else _locCircle=L.circle(e.latlng,{radius:radius,color:'#1976d2',weight:1,fillColor:'#42a5f5',fillOpacity:.15}).addTo(map);
+  else _locCircle=L.circle(e.latlng,{interactive:false,radius:radius,color:'#1976d2',weight:1,fillColor:'#42a5f5',fillOpacity:.15}).addTo(map);
   if(_locMarker)_locMarker.setLatLng(e.latlng);
   else _locMarker=L.marker(e.latlng,{icon:_locIcon(_locMode),zIndexOffset:1000,interactive:false}).addTo(map);
   _ensureLocSurfaceData(e.latlng).then(function(){if(_locWatching&&_locLastEvent===e)_setLocationMode(_classifyLocationMode(e),true);});
@@ -6308,7 +6316,7 @@ async function startTrip(resume,course){
   if(!firstFix||!firstFix.coords||!Number.isFinite(firstFix.coords.accuracy)||firstFix.coords.accuracy>50){_tourStarting=false;return fail('GPS 정확도가 50m보다 낮습니다. 위치가 안정되면 다시 시작해 주세요.');}
   const track=(resume&&resume.track)||[],breaks=(resume&&resume.breaks)||[],selected=(resume&&resume.course)||course||null;
   _trk={uid:String(u.uid),track:track,breaks:breaks,startMs:(resume&&resume.startMs)||Date.now(),pausedMs:Number(resume&&resume.pausedMs)||0,pauses:Array.isArray(resume&&resume.pauses)?resume.pauses:[],paused:!!(resume&&resume.paused),pauseType:(resume&&resume.pauseType)||'',pauseStarted:Number(resume&&resume.pauseStarted)||0,watchId:null,wakeLock:null,timer:null,followView:false,gpsPermissionDenied:false,lastWatchRestartAt:0,course:selected,courseStartAlong:resume&&resume.courseStartAlong!=null?resume.courseStartAlong:(selected&&selected.directionFixed?0:null),courseDirection:Number(resume&&resume.courseDirection)||(selected&&selected.directionFixed?1:0),courseCurrent:null,progress:Number(resume&&resume.progress)||0,breakPending:false,motion:[],stationarySince:0,moveHits:0,
-    line:L.polyline(_tourLineParts(track,breaks),{color:'#ff3d00',weight:5,opacity:.92}).addTo(map),planLine:selected?L.polyline(selected.coords,{color:'#1565c0',weight:7,opacity:.48,dashArray:'12 8'}).addTo(map):null,posMarker:null};
+    line:L.polyline(_tourLineParts(track,breaks),{interactive:false,color:'#ff3d00',weight:5,opacity:.92}).addTo(map),planLine:selected?L.polyline(selected.coords,{interactive:false,color:'#1565c0',weight:7,opacity:.48,dashArray:'12 8'}).addTo(map):null,posMarker:null};
   if(selected&&selected.coords&&selected.coords.length>1)try{map.fitBounds(L.latLngBounds(selected.coords).pad(.15));}catch(e){}
   _trk.followView=true;
   if(!_trk.paused)onTripPos(firstFix);
@@ -6327,7 +6335,7 @@ function _tourAutoMotion(np,c){
   if(moving){t.stationarySince=0;}else if(first&&np[2]-first[2]>=60000){if(!t.stationarySince)t.stationarySince=first[2];if(np[2]-t.stationarySince>=180000)pauseTour(false,t.stationarySince);}
   return !t.paused;
 }
-function onTripPos(pos){if(!_trk)return;const c=pos.coords;if(!Number.isFinite(c.accuracy)||c.accuracy>50){_tourGpsStatus('GPS 불안정 · 정확도 '+Math.round(c.accuracy||0)+'m · 경로 기록 대기','warn');return;}_trk.lastFixAt=Date.now();_trk.gpsPermissionDenied=false;_tourGpsStatus('GPS 정상 · 정확도 '+Math.round(c.accuracy)+'m');const np=[+c.latitude.toFixed(6),+c.longitude.toFixed(6),Date.now()],first=!_trk.posMarker;if(first)_trk.posMarker=L.circleMarker([np[0],np[1]],{radius:8,color:'#fff',weight:3,fillColor:'#00bcd4',fillOpacity:1}).addTo(map);else _trk.posMarker.setLatLng([np[0],np[1]]);_tourFollowPosition(_trk,[np[0],np[1]],first);if(!_tourAutoMotion(np,c))return;const t=_trk.track,last=t[t.length-1],gap=last&&np[2]-last[2]>30000;
+function onTripPos(pos){if(!_trk)return;const c=pos.coords;if(!Number.isFinite(c.accuracy)||c.accuracy>50){_tourGpsStatus('GPS 불안정 · 정확도 '+Math.round(c.accuracy||0)+'m · 경로 기록 대기','warn');return;}_trk.lastFixAt=Date.now();_trk.gpsPermissionDenied=false;_tourGpsStatus('GPS 정상 · 정확도 '+Math.round(c.accuracy)+'m');const np=[+c.latitude.toFixed(6),+c.longitude.toFixed(6),Date.now()],first=!_trk.posMarker;if(first)_trk.posMarker=L.circleMarker([np[0],np[1]],{interactive:false,radius:8,color:'#fff',weight:3,fillColor:'#00bcd4',fillOpacity:1}).addTo(map);else _trk.posMarker.setLatLng([np[0],np[1]]);_tourFollowPosition(_trk,[np[0],np[1]],first);if(!_tourAutoMotion(np,c))return;const t=_trk.track,last=t[t.length-1],gap=last&&np[2]-last[2]>30000;
   if(last&&!_trk.breakPending){const d=map.distance([last[0],last[1]],[np[0],np[1]]),dt=(np[2]-last[2])/1000;if(d<5)return;if(dt>0&&d/dt>15)return;}
   if((gap||_trk.breakPending)&&t.length)_trk.breaks.push(t.length);_trk.breakPending=false;t.push(np);_tourUpdateCourse(_trk,np);_tourSetLines(_trk);tripBackup();updateTripUI();}
 function pauseTour(manual,pauseAt){const t=_trk;if(!t||t.paused)return;t.paused=true;t.pauseType=manual===false?'auto':'manual';t.pauseStarted=Math.max(t.startMs,Math.min(Date.now(),pauseAt||Date.now()));t.moveHits=0;if(t.pauseType==='manual')_tourStopWatch(t);try{if(t.wakeLock)t.wakeLock.release();}catch(e){}t.wakeLock=null;_tourGpsStatus('휴식 중 · GPS 기록 일시정지');tripBackup();updateTripUI();toastMsg(t.pauseType==='auto'?'⏸ 이동이 없어 자동 휴식':'⏸ 휴식 시작');}
@@ -6421,7 +6429,7 @@ async function viewTrip(id){ const u=getUser(); closeTModal();
     const trip=await r.json(); if(_viewLine) map.removeLayer(_viewLine);
     const gps=Array.isArray(trip.gpsTrack)&&trip.gpsTrack.length>=2?trip.gpsTrack:(!trip.estimated&&Array.isArray(trip.track)?trip.track:[]);
     if(gps.length<2){toastMsg('이 기록에는 표시할 GPS 경로가 없어요');return;}
-    _viewLine=L.layerGroup().addTo(map);const actual=L.polyline(_tourLineParts(gps,trip.breaks),{color:'#ff3d00',weight:5,opacity:.9}).addTo(_viewLine);
+    _viewLine=L.layerGroup().addTo(map);const actual=L.polyline(_tourLineParts(gps,trip.breaks),{interactive:false,color:'#ff3d00',weight:5,opacity:.9}).addTo(_viewLine);
     const a=gps[0], b=gps[gps.length-1];
     L.circleMarker([a[0],a[1]],{radius:7,color:'#fff',weight:2,fillColor:'#2e7d32',fillOpacity:1}).addTo(_viewLine).bindTooltip('런칭');
     L.circleMarker([b[0],b[1]],{radius:7,color:'#fff',weight:2,fillColor:'#c62828',fillOpacity:1}).addTo(_viewLine).bindTooltip('랜딩');
