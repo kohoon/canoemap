@@ -12,15 +12,50 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy temporary encrypted read-only reviewer
-        run: npx --yes wrangler deploy --config ops/review/review.toml
-      - name: Fetch encrypted snapshot
-        run: curl --fail --retry 3 --silent --show-error https://canoemap-launch-review-20261117.kohoon0140.workers.dev/ -o "$RUNNER_TEMP/launch-places.encrypted.json"
+      - name: Read using temporary encrypted Worker
+        run: |
+          python3 - <<'CODE'
+          import os,json,pathlib,urllib.request,urllib.error,time
+          base='https://api.cloudflare.com/client/v4/accounts/'+os.environ['CLOUDFLARE_ACCOUNT_ID']+'/workers/scripts/canoemap-launch-review-20261117'
+          headers={'Authorization':'Bearer '+os.environ['CLOUDFLARE_API_TOKEN']}
+          def request(url,method='GET',body=None,content_type='application/json'):
+              req=urllib.request.Request(url,data=body,method=method,headers={**headers,'Content-Type':content_type})
+              try:
+                  with urllib.request.urlopen(req,timeout=60) as r:return r.read()
+              except urllib.error.HTTPError as e:
+                  error=e.read().decode();raise RuntimeError('Cloudflare '+str(e.code)+' '+error[:800]) from None
+          metadata={'main_module':'review-worker.mjs','compatibility_date':'2024-09-01','bindings':[{'type':'kv_namespace','name':'PLACES','namespace_id':'fa39499b8c8346408f24fd07a323d9e0'}]}
+          boundary='----canoemapreviewboundary'
+          parts=[]
+          for name,ctype,data in [('metadata','application/json',json.dumps(metadata).encode()),('review-worker.mjs','application/javascript+module',pathlib.Path('ops/review/review-worker.mjs').read_bytes())]:
+              parts.append(('--'+boundary+'\r\nContent-Disposition: form-data; name="'+name+'"; filename="'+name+'"\r\nContent-Type: '+ctype+'\r\n\r\n').encode()+data+b'\r\n')
+          body=b''.join(parts)+('--'+boundary+'--\r\n').encode()
+          created=False
+          try:
+              result=json.loads(request(base,'PUT',body,'multipart/form-data; boundary='+boundary))
+              if not result.get('success'):raise RuntimeError('Temporary reviewer upload failed')
+              created=True
+              request(base+'/subdomain','POST',json.dumps({'enabled':True,'previews_enabled':False}).encode())
+              error=None
+              for attempt in range(5):
+                  try:
+                      with urllib.request.urlopen('https://canoemap-launch-review-20261117.kohoon0140.workers.dev/',timeout=60) as r:data=r.read()
+                      encrypted=json.loads(data)
+                      if not all(k in encrypted for k in ['iv','wrappedKey','ciphertext']):raise RuntimeError('Unexpected snapshot format')
+                      pathlib.Path(os.environ['RUNNER_TEMP'],'launch-places.encrypted.json').write_bytes(data)
+                      error=None;break
+                  except Exception as e:
+                      error=e;time.sleep(4)
+              if error:raise error
+              print('Encrypted launch-place snapshot saved.')
+          finally:
+              if created:
+                  result=json.loads(request(base,'DELETE'))
+                  if not result.get('success'):raise RuntimeError('Temporary reviewer cleanup failed')
+                  print('Temporary reviewer removed.')
+          CODE
       - uses: actions/upload-artifact@v4
         with:
           name: encrypted-launch-review
           path: ${{ runner.temp }}/launch-places.encrypted.json
           retention-days: 1
-      - name: Remove temporary reviewer
-        if: always()
-        run: npx --yes wrangler delete --name canoemap-launch-review-20261117 --force
