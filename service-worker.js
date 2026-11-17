@@ -86,6 +86,11 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
+  // Review documents have their own encrypted content and must not replace the map shell.
+  if (url.origin === self.location.origin && url.pathname.startsWith('/review/')) {
+    event.respondWith(fetch(request, { cache: 'no-store' }));
+    return;
+  }
   if (request.mode === 'navigate') {
     event.respondWith(cachedNavigation(request));
     return;
