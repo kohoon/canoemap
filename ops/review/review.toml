@@ -1,0 +1,7 @@
+name = "canoemap-launch-review-20261117"
+main = "review-worker.mjs"
+compatibility_date = "2024-09-01"
+workers_dev = true
+[[kv_namespaces]]
+binding = "PLACES"
+id = "fa39499b8c8346408f24fd07a323d9e0"
