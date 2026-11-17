@@ -2981,6 +2981,11 @@ const WALKING_TRAILS = {"type":"FeatureCollection","features":[{"type":"Feature"
 // 육로도 일반 지형지물과 같은 ID·검색·관리자 편집 흐름을 사용한다.
 const walkingTrailLayer=L.layerGroup().addTo(obstacleLayer);
 map.createPane('walkingFocusPane');map.getPane('walkingFocusPane').style.zIndex='510';
+// SVG는 경로만 클릭을 받도록 해 빈 육로 영역 아래의 구역·코스를 선택할 수 있게 한다.
+const _walkingTrailRenderers={
+  walkingTrailPane:L.svg({pane:'walkingTrailPane'}),
+  walkingFocusPane:L.svg({pane:'walkingFocusPane'})
+};
 const _walkingTrailSeeds={};
 let _activeWalkingTrailId='';
 const _obstacles={};
@@ -3018,8 +3023,9 @@ function _renderWalkingTrail(o){
   if(!o.geometry||!['LineString','MultiLineString'].includes(o.geometry.type))return;
   const pane=o.id===_activeWalkingTrailId?'walkingFocusPane':'walkingTrailPane';
   const group=L.featureGroup(),feature={type:'Feature',properties:{},geometry:o.geometry};
-  L.geoJSON(feature,{pane:pane,interactive:false,style:{color:'#fff',weight:8,opacity:.9}}).addTo(group);
-  const line=L.geoJSON(feature,{pane:pane,style:{color:'#8d4e28',weight:5,opacity:1,dashArray:'8 6',lineCap:'round'}}).addTo(group);
+  const renderer=_walkingTrailRenderers[pane];
+  L.geoJSON(feature,{pane:pane,renderer:renderer,interactive:false,style:{color:'#fff',weight:8,opacity:.9}}).addTo(group);
+  const line=L.geoJSON(feature,{pane:pane,renderer:renderer,style:{color:'#8d4e28',weight:5,opacity:1,dashArray:'8 6',lineCap:'round'}}).addTo(group);
   line.bindTooltip(pmEsc(o.name||'육로')+' · 육로',{sticky:true});
   line.bindPopup(function(){return _walkingPopup(o);},{maxWidth:280});
   if(!isCombinedTrail(o.id))group.addTo(walkingTrailLayer);o._m=group;o._trailLine=line;

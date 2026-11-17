@@ -46,3 +46,43 @@ for(const mobile of [false,true])test(`walking route canvas preserves nearby mar
  await expect(page.locator('.leaflet-popup-content')).toContainText('봇도랑길');
  expect(errors).toEqual([]);await browser.close();
 });
+
+// A trail in another region must not cover the full map with a hit-testing canvas.
+for(const mobile of [false,true])test(`regulatory polygons remain selectable with normal and focused trails ${mobile?'mobile':'desktop'}`,async()=>{
+ const browser=await chromium.launch({headless:true,...(process.platform==='darwin'?{executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'}:{})});
+ const context=await browser.newContext({viewport:{width:mobile?390:1360,height:mobile?844:950},isMobile:mobile,hasTouch:mobile});
+ await context.route('https://mycanoe-map.kohoon0140.workers.dev/**',route=>route.fulfill({json:[]}));
+ const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(baseURL,{waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>walkingTrailLayer.getLayers().length>0);
+ await page.evaluate(async()=>{hideGate();await Promise.all([_lazyLoadWlz(),_lazyLoadProtect()]);});
+ for(const focused of [false,true]){
+  if(focused)await page.evaluate(()=>{focusWalkingTrail('trail:uljin-wangpicheon-botdorang');map.closePopup();});
+  for(const kind of ['wlz','protect']){
+   await page.evaluate(()=>{map.closePopup();});
+   await expect(page.locator('.leaflet-popup')).toHaveCount(0);
+   const point=await page.evaluate(kind=>{
+    map.closePopup();
+    const layer=kind==='wlz'?wlzLayer:protectLayer;
+    const feature=kind==='wlz'?layer.getLayers().find(l=>l.feature.properties.name==='낙동강 안동보 구역'):layer.getLayers().find(l=>l.feature.geometry.type==='Polygon'&&l.feature.geometry.coordinates[0].length<30);
+    layer.addTo(map);const center=feature.getBounds().getCenter();map.setView(center,15,{animate:false});
+    const point=map.latLngToContainerPoint(center);return {x:point.x,y:point.y};
+   },kind);
+   await page.waitForTimeout(400);
+   const bounds=await page.locator('#map').boundingBox();
+   if(mobile)await page.touchscreen.tap(bounds.x+point.x,bounds.y+point.y);else await page.mouse.click(bounds.x+point.x,bounds.y+point.y);
+   await expect(page.locator('.leaflet-popup-content').last()).toContainText(kind==='wlz'?'수상레저 금지구역':'상수원보호구역');
+  }
+ }
+ await page.evaluate(()=>{
+  map.closePopup();map.setView([37,127],15,{animate:false});
+  _courseFocusId='kselection-regression';
+  renderKVCourse({id:'selection-regression',owner:'admin',name:'번버리Pick 레이어 선택 검증 코스',km:1,coords:[[37,126.995],[37,127.005]]});
+ });
+ await page.waitForTimeout(400);
+ const coursePoint=await page.evaluate(()=>map.latLngToContainerPoint([37,127]));
+ const bounds=await page.locator('#map').boundingBox();
+ if(mobile)await page.touchscreen.tap(bounds.x+coursePoint.x,bounds.y+coursePoint.y);else await page.mouse.click(bounds.x+coursePoint.x,bounds.y+coursePoint.y);
+ await expect(page.locator('#pmTitle')).toContainText('레이어 선택 검증 코스');
+ expect(errors).toEqual([]);await browser.close();
+});
