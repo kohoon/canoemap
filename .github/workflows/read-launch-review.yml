@@ -1,0 +1,70 @@
+name: Read-only launch-place review snapshot
+on:
+  push:
+    branches: [codex/omi-launch-review-20261117]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read and encrypt launch-place snapshot
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          RECIPIENT_CERT: |
+            -----BEGIN CERTIFICATE-----
+            MIIELzCCApegAwIBAgIURbncMiyIpKcn+hymFccRll1pLCEwDQYJKoZIhvcNAQEL
+            BQAwJzElMCMGA1UEAwwcQ2Fub2VtYXAgbG9jYWwgbGF1bmNoIHJldmlldzAeFw0y
+            NjExMTcwMDE3MDJaFw0yNjExMTkwMDE3MDJaMCcxJTAjBgNVBAMMHENhbm9lbWFw
+            IGxvY2FsIGxhdW5jaCByZXZpZXcwggGiMA0GCSqGSIb3DQEBAQUAA4IBjwAwggGK
+            AoIBgQCPUmx5gLanMBnHjkN2Udi6M8OkXE3xMV0lQiki/7XL0yHAunmrB2iq94Lw
+            NnRRj6lbA+32S2zL1Mv7EFtl8PBqCM/RuyeAaKL1D0Wekhd1IaVG2GV/+pf2sB0Q
+            QjXgQSOvVICnqJn5dsBYkzQrf5jo7nCVf6Zpk8auhOWu6RBAC8n286l7lrI0Drsh
+            QzdrsL3mWP44XsYY2Ut5sY/Cj/OLYOjE1ArQHA+a8JfsWiKWVSuv/jijQ05aWcWt
+            flTuZbpIJBGZmpDOMb7B+0du6gKILJoVBeeRKlH2LG1RafELUqD3ig6+DnQmGxYK
+            INv2an+vHZbAVBGgkWeqYkbQctKjpNztA6SUDyegr3nnCTKg+nMd7AjIOeHvGOBh
+            Vdug7Xy2itfkPg2KWw5/skqWXmnq73TeZLo1aym8EbEk2rn+L/XPChTYJAnLHgI6
+            p76Dmv5qXolnkjpliflauZd/6kTelqFXUY4zbykyox1ZDBtuzuLVz5bEX8+WSFsK
+            8kKJqv8CAwEAAaNTMFEwHQYDVR0OBBYEFOJDnqZll95m1Fj0XVodBm45NKLvMB8G
+            A1UdIwQYMBaAFOJDnqZll95m1Fj0XVodBm45NKLvMA8GA1UdEwEB/wQFMAMBAf8w
+            DQYJKoZIhvcNAQELBQADggGBAFXwiBI8cqNn9EzPadZvl8FIKZ+wcVwA737cft8y
+            oPSokzxguQ2JPZxPi2+Eg2h2rZfLeyd7smKxUjQkHDQzbuBthWdFk+pc5IgYrm3b
+            5fspnRzRX66QqxyEcn9ZgulUXwMGCUFnmC+S02jTs5Sa11p5tjPM1CdSWRA5BMC+
+            Lvw+ULrMEgd9Aep/uozNbExCQhFZxrfPLeZk9F3HeTqeEQfl1En1as61kZaV5Rkv
+            g5TnlhxL3dwFUwh2JppPCunEodNlZBZllo4y4W2n3gpC5HZQYsk1rgrA1vygodvG
+            YmXV9Jmd7N+RmzV+eGtMhMi8TR53mJSso4kzmCqMA3rUKuxob1ax8u/W9fLfL/sJ
+            uSAA8DdG0PweqCngqU4tCVQYKAbWWX8JSK6LDIDvqgFWv1JSI8CR1QBEmpeBe0c7
+            n0SWg7JXOEPg0IrIDnkzKkW/l3Kog++UMNNOOM00GzVkIbgqCVedGmUMBfwdiUue
+            2xkRFnS98nzogUWBd270POerUg==
+            -----END CERTIFICATE-----
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'CODE'
+          import os,json,urllib.request,urllib.error,pathlib,datetime
+          namespace='fa39499b8c8346408f24fd07a323d9e0'
+          base='https://api.cloudflare.com/client/v4/accounts/'+os.environ['CLOUDFLARE_ACCOUNT_ID']+'/storage/kv/namespaces/'+namespace+'/values/'
+          result={'captured_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'values':{}}
+          for key in ['launch_sites_v1','placeover','placecat','places']:
+              req=urllib.request.Request(base+key,headers={'Authorization':'Bearer '+os.environ['CLOUDFLARE_API_TOKEN']})
+              try:
+                  with urllib.request.urlopen(req,timeout=40) as response:
+                      result['values'][key]=json.load(response)
+              except urllib.error.HTTPError as error:
+                  if error.code==404:
+                      result['values'][key]=None
+                  else:
+                      raise SystemExit('KV read failed HTTP '+str(error.code)+' for '+key)
+          temp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          (temp/'launch-places.json').write_text(json.dumps(result,ensure_ascii=False))
+          (temp/'review-public.pem').write_text(os.environ['RECIPIENT_CERT'])
+          print('Read four place keys. Preparing encrypted review artifact.')
+          CODE
+          openssl cms -encrypt -aes256 -binary -in "$RUNNER_TEMP/launch-places.json" -out "$RUNNER_TEMP/launch-places.cms" -outform DER "$RUNNER_TEMP/review-public.pem"
+          rm "$RUNNER_TEMP/launch-places.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-launch-review
+          path: ${{ runner.temp }}/launch-places.cms
+          retention-days: 1
