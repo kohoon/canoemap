@@ -42,8 +42,7 @@ function icon(record, site, selected) {
 function drawMarkers() {
   markerLayer.clearLayers();
   markers = [];
-  const displayed = selectedId ? [records.find(record => record.id === selectedId)] : visibleRecords;
-  for (const record of displayed) {
+  for (const record of visibleRecords) {
     for (const [index,site] of record.sites.entries()) {
       const marker = L.marker([site.lat,site.lng],{icon:icon(record,site,record.id===selectedId),title:`${record.id} ${record.waterbody} · ${site.name}`,keyboard:true});
       marker.bindTooltip(`${record.id} ${escapeHtml(record.waterbody)}<br>${escapeHtml(site.name)}`);
@@ -53,8 +52,8 @@ function drawMarkers() {
     }
   }
 }
-function fitCurrent() {
-  const points = markers.map(item => [item.site.lat,item.site.lng]);
+function fitCurrent(sites = markers.map(item => item.site)) {
+  const points = sites.map(site => [site.lat,site.lng]);
   if (!points.length) { status('이 조건에 해당하는 지도 좌표가 없습니다.'); return; }
   if (points.length === 1) map.setView(points[0],16);
   else map.fitBounds(points,{padding:[45,45],maxZoom:16});
@@ -147,7 +146,7 @@ function selectRecord(id,focusIndex=null) {
   history.replaceState(null,'',urlFor(record.id));
   drawMarkers();
   if (focusIndex!==null) focusSite(record,focusIndex);
-  else if (record.sites.length) fitCurrent();
+  else if (record.sites.length) fitCurrent(record.sites);
   else status('해당 수역의 발착 좌표는 추가 확인이 필요합니다.');
 }
 function focusSite(record,index) {
