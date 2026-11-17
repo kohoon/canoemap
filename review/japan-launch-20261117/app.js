@@ -22,8 +22,8 @@ function markerColor(status) {
 const map = L.map('map', {zoomControl:false, maxZoom:20, scrollWheelZoom:true}).setView([36.4,137.6],5);
 L.control.zoom({position:'bottomright'}).addTo(map);
 const esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxNativeZoom:18,maxZoom:20,attribution:'Tiles © Esri · imagery providers'}).addTo(map);
-const photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {maxNativeZoom:18,maxZoom:20,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 · 항공사진</a>'});
-const normal = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {maxNativeZoom:18,maxZoom:20,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院 · 일반지도</a>'});
+const photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {maxNativeZoom:18,maxZoom:20,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">일본 국토지리원(国土地理院) · 항공사진</a>'});
+const normal = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {maxNativeZoom:18,maxZoom:20,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">일본 국토지리원(国土地理院) · 일반지도</a>'});
 L.control.layers({'Esri 위성':esri,'일본 국토지리원 항공사진':photo,'일본 국토지리원 일반지도':normal},null,{position:'topright',collapsed:false}).addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
 let selectedId = null;
@@ -85,7 +85,7 @@ function applyFilters() {
     return true;
   });
   $('result-count').textContent = `${visibleRecords.length} / ${records.length}`;
-  $('results').innerHTML = visibleRecords.length ? visibleRecords.map(record => `<button type="button" class="record" data-record="${record.id}"><span class="number">${String(record.id).padStart(3,'0')}</span><span><span class="record-title">${escapeHtml(record.waterbody)}</span><span class="meta"><span class="badge ${badgeClass(record.personal_boat)}">${permissionLabels[record.personal_boat]}</span><span class="badge">${locationText(record)}</span></span><p>${regions[record.region]}${record.name_ko?` · ${escapeHtml(record.name_ko)}`:''}</p></span></button>`).join('') : '<p class="empty">검색 조건에 맞는 수역이 없습니다.</p>';
+  $('results').innerHTML = visibleRecords.length ? visibleRecords.map(record => `<button type="button" class="record" data-record="${record.id}"><span class="number">${String(record.id).padStart(3,'0')}</span><span><span class="record-title">${escapeHtml(record.waterbody)}</span><span class="meta"><span class="badge ${badgeClass(record.personal_boat)}">${permissionLabels[record.personal_boat]}</span><span class="badge">${locationText(record)}</span></span><p>${escapeHtml(record.region_label || regions[record.region])}${record.name_ko?` · ${escapeHtml(record.name_ko)}`:''}</p></span></button>`).join('') : '<p class="empty">검색 조건에 맞는 수역이 없습니다.</p>';
   drawMarkers();
 }
 function urlFor(recordId) { const url = new URL(location.href); url.hash = `site=${recordId}`; return url.href; }
@@ -127,7 +127,7 @@ function selectRecord(id,focusIndex=null) {
       <button type="button" id="back">← 전체 목록</button>
       <button type="button" id="share-record">이 수역 링크 복사</button>
     </header>
-    <p class="region-text">${regions[record.region]} · ${String(record.id).padStart(3,'0')}</p>
+    <p class="region-text">${escapeHtml(record.region_label || regions[record.region])} · ${String(record.id).padStart(3,'0')}</p>
     <h2>${escapeHtml(record.waterbody)}</h2>
     ${record.name_ko ? `<p class="region-text">${escapeHtml(record.name_ko)}</p>` : ''}
     <h3>개인 카누 반입</h3>
@@ -156,7 +156,7 @@ function focusSite(record,index) {
   const item=markers.find(item=>item.record.id===record.id && item.index===index);
   if (item) item.marker.bindPopup(`<strong>${record.id} ${escapeHtml(record.waterbody)}</strong><p>${escapeHtml(site.name)}</p><span class="badge">${coordinateLabels[site.coordinate_type]}</span><p>${site.lat.toFixed(6)}, ${site.lng.toFixed(6)}</p>`).openPopup();
 }
-for (const [value,name] of Object.entries(regions)) { const option=new Option(name,value); $('region').add(option); }
+for (const [value,name] of Object.entries(regions)) { const option=new Option(`${name}(${value})`,value); $('region').add(option); }
 for (const id of ['query','region','permission','quality']) $(id).addEventListener(id==='query'?'input':'change',applyFilters);
 $('results').addEventListener('click',event=>{const button=event.target.closest('[data-record]');if(button)selectRecord(Number(button.dataset.record));});
 $('overview').onclick = () => { selectedId=null;['query','region','permission','quality'].forEach(id => { $(id).value=''; });history.replaceState(null,'',location.pathname+location.search);applyFilters();fitCurrent(); };
