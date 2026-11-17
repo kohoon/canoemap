@@ -7,8 +7,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
-from refresh_protect import collect, display_geometry, is_protection, validate_snapshot, write_snapshot
+from refresh_protect import collect, display_geometry, is_protection, merge_display_boundaries, validate_snapshot, write_snapshot
 from shapely.geometry import shape
+from shapely.ops import unary_union
 
 
 def feature(identity='48700001273020260091UMI1000001001', code='UMI100'):
@@ -58,6 +59,37 @@ class ProtectionRefreshTests(unittest.TestCase):
         self.assertTrue(shape(actual).is_valid)
         self.assertGreater(shape(actual).geoms[1].area, 0)
         self.assertLess(shape(actual).hausdorff_distance(shape(geometry)), .00003)
+
+    def test_merged_display_preserves_coverage_holes_and_source_records(self):
+        first = feature()
+        first['properties']['s'] = '경상남도 진주시'
+        first['geometry']['coordinates'].append([
+            [127.002, 35.002], [127.003, 35.002], [127.003, 35.003],
+            [127.002, 35.003], [127.002, 35.002],
+        ])
+        second = json.loads(json.dumps(first))
+        second['properties']['mnum'] = 'other-record'
+        other = feature('other-region')
+        snapshot = {'features': [first, second, other]}
+        before = json.dumps(snapshot['features'], sort_keys=True)
+        merge_display_boundaries(snapshot)
+        self.assertEqual(before, json.dumps(snapshot['features'], sort_keys=True))
+        self.assertEqual(len(snapshot['displayOverrides']), 1)
+        merged = snapshot['displayOverrides'][0]
+        self.assertEqual(merged['properties']['sourceRecordCount'], 2)
+        expected = unary_union([shape(first['geometry']), shape(second['geometry'])])
+        self.assertTrue(shape(merged['geometry']).equals(expected))
+        self.assertEqual(len(shape(merged['geometry']).interiors), 1)
+
+    def test_published_jinju_display_has_identical_source_coverage(self):
+        snapshot = json.loads((ROOT / 'protect_polygons.geojson').read_text())
+        originals = [shape(f['geometry']) for f in snapshot['features']
+                     if f['properties'].get('s') == '경상남도 진주시']
+        merged = snapshot['displayOverrides'][0]
+        self.assertTrue(shape(merged['geometry']).is_valid)
+        self.assertEqual(shape(merged['geometry']).symmetric_difference(
+            unary_union(originals)).area, 0)
+        self.assertEqual(merged['properties']['sourceRecordCount'], len(originals))
 
     def test_rejects_invalid_coordinates_and_open_rings(self):
         for change in ['open', 'nan', 'outside']:

@@ -11,7 +11,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from vworld_protect import KOR_BBOX, extract_features, fetch_page, is_protection
+from shapely import get_parts, make_valid
 from shapely.geometry import mapping, shape
+from shapely.ops import unary_union
 
 ROOT = Path(__file__).resolve().parents[1]
 MAPS = ('index.html', 'map.html', 'test.html', 'tour/legacy.html')
@@ -146,13 +148,44 @@ def validate_snapshot(snapshot, previous):
             raise ValueError('Protection snapshot lost a province')
 
 
+def merge_display_boundaries(snapshot):
+    """Dissolve overlapping Jinju records for display, retaining every source record."""
+    region = '경상남도 진주시'
+    records = [f for f in snapshot['features'] if f['properties'].get('s') == region]
+    snapshot.pop('displayOverrides', None)
+    if not records:
+        return
+    # make_valid retains polygon parts and holes, including self-touching source rings.
+    polygons = []
+    for feature in records:
+        valid = make_valid(shape(feature['geometry']))
+        polygons.extend(part for part in get_parts(valid)
+                        if part.geom_type in ('Polygon', 'MultiPolygon'))
+    coverage = unary_union(polygons)
+    if coverage.geom_type not in ('Polygon', 'MultiPolygon') or not coverage.is_valid:
+        raise ValueError('Invalid merged Jinju protection boundary')
+    snapshot['displayOverrides'] = [{
+        'type': 'Feature',
+        'geometry': json.loads(json.dumps(mapping(coverage))),
+        'properties': {
+            's': region,
+            'displayMerged': True,
+            'sourceRecordCount': len(records),
+            'sourceMnums': [f['properties']['mnum'] for f in records],
+        },
+    }]
+
+
 def write_snapshot(snapshot, root=ROOT):
+    merge_display_boundaries(snapshot)
     target = root / OUTPUT
     previous = json.loads(target.read_text())
     validate_snapshot(snapshot, previous)
     old_meta = {k: v for k, v in previous.get('metadata', {}).items() if k != 'refreshedAt'}
     new_meta = {k: v for k, v in snapshot['metadata'].items() if k != 'refreshedAt'}
-    if previous.get('features') == snapshot['features'] and old_meta == new_meta:
+    if (previous.get('features') == snapshot['features']
+            and previous.get('displayOverrides') == snapshot.get('displayOverrides')
+            and old_meta == new_meta):
         print('VWorld source unchanged; existing snapshot verified.', flush=True)
         return
     payload = json.dumps(snapshot, ensure_ascii=False, separators=(',', ':')).encode()

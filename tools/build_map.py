@@ -2346,8 +2346,14 @@ function _lazyLoadProtect(){
   _protectLoading = fetch('./protect_polygons.geojson?v='+DATAVER.protect)
     .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.json(); })
     .then(function(fc){
-      protectLayer = L.geoJSON(fc, {
-        style:{color:'#c62828', weight:1, fillColor:'#e53935', fillOpacity:0.25, fillRule:'nonzero'},
+      const overrides=fc.displayOverrides||[];
+      const replacedRegions=new Set(overrides.map(function(f){return f.properties.s;}));
+      const display={type:'FeatureCollection',features:(fc.features||[]).filter(function(f){
+        return !replacedRegions.has((f.properties||{}).s);
+      }).concat(overrides)};
+      protectLayer = L.geoJSON(display, {
+        style:function(f){return {color:'#c62828', weight:1, fillColor:'#e53935', fillOpacity:0.25,
+          fillRule:(f.properties||{}).displayMerged?'evenodd':'nonzero'};},
         onEachFeature:function(f,l){ if(f.properties&&f.properties.s) l.bindPopup('<b>상수원보호구역</b><br>'+f.properties.s); }
       });
       return protectLayer;
