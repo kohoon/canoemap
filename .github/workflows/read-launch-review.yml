@@ -39,7 +39,7 @@ jobs:
               error=None
               for attempt in range(5):
                   try:
-                      with urllib.request.urlopen('https://canoemap-launch-review-20261117.kohoon0140.workers.dev/',timeout=60) as r:data=r.read()
+                      with urllib.request.urlopen(urllib.request.Request('https://canoemap-launch-review-20261117.kohoon0140.workers.dev/',headers={'User-Agent':'Mozilla/5.0','Origin':'https://canoe.crowdbase.kr','Referer':'https://canoe.crowdbase.kr/'}),timeout=60) as r:data=r.read()
                       encrypted=json.loads(data)
                       if not all(k in encrypted for k in ['iv','wrappedKey','ciphertext']):raise RuntimeError('Unexpected snapshot format')
                       pathlib.Path(os.environ['RUNNER_TEMP'],'launch-places.encrypted.json').write_bytes(data)
