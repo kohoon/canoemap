@@ -1,0 +1,21 @@
+﻿번호,장소,위도,경도,역할,확인상태,오차반경_m,관련코스,근거,확인일,출처
+P01,쇼와 후루사토 교류센터 앞 강변(昭和ふるさと交流センター),33.22099,132.892427,launch,official_site_imagery,70,R01,운영자가 투어 출발지로 명시한 시설 앞 호안. 물가 좌표는 영상 판독값이며 수위별 진수 위치는 달라짐.,2026-11-19,https://www.40010.net/canoetrek/
+P02,아카테쓰교 도착권역(赤鉄橋／四万十川橋),32.989084,132.924829,landing,official_area,200,R01,운영자가 명시한 최종 도착 교량. 실제 상륙하는 양안·호안은 공개되지 않아 교량 인접 권역으로 표시.,2026-11-19,https://www.40010.net/canoetrek/
+P03,가쓰마 침하교 도착권역(勝間沈下橋),33.055004,132.817154,landing,official_area,150,R02,1일 투어의 해산·도착 교량. 집결 후 차량으로 출발점으로 이동하므로 이 지점을 출발점으로 해석하지 않음. 상륙 호안 미확정.,2026-11-19,https://www.40010.net/canoetrek/1day/
+P04,우타루베 캠핑장 발착 호안(宇樽部キャンプ場),40.447584,140.929141,both,official_site_imagery,90,"R03,R04",캠핑장 운영자가 투어의 캠핑장 내 발착을 명시. 핀은 캠핑장 반도 동쪽 접근 호안의 영상 추정값. 당일 실제 진수 위치는 확인 필요.,2026-11-19,https://utarube-campground.com/2024/09/13/秋の十和田湖カヌーツアー/
+P05,우타루베 캠핑장 집결(宇樽部キャンプ場 管理棟),40.447408,140.927494,meeting,meeting_only,120,"R03,R04",가이 공식 안내의 관리동 앞 접수. 지도 핀은 공식 내장 지도 중심을 참고한 시설 권역이며 호안과 별개.,2026-11-19,https://tgkai.jp/tour/towadako-canoe-tour/
+P06,와코토반도 동쪽 발착 해변(和琴半島 東側浜),43.578088,144.311272,both,reported_access,80,"R05,R12",현장 패들링 보고서의 발착 해변과 영상 대조. 나누크·리버앤필드가 사용하는 정확한 해변 측면은 공식 안내에 미공개.,2026-11-19,https://hokkaidowilds.org/water/lake-kussharo-steam-vents-canoeing
+P07,와코토반도 서쪽 발착 해변(和琴半島 西側浜),43.578961,144.309883,both,reported_access,80,"R05,R12",현장 패들링 보고서의 캠핑장 쪽 발착 해변과 영상 대조. 투어 당일 동·서쪽 선택은 바람과 운영자에 따라 달라짐.,2026-11-19,https://hokkaidowilds.org/water/lake-kussharo-steam-vents-canoeing
+P08,고탄 노천탕 옆 호안(コタン露天風呂 横湖岸),43.564992,144.341233,launch,official_site_imagery,45,"R06,R10,R11",리버앤필드가 출발지로 고탄 노천탕 옆을 명시. 호안·차량 접근 동선을 영상 대조한 핀. 개인 진수 허가는 별도 확인.,2026-11-19,https://riverandfield.com/tours/green-season/midori-canoe/
+P09,미도리교 인접 발착 호안(美登里橋),43.555049,144.357637,landing,official_site_imagery,60,"R10,R11",리버앤필드가 종착지로 명시한 교량의 상류 쪽 호안 추정값. 현장 수위·운영자 배차에 따라 미세 위치 변경.,2026-11-19,https://riverandfield.com/tours/green-season/midori-canoe/
+P10,비루와교 도착권역(美留和橋),43.542825,144.399576,landing,official_area,150,R11,공식 7.5km 코스의 도착 교량 권역. 현재 갈수로 접수 중단 공지. 영상에서 교량 접근부 대조했으나 상륙 호안 미확정.,2026-11-19,https://riverandfield.com/tours/green-season/biruwa-canoe/
+P11,도로호 모토무라 캠핑장 호안(塘路湖元村キャンプ場),43.153227,144.509568,launch,official_site_imagery,55,"R07,R08,R09",나누크가 실제 출발지로 명시. 현장 패들링 보고서 및 영상의 캠핑장 호안 대조. 주차장 집결 후 물가로 운반.,2026-11-19,https://www.nanook-canoe.com/about2
+P12,호소오카 카누 포트(細岡カヌーポート),43.107312,144.470515,landing,reported_access,45,R07,나누크 1일 투어 종착지. 현장 GPX 부속 위치와 항공사진에서 포트의 경사 접근부 확인.,2026-11-19,https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide
+P13,곳타로 카누 포트(コッタロ カヌーポート),43.176672,144.476534,launch,reported_access,45,R08,나누크 반일 투어의 곳타로 출발지와 현장 보고서의 램프 좌표를 대조. 차량 도로에서 물가로 내려오는 접근 흔적 확인.,2026-11-19,https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide
+P14,도로 후타마타·옛 반카교 도착권역(塘路二股・挽歌橋跡),43.152155,144.487316,landing,official_area,180,"R07,R08,R09",공식 종착 지명과 아레키나이강·구시로강 합류부를 대조. 철길 인접·차량 접근과 실제 상륙 호안은 미확정.,2026-11-19,https://www.nanook-canoe.com/about2
+P15,노지리호 우쿠디 활동 수역 참고(野尻湖),36.834,138.216,field,field_only,1500,R13,공식 교육 수역인 노지리호의 참고점. 현재 오픈 카누 프로그램과 실제 발착 호안은 미확정. 정규 프로그램 종목은 카약으로 표기.,2026-11-19,https://ucdikayak.com/activity/basic.html
+P16,벤처 집결 지도 참고점(Bencherハウス),35.97459,139.056903,meeting,meeting_only,500,R14,공식 집결 주소와 내장 지도의 시설 권역. 호수까지 차량 이동하며 실제 물가와 다름.,2026-11-19,https://bencher.co.jp/
+P17,히나타 진입로 물가(日向進入路),35.938892,139.059513,both,official_site_imagery,130,R14,댐 관리자가 유일한 입호 경로로 안내하고 벤처도 이 진입로 폐쇄 시 투어 중단을 공지. 진입로 하단 호안은 위성 수위에 따라 달라져 반경으로 표시.,2026-11-19,https://www.water.go.jp/kanto/arakawa/urayama/damuko_riyou.html
+P18,컨트리레이크 집결 시설(カントリーレイクシステムズ),35.523823,138.750742,meeting,meeting_only,40,R15,공식 집결 주소를 공개 시설 지도 좌표와 대조. 물가는 도로 건너편.,2026-11-19,https://www.mapion.co.jp/phonebook/M11011/19430/21930082437/
+P19,오이시 북안 발착 호안 추정(大石 北岸),35.523346,138.749889,both,imagery_inferred,90,R15,공식 활동 수역·집결 시설 앞 도로와 연결되는 호안·잔교를 영상에서 확인. 해당 운영자의 실제 발착 호안이라는 직접 자료는 미확보.,2026-11-19,https://www.c-ls.jp/カヌー体験
+P20,시리베쓰강 오타니 활동 수역(尻別川 大谷),42.8053,140.49,field,field_only,2500,R16,공식·예약 안내의 란코시정 오타니 하류 약 5km 활동 수역 참고점. 실제 출발·도착 포트는 미공개.,2026-11-19,https://www.jalan.net/kankou/spt_guide000000180904/activity/l000024764/
