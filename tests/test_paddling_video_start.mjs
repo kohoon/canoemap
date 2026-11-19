@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('../paddling/index.html',import.meta.url),'utf8');
 const a=source.indexOf('const videos = {'),b=source.indexOf('const categoryMeta=',a);
-const c=vm.createContext({esc:s=>String(s),modalFrame:{innerHTML:''},modalTitle:{textContent:''},modal:{classList:{add(){}}},document:{body:{style:{}}},modalClose:{focus(){}}});
+const c=vm.createContext({window:{},location:{origin:'https://canoe.crowdbase.kr'},stopSchoolSubtitles:null,esc:s=>String(s),modalFrame:{innerHTML:''},modalTitle:{textContent:''},modal:{classList:{add(){},toggle(){}}},document:{body:{style:{}}},modalClose:{focus(){}}});
 vm.runInContext(source.slice(a,b),c);
 const r=source.indexOf('function videoHTML('),re=source.indexOf('function renderNav()',r);
 vm.runInContext(source.slice(r,re),c);

@@ -1,4 +1,4 @@
-const APP_CACHE = 'mycanoe-app-v18';
+const APP_CACHE = 'mycanoe-app-v19';
 const LEGACY_PACK_CACHE = 'mycanoe-offline-pack-v1';
 const PACK_CACHE_PREFIX = 'mycanoe-offline-pack-v2-';
 const ESRI_IMAGERY_HOST = 'server.arcgisonline.com';
@@ -99,7 +99,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(request, { cache: 'no-store' }));
     return;
   }
-  if (url.origin === self.location.origin && url.pathname.startsWith('/diary/')) {
+  if (url.origin === self.location.origin && (url.pathname.startsWith('/diary/') || url.pathname.startsWith('/paddling/'))) {
     event.respondWith((async () => {
       const cache = await caches.open(APP_CACHE);
       try {

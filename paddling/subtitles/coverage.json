@@ -1,0 +1,404 @@
+{
+  "checkedOn": "2026-11-19",
+  "videos": {
+    "PQDLADzDI1s": {
+      "status": "native-korean",
+      "sourceLanguage": "ko"
+    },
+    "kXY4x4lwUcw": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 15,
+      "version": "5f0f2141ea9a",
+      "reviewStatus": "reviewed"
+    },
+    "OROqEy_M6dk": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 39,
+      "version": "ac3666d3a2c2",
+      "reviewStatus": "automatic"
+    },
+    "WP6_wntRXhw": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 103,
+      "version": "7debb3a1c5c1",
+      "reviewStatus": "automatic"
+    },
+    "qmExaexsCAQ": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 135,
+      "version": "c2affaf1757e",
+      "reviewStatus": "automatic"
+    },
+    "e6qe2Dq3rfw": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 65,
+      "version": "e43fe1bb1bb3",
+      "reviewStatus": "automatic"
+    },
+    "0UIa8bRdOPc": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 50,
+      "version": "4bce0bb3ad2c",
+      "reviewStatus": "automatic"
+    },
+    "35fIXWe2-vs": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 12,
+      "version": "fc61a1640948",
+      "reviewStatus": "automatic"
+    },
+    "Yx8_XeC7C1g": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 42,
+      "version": "50528b023936",
+      "reviewStatus": "automatic"
+    },
+    "7YrCAQVTMPk": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 54,
+      "version": "04009ebb7bd5",
+      "reviewStatus": "automatic"
+    },
+    "zr8GqU_QQeo": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 53,
+      "version": "69b448a8ec76",
+      "reviewStatus": "automatic"
+    },
+    "9jPUYqAzCs0": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 63,
+      "version": "d479583c21fc",
+      "reviewStatus": "automatic"
+    },
+    "-0qrBjbKegw": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 39,
+      "version": "6a7b51f1b068",
+      "reviewStatus": "automatic"
+    },
+    "0ANHezCD0gQ": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 26,
+      "version": "d445eb15b800",
+      "reviewStatus": "automatic"
+    },
+    "cTITTMOflqY": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 44,
+      "version": "f9349bf92725",
+      "reviewStatus": "automatic"
+    },
+    "JjDwaLTzzCc": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 22,
+      "version": "1f22d4201fd1",
+      "reviewStatus": "automatic"
+    },
+    "5pd5WKWnF-E": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 8,
+      "version": "e0794803cc47",
+      "reviewStatus": "automatic"
+    },
+    "CEFuSzV4tZ8": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 24,
+      "version": "64951fd3da48",
+      "reviewStatus": "automatic"
+    },
+    "OlhiyVmFHDg": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 18,
+      "version": "0786718ebc16",
+      "reviewStatus": "automatic"
+    },
+    "4wrh4bC2_Wc": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 35,
+      "version": "342f10a80bde",
+      "reviewStatus": "automatic"
+    },
+    "Sx4J1Lqk9_k": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 38,
+      "version": "e3ba1a44f6f8",
+      "reviewStatus": "automatic"
+    },
+    "AVTFyNkZ7EI": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 15,
+      "version": "0d2e3fad519b",
+      "reviewStatus": "automatic"
+    },
+    "L9iEqezw_8Y": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 18,
+      "version": "2a3e445e1f83",
+      "reviewStatus": "automatic"
+    },
+    "i36ROvRhLig": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 16,
+      "version": "41e46a692cbe",
+      "reviewStatus": "automatic"
+    },
+    "kmzWLxPtAsU": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 15,
+      "version": "ef3920134e2a",
+      "reviewStatus": "automatic"
+    },
+    "yR8wN11d-RA": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 15,
+      "version": "79f90538e709",
+      "reviewStatus": "automatic"
+    },
+    "7ZjmtmPji5k": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 22,
+      "version": "734e6ff9674f",
+      "reviewStatus": "automatic"
+    },
+    "Bj4jh5y0HpM": {
+      "status": "no-narration",
+      "verifiedBy": "audio analysis",
+      "sourceLanguage": null
+    },
+    "aPgAp0xpab0": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 69,
+      "version": "665cba9b72d5",
+      "reviewStatus": "automatic"
+    },
+    "m4hpBhxCKeE": {
+      "status": "no-narration",
+      "verifiedBy": "audio analysis",
+      "sourceLanguage": null
+    },
+    "sxxFDjd2qWU": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 8,
+      "version": "341b64735f62",
+      "reviewStatus": "automatic"
+    },
+    "jX26w60MxmU": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 5,
+      "version": "ae0d234d1abe",
+      "reviewStatus": "reviewed"
+    },
+    "Y5TcU3XqDGg": {
+      "status": "unavailable",
+      "reason": "YouTube reported that the video is not available on 2026-11-19"
+    },
+    "7beAPvODVnA": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 16,
+      "version": "1e71f5ea2ff7",
+      "reviewStatus": "automatic"
+    },
+    "TGE6i_aIvuE": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 15,
+      "version": "ae6dba5888fb",
+      "reviewStatus": "automatic"
+    },
+    "f9Ouc2qQ1T0": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 24,
+      "version": "aab5161925af",
+      "reviewStatus": "automatic"
+    },
+    "kzaDl_jceN8": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 26,
+      "version": "188929784fc4",
+      "reviewStatus": "automatic"
+    },
+    "Cn1cfeJ4bXg": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 18,
+      "version": "f98506438ecf",
+      "reviewStatus": "automatic"
+    },
+    "Q5vEp2FTUv0": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 34,
+      "version": "2e440114fe74",
+      "reviewStatus": "automatic"
+    },
+    "HRr0vb-4Bfk": {
+      "status": "no-narration",
+      "verifiedBy": "audio analysis",
+      "sourceLanguage": null
+    },
+    "TEobm0VU7cs": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 68,
+      "version": "100526a1675c",
+      "reviewStatus": "automatic"
+    },
+    "88TXGW1Y76A": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 38,
+      "version": "ef88c5256e4b",
+      "reviewStatus": "automatic"
+    },
+    "y_ikY2SqhJY": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 56,
+      "version": "37ad3cfedb59",
+      "reviewStatus": "automatic"
+    },
+    "RndXxm32wAs": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 76,
+      "version": "e094b0320775",
+      "reviewStatus": "automatic"
+    },
+    "dZClIzw2A40": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 57,
+      "version": "b0fd099a6f27",
+      "reviewStatus": "automatic"
+    },
+    "jGQ4hYP7TBY": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 55,
+      "version": "a4571e5ecd1b",
+      "reviewStatus": "automatic"
+    },
+    "W7FFA5bDXx4": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 81,
+      "version": "8264e09ddd9f",
+      "reviewStatus": "automatic"
+    },
+    "lFP1cHGVQkM": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 41,
+      "version": "1a383fbec2e5",
+      "reviewStatus": "automatic"
+    },
+    "ppcFv0aNT_4": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 4,
+      "version": "bf0371182b90",
+      "reviewStatus": "automatic"
+    },
+    "0BUAVVQx6po": {
+      "status": "no-narration",
+      "verifiedBy": "audio analysis",
+      "sourceLanguage": null
+    },
+    "mg7T8nyV17Y": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 28,
+      "version": "2593c5c4c730",
+      "reviewStatus": "automatic"
+    },
+    "g3SR1WoDAt0": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 26,
+      "version": "83d29024ed3f",
+      "reviewStatus": "automatic"
+    },
+    "gipNG9kgC2Y": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 33,
+      "version": "617644c4a412",
+      "reviewStatus": "automatic"
+    },
+    "-HofhF4__ps": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 28,
+      "version": "50ff0b18483f",
+      "reviewStatus": "automatic"
+    },
+    "L7DkmwqfcLI": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 25,
+      "version": "248f74c74c54",
+      "reviewStatus": "automatic"
+    },
+    "sIVp6XjZ_Ew": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 33,
+      "version": "8f83d4a1bd81",
+      "reviewStatus": "automatic"
+    },
+    "a6Qy5sVRCtk": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 39,
+      "version": "251a7e30f850",
+      "reviewStatus": "automatic"
+    },
+    "5eLJ0d7TDS4": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 32,
+      "version": "994c0dc3321c",
+      "reviewStatus": "automatic"
+    },
+    "dVUNzKkBE5o": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 40,
+      "version": "d0156f03d9ed",
+      "reviewStatus": "automatic"
+    }
+  }
+}

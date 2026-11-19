@@ -112,6 +112,20 @@
     .modal-dialog{position:relative;width:min(1100px,100%);background:#101715;border:1px solid #4d625d;box-shadow:0 24px 70px rgba(0,0,0,.5)}
     .modal-frame{aspect-ratio:16/9;background:#000}
     .modal-frame iframe{display:block;width:100%;height:100%;border:0}
+    .translated-caption[hidden]{display:none}
+    .translated-caption{padding:10px 16px 12px;border-top:1px solid #334b44;color:#fff;background:#101715;min-height:82px}
+    .translated-caption small{display:block;color:#a6c6b9;font-size:11px;margin-bottom:5px}
+    .caption-fullscreen{min-height:44px;min-width:120px;color:#cde8dd;background:transparent;border:1px solid #718f82;border-radius:5px;font-size:12px;padding:6px 10px;cursor:pointer}
+    .translated-caption-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+    .translated-caption-head small{margin:0}
+    .caption-fullscreen[hidden]{display:none}
+    #videoModal.has-local-subtitles .modal-dialog{width:min(1100px,100%,max(160px,calc((100dvh - 220px)*16/9)))}
+    #videoModal .modal-dialog:fullscreen{width:100%;height:100%;max-height:none;display:flex;flex-direction:column;justify-content:center;overflow:hidden;border:0}
+    #videoModal .modal-dialog:fullscreen .modal-frame{width:100%;margin:0;min-height:0;flex:1;aspect-ratio:auto}
+    #videoModal .modal-dialog:fullscreen .translated-caption{flex:none}
+    #videoModal .modal-dialog:fullscreen .modal-title{display:none}
+    .translated-caption-text{display:block;white-space:pre-line;font-size:clamp(15px,2.3vw,19px);line-height:1.55;text-align:center;overflow-wrap:anywhere;min-height:1.55em}
+    #videoModal .modal-dialog{max-height:calc(100dvh - 32px);overflow:auto}
     .modal-title{margin:0;padding:12px 54px 13px 14px;color:#fff;font-size:14px;line-height:1.4}
     .modal-close{position:absolute;right:10px;top:10px;z-index:2;width:36px;height:36px;border:1px solid #899994;background:rgba(20,35,31,.9);color:#fff;border-radius:50%;font-size:23px;line-height:1;cursor:pointer}
     .modal-close:hover{background:#b43c34;border-color:#b43c34}
@@ -281,6 +295,7 @@
   <div id="videoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-dialog">
       <div id="modalFrame" class="modal-frame"></div>
+      <div id="translatedCaption" class="translated-caption" hidden><div class="translated-caption-head"><small>한국어 자막 · 자동 번역</small><button type="button" class="caption-fullscreen" data-caption-fullscreen hidden>자막 포함 전체화면</button></div><span id="translatedCaptionText" class="translated-caption-text" lang="ko"></span></div>
       <h2 id="modalTitle" class="modal-title"></h2>
       <button id="modalClose" class="modal-close" type="button" aria-label="영상 닫기" title="닫기">×</button>
     </div>
@@ -299,6 +314,8 @@
   </section>
 
   <script src="./auth-gate.js"></script>
+  <script src="./subtitle-tracks.js?v=5a1b4cd4b1d7"></script>
+  <script src="./subtitles.js?v=dac1fb6f35ba"></script>
   <script>
     const videos = {
       mycanoeStroke:{id:"PQDLADzDI1s",author:"MYCANOE · 한영수",title:"마이카누 패들링 강습 · Mycanoe Paddling Stroke",tags:["전진","후진","스윕","드로우","프라이","C 스트로크","J 스트로크","인디언","캐나디언","정지"],starts:{"전진 스트로크":59,"백 스트로크":211,"하프 스윕":253,"풀 스윕":253,"드로우":336,"프라이":419,"C 스트로크":511,"정지":589,"J 스트로크":634,"인디언 스트로크":691,"캐나디언 스트로크":729}},
@@ -950,15 +967,21 @@
     const modalFrame=document.getElementById("modalFrame");
     const modalTitle=document.getElementById("modalTitle");
     const modalClose=document.getElementById("modalClose");
+    let stopSchoolSubtitles=null;
     function openVideo(id,title,start=0){
+      if(stopSchoolSubtitles){stopSchoolSubtitles();stopSchoolSubtitles=null;}
       const offset=Number.isFinite(Number(start))?Math.max(0,Math.floor(Number(start))):0;
-      modalFrame.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&start=${offset}&cc_load_policy=1&cc_lang_pref=ko&hl=ko" title="${esc(title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+      const ownSubtitles=!!(window.schoolSubtitles&&window.schoolSubtitles.hasTrack(id));
+      modal.classList.toggle("has-local-subtitles",ownSubtitles);
+      modalFrame.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&start=${offset}&cc_load_policy=${ownSubtitles?0:1}&cc_lang_pref=ko&hl=ko&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}" title="${esc(title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
       modalTitle.textContent=title;
       modal.classList.add("open");
       document.body.style.overflow="hidden";
       modalClose.focus();
+      if(window.schoolSubtitles)stopSchoolSubtitles=window.schoolSubtitles.attach(modalFrame.querySelector("iframe"),id,document.getElementById("translatedCaption"),document.getElementById("translatedCaptionText"));
     }
     function closeVideo(){
+      if(stopSchoolSubtitles){stopSchoolSubtitles();stopSchoolSubtitles=null;}
       modal.classList.remove("open");
       modalFrame.innerHTML="";
       document.body.style.overflow=skillModal.classList.contains("open")?"hidden":"";
