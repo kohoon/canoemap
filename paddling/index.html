@@ -301,7 +301,7 @@
   <script src="./auth-gate.js"></script>
   <script>
     const videos = {
-      mycanoeStroke:{id:"PQDLADzDI1s",author:"MYCANOE · 한영수",title:"마이카누 패들링 강습 · Mycanoe Paddling Stroke",tags:["전진","후진","스윕","드로우","프라이","C 스트로크","J 스트로크","인디언","캐나디언","정지"]},
+      mycanoeStroke:{id:"PQDLADzDI1s",author:"MYCANOE · 한영수",title:"마이카누 패들링 강습 · Mycanoe Paddling Stroke",tags:["전진","후진","스윕","드로우","프라이","C 스트로크","J 스트로크","인디언","캐나디언","정지"],starts:{"전진 스트로크":59,"백 스트로크":211,"하프 스윕":253,"풀 스윕":253,"드로우":336,"프라이":419,"C 스트로크":511,"정지":589,"J 스트로크":634,"인디언 스트로크":691,"캐나디언 스트로크":729}},
       paddleHold:{id:"kXY4x4lwUcw",author:"Buffalo Outdoor Center",title:"How to Hold a Canoe Paddle",tags:["패들 잡는 법","그립","샤프트"]},
       linked:{id:"OROqEy_M6dk",author:"Ray Goodwin",title:"Paddling a Canoe: Linking Strokes",tags:["캐치·추진·회수","연결 동작","선체 기울기"]},
       forward:{id:"WP6_wntRXhw",author:"Ian Patton Paddling Instruction",title:"How to Perfect Your Open Canoe Forward Stroke",tags:["전진","몸통 회전","캐치"]},
@@ -599,11 +599,11 @@
       },250);
     }
 
-    function videoHTML(key){
-      const v=videos[key];
+    function videoHTML(key,skillName){
+      const v=videos[key],start=Number((v.starts||{})[skillName])||0;
       return `<article class="video">
-        <div class="frame"><button class="video-load" type="button" data-video="${v.id}" data-title="${esc(v.title)}" style="background-image:linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.22)),url('https://i.ytimg.com/vi/${v.id}/hqdefault.jpg')" aria-label="${esc(v.title)} 재생"></button></div>
-        <div class="video-meta"><strong title="${esc(v.title)}">${esc(v.title)}</strong><small>직접 설명 · ${esc(v.author)} · <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">YouTube</a></small></div>
+        <div class="frame"><button class="video-load" type="button" data-video="${v.id}" data-start="${start}" data-title="${esc(v.title)}" style="background-image:linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.22)),url('https://i.ytimg.com/vi/${v.id}/hqdefault.jpg')" aria-label="${esc(v.title)} 재생"></button></div>
+        <div class="video-meta"><strong title="${esc(v.title)}">${esc(v.title)}</strong><small>직접 설명 · ${esc(v.author)} · <a href="https://www.youtube.com/watch?v=${v.id}${start?`&amp;t=${start}s`:""}" target="_blank" rel="noopener">YouTube</a></small></div>
       </article>`;
     }
 
@@ -853,7 +853,7 @@
         <section class="detail-section"><h3>연습 순서</h3><ol class="detail-steps">${practiceSteps(s).map(x=>`<li>${esc(x)}</li>`).join("")}</ol></section>
         ${s.name==="급류 읽기"?riverReadingGuideHTML():""}
         ${required.length?`<section class="detail-section"><h3>먼저 익힐 기술</h3><div class="related">${required.map(n=>`<button type="button" data-related="${byName[n].slug}">${esc(n)}</button>`).join("")}</div></section>`:""}
-        ${s.videos.length?`<section class="detail-section"><h3>직접 설명 영상</h3><div class="detail-videos">${s.videos.map(videoHTML).join("")}</div></section>`:""}
+        ${s.videos.length?`<section class="detail-section"><h3>직접 설명 영상</h3><div class="detail-videos">${s.videos.map(key=>videoHTML(key,s.name)).join("")}</div></section>`:""}
         ${related.length?`<section class="detail-section"><h3>관련 기술</h3><div class="related">${related.map(n=>`<button type="button" data-related="${byName[n].slug}">${esc(n)}</button>`).join("")}</div></section>`:""}
       `;
     }
@@ -928,7 +928,7 @@
       skillModal.classList.add("open");
       document.body.style.overflow="hidden";
       skillModal.querySelector(".skill-panel").scrollTop=0;
-      skillDetail.querySelectorAll(".video-load").forEach(btn=>btn.onclick=()=>openVideo(btn.dataset.video,btn.dataset.title));
+      skillDetail.querySelectorAll(".video-load").forEach(btn=>btn.onclick=()=>openVideo(btn.dataset.video,btn.dataset.title,btn.dataset.start));
       skillDetail.querySelectorAll("[data-related]").forEach(btn=>btn.onclick=()=>openSkill(bySlug[btn.dataset.related],true));
       if(pushUrl){
         const url=new URL(location.href);url.searchParams.set("skill",s.slug);history.pushState({skill:s.slug},"",url);
@@ -950,8 +950,9 @@
     const modalFrame=document.getElementById("modalFrame");
     const modalTitle=document.getElementById("modalTitle");
     const modalClose=document.getElementById("modalClose");
-    function openVideo(id,title){
-      modalFrame.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&cc_load_policy=1&cc_lang_pref=ko&hl=ko" title="${esc(title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+    function openVideo(id,title,start=0){
+      const offset=Number.isFinite(Number(start))?Math.max(0,Math.floor(Number(start))):0;
+      modalFrame.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&start=${offset}&cc_load_policy=1&cc_lang_pref=ko&hl=ko" title="${esc(title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
       modalTitle.textContent=title;
       modal.classList.add("open");
       document.body.style.overflow="hidden";
