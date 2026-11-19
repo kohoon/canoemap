@@ -38,6 +38,7 @@ export function courseShareHtml({ id, name, km, shareUrl, targetUrl, imageUrl, i
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:image" content="${esc(imageUrl)}">
+<meta property="og:image:secure_url" content="${esc(imageUrl)}">
 <meta property="og:image:width" content="${esc(imageWidth)}">
 <meta property="og:image:height" content="${esc(imageHeight)}">
 <meta property="og:image:type" content="${esc(imageType)}">
@@ -45,7 +46,7 @@ export function courseShareHtml({ id, name, km, shareUrl, targetUrl, imageUrl, i
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${esc(imageUrl)}">
-<meta http-equiv="refresh" content="0;url=${esc(targetUrl)}">
+
 </head><body>
 <p><a href="${esc(targetUrl)}">카누맵에서 ${esc(titleName)} 열기</a></p>
 <script>location.replace(${JSON.stringify(String(targetUrl))});<\/script>

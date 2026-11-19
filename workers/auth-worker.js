@@ -1,3 +1,5 @@
+import { renderRoutePreview } from './route-preview-png.mjs';
+import { placeShareHtml } from './place-share.mjs';
 import {
   SESSION_TTL_SECONDS,
   sessionExpiryIsValid,
@@ -11,7 +13,7 @@ import {
   NICK_CHANGE_INTERVAL_MS,
   publicMemberSummary,
 } from "./member-security.mjs";
-import { parseCombinedRefs, combinedPreviewRecords, combinedPreviewVersion, combinedPreviewImage, combinedShareHtml } from "./combined-preview.mjs";
+import { parseCombinedRefs, combinedPreviewRecords, combinedPreviewVersion, combinedPreviewImage, combinedPreviewContext, combinedShareHtml } from "./combined-preview.mjs";
 import { measureShareId, normalizeMeasureShare } from "./measure-share.mjs";
 import { normalizeRiverShare, riverShareHtml, riverShareId } from "./river-share.mjs";
 import { MEASURE_SHARE_CORRECTIONS } from "./measure-share-corrections.mjs";
@@ -503,6 +505,46 @@ export default {
       return J({ ok: true, id, url: url.origin + "/r/" + id });
     }
 
+    // Public share cards resolve current records without member cookies or browser uploads.
+    const placeCard = url.pathname.match(/^\/p\/([^/]+)\/?$/);
+    const placeImage = url.pathname.match(/^\/place-map\/([^/]+)\.png$/);
+    const courseImage = url.pathname.match(/^\/course-map\/(k?[0-9]+)\.png$/);
+    if (placeCard || placeImage || courseImage) {
+      if (!['GET','HEAD'].includes(req.method)) return new Response('method', {status:405});
+      const site = new URL(env.SITE_URL || 'https://canoe.crowdbase.kr/');
+      let records, place, version;
+      if (placeCard || placeImage) {
+        let id;try{id=decodeURIComponent((placeCard || placeImage)[1]);}catch{return new Response('bad place', {status:400});}
+        place = (await _launchAll(env.PLACES, false)).find(p => p.id === id && p.cat === 'canoe');
+        if (!place) return new Response('place not found', {status:404,headers:{'Cache-Control':'no-store'}});
+        records = [{name:place.name,kind:'런칭/랜딩',color:'#1976d2',km:0,lines:[[[place.lng,place.lat]]]}];
+        version = await combinedPreviewVersion(records);
+        if (placeCard) {
+          site.searchParams.set('place', place.id);
+          site.searchParams.set('placeAt', `${place.lat},${place.lng}`);
+          const image = new URL('/place-map/'+encodeURIComponent(place.id)+'.png',url.origin);image.searchParams.set('v', version+'-sat1');
+          const html = placeShareHtml({place,shareUrl:url.href,targetUrl:site.href,imageUrl:image.href});
+          return new Response(req.method==='HEAD'?null:html,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'public, max-age=60'}});
+        }
+      } else {
+        const id = normalizeCourseShareId(courseImage[1]);
+        const result = await combinedPreviewRecords(env, ['course:'+id]);
+        records = result.records;
+        if (!records.length) return new Response('course not found',{status:404,headers:{'Cache-Control':'no-store'}});
+        version = await combinedPreviewVersion(records);
+      }
+      const headers = {'Content-Type':'image/png','Cache-Control':'public, max-age=300','Access-Control-Allow-Origin':'*'};
+      if (req.method==='HEAD') return new Response(null,{headers});
+      const key = new Request(url.origin+'/share-map-cache/'+(placeImage?'p':'c')+version+'-sat1');
+      const cache = typeof caches !== 'undefined' ? caches.default : null;
+      const hit = cache ? await cache.match(key) : null;
+      if (hit) return hit;
+      const image = await renderRoutePreview(records, await combinedPreviewContext(env), {basemap:true,point:!!placeImage});
+      const response = new Response(image,{headers});
+      if(cache && ctx.waitUntil)ctx.waitUntil(cache.put(key,response.clone()));
+      return response;
+    }
+
     // 회차별 고정 주소: 스티커 미리보기와 코스 상세창으로 이동한다.
     const expeditionShareMatch = url.pathname.match(/^\/e\/([1-9][0-9]{0,2})\/?$/);
     if (expeditionShareMatch && req.method === "GET") {
@@ -519,7 +561,7 @@ export default {
 
     // 코스 공유 전용 HTML. 크롤러에는 코스별 OG 메타데이터를 주고 실제 방문자는 지도 URL로 즉시 보낸다.
     const courseShareMatch = url.pathname.match(/^\/c\/(k?[0-9]+)\/?$/);
-    if (courseShareMatch && req.method === "GET") {
+    if (courseShareMatch && ["GET", "HEAD"].includes(req.method)) {
       const id = normalizeCourseShareId(courseShareMatch[1]);
       const course = await _courseShareRecord(env, id);
       if (!course) return new Response("course not found", { status: 404, headers: { "Cache-Control": "public, max-age=30" } });
@@ -530,14 +572,15 @@ export default {
       const sticker = isSoyangTraverseCourse(course)
         ? { imageUrl: new URL("assets/expedition/soyang_lake_traverse_2026.png", site).toString(), imageType: "image/png", imageWidth: 1234, imageHeight: 1275 }
         : null;
-      const imageUrl = sticker ? sticker.imageUrl : preview
-        ? url.origin + "/course-preview/" + encodeURIComponent(id) + ".jpg?v=" + encodeURIComponent(preview.v)
-        : BUNDLED_COURSE_PREVIEW_IDS.has(id)
-        ? _bundledCoursePreviewUrl(site, id)
-        : new URL("og.png", site).toString();
+      const { records } = await combinedPreviewRecords(env, ['course:'+id]);
+      const mapVersion = records.length ? await combinedPreviewVersion(records) : '';
+      const imageUrl = sticker ? sticker.imageUrl : records.length
+        ? url.origin+'/course-map/'+encodeURIComponent(id)+'.png?v='+mapVersion+'-sat1'
+        : preview ? url.origin+'/course-preview/'+encodeURIComponent(id)+'.jpg?v='+encodeURIComponent(preview.v)
+        : BUNDLED_COURSE_PREVIEW_IDS.has(id) ? _bundledCoursePreviewUrl(site,id) : new URL('og.png',site).href;
       const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl,
-        ...(sticker || {}) });
-      return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60" } });
+        ...(records.length && !sticker ? {imageType:'image/png'} : {}), ...(sticker || {}) });
+      return new Response(req.method === "HEAD" ? null : html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=60" } });
     }
 
     // 코스 지도 미리보기 JPEG 공개 조회. 버전 쿼리가 바뀌므로 장기 캐시해도 수정본과 충돌하지 않는다.

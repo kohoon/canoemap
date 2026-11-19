@@ -14,7 +14,7 @@ async function asset(site, path) {
   const url = new URL(path, site).href;
   const previous = assetCache.get(url);
   if (previous && Date.now() - previous.time < 300000) return previous.promise;
-  const promise = fetch(url)
+  const promise = fetch(url, {signal: AbortSignal.timeout(5000)})
     .then((response) => {
       if (!response.ok) throw new Error('asset-unavailable');
       return response.json();

@@ -2726,7 +2726,9 @@ function openPlaceModal(pl){
   gaEvent('place_open',{name:pl.name||''}); loadComments();
 }
 function closePlaceModal(){ document.getElementById('pmodal').classList.remove('open'); }
+function _shareMapVersion(value){let hash=2166136261;const text=JSON.stringify(value);for(let i=0;i<text.length;i++)hash=Math.imul(hash^text.charCodeAt(i),16777619);return 'map1-'+(hash>>>0).toString(36);}
 function placeShareUrl(pl){
+  if(pl&&pl.id!=null&&pl.cat==='런칭/랜딩')return WORKER_URL.replace(/\/+$/,'')+'/p/'+encodeURIComponent(String(pl.id))+'?v='+_shareMapVersion([pl.name,pl.lat,pl.lng]);
   const u=new URL(location.href);u.searchParams.delete('course');u.searchParams.delete('river');u.searchParams.delete('riverAt');
   if(pl&&pl.id!=null)u.searchParams.set('place',String(pl.id));
   else if(pl)u.searchParams.set('placeAt',(+pl.lat).toFixed(5)+','+(+pl.lng).toFixed(5));
@@ -4584,7 +4586,7 @@ function loadCourses(){if(_courseFocusId){_courseKvReady=true;return;}reloadCour
 fetch(courseReadUrl('/course?hidden=1')).then(function(r){return r.json();}).then(function(a){ (a||[]).forEach(function(cid){ _hiddenStaticCids.add(String(cid)); _hideStaticCourse(cid); }); }).catch(function(){});
 loadCourses();
 // ---- 코스 URL 공유 ----
-function courseShareUrl(idStr){ return WORKER_URL.replace(/\/+$/,'')+'/c/'+encodeURIComponent(String(idStr||'')); }
+function courseShareUrl(idStr){const id=String(idStr||''),c=(id.charAt(0)==='k'?_kvCourses[id.slice(1)]:_courseByCid[id])||{};return WORKER_URL.replace(/\/+$/,'')+'/c/'+encodeURIComponent(id)+'?v='+_shareMapVersion([c.name,c.km,c.color,c.coords]);}
 function _courseShareInfo(idStr,name,km){
   const key=String(idStr||''),saved=key.charAt(0)==='k'?_kvCourses[key.slice(1)]:_courseByCid[key],c=saved||_courseInfoCourse||{};
   const n=Number(km!=null?km:c.km),dist=isFinite(n)&&n>0?String(Math.round(n*100)/100):'';

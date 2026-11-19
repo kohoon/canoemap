@@ -76,6 +76,9 @@ jobs:
       - name: Verify combined route preview images
         run: node tests/test_combined_preview.mjs
 
+      - name: Verify public place and course map cards
+        run: node tests/test_public_map_shares.mjs
+
       - name: Deploy Cloudflare Worker
         run: npx --yes wrangler deploy --config wrangler.toml
         env:

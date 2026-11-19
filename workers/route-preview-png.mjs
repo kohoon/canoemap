@@ -1,3 +1,4 @@
+import { mapBackground } from './map-preview-background.mjs';
 // A dependency-free PNG renderer for public route cards in Workers.
 // All paths share one Mercator projection; separate track parts stay separate.
 const FONT = {
@@ -15,6 +16,8 @@ const FONT = {
   C: '01111/10000/10000/10000/10000/10000/01111',
   D: '11110/10001/10001/10001/10001/10001/11110',
   E: '11111/10000/10000/11110/10000/10000/11111',
+  G: '01111/10000/10000/10111/10001/10001/01111',
+  Y: '10001/10001/01010/00100/00100/00100/00100',
   I: '11111/00100/00100/00100/00100/00100/11111',
   K: '10001/10010/10100/11000/10100/10010/10001',
   L: '10000/10000/10000/10000/10000/10000/11111',
@@ -59,7 +62,7 @@ function rgb(color, fallback) {
     ? [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16))
     : fallback;
 }
-export async function renderRoutePreview(records, context = []) {
+export async function renderRoutePreview(records, context = [], options = {}) {
   const pixels = new Uint8Array(WIDTH * HEIGHT * 3);
   function rect(x, y, w, h, color) {
     for (let yy = Math.max(0, Math.floor(y)); yy < Math.min(HEIGHT, y + h); yy++)
@@ -111,8 +114,8 @@ export async function renderRoutePreview(records, context = []) {
       }
   const frame = { x: 40, y: 24, w: 1120, h: 562 },
     scale = Math.min(
-      (frame.w - 76) / Math.max(1e-7, maxX - minX),
-      (frame.h - 56) / Math.max(1e-7, maxY - minY)
+      (frame.w - 76) / Math.max(options.point ? 0.00025 : 1e-7, maxX - minX),
+      (frame.h - 56) / Math.max(options.point ? 0.00025 : 1e-7, maxY - minY)
     ),
     cx = (maxX + minX) / 2,
     cy = (maxY + minY) / 2;
@@ -162,7 +165,19 @@ export async function renderRoutePreview(records, context = []) {
 
   rect(0, 0, WIDTH, HEIGHT, [238, 244, 235]);
 
-  for (const feature of context) {
+  let hasBackground = false;
+  if (options.basemap) {
+    try {
+      const radius = 6378137, halfX = frame.w / (2 * scale), halfY = frame.h / (2 * scale);
+      const bg = await mapBackground([(cx-halfX)*radius,(cy-halfY)*radius,(cx+halfX)*radius,(cy+halfY)*radius], frame.w, frame.h);
+      for (let y=0;y<frame.h;y++) for(let x=0;x<frame.w;x++) {
+        const src=(y*frame.w+x)*bg.channels, dst=((y+frame.y)*WIDTH+x+frame.x)*3;
+        pixels[dst]=bg.pixels[src];pixels[dst+1]=bg.pixels[src+1];pixels[dst+2]=bg.pixels[src+2];
+      }
+      hasBackground = true;
+    } catch { /* The route and local river context remain available during provider outages. */ }
+  }
+  for (const feature of (hasBackground ? [] : context)) {
     const line = feature.geometry?.coordinates;
     if (
       feature.geometry?.type !== 'LineString' ||
@@ -206,7 +221,7 @@ export async function renderRoutePreview(records, context = []) {
     );
   });
   rect(0, 602, WIDTH, 28, [255, 255, 255]);
-  text('MAP DATA (C) OPENSTREETMAP', 1000, 615, 1, [85, 108, 95]);
+  text(hasBackground ? 'IMAGERY (C) ESRI' : 'MAP DATA (C) OPENSTREETMAP', 950, 615, 1, [85, 108, 95]);
   const rows = new Uint8Array((WIDTH * 3 + 1) * HEIGHT);
   for (let y = 0; y < HEIGHT; y++)
     rows.set(pixels.subarray(y * WIDTH * 3, (y + 1) * WIDTH * 3), y * (WIDTH * 3 + 1) + 1);
