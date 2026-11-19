@@ -522,7 +522,7 @@ export default {
         if (placeCard) {
           site.searchParams.set('place', place.id);
           site.searchParams.set('placeAt', `${place.lat},${place.lng}`);
-          const image = new URL('/place-map/'+encodeURIComponent(place.id)+'.png',url.origin);image.searchParams.set('v', version+'-sat1');
+          const image = new URL('/place-map/'+encodeURIComponent(place.id)+'.png',url.origin);image.searchParams.set('v', version+'-sat2');
           const html = placeShareHtml({place,shareUrl:url.href,targetUrl:site.href,imageUrl:image.href});
           return new Response(req.method==='HEAD'?null:html,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'public, max-age=60'}});
         }
@@ -535,7 +535,7 @@ export default {
       }
       const headers = {'Content-Type':'image/png','Cache-Control':'public, max-age=300','Access-Control-Allow-Origin':'*'};
       if (req.method==='HEAD') return new Response(null,{headers});
-      const key = new Request(url.origin+'/share-map-cache/'+(placeImage?'p':'c')+version+'-sat1');
+      const key = new Request(url.origin+'/share-map-cache/'+(placeImage?'p':'c')+version+'-sat2');
       const cache = typeof caches !== 'undefined' ? caches.default : null;
       const hit = cache ? await cache.match(key) : null;
       if (hit) return hit;
@@ -575,7 +575,7 @@ export default {
       const { records } = await combinedPreviewRecords(env, ['course:'+id]);
       const mapVersion = records.length ? await combinedPreviewVersion(records) : '';
       const imageUrl = sticker ? sticker.imageUrl : records.length
-        ? url.origin+'/course-map/'+encodeURIComponent(id)+'.png?v='+mapVersion+'-sat1'
+        ? url.origin+'/course-map/'+encodeURIComponent(id)+'.png?v='+mapVersion+'-sat2'
         : preview ? url.origin+'/course-preview/'+encodeURIComponent(id)+'.jpg?v='+encodeURIComponent(preview.v)
         : BUNDLED_COURSE_PREVIEW_IDS.has(id) ? _bundledCoursePreviewUrl(site,id) : new URL('og.png',site).href;
       const html = courseShareHtml({ id, name: course.name, km: course.km, shareUrl: url.toString(), targetUrl: site.toString(), imageUrl,

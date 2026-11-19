@@ -10,10 +10,10 @@ const store=new Map([
 const env={SITE_URL:'https://canoe.crowdbase.kr/',PLACES:{get:async key=>store.get(key)||null}};
 const get=path=>worker.fetch(new Request('https://worker.example'+path),env,{});
 const realFetch=globalThis.fetch;
-let backgroundCalls=0;
+let backgroundCalls=0, basemap=null;
 globalThis.fetch=async input=>{
  const url=String(input);
- if(url.includes('arcgisonline.com')) {backgroundCalls++;return new Response('outage',{status:503});}
+ if(url.includes('arcgisonline.com')) {backgroundCalls++;return basemap?new Response(basemap):new Response('outage',{status:503});}
  return Response.json({features:[]});
 };
 try{
@@ -27,6 +27,16 @@ try{
  const place=await get('/p/launch1');assert.equal(place.status,200);const ph=await place.text();assert(ph.includes('강변 &lt;런칭&gt;'));assert(ph.includes('/place-map/launch1.png'));assert(ph.includes('place=launch1'));
  assert.equal((await get('/place-map/launch1.png')).status,200);
  assert.equal((await get('/p/secret')).status,404);assert.equal((await get('/place-map/secret.png')).status,404);
+ // Full-bleed satellite pixels at all corners; single places use an unnumbered target marker.
+ const mapHeader=Buffer.alloc(33);mapHeader[0]=137;mapHeader[1]=80;mapHeader.writeUInt32BE(13,8);mapHeader.write('IHDR',12);mapHeader.writeUInt32BE(1200,16);mapHeader.writeUInt32BE(630,20);mapHeader[24]=8;mapHeader[25]=2;
+ const mapRows=Buffer.alloc((1200*3+1)*630);
+ for(let y=0;y<630;y++)for(let x=0;x<1200;x++)mapRows.set([10,20,30],y*(1200*3+1)+1+x*3);
+ const mapData=deflateSync(mapRows),mapChunk=Buffer.alloc(mapData.length+12);mapChunk.writeUInt32BE(mapData.length);mapChunk.write('IDAT',4);mapData.copy(mapChunk,8);basemap=Buffer.concat([mapHeader,mapChunk]);
+ const fullImage=await decodeMapPng(new Uint8Array(await (await get('/place-map/launch1.png')).arrayBuffer()),1200,630);
+ const pixel=(x,y)=>[...fullImage.pixels.slice((y*1200+x)*3,(y*1200+x)*3+3)];
+ for(const [x,y] of [[0,0],[1199,0],[0,629],[900,629]])assert.deepEqual(pixel(x,y),[10,20,30],'Satellite background fills all image edges');
+ assert.deepEqual(pixel(600,315),[255,255,255]);assert.deepEqual(pixel(600,305),[25,118,210],'Marker contains a circle, not the digit 1');
+ basemap=null;
  const oldImage=ph.match(/property="og:image" content="([^"]+)"/)[1];
  store.set('placeover',JSON.stringify({launch1:{lat:36.9}}));assert(!(await (await get('/p/launch1')).text()).includes(oldImage));
  store.set('placeover',JSON.stringify({launch1:{del:true}}));assert.equal((await get('/place-map/launch1.png')).status,404);
@@ -40,8 +50,8 @@ try{
  if(process.env.MAP_PREVIEW_FIXTURE){
   globalThis.fetch=async input=>String(input).includes('arcgisonline.com')?new Response(readFileSync(process.env.MAP_PREVIEW_FIXTURE)):Response.json({features:[]});
   store.set('placeover','{}');const rendered=new Uint8Array(await (await get('/place-map/launch1.png')).arrayBuffer());writeFileSync('/tmp/launch-map-preview.png',rendered);
-  const bg=await decodeMapPng(readFileSync(process.env.MAP_PREVIEW_FIXTURE),1120,562),result=await decodeMapPng(rendered,1200,630);
-  assert.deepEqual([...result.pixels.slice((24*1200+40)*3,(24*1200+40)*3+3)],[...bg.pixels.slice(0,3)],'Satellite pixels must be composited, not silently replaced by a plain background');
+  const bg=await decodeMapPng(readFileSync(process.env.MAP_PREVIEW_FIXTURE),1200,630),result=await decodeMapPng(rendered,1200,630);
+  assert.deepEqual([...result.pixels.slice(0,3)],[...bg.pixels.slice(0,3)],'Satellite pixels must be composited, not silently replaced by a plain background');
  }
 }finally{globalThis.fetch=realFetch;}
 console.log('Public place/course cards, upload-free PNGs, privacy, geometry invalidation, provider outage and PNG filters: ok');

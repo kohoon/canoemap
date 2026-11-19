@@ -112,8 +112,8 @@ export async function renderRoutePreview(records, context = [], options = {}) {
         minY = Math.min(minY, y);
         maxY = Math.max(maxY, y);
       }
-  const frame = { x: 40, y: 24, w: 1120, h: 562 },
-    scale = Math.min(
+  const frame = options.basemap ? {x:0,y:0,w:WIDTH,h:HEIGHT} : { x: 40, y: 24, w: 1120, h: 562 };
+  const scale = Math.min(
       (frame.w - 76) / Math.max(options.point ? 0.00025 : 1e-7, maxX - minX),
       (frame.h - 56) / Math.max(options.point ? 0.00025 : 1e-7, maxY - minY)
     ),
@@ -207,6 +207,18 @@ export async function renderRoutePreview(records, context = [], options = {}) {
     }
     const longest = record.lines.reduce((a, b) => (a.length > b.length ? a : b)),
       anchor = project(longest[Math.floor(longest.length / 2)]);
+    if (options.point) {
+      dot(anchor[0],anchor[1],23,[255,255,255]);
+      dot(anchor[0],anchor[1],19,color);
+      dot(anchor[0],anchor[1],6,[255,255,255]);
+      return;
+    }
+    if (options.basemap && records.length === 1) {
+      for (const [p,markerColor] of [[record.lines[0][0],[19,162,111]],[record.lines.at(-1).at(-1),[239,91,91]]]) {
+        const pos=project(p);dot(pos[0],pos[1],12,[255,255,255]);dot(pos[0],pos[1],8,markerColor);
+      }
+      return;
+    }
     const label = String(index + 1),
       fontScale = label.length < 3 ? 3 : 2,
       radius = Math.max(18, Math.ceil(label.length * 3 * fontScale + 6));
@@ -220,8 +232,9 @@ export async function renderRoutePreview(records, context = [], options = {}) {
       [255, 255, 255]
     );
   });
-  rect(0, 602, WIDTH, 28, [255, 255, 255]);
-  text(hasBackground ? 'IMAGERY (C) ESRI' : 'MAP DATA (C) OPENSTREETMAP', 950, 615, 1, [85, 108, 95]);
+  if(options.basemap){rect(944,614,256,16,[255,255,255]);}
+  else {rect(0,602,WIDTH,28,[255,255,255]);}
+  text(hasBackground ? 'IMAGERY (C) ESRI' : 'MAP DATA (C) OPENSTREETMAP', 950, 619, 1, [85, 108, 95]);
   const rows = new Uint8Array((WIDTH * 3 + 1) * HEIGHT);
   for (let y = 0; y < HEIGHT; y++)
     rows.set(pixels.subarray(y * WIDTH * 3, (y + 1) * WIDTH * 3), y * (WIDTH * 3 + 1) + 1);

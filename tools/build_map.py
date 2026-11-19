@@ -2887,7 +2887,7 @@ function openPlaceModal(pl){
   gaEvent('place_open',{name:pl.name||''}); loadComments();
 }
 function closePlaceModal(){ document.getElementById('pmodal').classList.remove('open'); }
-function _shareMapVersion(value){let hash=2166136261;const text=JSON.stringify(value);for(let i=0;i<text.length;i++)hash=Math.imul(hash^text.charCodeAt(i),16777619);return 'map1-'+(hash>>>0).toString(36);}
+function _shareMapVersion(value){let hash=2166136261;const text=JSON.stringify(value);for(let i=0;i<text.length;i++)hash=Math.imul(hash^text.charCodeAt(i),16777619);return 'map2-'+(hash>>>0).toString(36);}
 function placeShareUrl(pl){
   if(pl&&pl.id!=null&&pl.cat==='런칭/랜딩')return WORKER_URL.replace(/\/+$/,'')+'/p/'+encodeURIComponent(String(pl.id))+'?v='+_shareMapVersion([pl.name,pl.lat,pl.lng]);
   const u=new URL(location.href);u.searchParams.delete('course');u.searchParams.delete('river');u.searchParams.delete('riverAt');

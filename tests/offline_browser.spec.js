@@ -2623,7 +2623,7 @@ test('course share URL and preview image use the course-specific map card', asyn
     _prepareCoursePreview = prepare;
     return { url: courseShareUrl('k1788763953491'), prefix: image.slice(0, 27), length: image.length, payload };
   });
-  expect(preview.url).toMatch(/^https:\/\/mycanoe-map\.kohoon0140\.workers\.dev\/c\/k1788763953491\?v=map1-[a-z0-9]+$/);
+  expect(preview.url).toMatch(/^https:\/\/mycanoe-map\.kohoon0140\.workers\.dev\/c\/k1788763953491\?v=map2-[a-z0-9]+$/);
   expect(preview.payload.url).toBe(preview.url);
   expect(preview.payload.title).toContain('북한강 종주 #1');
   expect(preview.payload.text).toContain('약 22.86km');
