@@ -6101,8 +6101,6 @@ async function doSaveCourse(){
       if(isAdmin()) body={action:'add',adminKey:adminKey(),name:name,color:color,waterType:waterType,travelMode:travelMode,coords:_lastCourse.coords,km:_lastCourse.km,segments:_lastCourse.segments||[]};
       else body={action:'adduser',id:u.uid,tok:u.tok||'',nick:u.nick||'',name:name,color:color,waterType:waterType,travelMode:travelMode,coords:_lastCourse.coords,km:_lastCourse.km,segments:_lastCourse.segments||[]};
     }
-    body.lat=_obLL.lat;body.lng=_obLL.lng;
-    if(type==='육로'){body.geometry=_obTrailGeometry;const center=L.geoJSON(_obTrailGeometry).getBounds().getCenter();body.lat=center.lat;body.lng=center.lng;}
     const r=await fetch(base,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     let saved={}; try{ saved=await r.json(); }catch(e){}
     if(r.ok){
