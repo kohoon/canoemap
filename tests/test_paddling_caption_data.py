@@ -67,6 +67,18 @@ class CaptionTimingTests(unittest.TestCase):
                 path = ROOT / 'paddling/subtitles' / (id + '.ko.json')
                 self.assertEqual(registry[id]['version'], hashlib.sha256(path.read_bytes()).hexdigest()[:12])
 
+    def test_published_subtitles_do_not_contain_translation_artifacts(self):
+        import re
+        artifacts = re.compile(
+            r'\ufffd|카누 강습 영상의 영어 자막|번역문\s*[:：]|'
+            r'입력 문장\s*[:：]|원문\s*[:：]|영어 자막을 번역해 드리겠습니다'
+        )
+        for path in (ROOT / 'paddling/subtitles').glob('*.ko.json'):
+            track = json.loads(path.read_text())
+            for cue in track['cues']:
+                with self.subTest(video=track['videoId'], start=cue['start']):
+                    self.assertIsNone(artifacts.search(cue['text']))
+
 
 if __name__ == '__main__':
     unittest.main()
