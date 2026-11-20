@@ -195,7 +195,11 @@ HTML = r"""<!DOCTYPE html>
 <meta name="twitter:image" content="https://canoe.crowdbase.kr/og.png?v=20260928-safe">
 <meta name="theme-color" content="#0f6174">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" href="./pwa-icon.svg" type="image/svg+xml">
+<link rel="icon" href="./favicon.ico?v=20261120" sizes="any">
+<link rel="icon" href="./favicon-32.png?v=20261120" type="image/png" sizes="32x32">
+<link rel="icon" href="./favicon-16.png?v=20261120" type="image/png" sizes="16x16">
+<link rel="icon" href="./pwa-icon.svg?v=20261120" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png?v=20261120" sizes="180x180">
 __GTAG__
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
@@ -6836,6 +6840,8 @@ else:
     tour = tour.replace('<meta property="og:url" content="https://canoe.crowdbase.kr/">', '<meta property="og:url" content="https://tour.crowdbase.kr/">')
     tour = tour.replace('<meta property="og:title" content="카누맵">', '<meta property="og:title" content="카누맵 투어">')
     tour = tour.replace('<meta name="twitter:title" content="카누맵">', '<meta name="twitter:title" content="카누맵 투어">')
+    for _icon in ("favicon.ico", "favicon-16.png", "favicon-32.png", "pwa-icon.svg", "apple-touch-icon.png"):
+        tour = tour.replace('href="./' + _icon + '?v=20261120"', 'href="https://canoe.crowdbase.kr/' + _icon + '?v=20261120"')
     tour_dir = BASE / "tour"; tour_dir.mkdir(exist_ok=True)
     (tour_dir / "legacy.html").write_text(tour, encoding="utf-8")
     (tour_dir / "index.html").write_text('''<!doctype html>

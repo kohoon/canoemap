@@ -1,4 +1,4 @@
-const APP_CACHE = 'mycanoe-app-v19';
+const APP_CACHE = 'mycanoe-app-v20';
 const LEGACY_PACK_CACHE = 'mycanoe-offline-pack-v1';
 const PACK_CACHE_PREFIX = 'mycanoe-offline-pack-v2-';
 const ESRI_IMAGERY_HOST = 'server.arcgisonline.com';
@@ -8,6 +8,12 @@ const APP_SHELL = [
   './index.html',
   './manifest.webmanifest',
   './pwa-icon.svg',
+  './favicon.ico',
+  './favicon-16.png',
+  './favicon-32.png',
+  './apple-touch-icon.png',
+  './icon-192.png',
+  './icon-512.png',
   './og.png',
   './owol_waterways_v2.json',
   './water_tiles/manifest.json',
