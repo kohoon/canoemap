@@ -5,7 +5,7 @@ from pathlib import Path
 root=Path(__file__).resolve().parents[1];raw=Path(sys.argv[1]);school=root/'paddling';source=(school/'index.html').read_text()
 ids=list(dict.fromkeys(re.findall(r'id:"([A-Za-z0-9_-]{11})",author:',source)))
 no_speech={'HRr0vb-4Bfk','Bj4jh5y0HpM','0BUAVVQx6po','m4hpBhxCKeE'}
-unavailable={'Y5TcU3XqDGg'}
+unavailable=set()
 registry={};coverage={}
 for id in ids:
     if id=='PQDLADzDI1s':coverage[id]={'status':'native-korean','sourceLanguage':'ko'};continue
@@ -30,5 +30,5 @@ for name in ['subtitle-tracks.js','subtitles.js']:
     version=hashlib.sha256((school/name).read_bytes()).hexdigest()[:12]
     source=re.sub(r'src="\./'+re.escape(name)+r'\?v=[^"]+"', 'src="./'+name+'?v='+version+'"', source)
 (school/'index.html').write_text(source)
-(school/'subtitles'/'coverage.json').write_text(json.dumps({'checkedOn':'2026-11-19','videos':coverage},ensure_ascii=False,indent=2)+'\n')
+(school/'subtitles'/'coverage.json').write_text(json.dumps({'checkedOn':'2026-11-20','videos':coverage},ensure_ascii=False,indent=2)+'\n')
 print('Published subtitle registry:',len(registry),'tracks;',sum(v['cueCount'] for v in registry.values()),'cues')

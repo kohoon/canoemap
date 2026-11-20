@@ -1,5 +1,5 @@
 {
-  "checkedOn": "2026-11-19",
+  "checkedOn": "2026-11-20",
   "videos": {
     "PQDLADzDI1s": {
       "status": "native-korean",
@@ -218,9 +218,12 @@
       "version": "ae0d234d1abe",
       "reviewStatus": "reviewed"
     },
-    "Y5TcU3XqDGg": {
-      "status": "unavailable",
-      "reason": "YouTube reported that the video is not available on 2026-11-19"
+    "dqe19F_q1cM": {
+      "status": "translated",
+      "sourceLanguage": "en",
+      "cueCount": 112,
+      "version": "8ca6f342ac0b",
+      "reviewStatus": "reviewed"
     },
     "7beAPvODVnA": {
       "status": "translated",
