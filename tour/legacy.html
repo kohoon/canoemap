@@ -4425,10 +4425,30 @@ async function _prepareCoursePreview(idStr,course){
   const sig=[c.name,c.km,c.color,c.coords.length,c.coords[0],c.coords[c.coords.length-1]].join('|');if(_coursePreviewDone[id]===sig)return true;
   try{const context=await _cpRouteContext(c.coords),img=_drawCoursePreview(c,context);if(!img)return false;const u=getUser()||{},body={id:id,img:img};if(isAdmin())body.adminKey=adminKey();else{body.uid=u.uid||'';body.tok=u.tok||'';}const r=await fetch(fapi('/course-preview'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)return false;_coursePreviewDone[id]=sig;return true;}catch(e){return false;}
 }
-function shareCourse(idStr,name,km){ const u=courseShareUrl(idStr),info=_courseShareInfo(idStr,name,km),summary=['🛶 코스명: '+info.name];if(info.dist)summary.push('📏 거리: 약 '+info.dist+'km');const full=summary.concat('🔗 '+u).join('\n');gaEvent('course_share');_prepareCoursePreview(idStr,info.course);
-  if(navigator.share){ navigator.share({title:'카누맵 · '+info.name,text:summary.join('\n'),url:u}).catch(function(){}); }
-  else if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(full).then(function(){ alert('코스 정보와 링크가 복사됐어요!\n\n'+full); }).catch(function(){ prompt('아래 내용을 복사하세요', full); }); }
-  else prompt('아래 내용을 복사하세요', full); }
+function _copyCourseLink(url){
+  function fallback(){
+    const active=document.activeElement,box=document.createElement('textarea');let copied=false;
+    box.value=url;box.readOnly=true;box.setAttribute('aria-hidden','true');
+    box.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';
+    try{
+      document.body.appendChild(box);box.focus({preventScroll:true});box.select();box.setSelectionRange(0,url.length);
+      copied=!!document.execCommand('copy');
+    }catch(e){}finally{
+      box.remove();try{if(active&&active.focus)active.focus({preventScroll:true});}catch(e){}
+    }
+    if(!copied)prompt('아래 코스 링크를 복사하세요',url);
+    return copied;
+  }
+  // Invoke clipboard access directly in the click gesture, before preview/network work.
+  try{if(navigator.clipboard&&navigator.clipboard.writeText)return Promise.resolve(navigator.clipboard.writeText(url)).then(function(){return true;},fallback);}catch(e){}
+  return Promise.resolve(fallback());
+}
+function shareCourse(idStr,name,km){
+  const u=courseShareUrl(idStr),info=_courseShareInfo(idStr,name,km);
+  const copying=_copyCourseLink(u).then(function(copied){if(copied)alert('코스 링크가 복사됐어요!\n\n'+u);return copied;});
+  gaEvent('course_share');_prepareCoursePreview(idStr,info.course);
+  return copying;
+}
 let _courseFocusCtl=null;
 function _showCourseFocusBar(name){
   if(!_courseFocusCtl){
