@@ -6679,7 +6679,9 @@ function pauseLocateViewFollow(){
 }
 function _locSetInitialView(latlng){
   _locInternalMove=true;
-  try{map.setView(latlng,Math.max(map.getZoom(),16));}finally{_locInternalMove=false;}
+  // Leaflet can emit an animated zoomstart after this guard is cleared.
+  // Keep the initial GPS recenter synchronous so it cannot cancel following.
+  try{map.setView(latlng,Math.max(map.getZoom(),16),{animate:false});}finally{_locInternalMove=false;}
 }
 function locateMe(){
   if(!navigator.geolocation){ L.popup().setLatLng(map.getCenter()).setContent('이 브라우저는 위치를 지원하지 않습니다').openOn(map); return; }

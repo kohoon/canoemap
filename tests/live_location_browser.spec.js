@@ -76,12 +76,16 @@ test('current-location mode can be toggled off and allows free map browsing', as
     walking: _locModeFromEvidence(120, 220, 10, 1.2),
     fast: _locModeFromEvidence(Infinity, Infinity, 10, 8),
   }))).toEqual({ road: 'car', water: 'canoe', walking: 'person', fast: 'car' });
+  // Reproduce starting tracking one zoom level below its initial GPS view.
+  await page.evaluate(() => map.setView([37.9, 127.73], 15, { animate: false }));
   await page.locator('#locBtn').click();
   await expect(page.locator('#locBtn')).toHaveClass(/active/);
   await page.evaluate(() => window.__pushGeo(37.9000, 127.7300, 12));
   await expect.poll(() => page.evaluate(() => _locMarker && _locMarker.getLatLng().lat)).toBeCloseTo(37.9, 4);
   await expect.poll(() => page.evaluate(() => !!_locSurfaceData), { timeout: 15000 }).toBe(true);
   expect(await page.evaluate(() => _locSurfaceWindow.roads.length + _locSurfaceWindow.water.length)).toBeGreaterThan(0);
+  expect(await page.evaluate(() => _locFollowView)).toBe(true);
+  expect(await page.evaluate(() => map.getZoom())).toBe(16);
 
   await page.evaluate(() => window.__pushGeo(37.9015, 127.7330, 8));
   await expect.poll(() => page.evaluate(() => _locMarker && _locMarker.getLatLng().lat)).toBeCloseTo(37.9015, 4);
