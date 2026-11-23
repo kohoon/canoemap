@@ -136,7 +136,7 @@ function selectRecord(id,focusIndex=null) {
     ${siteHtml || `<p class="location-alert">${missingLocation}</p>`}
     <h3>확인한 근거</h3>
     <ol class="source-links">${sourceHtml}</ol>
-    <p class="date">공개 자료 확인 2026.11.17 · 개인 카누 반입 조건은 안내한 시설·구역에 적용됩니다.</p>
+    <p class="date">공개 자료 확인 ${escapeHtml(record.checked_at || window.JAPAN_LAUNCH_DATA.date).replaceAll('-','.')} · 개인 카누 반입 조건은 안내한 시설·구역에 적용됩니다.</p>
   `;
   detail.closest('.sidebar').scrollTop = 0;
   $('back').onclick = () => { history.replaceState(null,'',location.pathname+location.search); applyFilters(); };

@@ -1,6 +1,6 @@
 {
   "type": "FeatureCollection",
-  "name": "일본 123개 수역 런칭·랜딩 조사",
+  "name": "일본 카누·카약 런칭·랜딩 지도",
   "features": [
     {
       "type": "Feature",
@@ -18,14 +18,17 @@
         "name": "굿샤로호 수상스포츠 교류공원(屈斜路湖ウォータースポーツ交流公園)",
         "coordinate_type": "imagery_water_access",
         "permission": "conditional",
-        "permission_note": "기존 초코교(眺湖橋) 진수지는 2025년 7월 2일 폐쇄. 대체 굿샤로 수상스포츠 교류공원(屈斜路ウォータースポーツ交流公園) 지정 슬립은 유료(1일 520엔), 5월 1일~10월 22일 8~16시 운영 안내. 구시로강 입강신고·시설 접수 조건 확인 필요.",
+        "permission_note": "기존 초코교(眺湖橋) 진수지는 2025년 7월 2일 폐쇄. 대체 굿샤로 수상스포츠 교류공원(屈斜路ウォータースポーツ交流公園) 지정 슬립은 유료(1일 520엔), 5월 1일~10월 22일 8~16시 운영 안내. 구시로강 입강신고·시설 접수 조건 확인 필요. 호소오카역 포트(細岡駅)는 별도 시설이며, 구포트 보수와 하류 대체 포트 이용에 관한 공식 안내가 있습니다. 위 원류 공원의 요금·운영기간을 호소오카에 적용하지 않습니다.",
         "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
         "source": "https://masyuko.or.jp/news/canoe_2507/",
         "sources": [
           "https://kushiro-canoe.net/入船届",
           "https://masyuko.or.jp/news/canoe_2507/",
           "https://www.town.teshikaga.hokkaido.jp/kurashi/soshikiichiran/kankyoseikatsuka/3/1/896.html",
-          "https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide"
+          "https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide",
+          "https://www.hkd.mlit.go.jp/ks/kusiro_kasen/c86hsb000000gri4.html",
+          "https://www.hkd.mlit.go.jp/ks/release/c86hsb000000bq4b-att/c86hsb000000gfk4.pdf",
+          "https://www.youtube.com/watch?v=ToZdf1ojUL4"
         ],
         "checked_at": "2026-11-17"
       }
@@ -46,15 +49,32 @@
         "name": "호소오카역 카누 포트(カヌーポート細岡駅) · 구포트",
         "coordinate_type": "reported_water_access",
         "permission": "unverified",
-        "permission_note": "사용자 제공 구글지도 좌표의 기존 포트 위치. 2024년 공식 공지는 구포트를 2024-11-01부터 보수·재정비로 이용 중지하고 약 300m 하류 대체 포트를 이용하도록 안내합니다. 2026-11-23 확인 시 구포트 이용 재개 여부는 미확인입니다. 원류 공원의 요금·운영기간과 구분해 현지 안내를 확인하세요.",
+        "permission_note": "기존 초코교(眺湖橋) 진수지는 2025년 7월 2일 폐쇄. 대체 굿샤로 수상스포츠 교류공원(屈斜路ウォータースポーツ交流公園) 지정 슬립은 유료(1일 520엔), 5월 1일~10월 22일 8~16시 운영 안내. 구시로강 입강신고·시설 접수 조건 확인 필요. 호소오카역 포트(細岡駅)는 별도 시설이며, 구포트 보수와 하류 대체 포트 이용에 관한 공식 안내가 있습니다. 위 원류 공원의 요금·운영기간을 호소오카에 적용하지 않습니다.",
         "access": "사용자 제공 구글지도 좌표의 기존 포트 위치. 2024년 공식 공지는 구포트를 2024-11-01부터 보수·재정비로 이용 중지하고 약 300m 하류 대체 포트를 이용하도록 안내합니다. 2026-11-23 확인 시 구포트 이용 재개 여부는 미확인입니다. 원류 공원의 요금·운영기간과 구분해 현지 안내를 확인하세요.",
         "source": "https://www.google.com/maps/search/?api=1&query=43.1072326%2C144.4705947",
         "sources": [
-          "https://www.google.com/maps/search/?api=1&query=43.1072326%2C144.4705947",
+          "https://kushiro-canoe.net/入船届",
+          "https://masyuko.or.jp/news/canoe_2507/",
+          "https://www.town.teshikaga.hokkaido.jp/kurashi/soshikiichiran/kankyoseikatsuka/3/1/896.html",
+          "https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide",
           "https://www.hkd.mlit.go.jp/ks/kusiro_kasen/c86hsb000000gri4.html",
-          "https://www.hkd.mlit.go.jp/ks/release/c86hsb000000bq4b-att/c86hsb000000gfk4.pdf"
+          "https://www.hkd.mlit.go.jp/ks/release/c86hsb000000bq4b-att/c86hsb000000gfk4.pdf",
+          "https://www.youtube.com/watch?v=ToZdf1ojUL4"
         ],
-        "checked_at": "2026-11-23"
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "ToZdf1ojUL4",
+            "url": "https://www.youtube.com/watch?v=ToZdf1ojUL4",
+            "title_ko": "구시로강 카약: 도로호에서 호소오카까지",
+            "title_ja": "釧路川カヤック体験記｜塘路湖から細岡へ湿原を下る感動ルート",
+            "channel": "hobby and profit",
+            "published_at": "2026-05-20",
+            "start_seconds": 0,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ]
       }
     },
     {
@@ -184,9 +204,27 @@
         "source": "https://hokkaidowilds.org/water/bibi-river-canoeing",
         "sources": [
           "https://www.city.tomakomai.hokkaido.jp/shizen/koen/koenichiran/tappukoppu.html",
-          "https://hokkaidowilds.org/water/bibi-river-canoeing"
+          "https://hokkaidowilds.org/water/bibi-river-canoeing",
+          "https://www.youtube.com/watch?v=mLNour5zsPQ&t=514",
+          "https://www.city.tomakomai.hokkaido.jp/shizen/kasen/bibigawa-guideline.html",
+          "https://www.city.tomakomai.hokkaido.jp/files/00007300/00007369/20260217201118.pdf",
+          "https://www.shugakuso.jp/contents/blog/blog-30684376/",
+          "https://www.youtube.com/watch?v=mLNour5zsPQ&t=51"
         ],
-        "checked_at": "2026-11-17"
+        "checked_at": "2026-11-17",
+        "videos": [
+          {
+            "id": "mLNour5zsPQ",
+            "url": "https://www.youtube.com/watch?v=mLNour5zsPQ&t=51",
+            "title_ko": "비비강 마쓰비비교 포트 출발",
+            "title_ja": "【北海道カナディアンカヌー】湿原の美々川ダウンリバー・川下り　新型ジムニーとカヌー",
+            "channel": "Life and work of an architect in Sapporo, Hokkaido",
+            "published_at": "2021-10-16",
+            "start_seconds": 51,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ]
       }
     },
     {
@@ -210,9 +248,59 @@
         "source": "https://hokkaidowilds.org/water/bibi-river-canoeing",
         "sources": [
           "https://www.city.tomakomai.hokkaido.jp/shizen/koen/koenichiran/tappukoppu.html",
-          "https://hokkaidowilds.org/water/bibi-river-canoeing"
+          "https://hokkaidowilds.org/water/bibi-river-canoeing",
+          "https://www.youtube.com/watch?v=mLNour5zsPQ&t=514",
+          "https://www.city.tomakomai.hokkaido.jp/shizen/kasen/bibigawa-guideline.html",
+          "https://www.city.tomakomai.hokkaido.jp/files/00007300/00007369/20260217201118.pdf",
+          "https://www.shugakuso.jp/contents/blog/blog-30684376/",
+          "https://www.youtube.com/watch?v=mLNour5zsPQ&t=51"
         ],
         "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.7138522,
+          42.7408747
+        ]
+      },
+      "properties": {
+        "number": 5,
+        "waterbody": "비비강(美々川)",
+        "region": "홋카이도(北海道)",
+        "name": "제2비비교 카누 포트(第二美々橋カヌーポート)",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "시의 2026년 카누 가이드라인에 표시된 공공 포트입니다. 영상은 마쓰비비교에서 이 포트까지 실제 하행한 기록입니다. 지정 포트·주간 이용·PFD 등 지침을 따르고 신우에나에교 하류와 우토나이호 방향의 보전 안내를 확인하세요.",
+        "access": "붉은 제2비비교 상류의 좌안(하류를 보는 기준) 카누 포트를 시설 자료·두 항공사진·일반지도에서 대조했습니다. 기존 마쓰비비교 및 탓푸코프 포트와 다른 접근점입니다. 시의 2026년 카누 가이드라인에 표시된 공공 포트입니다. 영상은 마쓰비비교에서 이 포트까지 실제 하행한 기록입니다. 지정 포트·주간 이용·PFD 등 지침을 따르고 신우에나에교 하류와 우토나이호 방향의 보전 안내를 확인하세요.",
+        "source": "https://www.youtube.com/watch?v=mLNour5zsPQ&t=514",
+        "sources": [
+          "https://www.city.tomakomai.hokkaido.jp/shizen/koen/koenichiran/tappukoppu.html",
+          "https://hokkaidowilds.org/water/bibi-river-canoeing",
+          "https://www.youtube.com/watch?v=mLNour5zsPQ&t=514",
+          "https://www.city.tomakomai.hokkaido.jp/shizen/kasen/bibigawa-guideline.html",
+          "https://www.city.tomakomai.hokkaido.jp/files/00007300/00007369/20260217201118.pdf",
+          "https://www.shugakuso.jp/contents/blog/blog-30684376/",
+          "https://www.youtube.com/watch?v=mLNour5zsPQ&t=51"
+        ],
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "mLNour5zsPQ",
+            "url": "https://www.youtube.com/watch?v=mLNour5zsPQ&t=514",
+            "title_ko": "비비강 캐나디언 카누 하행·제2비비교 도착",
+            "title_ja": "【北海道カナディアンカヌー】湿原の美々川ダウンリバー・川下り　新型ジムニーとカヌー",
+            "channel": "Life and work of an architect in Sapporo, Hokkaido",
+            "published_at": "2021-10-16",
+            "start_seconds": 514,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ],
+        "uncertainty_m": 30
       }
     },
     {
@@ -583,9 +671,23 @@
         "source": "https://www.oldplace946.com/summer-activity/",
         "sources": [
           "https://www.oldplace946.com/summer-activity/",
-          "https://www.kushiro-shitsugen-np.jp/fureai/motomura/"
+          "https://www.kushiro-shitsugen-np.jp/fureai/motomura/",
+          "https://www.youtube.com/watch?v=ToZdf1ojUL4"
         ],
-        "checked_at": "2026-11-17"
+        "checked_at": "2026-11-17",
+        "videos": [
+          {
+            "id": "ToZdf1ojUL4",
+            "url": "https://www.youtube.com/watch?v=ToZdf1ojUL4",
+            "title_ko": "구시로강 카약: 도로호에서 호소오카까지",
+            "title_ja": "釧路川カヤック体験記｜塘路湖から細岡へ湿原を下る感動ルート",
+            "channel": "hobby and profit",
+            "published_at": "2026-05-20",
+            "start_seconds": 0,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ]
       }
     },
     {
@@ -1495,9 +1597,52 @@
         "access": "공식·시설 안내 위치 주변에서 Esri·국토지리원 항공사진의 물가 접근부를 대조한 후보. 현장 진입·시설 사용 조건 확인 필요.",
         "source": "https://db.go-nagano.net/themelist/detail/id%3D543",
         "sources": [
-          "https://db.go-nagano.net/themelist/detail/id%3D543"
+          "https://db.go-nagano.net/themelist/detail/id%3D543",
+          "https://www.youtube.com/watch?v=nsZWllUjoyM",
+          "https://db.go-nagano.net/topics_detail6/id%3D541"
         ],
         "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          137.844573,
+          36.611714
+        ]
+      },
+      "properties": {
+        "number": 49,
+        "waterbody": "아오키호(青木湖)",
+        "region": "고신·호쿠리쿠(甲信北陸)",
+        "name": "아오키호 오무코 캠핑장 물가(青木湖 大向キャンプ場 湖畔)",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "개인 카누와 잔교 이용을 설명하는 캠핑·카누 영상 확인. 공식 관광 안내의 계절영업은 4월 하순~10월 하순이며, 현재 개인 반입·시설요금·영업 여부는 캠핑장에 확인해야 합니다. 인접 기리노 캠핑장과는 별도 시설입니다.",
+        "access": "영상의 시설명과 지도 표적을 확인하고 Esri·국토지리원 사진에서 캠핑장 호안 접근부를 대조했습니다. 기존 기리노 캠핑장 북쪽의 별도 물가 접근점이며 공용 무료 진수장으로 판단하지 않습니다. 개인 카누와 잔교 이용을 설명하는 캠핑·카누 영상 확인. 공식 관광 안내의 계절영업은 4월 하순~10월 하순이며, 현재 개인 반입·시설요금·영업 여부는 캠핑장에 확인해야 합니다. 인접 기리노 캠핑장과는 별도 시설입니다.",
+        "source": "https://www.youtube.com/watch?v=nsZWllUjoyM",
+        "sources": [
+          "https://db.go-nagano.net/themelist/detail/id%3D543",
+          "https://www.youtube.com/watch?v=nsZWllUjoyM",
+          "https://db.go-nagano.net/topics_detail6/id%3D541"
+        ],
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "nsZWllUjoyM",
+            "url": "https://www.youtube.com/watch?v=nsZWllUjoyM",
+            "title_ko": "아오키호 오무코 캠핑장 카누 활동",
+            "title_ja": "青木湖 大向キャンプ場でキャンプ!",
+            "channel": "Qooper Channel",
+            "published_at": "2023-07-31",
+            "start_seconds": 0,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ],
+        "uncertainty_m": 40
       }
     },
     {
@@ -3682,6 +3827,352 @@
           "https://yamap.com/model-courses/29645"
         ],
         "checked_at": "2026-11-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.0895036,
+          36.8854228
+        ]
+      },
+      "properties": {
+        "number": 124,
+        "waterbody": "나라마타호(ならまた湖)",
+        "region": "간토(関東)",
+        "name": "오토캠퍼즈 에어리어 나라마타 · 캠퍼즈 비치(オートキャンパーズエリアならまた・キャンパーズビーチ)",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "자가 카누·카약·SUP 반입 사례와 운영사 입호신고서 확인. 캠핑장 관리사무소에 이용신고서를 제출하고 PFD를 착용해야 합니다. 일출~17시, 계절영업·예약·시설요금은 운영사 최신 안내를 확인하세요.",
+        "access": "관리동 인접 캠퍼즈 비치로 내려가는 계단·물가를 공식 배치도와 Esri·국토지리원 사진에서 대조. 핀은 수위에 따라 달라지는 해변 진수 권역입니다. 자가 카누·카약·SUP 반입 사례와 운영사 입호신고서 확인. 캠핑장 관리사무소에 이용신고서를 제출하고 PFD를 착용해야 합니다. 일출~17시, 계절영업·예약·시설요금은 운영사 최신 안내를 확인하세요.",
+        "source": "https://www.youtube.com/watch?v=Iacj2t0fPf4&t=60",
+        "sources": [
+          "https://www.youtube.com/watch?v=Iacj2t0fPf4&t=60",
+          "https://www.youtube.com/watch?v=51hMMkBN8mw",
+          "https://norn.co.jp/camp/",
+          "https://norn.co.jp/camp/naramata/facility/",
+          "https://norn.co.jp/camp/wp-content/uploads/2025/06/naramata_lake_entry_notification2025.pdf"
+        ],
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "Iacj2t0fPf4",
+            "url": "https://www.youtube.com/watch?v=Iacj2t0fPf4&t=60",
+            "title_ko": "나라마타호 진수장·자가 카약 반입 안내",
+            "title_ja": "ならまた湖(群馬県)出艇地カヤック、SUP持込み",
+            "channel": "hobby and profit",
+            "published_at": "2021-05-03",
+            "start_seconds": 60,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          },
+          {
+            "id": "51hMMkBN8mw",
+            "url": "https://www.youtube.com/watch?v=51hMMkBN8mw",
+            "title_ko": "나라마타 캠핑장 카약 캠핑",
+            "title_ja": "オートキャンパーズエリアならまた　カヤックキャンプ",
+            "channel": "PON-OVERLAND",
+            "published_at": "2022-08-12",
+            "start_seconds": 0,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ],
+        "uncertainty_m": 35
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.0735036,
+          37.687098
+        ]
+      },
+      "properties": {
+        "number": 125,
+        "waterbody": "소하라호(曽原湖)",
+        "region": "도호쿠(東北)",
+        "name": "호토리노아소비바 캠핑장 물가(ほとりの遊びばキャンプ場 湖畔)",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "캠핑장 이용규약에 카누·카약·SUP 이용 시 PFD 착용을 명시합니다. 영상은 2021년 활동이며, 현재 홈페이지에는 11/8 이후 겨울휴장 안내(연도 미표기)가 있어 재개 시기·예약·반입 조건을 운영사에 확인하세요.",
+        "access": "영상 설명에 명시된 캠핑장의 소하라호 북쪽 물가. 시설 위치와 호안 진입부를 Esri·국토지리원 사진에서 대조한 권역으로, 개별 사이트 사용 권한은 캠핑장 접수가 필요합니다. 캠핑장 이용규약에 카누·카약·SUP 이용 시 PFD 착용을 명시합니다. 영상은 2021년 활동이며, 현재 홈페이지에는 11/8 이후 겨울휴장 안내(연도 미표기)가 있어 재개 시기·예약·반입 조건을 운영사에 확인하세요.",
+        "source": "https://www.youtube.com/watch?v=5sxmwMuum1I&t=222",
+        "sources": [
+          "https://www.youtube.com/watch?v=5sxmwMuum1I&t=222",
+          "https://hotorinoasobiba-camp.jimdosite.com/",
+          "https://hotorinoasobiba-camp.jimdosite.com/利用規約/"
+        ],
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "5sxmwMuum1I",
+            "url": "https://www.youtube.com/watch?v=5sxmwMuum1I&t=222",
+            "title_ko": "소하라호 캠핑·카약 활동",
+            "title_ja": "【キャンプツーリング】キャンプでカヤックを楽しむ！曽原湖｜ほとりの遊びばキャンプ場｜W650とSR400｜ポーランド軍幕｜パンダライト",
+            "channel": "kroom camp & touring",
+            "published_at": "2021-10-15",
+            "start_seconds": 222,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ],
+        "uncertainty_m": 35
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.4745113,
+          37.9789034
+        ]
+      },
+      "properties": {
+        "number": 126,
+        "waterbody": "시치카슈쿠호(七ヶ宿湖)",
+        "region": "도호쿠(東北)",
+        "name": "시치카슈쿠공원 제2주차장 보트풀(七ヶ宿公園 第2駐車場 ボートプール)",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "매년 사전 대면신고 후 입호증·이용권을 받아 이용합니다. 공식 안내 기간은 4/1~11/30, 일출~일몰입니다. 제2주차장 하역 후 보트풀에서 발착하며 댐 앞 금지수면은 제외합니다. 2026-05-23 이용재개 및 강풍 주의 공지도 확인했습니다.",
+        "access": "활동자가 영상 설명과 연결 체험기에 명시한 공원 주차장 인접 발착 구역. 공식 이용계획의 보트풀·제2주차장 조건과 사진의 주차장·남쪽 호안을 대조했으며 실제 이용선은 수위에 따라 달라집니다. 매년 사전 대면신고 후 입호증·이용권을 받아 이용합니다. 공식 안내 기간은 4/1~11/30, 일출~일몰입니다. 제2주차장 하역 후 보트풀에서 발착하며 댐 앞 금지수면은 제외합니다. 2026-05-23 이용재개 및 강풍 주의 공지도 확인했습니다.",
+        "source": "https://www.youtube.com/watch?v=P2Z5Io9F8ME",
+        "sources": [
+          "https://www.youtube.com/watch?v=P2Z5Io9F8ME",
+          "https://www.thr.mlit.go.jp/shichika/13komen/img/komen/nagare1.pdf",
+          "https://www.thr.mlit.go.jp/shichika/img/komen_oshirase.pdf",
+          "https://town.shichikashuku.miyagi.jp/sightseeing/play/dam.html",
+          "https://yamap.com/activities/49179956"
+        ],
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "P2Z5Io9F8ME",
+            "url": "https://www.youtube.com/watch?v=P2Z5Io9F8ME",
+            "title_ko": "시치카슈쿠호 카누·계곡 탐방 기록",
+            "title_ja": "2026.06.15　七ヶ宿湖（しちかしゅこ）",
+            "channel": "Taka_Korin",
+            "published_at": "2026-06-17",
+            "start_seconds": 0,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ],
+        "uncertainty_m": 50
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.3971303,
+          37.9331933
+        ]
+      },
+      "properties": {
+        "number": 127,
+        "waterbody": "모니와호(茂庭っ湖)",
+        "region": "도호쿠(東北)",
+        "name": "나시다이라공원 슬로프(梨平公園 スロープ)",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "운영단체가 개인 카누·카약·SUP 반입을 안내하며, 댐 인포메이션센터에 호수 이용신고서를 제출해야 합니다. 발착은 나시다이라공원, 이용 9~17시·PFD 필수입니다. 지정 이용수면과 종료 후 연락 절차를 따릅니다.",
+        "access": "공식 발착 공원과 슬로프 위치를 Esri·공식 안내도·국토지리원 일반지도로 대조. 국토지리원 항공사진은 현재 수면·도로와 차이가 커 현 물가 확정 근거로 사용하지 않았습니다. 핀은 슬로프 하단 권역입니다. 운영단체가 개인 카누·카약·SUP 반입을 안내하며, 댐 인포메이션센터에 호수 이용신고서를 제출해야 합니다. 발착은 나시다이라공원, 이용 9~17시·PFD 필수입니다. 지정 이용수면과 종료 후 연락 절차를 따릅니다.",
+        "source": "https://www.youtube.com/watch?v=1S3S2H3y0dw",
+        "sources": [
+          "https://www.youtube.com/watch?v=1S3S2H3y0dw",
+          "https://iizakasupporters.com/surikami-komen/",
+          "https://www.thr.mlit.go.jp/surikami/img/pdf_download_komenriyou.pdf",
+          "https://iizakasupporters.com/kayak/"
+        ],
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "1S3S2H3y0dw",
+            "url": "https://www.youtube.com/watch?v=1S3S2H3y0dw",
+            "title_ko": "모니와호 실제 카약 투어 기록",
+            "title_ja": "茂庭っ湖カヤックツアー 20180524",
+            "channel": "いいざかサポーターズクラブ",
+            "published_at": "2018-05-24",
+            "start_seconds": 0,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ],
+        "uncertainty_m": 40
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          138.6835714,
+          36.5448464
+        ]
+      },
+      "properties": {
+        "number": 128,
+        "waterbody": "얀바아가쓰마호(八ッ場あがつま湖)",
+        "region": "간토(関東)",
+        "name": "가와라유온천역·파도루야 발착 구역(川原湯温泉駅・パドル屋 発着エリア)",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "공식 운영사가 개인 카누·카약·SUP 반입 절차를 안내합니다. 1정 단독 이용은 제한되며 SRP 이수자 예외가 있으므로 예약 전 현행 조건을 확인하세요. 가이드 투어 영상이 자유진수 허용을 뜻하는 것은 아닙니다.",
+        "access": "공식 운영자 영상과 시설 지도에서 확인한 캠핑장 인접 호안 발착 권역. Esri의 호안·접근로를 기준으로 표시했고, 국토지리원 항공사진은 담수 전 형태여서 현재 물가 판독에는 사용하지 않았습니다. 공식 운영사가 개인 카누·카약·SUP 반입 절차를 안내합니다. 1정 단독 이용은 제한되며 SRP 이수자 예외가 있으므로 예약 전 현행 조건을 확인하세요. 가이드 투어 영상이 자유진수 허용을 뜻하는 것은 아닙니다.",
+        "source": "https://www.youtube.com/watch?v=tPhgauqfGnk",
+        "sources": [
+          "https://www.youtube.com/watch?v=tPhgauqfGnk",
+          "https://www.paddle-ya.com/mochikomi",
+          "https://www.paddle-ya.com/q-a",
+          "https://www.kawarayuonseneki-camp.com/"
+        ],
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "tPhgauqfGnk",
+            "url": "https://www.youtube.com/watch?v=tPhgauqfGnk",
+            "title_ko": "운영자가 소개한 얀바아가쓰마호 카누·카약",
+            "title_ja": "八ッ場あがつま湖へ漕ぎだそう！",
+            "channel": "川原湯温泉駅キャンプ場",
+            "published_at": "2021-10-21",
+            "start_seconds": 0,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ],
+        "uncertainty_m": 65
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.9365309,
+          34.7589782
+        ]
+      },
+      "properties": {
+        "number": 129,
+        "waterbody": "기즈강(木津川)",
+        "region": "긴키(近畿)",
+        "name": "가사기 캠핑장 강변(笠置キャンプ場 河原)",
+        "coordinate_type": "imagery_water_access",
+        "permission": "conditional",
+        "permission_note": "개인 접이식 카누의 2026년 실제 출발 영상과 지자체·관광협회의 하천변 캠핑장 안내 확인. 차량 진입·캠핑·하역은 운영사 접수와 이용조건을 따릅니다. 하류 환경의 숲 센터까지의 영상이 전 구간의 현재 통행·안전 상태를 보증하지는 않습니다.",
+        "access": "캠핑장 자갈둔치에서 강으로 접근하는 구역을 두 항공사진과 일반지도로 대조. 다리·철도 구조물과 분리한 캠핑장 쪽 물가를 표시하며 물길 위치는 수위에 따라 바뀝니다. 개인 접이식 카누의 2026년 실제 출발 영상과 지자체·관광협회의 하천변 캠핑장 안내 확인. 차량 진입·캠핑·하역은 운영사 접수와 이용조건을 따릅니다. 하류 환경의 숲 센터까지의 영상이 전 구간의 현재 통행·안전 상태를 보증하지는 않습니다.",
+        "source": "https://www.youtube.com/watch?v=_5QYBX6VFTU",
+        "sources": [
+          "https://www.youtube.com/watch?v=_5QYBX6VFTU",
+          "https://kasagi-camp.jp/",
+          "https://kankou-kasagi.com/kasagi-camp/",
+          "https://www.town.kasagi.lg.jp/contents_detail.php?co=cat&frmCd=1-3-0-0-0&frmId=166"
+        ],
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "_5QYBX6VFTU",
+            "url": "https://www.youtube.com/watch?v=_5QYBX6VFTU",
+            "title_ko": "가사기 캠핑장 출발 기즈강 카누 하행",
+            "title_ja": "【川下りガイド】遊びカヌー発祥の地で遊んでみる　フジタカヌー　PE470ノアにてその辺の川を旅する　京都府木津川（笠置キャンプ場~環境の森センター・きづがわ)編　カヤック　カヌー",
+            "channel": "その辺の川を旅するch　Paddle&Pedal",
+            "published_at": "2026-05-25",
+            "start_seconds": 0,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ],
+        "uncertainty_m": 50
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          131.6472458,
+          33.0625081
+        ]
+      },
+      "properties": {
+        "number": 130,
+        "waterbody": "오노강(大野川)",
+        "region": "규슈(九州)",
+        "name": "리버파크 이누카이 카누시설 권역(リバーパーク犬飼 カヌー施設エリア)",
+        "coordinate_type": "facility_lead",
+        "permission": "unverified",
+        "permission_note": "2026년 카누 기초교실 영상과 공식 카누시설 안내를 확인했습니다. 개인 이용·보관소·진수점은 오이타현 카누협회와 관리동 확인이 필요합니다. 핀은 공원 시설 권역이며 실제 런칭·랜딩 좌표로 확정하지 않았습니다.",
+        "access": "공원 위치는 공식 시설 안내와 사진·일반지도로 확인했으나 개별 카누 진수 동선은 미확정입니다. 공원 하류에는 보·낙차 구조물이 보이므로 임의의 하류 물가를 진수점으로 안내하지 않습니다. 2026년 카누 기초교실 영상과 공식 카누시설 안내를 확인했습니다. 개인 이용·보관소·진수점은 오이타현 카누협회와 관리동 확인이 필요합니다. 핀은 공원 시설 권역이며 실제 런칭·랜딩 좌표로 확정하지 않았습니다.",
+        "source": "https://www.youtube.com/watch?v=llru-AnB7zk",
+        "sources": [
+          "https://www.youtube.com/watch?v=llru-AnB7zk",
+          "https://rinukai.com/about/",
+          "https://rinukai.com/場内案内/",
+          "https://oitakanu.jp/Knowledgebass/riverparkinukai"
+        ],
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "llru-AnB7zk",
+            "url": "https://www.youtube.com/watch?v=llru-AnB7zk",
+            "title_ko": "리버파크 이누카이 카누 기초교실 기록",
+            "title_ja": "大野川カヌー基礎教室5回目2026／10／11",
+            "channel": "大野川カヌー講習・基礎クラス",
+            "published_at": "2026-10-12",
+            "start_seconds": 0,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ],
+        "uncertainty_m": 180
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          143.1933235,
+          42.5240838
+        ]
+      },
+      "properties": {
+        "number": 131,
+        "waterbody": "레키후네강(歴舟川)",
+        "region": "홋카이도(北海道)",
+        "name": "카무이코탄공원 하단 강변(カムイコタン公園 下段河原)",
+        "coordinate_type": "imagery_water_access",
+        "permission": "unverified",
+        "permission_note": "영상 챕터에 카무이코탄 캠핑장과 하천 진입 장면이 명시되어 있습니다. 지자체가 캠핑장 하단과 강의 연접을 설명하지만 개인 카누의 당일 진입·차량 동선·시즌 운영 조건은 별도 확인이 필요합니다.",
+        "access": "공식 공원 위치와 영상에 명시된 캠핑장 하단을 두 항공사진·일반지도로 대조한 자갈 강변 접근 권역입니다. 두 사진에서 하도·자갈톱 위치가 달라 고정된 수면 진입선으로 간주하지 않습니다. 영상 챕터에 카무이코탄 캠핑장과 하천 진입 장면이 명시되어 있습니다. 지자체가 캠핑장 하단과 강의 연접을 설명하지만 개인 카누의 당일 진입·차량 동선·시즌 운영 조건은 별도 확인이 필요합니다.",
+        "source": "https://www.youtube.com/watch?v=RwBqfpDP7kI&t=55",
+        "sources": [
+          "https://www.youtube.com/watch?v=RwBqfpDP7kI&t=55",
+          "https://www.town.taiki.hokkaido.jp/soshiki/kikakushokoka/3/2/793.html"
+        ],
+        "checked_at": "2026-11-23",
+        "videos": [
+          {
+            "id": "RwBqfpDP7kI",
+            "url": "https://www.youtube.com/watch?v=RwBqfpDP7kI&t=55",
+            "title_ko": "카무이코탄 캠핑장 출발 레키후네강 카약",
+            "title_ja": "カヤック 歴舟川【2024.8.10】VOL.1",
+            "channel": "燃えろ虎魂【YELLOW DEVIL】",
+            "published_at": "2024-10-25",
+            "start_seconds": 55,
+            "checked_at": "2026-11-23",
+            "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
+          }
+        ],
+        "uncertainty_m": 80
       }
     }
   ]

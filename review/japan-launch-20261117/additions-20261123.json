@@ -1,0 +1,232 @@
+{
+  "date": "2026-11-23",
+  "items": [
+    {
+      "record_id": 124,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-naramata",
+      "waterbody": "나라마타호(ならまた湖)",
+      "name": "오토캠퍼즈 에어리어 나라마타 · 캠퍼즈 비치(オートキャンパーズエリアならまた・キャンパーズビーチ)",
+      "lat": 36.8854228,
+      "lng": 139.0895036,
+      "status": "영상 시설명·물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 35,
+      "nearest_existing_m": 2921,
+      "nearest_existing_name": "도겐호 주차장(洞元湖 駐車場)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=124&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=Iacj2t0fPf4&t=60",
+        "https://www.youtube.com/watch?v=51hMMkBN8mw"
+      ],
+      "sources": [
+        "https://norn.co.jp/camp/",
+        "https://norn.co.jp/camp/naramata/facility/",
+        "https://norn.co.jp/camp/wp-content/uploads/2025/06/naramata_lake_entry_notification2025.pdf"
+      ]
+    },
+    {
+      "record_id": 125,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-sohara",
+      "waterbody": "소하라호(曽原湖)",
+      "name": "호토리노아소비바 캠핑장 물가(ほとりの遊びばキャンプ場 湖畔)",
+      "lat": 37.687098,
+      "lng": 140.0735036,
+      "status": "영상 시설명·물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 35,
+      "nearest_existing_m": 2703,
+      "nearest_existing_name": "히바라호 마마 캠핑장(桧原湖 ママキャンプ場)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=125&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=5sxmwMuum1I&t=222"
+      ],
+      "sources": [
+        "https://hotorinoasobiba-camp.jimdosite.com/",
+        "https://hotorinoasobiba-camp.jimdosite.com/利用規約/"
+      ]
+    },
+    {
+      "record_id": 126,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-shichika",
+      "waterbody": "시치카슈쿠호(七ヶ宿湖)",
+      "name": "시치카슈쿠공원 제2주차장 보트풀(七ヶ宿公園 第2駐車場 ボートプール)",
+      "lat": 37.9789034,
+      "lng": 140.4745113,
+      "status": "영상 시설명·물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 50,
+      "nearest_existing_m": 46478,
+      "nearest_existing_name": "출발점(スタート地点)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=126&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=P2Z5Io9F8ME"
+      ],
+      "sources": [
+        "https://www.thr.mlit.go.jp/shichika/13komen/img/komen/nagare1.pdf",
+        "https://www.thr.mlit.go.jp/shichika/img/komen_oshirase.pdf",
+        "https://town.shichikashuku.miyagi.jp/sightseeing/play/dam.html",
+        "https://yamap.com/activities/49179956"
+      ]
+    },
+    {
+      "record_id": 127,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-moniwa",
+      "waterbody": "모니와호(茂庭っ湖)",
+      "name": "나시다이라공원 슬로프(梨平公園 スロープ)",
+      "lat": 37.9331933,
+      "lng": 140.3971303,
+      "status": "영상 시설명·물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 40,
+      "nearest_existing_m": 39221,
+      "nearest_existing_name": "아키모토호 BSC2024(秋元湖 BSC2024)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=127&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=1S3S2H3y0dw"
+      ],
+      "sources": [
+        "https://iizakasupporters.com/surikami-komen/",
+        "https://www.thr.mlit.go.jp/surikami/img/pdf_download_komenriyou.pdf",
+        "https://iizakasupporters.com/kayak/"
+      ]
+    },
+    {
+      "record_id": 128,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-yamba",
+      "waterbody": "얀바아가쓰마호(八ッ場あがつま湖)",
+      "name": "가와라유온천역·파도루야 발착 구역(川原湯温泉駅・パドル屋 発着エリア)",
+      "lat": 36.5448464,
+      "lng": 138.6835714,
+      "status": "영상 시설명·물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 65,
+      "nearest_existing_m": 13473,
+      "nearest_existing_name": "시마호 카누 승선장(四万湖 カヌー乗り場)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=128&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=tPhgauqfGnk"
+      ],
+      "sources": [
+        "https://www.paddle-ya.com/mochikomi",
+        "https://www.paddle-ya.com/q-a",
+        "https://www.kawarayuonseneki-camp.com/"
+      ]
+    },
+    {
+      "record_id": 129,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-kasagi",
+      "waterbody": "기즈강(木津川)",
+      "name": "가사기 캠핑장 강변(笠置キャンプ場 河原)",
+      "lat": 34.7589782,
+      "lng": 135.9365309,
+      "status": "영상 시설명·물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 50,
+      "nearest_existing_m": 17623,
+      "nearest_existing_name": "도착점(ゴール)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=129&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=_5QYBX6VFTU"
+      ],
+      "sources": [
+        "https://kasagi-camp.jp/",
+        "https://kankou-kasagi.com/kasagi-camp/",
+        "https://www.town.kasagi.lg.jp/contents_detail.php?co=cat&frmCd=1-3-0-0-0&frmId=166"
+      ]
+    },
+    {
+      "record_id": 130,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-ono",
+      "waterbody": "오노강(大野川)",
+      "name": "리버파크 이누카이 카누시설 권역(リバーパーク犬飼 カヌー施設エリア)",
+      "lat": 33.0625081,
+      "lng": 131.6472458,
+      "status": "시설 참고 · 진수점 미확정",
+      "permission": "unverified",
+      "uncertainty_m": 180,
+      "nearest_existing_m": 83805,
+      "nearest_existing_name": "미도리카와댐 카누 승선장(緑川ダム カヌー乗り場)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=130&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=llru-AnB7zk"
+      ],
+      "sources": [
+        "https://rinukai.com/about/",
+        "https://rinukai.com/場内案内/",
+        "https://oitakanu.jp/Knowledgebass/riverparkinukai"
+      ]
+    },
+    {
+      "record_id": 131,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-rekifune",
+      "waterbody": "레키후네강(歴舟川)",
+      "name": "카무이코탄공원 하단 강변(カムイコタン公園 下段河原)",
+      "lat": 42.5240838,
+      "lng": 143.1933235,
+      "status": "영상 시설명·물가 접근 권역 대조",
+      "permission": "unverified",
+      "uncertainty_m": 80,
+      "nearest_existing_m": 83704,
+      "nearest_existing_name": "시카리베쓰호 온천 호숫가(然別湖温泉 湖畔)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=131&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=RwBqfpDP7kI&t=55"
+      ],
+      "sources": [
+        "https://www.town.taiki.hokkaido.jp/soshiki/kikakushokoka/3/2/793.html"
+      ]
+    },
+    {
+      "record_id": 49,
+      "point_index": 1,
+      "site_id": "japan-video-20261123-aoki",
+      "waterbody": "아오키호(青木湖)",
+      "name": "아오키호 오무코 캠핑장 물가(青木湖 大向キャンプ場 湖畔)",
+      "lat": 36.611714,
+      "lng": 137.844573,
+      "status": "영상 시설명·물가 접근 권역 대조",
+      "permission": "unverified",
+      "uncertainty_m": 40,
+      "nearest_existing_m": 181,
+      "nearest_existing_name": "아오키호 기리노 캠핑장(青木湖桐野キャンプ場)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=49&point=1",
+      "videos": [
+        "https://www.youtube.com/watch?v=nsZWllUjoyM"
+      ],
+      "sources": [
+        "https://db.go-nagano.net/topics_detail6/id%3D541"
+      ]
+    },
+    {
+      "record_id": 5,
+      "point_index": 2,
+      "site_id": "japan-video-20261123-bibi2",
+      "waterbody": "비비강(美々川)",
+      "name": "제2비비교 카누 포트(第二美々橋カヌーポート)",
+      "lat": 42.7408747,
+      "lng": 141.7138522,
+      "status": "영상 시설명·물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 30,
+      "nearest_existing_m": 1974,
+      "nearest_existing_name": "탓푸코프 친수공원 카누 포트(タップコップ親水公園 カヌーポート)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=5&point=2",
+      "videos": [
+        "https://www.youtube.com/watch?v=mLNour5zsPQ&t=514"
+      ],
+      "sources": [
+        "https://www.city.tomakomai.hokkaido.jp/shizen/kasen/bibigawa-guideline.html",
+        "https://www.city.tomakomai.hokkaido.jp/files/00007300/00007369/20260217201118.pdf",
+        "https://www.shugakuso.jp/contents/blog/blog-30684376/"
+      ]
+    }
+  ]
+}
