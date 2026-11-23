@@ -1,0 +1,191 @@
+{
+  "date": "2026-11-23",
+  "collection": "japan-video-20261123-02",
+  "items": [
+    {
+      "record_id": 132,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-02-naguri",
+      "waterbody": "나구리호(名栗湖)",
+      "name": "나구리 카누공방 잔교(名栗カヌー工房 桟橋)",
+      "lat": 35.8753,
+      "lng": 139.16803,
+      "status": "공식 진입로·항공사진 물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 40,
+      "nearest_existing_m": 8419,
+      "nearest_existing_name": "승선·상륙점·발전소(乗艇/上陸：発電所)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=132&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=fEDY6Dmy6FI",
+        "https://www.youtube.com/watch?v=ItBO3aWFCOw"
+      ],
+      "sources": [
+        "https://naguri-canoe.co.jp/canoe/",
+        "https://www.pref.saitama.lg.jp/greentourism/shisetsu/202005.html"
+      ]
+    },
+    {
+      "record_id": 133,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-02-kusaki",
+      "waterbody": "구사키호(草木湖)",
+      "name": "구사키공원 물가 진입부(草木公園 湖面進入路)",
+      "lat": 36.56031,
+      "lng": 139.37626,
+      "status": "공식 진입로·항공사진 물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 45,
+      "nearest_existing_m": 22217,
+      "nearest_existing_name": "쇼부가하마 캠핑촌(菖蒲ヶ浜キャンプ村)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=133&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=tXTIxa7YjnA&t=56"
+      ],
+      "sources": [
+        "https://www.water.go.jp/kanto/kusaki/komenriyou.html",
+        "https://16106midori.jp/recommend/3187/",
+        "https://hoshino-blog.com/kayak-kusaki"
+      ]
+    },
+    {
+      "record_id": 134,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-02-sakura",
+      "waterbody": "지치부 사쿠라호(秩父さくら湖)",
+      "name": "히나타 관리도로 호수 진입부(日向管理用道路 湖面進入路)",
+      "lat": 35.9386285,
+      "lng": 139.0588608,
+      "status": "공식 진입로·항공사진 물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 40,
+      "nearest_existing_m": 15042,
+      "nearest_existing_name": "카누 승선장(カヌー乗り場)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=134&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=nDYtNHznJl8&t=99",
+        "https://www.youtube.com/watch?v=Q_dwAoKx0y8"
+      ],
+      "sources": [
+        "https://www.water.go.jp/kanto/arakawa/urayama/damuko_riyou.html",
+        "https://www.water.go.jp/kanto/arakawa/urayama/pdf/sakurakoriyoukeikaku.pdf",
+        "https://hoshino-blog.com/kayak-titibusakurako"
+      ]
+    },
+    {
+      "record_id": 135,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-02-tanzawa",
+      "waterbody": "단자와호(丹沢湖)",
+      "name": "야키즈 보트 승선장(焼津ボート乗り場)",
+      "lat": 35.4236044,
+      "lng": 139.0431243,
+      "status": "공식 진입로·항공사진 물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 50,
+      "nearest_existing_m": 16944,
+      "nearest_existing_name": "야마나카호 마린하우스 모모(山中湖マリンハウスmomo)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=135&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=sIIb6XwR0yQ"
+      ],
+      "sources": [
+        "https://tanzawako-k.sakura.ne.jp/right.html",
+        "https://tanzawako-k.sakura.ne.jp/tousyasisetu_yakeduboat.html",
+        "https://tanzawako-k.sakura.ne.jp/20230703-unkoukitei.pdf"
+      ]
+    },
+    {
+      "record_id": 136,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-02-kanna",
+      "waterbody": "간나호(神流湖)",
+      "name": "간나호 관광보트 잔교(神流湖観光ボート 桟橋)",
+      "lat": 36.1388728,
+      "lng": 139.0162366,
+      "status": "공식 진입로·항공사진 물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 40,
+      "nearest_existing_m": 9626,
+      "nearest_existing_name": "도착점(ゴール地点)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=136&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=9LUHyNjH6mI"
+      ],
+      "sources": [
+        "https://www.water.go.jp/kanto/simokubo/guide/komen_riyo.html",
+        "https://www.water.go.jp/kanto/simokubo/guide/pdf/kannakoriyokomenruru.pdf",
+        "https://www.city.fujioka.gunma.jp/soshiki/onisisogoshisho/nigiwaikanko/1/kannnako.html"
+      ]
+    },
+    {
+      "record_id": 137,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-02-tsukigase",
+      "waterbody": "쓰키가세호(月ヶ瀬湖)",
+      "name": "하치만교 좌안 하류 진입로(八幡橋左岸下流進入路)",
+      "lat": 34.7071,
+      "lng": 136.0142,
+      "status": "공식 진입로·항공사진 물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 55,
+      "nearest_existing_m": 9158,
+      "nearest_existing_name": "가사기 캠핑장 강변(笠置キャンプ場 河原)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=137&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=PLOf5n1iVGc",
+        "https://www.youtube.com/watch?v=af_gzEvCDS8"
+      ],
+      "sources": [
+        "https://www.water.go.jp/kansai/kizugawa/takayama/rule/pdf/121105takayama_komen.pdf",
+        "https://fujitacanoe.com/blog/2013/10/127.html"
+      ]
+    },
+    {
+      "record_id": 138,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-02-shorenji",
+      "waterbody": "쇼렌지호(青蓮寺湖)",
+      "name": "쇼렌지댐 친수공원 슬로프(青蓮寺ダム親水公園 スロープ)",
+      "lat": 34.5932072,
+      "lng": 136.1140412,
+      "status": "공식 진입로·항공사진 물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 55,
+      "nearest_existing_m": 24600,
+      "nearest_existing_name": "가사기 캠핑장 강변(笠置キャンプ場 河原)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=138&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=pdb6YqDn1LU"
+      ],
+      "sources": [
+        "https://www.water.go.jp/kansai/kizugawa/syourenji/vision/pdf/20231225_dam_komenriyo.pdf",
+        "https://www.water.go.jp/kansai/kizugawa/syourenji/news/index.htm",
+        "https://kankou-nabari.jp/tour/kayaks"
+      ]
+    },
+    {
+      "record_id": 139,
+      "point_index": 0,
+      "site_id": "japan-video-20261123-02-okuise",
+      "waterbody": "오쿠이세 미야가와호(奥伊勢宮川湖)",
+      "name": "모미지노사토공원 하류 슬로프(もみじの里公園 下流側スロープ)",
+      "lat": 34.38869,
+      "lng": 136.37809,
+      "status": "공식 진입로·항공사진 물가 접근 권역 대조",
+      "permission": "conditional",
+      "uncertainty_m": 40,
+      "nearest_existing_m": 9158,
+      "nearest_existing_name": "가하다쿄 카누 승선장(香肌峡 カヌー乗り場)",
+      "url": "https://canoe.crowdbase.kr/review/japan-launch-20261117/#site=139&point=0",
+      "videos": [
+        "https://www.youtube.com/watch?v=4nKTVfD_84c"
+      ],
+      "sources": [
+        "https://www.odaitown.jp/soshiki/yakuba/7/1/2272.html",
+        "https://web-odai.info/information/information-10161.html",
+        "https://web-odai.info/look/look-4789.html"
+      ]
+    }
+  ]
+}
