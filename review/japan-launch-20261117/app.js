@@ -24,6 +24,25 @@ function markerColor(status) {
 }
 const map = L.map('map', {zoomControl:false, maxZoom:20, scrollWheelZoom:true}).setView([36.4,137.6],5);
 L.control.zoom({position:'bottomright'}).addTo(map);
+  // Leaflet's zero-width tooltip pane must not determine the content width.
+  map.on('tooltipopen', ({tooltip}) => {
+    const el=tooltip.getElement();
+    if (!el || tooltip.options.permanent) return;
+    el.classList.add('map-hover-tooltip');
+    el.style.maxWidth=`${Math.max(1,Math.min(360,map.getSize().x-16))}px`;
+    el.style.marginLeft='0px';
+    tooltip.options.direction='top';tooltip.options.offset=L.point(0,-12);tooltip.update();
+    const bounds=map.getContainer().getBoundingClientRect();
+    let rect=el.getBoundingClientRect();
+    if (rect.top < bounds.top+8) {
+      tooltip.options.direction='bottom';tooltip.options.offset=L.point(0,12);tooltip.update();
+      rect=el.getBoundingClientRect();
+    }
+    const shift=Math.max(bounds.left+8,Math.min(rect.left,bounds.right-8-rect.width))-rect.left;
+    el.style.marginLeft=`${shift}px`;
+    el.style.setProperty('--tooltip-arrow-shift',`${-shift}px`);
+  });
+
 const esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxNativeZoom:18,maxZoom:20,attribution:'Tiles © Esri · imagery providers'}).addTo(map);
 const photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {maxNativeZoom:18,maxZoom:20,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">일본 국토지리원(国土地理院) · 항공사진</a>'});
 const normal = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {maxNativeZoom:18,maxZoom:20,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">일본 국토지리원(国土地理院) · 일반지도</a>'});
