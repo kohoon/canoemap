@@ -37,7 +37,7 @@ function status(message) {
   statusTimer = setTimeout(() => { $('map-status').hidden = true; },3500);
 }
 function icon(record, site, selected) {
-  return L.divIcon({className:'launch-marker',iconSize:[28,28],iconAnchor:[14,14],html:`<span class="pin${isWaterside(site)?'':' reference'}${selected?' selected':''}" style="background:${isWaterside(site)?markerColor(record.personal_boat):'#71837b'}">${record.id}</span>`});
+  return L.divIcon({className:'launch-marker',iconSize:[28,28],iconAnchor:[14,14],html:`<span class="pin${isWaterside(site)?'':' reference'}${selected?' selected':''}" style="background:${isWaterside(site)?markerColor(site.personal_boat || record.personal_boat):'#71837b'}">${record.id}</span>`});
 }
 function drawMarkers() {
   markerLayer.clearLayers();
@@ -162,7 +162,11 @@ $('overview').onclick = () => { selectedId=null;['query','region','permission','
 const counts = window.JAPAN_LAUNCH_DATA.counts;
 $('summary').textContent = `${records.length}개 수역 조사 · 물가 자료·후보 ${counts.waterside_waterbodies}개 수역 · 시설·참고 ${counts.reference_waterbodies}개 · 좌표 미확인 ${counts.unresolved_waterbodies}개`;
 applyFilters();
-const initialId = Number(new URLSearchParams(location.hash.slice(1)).get('site'));
-if (initialId) selectRecord(initialId); else fitCurrent();
+const initialParams = new URLSearchParams(location.hash.slice(1));
+const initialId = Number(initialParams.get('site'));
+const initialPoint = initialParams.has('point') ? Number(initialParams.get('point')) : null;
+const initialRecord = records.find(record => record.id === initialId);
+const pointIndex = initialRecord && Number.isInteger(initialPoint) && initialPoint >= 0 && initialPoint < initialRecord.sites.length ? initialPoint : null;
+if (initialId) selectRecord(initialId,pointIndex); else fitCurrent();
 new ResizeObserver(()=>map.invalidateSize()).observe($('map'));
 })();

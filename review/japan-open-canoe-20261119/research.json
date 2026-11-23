@@ -3670,7 +3670,9 @@
       ],
       "sources": [
         "https://www.nanook-canoe.com/about2",
-        "https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide"
+        "https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide",
+        "https://www.hkd.mlit.go.jp/ks/kusiro_kasen/c86hsb000000gri4.html",
+        "https://www.hkd.mlit.go.jp/ks/release/c86hsb000000bq4b-att/c86hsb000000gfk4.pdf"
       ],
       "note": "집결·해산 장소는 캠핑장 주차장. 실제 수상 구간은 호소오카까지이며 차량 회송과 구분.",
       "geometry": {
@@ -8815,22 +8817,28 @@
     },
     {
       "id": "P12",
-      "name": "호소오카 카누 포트(細岡カヌーポート)",
-      "lat": 43.107312,
-      "lng": 144.470515,
+      "name": "호소오카역 카누 포트(カヌーポート細岡駅) · 구포트",
+      "lat": 43.1072326,
+      "lng": 144.4705947,
       "role": "landing",
       "quality": "reported_access",
-      "note": "나누크 1일 투어 종착지. 현장 GPX 부속 위치와 항공사진에서 포트의 경사 접근부 확인.",
-      "source": "https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide",
+      "note": "나누크 1일 투어의 기존 호소오카 종착지. 사용자 제공 구글지도 좌표의 기존 포트 위치. 2024년 공식 공지는 구포트를 2024-11-01부터 보수·재정비로 이용 중지하고 약 300m 하류 대체 포트를 이용하도록 안내합니다. 2026-11-23 확인 시 구포트 이용 재개 여부는 미확인입니다. 원류 공원의 요금·운영기간과 구분해 현지 안내를 확인하세요.",
+      "source": "https://www.google.com/maps/search/?api=1&query=43.1072326%2C144.4705947",
       "uncertainty_m": 45,
       "imagery_checked": [
         "Esri 위성",
         "일본 국토지리원 일반지도"
       ],
-      "checked_at": "2026-11-19",
+      "checked_at": "2026-11-23",
       "courses": [
         "R07"
-      ]
+      ],
+      "sources": [
+        "https://www.google.com/maps/search/?api=1&query=43.1072326%2C144.4705947",
+        "https://www.hkd.mlit.go.jp/ks/kusiro_kasen/c86hsb000000gri4.html",
+        "https://www.hkd.mlit.go.jp/ks/release/c86hsb000000bq4b-att/c86hsb000000gfk4.pdf"
+      ],
+      "imagery_checked_at": "2026-11-19"
     },
     {
       "id": "P13",
@@ -8990,5 +8998,6 @@
     "coverage": "앞서 소개한 8개 운영자, 공개된 대표 프로그램 16건.",
     "osm_license": "물줄기 기반 참고선 © OpenStreetMap contributors, ODbL 1.0.",
     "existing_sites": "일본 조사 전용 지도이며 운영 장소 목록에 신규 등록하지 않음."
-  }
+  },
+  "updated_at": "2026-11-23"
 }

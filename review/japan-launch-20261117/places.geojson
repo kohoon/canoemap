@@ -35,6 +35,33 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
+          144.4705947,
+          43.1072326
+        ]
+      },
+      "properties": {
+        "number": 1,
+        "waterbody": "구시로강(釧路川)",
+        "region": "홋카이도(北海道)",
+        "name": "호소오카역 카누 포트(カヌーポート細岡駅) · 구포트",
+        "coordinate_type": "reported_water_access",
+        "permission": "unverified",
+        "permission_note": "사용자 제공 구글지도 좌표의 기존 포트 위치. 2024년 공식 공지는 구포트를 2024-11-01부터 보수·재정비로 이용 중지하고 약 300m 하류 대체 포트를 이용하도록 안내합니다. 2026-11-23 확인 시 구포트 이용 재개 여부는 미확인입니다. 원류 공원의 요금·운영기간과 구분해 현지 안내를 확인하세요.",
+        "access": "사용자 제공 구글지도 좌표의 기존 포트 위치. 2024년 공식 공지는 구포트를 2024-11-01부터 보수·재정비로 이용 중지하고 약 300m 하류 대체 포트를 이용하도록 안내합니다. 2026-11-23 확인 시 구포트 이용 재개 여부는 미확인입니다. 원류 공원의 요금·운영기간과 구분해 현지 안내를 확인하세요.",
+        "source": "https://www.google.com/maps/search/?api=1&query=43.1072326%2C144.4705947",
+        "sources": [
+          "https://www.google.com/maps/search/?api=1&query=43.1072326%2C144.4705947",
+          "https://www.hkd.mlit.go.jp/ks/kusiro_kasen/c86hsb000000gri4.html",
+          "https://www.hkd.mlit.go.jp/ks/release/c86hsb000000bq4b-att/c86hsb000000gfk4.pdf"
+        ],
+        "checked_at": "2026-11-23"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
           144.3112721,
           43.5780882
         ]

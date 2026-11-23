@@ -22,15 +22,35 @@
           ],
           "coordinate_note": "공개 자료 및 지도 판독 기준의 대략 위치",
           "name_ja": "屈斜路湖ウォータースポーツ交流公園"
+        },
+        {
+          "name": "호소오카역 카누 포트(カヌーポート細岡駅) · 구포트",
+          "name_ja": "カヌーポート細岡駅",
+          "lat": 43.1072326,
+          "lng": 144.4705947,
+          "coordinate_type": "reported_water_access",
+          "coordinate_source": "https://www.google.com/maps/search/?api=1&query=43.1072326%2C144.4705947",
+          "access": "사용자 제공 구글지도 좌표의 기존 포트 위치. 2024년 공식 공지는 구포트를 2024-11-01부터 보수·재정비로 이용 중지하고 약 300m 하류 대체 포트를 이용하도록 안내합니다. 2026-11-23 확인 시 구포트 이용 재개 여부는 미확인입니다. 원류 공원의 요금·운영기간과 구분해 현지 안내를 확인하세요.",
+          "imagery_checked": [],
+          "coordinate_note": "사용자가 지정한 지도 핀 좌표. 2026-11-23 공식 이전·보수 안내 대조. 새 위성영상 판독으로 확정한 대체 포트 좌표가 아님.",
+          "checked_at": "2026-11-23",
+          "sources": [
+            "https://www.google.com/maps/search/?api=1&query=43.1072326%2C144.4705947",
+            "https://www.hkd.mlit.go.jp/ks/kusiro_kasen/c86hsb000000gri4.html",
+            "https://www.hkd.mlit.go.jp/ks/release/c86hsb000000bq4b-att/c86hsb000000gfk4.pdf"
+          ],
+          "personal_boat": "unverified"
         }
       ],
       "sources": [
         "https://kushiro-canoe.net/入船届",
         "https://masyuko.or.jp/news/canoe_2507/",
         "https://www.town.teshikaga.hokkaido.jp/kurashi/soshikiichiran/kankyoseikatsuka/3/1/896.html",
-        "https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide"
+        "https://hokkaidowilds.org/water/canoeing-the-kushiro-river-a-complete-guide",
+        "https://www.hkd.mlit.go.jp/ks/kusiro_kasen/c86hsb000000gri4.html",
+        "https://www.hkd.mlit.go.jp/ks/release/c86hsb000000bq4b-att/c86hsb000000gfk4.pdf"
       ],
-      "permission_note": "기존 초코교(眺湖橋) 진수지는 2025년 7월 2일 폐쇄. 대체 굿샤로 수상스포츠 교류공원(屈斜路ウォータースポーツ交流公園) 지정 슬립은 유료(1일 520엔), 5월 1일~10월 22일 8~16시 운영 안내. 구시로강 입강신고·시설 접수 조건 확인 필요.",
+      "permission_note": "기존 초코교(眺湖橋) 진수지는 2025년 7월 2일 폐쇄. 대체 굿샤로 수상스포츠 교류공원(屈斜路ウォータースポーツ交流公園) 지정 슬립은 유료(1일 520엔), 5월 1일~10월 22일 8~16시 운영 안내. 구시로강 입강신고·시설 접수 조건 확인 필요. 호소오카역 포트(細岡駅)는 별도 시설이며, 구포트 보수와 하류 대체 포트 이용에 관한 공식 안내가 있습니다. 위 원류 공원의 요금·운영기간을 호소오카에 적용하지 않습니다.",
       "waterbody_ja": "釧路川",
       "region_ja": "北海道",
       "region_ko": "홋카이도",
@@ -4192,7 +4212,7 @@
   "method": "공개된 실제 발착 안내·GPS 기록과 Esri·일본 국토지리원 영상을 대조. 개인 반입 규정은 시설별 적용. 미확인·중단·제한 상태 별도 표기.",
   "counts": {
     "waterbodies": 123,
-    "points": 139,
+    "points": 140,
     "waterside_waterbodies": 96,
     "reference_waterbodies": 19,
     "unresolved_waterbodies": 8,
@@ -4380,7 +4400,9 @@
     "https://yamap.com/activities/51249618": "야쿠시마 미야노우라다케 - 2026-09-21 / 니세코 카약 카누 팩 래프트 데이터 | YAMAP / 야맵(屋久島・宮之浦岳-2026-09-21 / ニセコのカヤック・カヌー・パックラフトデータ | YAMAP / ヤマップ)",
     "https://www.okinawastory.jp/spot/1058": "우라우치강 관광 | 오키나와 관광 정보 WEB 사이트 오키나와 이야기(浦内川観光 | 沖縄観光情報WEBサイト おきなわ物語)",
     "https://www.kagoshima-kankou.com/guide/53669": "이케다 호수 카약 체험 (강사 포함) | 관광 명소 | 【공식】 가고시마 현 관광 사이트 가고시마 여행(池田湖カヤック体験（インストラクター付） | 観光スポット | 【公式】鹿児島県観光サイト かごしまの旅)",
-    "https://canoetour-ikema.com/canoetour/": "미야라강 맹그로브 카누 어드벤처·파이누시마 관광(宮良川マングローブカヌーアドベンチャー【約90分】 - 石垣島|マングローブツアーぱいぬ島観光)"
+    "https://canoetour-ikema.com/canoetour/": "미야라강 맹그로브 카누 어드벤처·파이누시마 관광(宮良川マングローブカヌーアドベンチャー【約90分】 - 石垣島|マングローブツアーぱいぬ島観光)",
+    "https://www.hkd.mlit.go.jp/ks/kusiro_kasen/c86hsb000000gri4.html": "호소오카 대체 카누 포트 이용 개시 안내(細岡代替カヌーポートの使用開始について)",
+    "https://www.hkd.mlit.go.jp/ks/release/c86hsb000000bq4b-att/c86hsb000000gfk4.pdf": "구시로강 호소오카 카누 포트 재정비 공지(釧路川カヌーポート細岡地区再整備について)"
   },
   "source_titles_original": {
     "https://www.town.teshikaga.hokkaido.jp/kurashi/soshikiichiran/kankyoseikatsuka/3/1/896.html": "屈斜路ウォータースポーツ交流公園／摩周湖 屈斜路湖 川湯温泉のまちてしかが ～ 弟子屈町公式ホームページ",
@@ -4567,5 +4589,6 @@
     "https://www.okinawastory.jp/spot/1058": "浦内川観光 | 沖縄観光情報WEBサイト おきなわ物語",
     "https://www.kagoshima-kankou.com/guide/53669": "池田湖カヤック体験（インストラクター付） | 観光スポット | 【公式】鹿児島県観光サイト かごしまの旅",
     "https://canoetour-ikema.com/canoetour/": "宮良川マングローブカヌーアドベンチャー【約90分】 - 石垣島|マングローブツアーぱいぬ島観光"
-  }
+  },
+  "updated_at": "2026-11-23"
 }
