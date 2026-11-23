@@ -224,7 +224,20 @@
             "checked_at": "2026-11-23",
             "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
           }
-        ]
+        ],
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "공공 카누 포트",
+          "trip_note": "하행 출발·상륙 모두 가능한 지정 포트. 제2비비교까지 하행 시 회수 차량을 별도로 준비합니다.",
+          "source": "https://www.city.tomakomai.hokkaido.jp/shizen/kasen/bibigawa-guideline.html",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -255,7 +268,20 @@
           "https://www.shugakuso.jp/contents/blog/blog-30684376/",
           "https://www.youtube.com/watch?v=mLNour5zsPQ&t=51"
         ],
-        "checked_at": "2026-11-17"
+        "checked_at": "2026-11-17",
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "공공 카누 포트",
+          "trip_note": "지정 포트에서 진수·회수. 하류 보전구간으로 계속 내려가지 말고 공식 가이드라인의 이용 범위를 따릅니다.",
+          "source": "https://www.city.tomakomai.hokkaido.jp/shizen/kasen/bibigawa-guideline.html",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -300,7 +326,20 @@
             "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
           }
         ],
-        "uncertainty_m": 30
+        "uncertainty_m": 30,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "공공 카누 포트",
+          "trip_note": "마쓰비비교에서 내려오는 코스의 상륙·회수 지점으로도 사용되는 지정 포트. 하행 후 육로 회수 동선을 준비합니다.",
+          "source": "https://www.city.tomakomai.hokkaido.jp/shizen/kasen/bibigawa-guideline.html",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -3880,7 +3919,20 @@
             "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
           }
         ],
-        "uncertainty_m": 35
+        "uncertainty_m": 35,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "캠핑장 해변·계단",
+          "trip_note": "캠퍼즈 비치에서 출발하고 같은 해변으로 복귀. 계절영업·예약·입호신고 조건을 확인합니다.",
+          "source": "https://norn.co.jp/camp/naramata/facility/",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -3964,7 +4016,20 @@
             "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
           }
         ],
-        "uncertainty_m": 50
+        "uncertainty_m": 50,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "공원 보트풀",
+          "trip_note": "공식 보트풀에서 출발·복귀. 연간 대면등록과 이용기간 4/1~11/30, 기상에 따른 이용중단 조건을 따릅니다.",
+          "source": "https://www.thr.mlit.go.jp/shichika/img/komen_oshirase.pdf",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -4006,7 +4071,20 @@
             "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
           }
         ],
-        "uncertainty_m": 40
+        "uncertainty_m": 40,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "공원 슬로프·부유 잔교",
+          "trip_note": "나시다이라공원 지정 발착장에서 출발·복귀. 댐센터 이용신고, 9~17시 및 종료 연락 절차를 따릅니다.",
+          "source": "https://iizakasupporters.com/surikami-komen/",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -4048,7 +4126,20 @@
             "verification": "공개 영상 제목·설명·챕터 확인; 전체 프레임 판독이나 실제 GPS 항적 추출은 미실시"
           }
         ],
-        "uncertainty_m": 65
+        "uncertainty_m": 65,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "관리형 호안 발착장",
+          "trip_note": "예약한 파도루야 발착장에서 출발·복귀. 운영일 사전확인, 원칙 2정 이상(SRP 예외), 종료 16시 조건을 따릅니다. 임의의 다른 호안 상륙은 금지됩니다.",
+          "source": "https://www.paddle-ya.com/mochikomi",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -4225,7 +4316,20 @@
             "verification": "공개 영상 제목·설명·챕터에서 활동 수역·시설 확인. 발착 위치는 별도로 공식 이용 안내와 지도 영상을 대조한 것으로 영상의 GPS 좌표를 직접 추출하지 않음; 전체 프레임 판독 미실시."
           }
         ],
-        "uncertainty_m": 40
+        "uncertainty_m": 40,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "공방 부유 잔교",
+          "trip_note": "카누공방 잔교에서 출발·복귀. 완전예약제·개인 반입료·잔교 이용료가 적용됩니다.",
+          "source": "https://naguri-canoe.co.jp/canoe/",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -4267,7 +4371,20 @@
             "verification": "공개 영상 제목·설명·챕터에서 활동 수역·시설 확인. 발착 위치는 별도로 공식 이용 안내와 지도 영상을 대조한 것으로 영상의 GPS 좌표를 직접 추출하지 않음; 전체 프레임 판독 미실시."
           }
         ],
-        "uncertainty_m": 45
+        "uncertainty_m": 45,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "공원 물가 반입로",
+          "trip_note": "공식 지정 구사키공원 반입로에서 출발·복귀. PFD·주간 이용·허용 선종 조건을 확인하며 모든 인플레이터블이 허용된다고 판단하지 않습니다.",
+          "source": "https://www.water.go.jp/kanto/kusaki/komenriyou.html",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -4321,7 +4438,20 @@
             "verification": "공개 영상 제목·설명·챕터에서 활동 수역·시설 확인. 발착 위치는 별도로 공식 이용 안내와 지도 영상을 대조한 것으로 영상의 GPS 좌표를 직접 추출하지 않음; 전체 프레임 판독 미실시."
           }
         ],
-        "uncertainty_m": 40
+        "uncertainty_m": 40,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "관리도로 콘크리트 진입부",
+          "trip_note": "우안 히나타 관리도로에서 출발·복귀. 입호신고·7:15~17:00 개문 및 진입로 내 주차 금지, 악천후·연말연시 폐쇄 조건을 따릅니다.",
+          "source": "https://www.water.go.jp/kanto/arakawa/urayama/damuko_riyou.html",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -4363,7 +4493,20 @@
             "verification": "공개 영상 제목·설명·챕터에서 활동 수역·시설 확인. 발착 위치는 별도로 공식 이용 안내와 지도 영상을 대조한 것으로 영상의 GPS 좌표를 직접 추출하지 않음; 전체 프레임 판독 미실시."
           }
         ],
-        "uncertainty_m": 50
+        "uncertainty_m": 50,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "관리형 보트 승선장",
+          "trip_note": "접수한 승선장에서 출발·복귀. 수위에 따라 승선장이 이동하므로 야키즈 핀만 보고 방문하지 말고 당일 장소·선종·종료시각을 확인합니다.",
+          "source": "https://tanzawako-k.sakura.ne.jp/tousyasisetu_yakeduboat.html",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -4405,7 +4548,20 @@
             "verification": "공개 영상 제목·설명·챕터에서 활동 수역·시설 확인. 발착 위치는 별도로 공식 이용 안내와 지도 영상을 대조한 것으로 영상의 GPS 좌표를 직접 추출하지 않음; 전체 프레임 판독 미실시."
           }
         ],
-        "uncertainty_m": 40
+        "uncertainty_m": 40,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "보트장 잔교",
+          "trip_note": "보트장 관리자에게 등록한 잔교에서 진수·회수. 출·입호 시간 연락, 시설 접수·이용료 조건을 따릅니다.",
+          "source": "https://www.water.go.jp/kanto/simokubo/guide/komen_riyo.html",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -4458,7 +4614,20 @@
             "verification": "공개 영상 제목·설명·챕터에서 활동 수역·시설 확인. 발착 위치는 별도로 공식 이용 안내와 지도 영상을 대조한 것으로 영상의 GPS 좌표를 직접 추출하지 않음; 전체 프레임 판독 미실시."
           }
         ],
-        "uncertainty_m": 55
+        "uncertainty_m": 55,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "지정 콘크리트 진입로",
+          "trip_note": "통상 개방되는 하치만교 좌안 하류 지정 진입로에서 출발·복귀. 게이트·수위·공사 상황을 확인하고 댐 앞 금지수면을 피합니다.",
+          "source": "https://www.water.go.jp/kansai/kizugawa/takayama/rule/pdf/121105takayama_komen.pdf",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     },
     {
@@ -4542,7 +4711,20 @@
             "verification": "공개 영상 제목·설명·챕터에서 활동 수역·시설 확인. 발착 위치는 별도로 공식 이용 안내와 지도 영상을 대조한 것으로 영상의 GPS 좌표를 직접 추출하지 않음; 전체 프레임 판독 미실시."
           }
         ],
-        "uncertainty_m": 40
+        "uncertainty_m": 40,
+        "launch_landing": {
+          "status": "documented_conditional",
+          "roles": [
+            "launch",
+            "landing"
+          ],
+          "label": "공식 발착장 · 조건부",
+          "facility_type": "공원 하류 슬로프",
+          "trip_note": "SUP·카약 지정 하류 슬로프에서 출발·복귀. 상류 측 낚시 우선 슬로프나 다른 사유지를 발착장으로 쓰지 않습니다.",
+          "source": "https://www.odaitown.jp/soshiki/yakuba/7/1/2272.html",
+          "checked_at": "2026-11-23",
+          "verification": "관리기관·운영사 발착 안내와 지도 영상의 물가 접근부 대조. 현장 답사나 당일 개방·안전 상태의 확인은 아님."
+        }
       }
     }
   ]

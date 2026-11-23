@@ -9,6 +9,8 @@ const $ = id => document.getElementById(id);
 const escapeHtml = text => String(text ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const isWaterside = site => ['reported_water_access','imagery_water_access','recorded_trip_endpoint'].includes(site.coordinate_type);
 const hasWater = record => record.sites.some(isWaterside);
+const hasLaunchLanding = site => site.launch_landing?.status === 'documented_conditional';
+const siteBadge = site => hasLaunchLanding(site) ? '<span class="badge verified">런칭·랜딩 · 조건부</span>' : `<span class="badge">${coordinateLabels[site.coordinate_type]}</span>`;
 function badgeClass(status) {
   if (['allowed','conditional'].includes(status)) return 'usable';
   if (['restricted','suspended'].includes(status)) return 'closed';
@@ -24,7 +26,7 @@ L.control.zoom({position:'bottomright'}).addTo(map);
 const esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxNativeZoom:18,maxZoom:20,attribution:'Tiles © Esri · imagery providers'}).addTo(map);
 const photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {maxNativeZoom:18,maxZoom:20,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">일본 국토지리원(国土地理院) · 항공사진</a>'});
 const normal = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {maxNativeZoom:18,maxZoom:20,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">일본 국토지리원(国土地理院) · 일반지도</a>'});
-L.control.layers({'Esri 위성':esri,'일본 국토지리원 항공사진':photo,'일본 국토지리원 일반지도':normal},null,{position:'topright',collapsed:false}).addTo(map);
+L.control.layers({'Esri 위성':esri,'일본 국토지리원 항공사진':photo,'일본 국토지리원 일반지도':normal},null,{position:'topright',collapsed:window.matchMedia('(max-width:760px)').matches}).addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
 let selectedId = null;
 let visibleRecords = records;
@@ -37,15 +39,16 @@ function status(message) {
   statusTimer = setTimeout(() => { $('map-status').hidden = true; },3500);
 }
 function icon(record, site, selected) {
-  return L.divIcon({className:'launch-marker',iconSize:[28,28],iconAnchor:[14,14],html:`<span class="pin${isWaterside(site)?'':' reference'}${selected?' selected':''}" style="background:${isWaterside(site)?markerColor(site.personal_boat || record.personal_boat):'#71837b'}">${record.id}</span>`});
+  return L.divIcon({className:'launch-marker',iconSize:[28,28],iconAnchor:[14,14],html:`<span class="pin${isWaterside(site)?'':' reference'}${selected?' selected':''}" style="background:${isWaterside(site)?(hasLaunchLanding(site)?'#1766ab':markerColor(site.personal_boat || record.personal_boat)):'#71837b'}">${record.id}</span>`});
 }
 function drawMarkers() {
   markerLayer.clearLayers();
   markers = [];
   for (const record of visibleRecords) {
     for (const [index,site] of record.sites.entries()) {
-      const marker = L.marker([site.lat,site.lng],{icon:icon(record,site,record.id===selectedId),title:`${record.id} ${record.waterbody} · ${site.name}`,keyboard:true});
-      marker.bindTooltip(`${record.id} ${escapeHtml(record.waterbody)}<br>${escapeHtml(site.name)}`);
+      if ($('quality').value === 'launch_landing' && !hasLaunchLanding(site)) continue;
+      const marker = L.marker([site.lat,site.lng],{icon:icon(record,site,record.id===selectedId),title:`${record.id} ${record.waterbody} · ${site.name}${hasLaunchLanding(site)?' · 런칭·랜딩(조건부)':''}`,keyboard:true});
+      marker.bindTooltip(`${record.id} ${escapeHtml(record.waterbody)}<br>${escapeHtml(site.name)}${hasLaunchLanding(site)?'<br>런칭·랜딩 · 조건부':''}`);
       marker.on('click',() => selectRecord(record.id,index));
       marker.addTo(markerLayer);
       markers.push({record,site,marker,index});
@@ -60,6 +63,8 @@ function fitCurrent(sites = markers.map(item => item.site)) {
 }
 function locationText(record) {
   if (!record.sites.length) return '발착 좌표 미확인';
+  const confirmed = record.sites.filter(hasLaunchLanding).length;
+  if (confirmed) return `런칭·랜딩 · 조건부 ${confirmed}곳`;
   const count = record.sites.filter(isWaterside).length;
   return count ? `물가 자료·후보 ${count}곳` : '시설·수역 참고 위치';
 }
@@ -78,6 +83,7 @@ function applyFilters() {
     if (permission === 'usable' && !['allowed','conditional'].includes(record.personal_boat)) return false;
     if (permission === 'unverified' && record.personal_boat !== 'unverified') return false;
     if (permission === 'restricted' && !['restricted','suspended','guide_required'].includes(record.personal_boat)) return false;
+    if (quality === 'launch_landing' && !record.sites.some(hasLaunchLanding)) return false;
     if (quality === 'waterside' && !hasWater(record)) return false;
     if (quality === 'reference' && (!record.sites.length || hasWater(record))) return false;
     if (quality === 'unresolved' && record.sites.length) return false;
@@ -87,7 +93,7 @@ function applyFilters() {
   $('results').innerHTML = visibleRecords.length ? visibleRecords.map(record => `<button type="button" class="record" data-record="${record.id}"><span class="number">${String(record.id).padStart(3,'0')}</span><span><span class="record-title">${escapeHtml(record.waterbody)}</span><span class="meta"><span class="badge ${badgeClass(record.personal_boat)}">${permissionLabels[record.personal_boat]}</span><span class="badge">${locationText(record)}</span></span><p>${escapeHtml(record.region_label || regions[record.region])}${record.name_ko?` · ${escapeHtml(record.name_ko)}`:''}</p></span></button>`).join('') : '<p class="empty">검색 조건에 맞는 수역이 없습니다.</p>';
   drawMarkers();
 }
-function urlFor(recordId) { const url = new URL(location.href); url.hash = `site=${recordId}`; return url.href; }
+function urlFor(recordId) { const url = new URL(location.href); url.hash = `${$('quality').value === 'launch_landing' ? 'quality=launch_landing&' : ''}site=${recordId}`; return url.href; }
 async function copy(text,success) {
   try { await navigator.clipboard.writeText(text); status(success); }
   catch { status('복사할 내용을 길게 눌러 선택해 주세요.'); }
@@ -102,8 +108,9 @@ function selectRecord(id,focusIndex=null) {
   const siteHtml = record.sites.map((site,index) => `
     <section class="site">
       <h4>${escapeHtml(site.name)}</h4>
-      <span class="badge">${coordinateLabels[site.coordinate_type]}</span>
+      ${siteBadge(site)}
       <div class="coord">${site.lat.toFixed(6)}, ${site.lng.toFixed(6)}</div>
+      ${hasLaunchLanding(site) ? `<p><strong>${escapeHtml(site.launch_landing.facility_type)}</strong> · 런칭 / 랜딩</p><p>${escapeHtml(site.launch_landing.trip_note)}</p><p><a href="${escapeHtml(site.launch_landing.source)}" target="_blank" rel="noopener noreferrer">공식 발착장 안내 ↗</a></p>` : ''}
       <p>${escapeHtml(site.access)}</p>
       <div class="actions">
         <button type="button" class="primary" data-focus="${index}">지도 확대</button>
@@ -153,16 +160,18 @@ function focusSite(record,index) {
   const site=record.sites[index];
   map.setView([site.lat,site.lng],17);
   const item=markers.find(item=>item.record.id===record.id && item.index===index);
-  if (item) item.marker.bindPopup(`<strong>${record.id} ${escapeHtml(record.waterbody)}</strong><p>${escapeHtml(site.name)}</p><span class="badge">${coordinateLabels[site.coordinate_type]}</span><p>${site.lat.toFixed(6)}, ${site.lng.toFixed(6)}</p>`).openPopup();
+  if (item) item.marker.bindPopup(`<strong>${record.id} ${escapeHtml(record.waterbody)}</strong><p>${escapeHtml(site.name)}</p>${siteBadge(site)}${hasLaunchLanding(site)?`<p>${escapeHtml(site.launch_landing.facility_type)} · 런칭 / 랜딩</p>`:''}<p>${site.lat.toFixed(6)}, ${site.lng.toFixed(6)}</p>`).openPopup();
 }
 for (const [value,name] of Object.entries(regions)) { const option=new Option(`${name}(${value})`,value); $('region').add(option); }
 for (const id of ['query','region','permission','quality']) $(id).addEventListener(id==='query'?'input':'change',applyFilters);
 $('results').addEventListener('click',event=>{const button=event.target.closest('[data-record]');if(button)selectRecord(Number(button.dataset.record));});
 $('overview').onclick = () => { selectedId=null;['query','region','permission','quality'].forEach(id => { $(id).value=''; });history.replaceState(null,'',location.pathname+location.search);applyFilters();fitCurrent(); };
 const counts = window.JAPAN_LAUNCH_DATA.counts;
-$('summary').textContent = `${records.length}개 수역 조사 · 물가 자료·후보 ${counts.waterside_waterbodies}개 수역 · 시설·참고 ${counts.reference_waterbodies}개 · 좌표 미확인 ${counts.unresolved_waterbodies}개`;
-applyFilters();
+const launchLandingCount = records.reduce((n,r)=>n+r.sites.filter(hasLaunchLanding).length,0);
+$('summary').textContent = `${records.length}개 수역 조사 · 공식 런칭·랜딩 ${launchLandingCount}곳(조건부) · 물가 자료·후보 ${counts.waterside_waterbodies}개 수역 · 시설·참고 ${counts.reference_waterbodies}개 · 좌표 미확인 ${counts.unresolved_waterbodies}개`;
 const initialParams = new URLSearchParams(location.hash.slice(1));
+if (initialParams.get('quality') === 'launch_landing') $('quality').value='launch_landing';
+applyFilters();
 const initialId = Number(initialParams.get('site'));
 const initialPoint = initialParams.has('point') ? Number(initialParams.get('point')) : null;
 const initialRecord = records.find(record => record.id === initialId);
