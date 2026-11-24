@@ -4680,7 +4680,7 @@ function _copyCourseLink(url){
     }catch(e){}finally{
       box.remove();try{if(active&&active.focus)active.focus({preventScroll:true});}catch(e){}
     }
-    if(!copied)prompt('아래 코스 링크를 복사하세요',url);
+    if(!copied)prompt('아래 코스 정보와 링크를 복사하세요',url);
     return copied;
   }
   // Invoke clipboard access directly in the click gesture, before preview/network work.
@@ -4689,7 +4689,9 @@ function _copyCourseLink(url){
 }
 function shareCourse(idStr,name,km){
   const u=courseShareUrl(idStr),info=_courseShareInfo(idStr,name,km);
-  const copying=_copyCourseLink(u).then(function(copied){if(copied)alert('코스 링크가 복사됐어요!\n\n'+u);return copied;});
+  const summary=[u,'🛶 코스명: '+info.name];if(info.dist)summary.push('📏 거리: 약 '+info.dist+'km');
+  const full=summary.join('\n');
+  const copying=_copyCourseLink(full).then(function(copied){if(copied)alert('코스 정보와 링크가 복사됐어요!\n\n'+full);return copied;});
   gaEvent('course_share');_prepareCoursePreview(idStr,info.course);
   return copying;
 }
