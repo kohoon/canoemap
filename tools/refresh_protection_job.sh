@@ -17,7 +17,26 @@ if ! mkdir "$LOCK_DIR" 2>/dev/null; then
 fi
 echo "$$" > "$LOCK_DIR/pid"
 RUN_DIR=""
+RUN_STATUS="failed"
+CHECKED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 cleanup() {
+  RESULT_CODE=$?
+  export RUN_STATUS CHECKED_AT RESULT_CODE CACHE_ROOT
+  /usr/bin/python3 - <<'STATUSPY'
+import json, os
+from pathlib import Path
+p = Path(os.environ["CACHE_ROOT"]) / "status.json"
+try:
+    old = json.loads(p.read_text())
+except (OSError, ValueError):
+    old = {}
+result = {"startedAt": os.environ["CHECKED_AT"], "status": os.environ["RUN_STATUS"], "exitCode": int(os.environ["RESULT_CODE"]), "lastSuccessAt": old.get("lastSuccessAt")}
+if result["status"] == "success":
+    result["lastSuccessAt"] = result["startedAt"]
+tmp = p.with_suffix(".tmp")
+tmp.write_text(json.dumps(result) + "\n")
+tmp.replace(p)
+STATUSPY
   if [[ -n "$RUN_DIR" ]]; then rm -rf "$RUN_DIR"; fi
   rm -f "$LOCK_DIR/pid"
   rmdir "$LOCK_DIR"
@@ -43,12 +62,17 @@ export VWORLD_DOMAIN="https://canoe.crowdbase.kr"
 "$PYTHON" -u tools/refresh_protect.py
 unset VWORLD_KEY
 "$PYTHON" -m unittest discover -s tests -p 'test_protect_refresh.py'
-git add protect_polygons.geojson index.html map.html test.html tour/legacy.html
+"$PYTHON" -m unittest discover -s tests -p 'test_regulation_audit.py'
+"$PYTHON" -u tools/audit_regulations.py
+git add protect_polygons.geojson index.html map.html test.html tour/legacy.html data/regulation-audit
 if git diff --cached --quiet; then
   echo "VWorld source is unchanged; verified existing snapshot."
+  RUN_STATUS="success"
   exit 0
 fi
 git -c user.name="CanoeMap data refresh" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit --quiet -m "Refresh verified VWorld protection boundaries"
 git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push --quiet origin HEAD:main
 COMMIT="$(git rev-parse HEAD)"
 echo "Published protection update $COMMIT at $(date -Iseconds)"
+
+RUN_STATUS="success"
