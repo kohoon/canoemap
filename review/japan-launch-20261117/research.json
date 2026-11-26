@@ -2353,13 +2353,16 @@
       ],
       "sources": [
         "https://kouan-motosuko.com/",
-        "https://kouan-motosuko.com/activity/index.html"
+        "https://kouan-motosuko.com/activity/index.html",
+        "https://www.yamanashi-kankou.jp/kankou/spot/p1_4614.html",
+        "https://eco-motosuko.jp/tour_kayac.php"
       ],
-      "permission_note": "캠핑장 호반 개인 카누 이용 사례. 본장과 텐트촌의 반입 규정 구별·예약 조건 확인.",
+      "permission_note": "후지산(富士山)을 바라보며 카누·카약을 탈 수 있는 수역. 북안의 고안 캠핑장(浩庵キャンプ場) 일대를 조망 장소로 기록. 날씨에 따라 후지산이 보이지 않을 수 있음. 캠핑장 호반 개인 카누 이용 사례. 본장과 텐트촌의 반입 규정 구별·예약 조건 확인.",
       "waterbody_ja": "本栖湖",
       "region_ja": "甲信北陸",
       "region_ko": "고신·호쿠리쿠",
-      "region_label": "고신·호쿠리쿠(甲信北陸)"
+      "region_label": "고신·호쿠리쿠(甲信北陸)",
+      "checked_at": "2026-11-27"
     },
     {
       "id": 64,
