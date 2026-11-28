@@ -1,24 +1,5 @@
 <!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>일본 카누·카약 런칭·랜딩 지도</title>
-<meta name="description" content="일본 카누·카약 발착 장소, 좌표, 개인 카누 반입 조건과 조사 근거를 확인하는 지도.">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="style.css?v=20261123-tooltip">
-</head>
-<body>
-<header><div><span class="brand">CANOEMAP · 일본 조사</span><h1>카누 런칭·랜딩 지도</h1></div><nav aria-label="자료"><a href="places.csv" download>좌표 CSV</a><a href="places.geojson" download>GeoJSON</a><button id="overview" type="button">전체 지도</button></nav></header>
-<main>
-<section class="sidebar" aria-label="조사 목록">
-<div id="list-view">
-<div class="intro"><p id="summary" aria-live="polite">조사 자료를 불러오고 있습니다.</p><details><summary>확인 상태와 조사 기준</summary><p>2026년 11월 17~23일 확인한 지자체·시설 규정, 현장 패들링 보고서와 지도 자료를 조사했습니다. 물가 위치는 Esri·일본 국토지리원 영상으로 대조했습니다. 수위·촬영 시기에 따라 진수 위치가 달라질 수 있습니다.</p><p>파란 핀은 공식 발착장으로 안내된 런칭·랜딩 지점이며 예약·신고·운영기간 등 조건이 적용됩니다. 현장 당일 개방이나 안전 상태를 보증하지 않습니다. 그 외 원형 핀은 발착 자료 또는 항공사진에서 확인한 물가 후보입니다. 사각 핀은 시설·수역 참고 위치입니다. 개인 반입 허용이 명시된 경우에만 가능 또는 조건부로 표시합니다. 확인이 필요한 항목은 상세에 남겼습니다.</p></details></div>
-<div class="filters"><label class="search">수역·장소·번호 검색<input id="query" type="search" placeholder="예. 구시로강(釧路川), 123, 카누" autocomplete="off"></label><div class="filter-row"><label>지역<select id="region"><option value="">전체 지역</option></select></label><label>개인 카누<select id="permission"><option value="">전체 조건</option><option value="usable">가능·조건부</option><option value="unverified">미확인</option><option value="restricted">제한·중단·가이드</option></select></label></div><label>위치 확인<select id="quality"><option value="">전체</option><option value="courses">대표 코스가 있는 수역</option><option value="launch_landing">공식 런칭·랜딩 · 조건부</option><option value="waterside">물가 자료·위성 후보</option><option value="reference">시설·수역 참고</option><option value="unresolved">좌표 미확인</option></select></label></div>
-<div class="list-heading"><h2>수역 목록</h2><span id="result-count" aria-live="polite"></span></div><div id="results"></div>
-</div>
-<article id="detail" hidden aria-label="선택한 수역 상세"></article>
-</section>
-<section class="map-area" aria-label="런칭·랜딩 지도"><div id="map"></div><div class="legend"><span><i class="course-line"></i>코스 · 점선은 참고선</span><span><i class="round verified"></i>런칭·랜딩 · 조건부</span><span><i class="round"></i>물가 자료·후보</span><span><i class="square"></i>시설·수역 참고</span></div><p id="map-status" role="status" hidden></p></section>
-</main>
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script><script src="data.js?v=20261123-courses"></script><script src="../shared/japan-coordinate-picker.js?v=20261128"></script><script src="../shared/japan-place-labels.js?v=20261128"></script><script src="app.js?v=20261128-coordinates"></script>
-</body></html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>카누맵 국가 지도</title><link rel="canonical" href="https://canoe.crowdbase.kr/japan/">
+<script>location.replace('/japan/' + location.search + location.hash);</script>
+</head><body><a href="/japan/">국가 지도 열기</a></body></html>
