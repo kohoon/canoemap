@@ -1,0 +1,1740 @@
+{
+  "checkedAt": "2026-11-28",
+  "sources": [
+    "https://download.geonames.org/export/dump/cities15000.zip",
+    "https://www.geonames.org/about.html",
+    "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html",
+    "../japan-launch-20261117/research.json"
+  ],
+  "licenseNote": "GeoNames cities: CC BY 4.0; GSI lake coordinates; existing researched waterbody reference coordinates. Labels are geographic reference, not new launch points.",
+  "items": [
+    {
+      "ko": "요코하마",
+      "ja": "横浜",
+      "lat": 35.43333,
+      "lng": 139.65,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1848354"
+    },
+    {
+      "ko": "야마구치",
+      "ja": "山口",
+      "lat": 34.18333,
+      "lng": 131.46667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1848689"
+    },
+    {
+      "ko": "우쓰노미야",
+      "ja": "宇都宮",
+      "lat": 36.56667,
+      "lng": 139.88333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1849053"
+    },
+    {
+      "ko": "쓰",
+      "ja": "津",
+      "lat": 34.73333,
+      "lng": 136.51667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1849796"
+    },
+    {
+      "ko": "도야마",
+      "ja": "富山",
+      "lat": 36.7,
+      "lng": 137.21667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1849876"
+    },
+    {
+      "ko": "돗토리",
+      "ja": "鳥取",
+      "lat": 35.5,
+      "lng": 134.23333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1849892"
+    },
+    {
+      "ko": "도쿄",
+      "ja": "東京",
+      "lat": 35.6895,
+      "lng": 139.69171,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/1850147"
+    },
+    {
+      "ko": "도쿠시마",
+      "ja": "徳島",
+      "lat": 34.06667,
+      "lng": 134.56667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1850158"
+    },
+    {
+      "ko": "다카마쓰",
+      "ja": "高松",
+      "lat": 34.33333,
+      "lng": 134.05,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1851100"
+    },
+    {
+      "ko": "시즈오카",
+      "ja": "静岡",
+      "lat": 34.98333,
+      "lng": 138.38333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1851717"
+    },
+    {
+      "ko": "사가",
+      "ja": "佐賀",
+      "lat": 33.23333,
+      "lng": 130.3,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1853303"
+    },
+    {
+      "ko": "오쓰",
+      "ja": "大津",
+      "lat": 35.0,
+      "lng": 135.86667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1853574"
+    },
+    {
+      "ko": "오사카",
+      "ja": "大阪",
+      "lat": 34.69379,
+      "lng": 135.50107,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/1853909"
+    },
+    {
+      "ko": "오카야마",
+      "ja": "岡山",
+      "lat": 34.65,
+      "lng": 133.93333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1854383"
+    },
+    {
+      "ko": "오이타",
+      "ja": "大分",
+      "lat": 33.23333,
+      "lng": 131.6,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1854487"
+    },
+    {
+      "ko": "니가타",
+      "ja": "新潟",
+      "lat": 37.92259,
+      "lng": 139.04125,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1855431"
+    },
+    {
+      "ko": "나라",
+      "ja": "奈良",
+      "lat": 34.68505,
+      "lng": 135.80485,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1855612"
+    },
+    {
+      "ko": "나하",
+      "ja": "那覇",
+      "lat": 26.213,
+      "lng": 127.67851,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/1856035"
+    },
+    {
+      "ko": "나고야",
+      "ja": "名古屋",
+      "lat": 35.18147,
+      "lng": 136.90641,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/1856057"
+    },
+    {
+      "ko": "나가사키",
+      "ja": "長崎",
+      "lat": 32.75,
+      "lng": 129.88333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1856177"
+    },
+    {
+      "ko": "나가노",
+      "ja": "長野",
+      "lat": 36.65,
+      "lng": 138.18333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1856215"
+    },
+    {
+      "ko": "미야자키",
+      "ja": "宮崎",
+      "lat": 31.91667,
+      "lng": 131.41667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1856717"
+    },
+    {
+      "ko": "마쓰에",
+      "ja": "松江",
+      "lat": 35.48333,
+      "lng": 133.05,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1857550"
+    },
+    {
+      "ko": "마에바시",
+      "ja": "前橋",
+      "lat": 36.4,
+      "lng": 139.08333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1857843"
+    },
+    {
+      "ko": "교토",
+      "ja": "京都",
+      "lat": 35.02107,
+      "lng": 135.75385,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1857910"
+    },
+    {
+      "ko": "구마모토",
+      "ja": "熊本",
+      "lat": 32.80589,
+      "lng": 130.69181,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1858421"
+    },
+    {
+      "ko": "고후",
+      "ja": "甲府",
+      "lat": 35.66667,
+      "lng": 138.56667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1859100"
+    },
+    {
+      "ko": "고치",
+      "ja": "高知",
+      "lat": 33.55,
+      "lng": 133.53333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1859146"
+    },
+    {
+      "ko": "고베",
+      "ja": "神戸",
+      "lat": 34.6913,
+      "lng": 135.183,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1859171"
+    },
+    {
+      "ko": "가나자와",
+      "ja": "金沢",
+      "lat": 36.6,
+      "lng": 136.61667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1860243"
+    },
+    {
+      "ko": "가고시마",
+      "ja": "鹿児島",
+      "lat": 31.56667,
+      "lng": 130.55,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1860827"
+    },
+    {
+      "ko": "히로시마",
+      "ja": "広島",
+      "lat": 34.4,
+      "lng": 132.45,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/1862415"
+    },
+    {
+      "ko": "기후",
+      "ja": "岐阜",
+      "lat": 35.42291,
+      "lng": 136.76039,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1863641"
+    },
+    {
+      "ko": "후쿠오카",
+      "ja": "福岡",
+      "lat": 33.6,
+      "lng": 130.41667,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/1863967"
+    },
+    {
+      "ko": "후쿠이",
+      "ja": "福井",
+      "lat": 36.06443,
+      "lng": 136.22257,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1863985"
+    },
+    {
+      "ko": "와카야마",
+      "ja": "和歌山",
+      "lat": 34.23333,
+      "lng": 135.16667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1926004"
+    },
+    {
+      "ko": "마쓰야마",
+      "ja": "松山",
+      "lat": 33.83916,
+      "lng": 132.76574,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/1926099"
+    },
+    {
+      "ko": "야마가타",
+      "ja": "山形",
+      "lat": 38.23333,
+      "lng": 140.36667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2110556"
+    },
+    {
+      "ko": "센다이",
+      "ja": "仙台",
+      "lat": 38.26667,
+      "lng": 140.86667,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/2111149"
+    },
+    {
+      "ko": "모리오카",
+      "ja": "盛岡",
+      "lat": 39.7,
+      "lng": 141.15,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2111834"
+    },
+    {
+      "ko": "미토",
+      "ja": "水戸",
+      "lat": 36.35,
+      "lng": 140.45,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2111901"
+    },
+    {
+      "ko": "후쿠시마",
+      "ja": "福島",
+      "lat": 37.75,
+      "lng": 140.46667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2112923"
+    },
+    {
+      "ko": "지바",
+      "ja": "千葉",
+      "lat": 35.6,
+      "lng": 140.11667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2113015"
+    },
+    {
+      "ko": "아키타",
+      "ja": "秋田",
+      "lat": 39.71667,
+      "lng": 140.11667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2113126"
+    },
+    {
+      "ko": "삿포로",
+      "ja": "札幌",
+      "lat": 43.06667,
+      "lng": 141.35,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/2128295"
+    },
+    {
+      "ko": "아오모리",
+      "ja": "青森",
+      "lat": 40.81667,
+      "lng": 140.73333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2130658"
+    },
+    {
+      "ko": "사이타마",
+      "ja": "さいたま",
+      "lat": 35.90807,
+      "lng": 139.65657,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/6940394"
+    },
+    {
+      "ko": "사로마호",
+      "ja": "サロマ湖",
+      "lat": 44.142428,
+      "lng": 143.792496,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "후렌호",
+      "ja": "風蓮湖",
+      "lat": 43.307068,
+      "lng": 145.33659,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "시코쓰호",
+      "ja": "支笏湖",
+      "lat": 42.755584,
+      "lng": 141.321602,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "도야호",
+      "ja": "洞爺湖",
+      "lat": 42.602378,
+      "lng": 140.853481,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "도와다호",
+      "ja": "十和田湖",
+      "lat": 40.466801,
+      "lng": 140.883522,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "히바라호",
+      "ja": "桧原湖",
+      "lat": 37.688032,
+      "lng": 140.056543,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "하마나호",
+      "ja": "浜名湖",
+      "lat": 34.741048,
+      "lng": 137.579727,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "비와호",
+      "ja": "琵琶湖",
+      "lat": 35.262441,
+      "lng": 136.079407,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "노토로호",
+      "ja": "能取湖",
+      "lat": 44.059268,
+      "lng": 144.149963,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "아바시리호",
+      "ja": "網走湖",
+      "lat": 43.968762,
+      "lng": 144.174437,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "굿샤로호",
+      "ja": "屈斜路湖",
+      "lat": 43.619487,
+      "lng": 144.332542,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "마슈호",
+      "ja": "摩周湖",
+      "lat": 43.57885,
+      "lng": 144.529242,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "아칸호",
+      "ja": "阿寒湖",
+      "lat": 43.457093,
+      "lng": 144.102859,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "주산호",
+      "ja": "十三湖",
+      "lat": 41.023363,
+      "lng": 140.359354,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "오가와라호",
+      "ja": "小川原湖",
+      "lat": 40.781986,
+      "lng": 141.334619,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "하치로가타 조정지",
+      "ja": "八郎潟調整池",
+      "lat": 39.916385,
+      "lng": 140.020494,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "다자와호",
+      "ja": "田沢湖",
+      "lat": 39.723197,
+      "lng": 140.666499,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "이나와시로호",
+      "ja": "猪苗代湖",
+      "lat": 37.473496,
+      "lng": 140.095081,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "가스미가우라호",
+      "ja": "霞ヶ浦",
+      "lat": 36.034895,
+      "lng": 140.392104,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "기타우라",
+      "ja": "北浦",
+      "lat": 36.030899,
+      "lng": 140.566324,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "주젠지호",
+      "ja": "中禅寺湖",
+      "lat": 36.736415,
+      "lng": 139.451523,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "아시노호",
+      "ja": "芦ノ湖",
+      "lat": 35.213961,
+      "lng": 139.001622,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "가와구치호",
+      "ja": "河口湖",
+      "lat": 35.513567,
+      "lng": 138.746083,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "사이호",
+      "ja": "西湖",
+      "lat": 35.498049,
+      "lng": 138.685002,
+      "kind": "water",
+      "minZoom": 9,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "쇼지호",
+      "ja": "精進湖",
+      "lat": 35.490079,
+      "lng": 138.607947,
+      "kind": "water",
+      "minZoom": 9,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "모토스호",
+      "ja": "本栖湖",
+      "lat": 35.464636,
+      "lng": 138.585603,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "야마나카호",
+      "ja": "山中湖",
+      "lat": 35.418114,
+      "lng": 138.875573,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "노지리호",
+      "ja": "野尻湖",
+      "lat": 36.825791,
+      "lng": 138.221615,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "스와호",
+      "ja": "諏訪湖",
+      "lat": 36.048328,
+      "lng": 138.08357,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "아소카이",
+      "ja": "阿蘇海",
+      "lat": 35.566891,
+      "lng": 135.176475,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "고야마이케",
+      "ja": "湖山池",
+      "lat": 35.508701,
+      "lng": 134.152379,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "나카우미",
+      "ja": "中海",
+      "lat": 35.477302,
+      "lng": 133.227562,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "신지호",
+      "ja": "宍道湖",
+      "lat": 35.450585,
+      "lng": 132.961739,
+      "kind": "water",
+      "minZoom": 6,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "이케다호",
+      "ja": "池田湖",
+      "lat": 31.236986,
+      "lng": 130.562038,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.gsi.go.jp/kankyochiri/koshouchousa-list.html"
+    },
+    {
+      "ko": "구시로강",
+      "ja": "釧路川",
+      "lat": 43.55791818115349,
+      "lng": 144.32586064893493,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://kushiro-canoe.net/入船届"
+    },
+    {
+      "ko": "지토세강",
+      "ja": "千歳川",
+      "lat": 42.80924115792422,
+      "lng": 141.5756683,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://r.goope.jp/pennennolde/reservation"
+    },
+    {
+      "ko": "비비강",
+      "ja": "美々川",
+      "lat": 42.7658081,
+      "lng": 141.7180595,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.city.tomakomai.hokkaido.jp/shizen/koen/koenichiran/tappukoppu.html"
+    },
+    {
+      "ko": "시카리베쓰호",
+      "ja": "然別湖",
+      "lat": 43.273219508032405,
+      "lng": 143.10555748360596,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.shikaribetsu.com/c/faq/"
+    },
+    {
+      "ko": "아바시리강",
+      "ja": "網走川",
+      "lat": 43.8368519,
+      "lng": 144.0978866,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.jalan.net/kankou/spt_guide000000224014/activity/l0000597A4/?showplan=ichiran_guide"
+    },
+    {
+      "ko": "데시오강",
+      "ja": "天塩川",
+      "lat": 44.88435223500147,
+      "lng": 141.74084615819703,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.teshiotown.hokkaido.jp/?page_id=670"
+    },
+    {
+      "ko": "유치강",
+      "ja": "勇知川",
+      "lat": 45.2597497,
+      "lng": 141.6112607,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.env.go.jp/nature/nationalparks/try/all/act1178.html"
+    },
+    {
+      "ko": "오누마호",
+      "ja": "大沼",
+      "lat": 41.9872943,
+      "lng": 140.6680273,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.town.nanae.hokkaido.jp/hotnews/detail/00000297.html"
+    },
+    {
+      "ko": "시리베쓰강",
+      "ja": "尻別川",
+      "lat": 42.8066158,
+      "lng": 140.4991729,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.jalan.net/kankou/spt_guide000000180904/activity/l000024764/"
+    },
+    {
+      "ko": "가나야마호",
+      "ja": "かなやま湖",
+      "lat": 43.1572352,
+      "lng": 142.4920901,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.minamifurano-kousya.com/camp.php"
+    },
+    {
+      "ko": "슈마리나이호",
+      "ja": "朱鞠内湖",
+      "lat": 44.30735925215163,
+      "lng": 142.18320710926207,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.shumarinai.jp/fishing/trouts/rules02/"
+    },
+    {
+      "ko": "도로호",
+      "ja": "塘路湖",
+      "lat": 43.153478926556225,
+      "lng": 144.51069031852418,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.oldplace946.com/summer-activity/"
+    },
+    {
+      "ko": "치미케프호",
+      "ja": "チミケップ湖",
+      "lat": 43.6462657,
+      "lng": 143.87281384893492,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.okhotskool.jp/okhotsk_info/1169/"
+    },
+    {
+      "ko": "요네시로강",
+      "ja": "米代川",
+      "lat": 40.215992446213406,
+      "lng": 140.2586844010498,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.city.noshiro.lg.jp/res/kanko/experience/menu/16984"
+    },
+    {
+      "ko": "모가미강",
+      "ja": "最上川",
+      "lat": 38.298404398834826,
+      "lng": 140.133534,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://asahimachi-kanko.jp/detail/?no=198"
+    },
+    {
+      "ko": "시라카와호",
+      "ja": "白川湖",
+      "lat": 37.9295158,
+      "lng": 139.9002359,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.iikanjini.info/suibotsurin"
+    },
+    {
+      "ko": "갓산호",
+      "ja": "月山湖",
+      "lat": 38.453314285201294,
+      "lng": 140.0115676767212,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.town.nishikawa.yamagata.jp/site/gassan-cc/index-2.html"
+    },
+    {
+      "ko": "오노가와호",
+      "ja": "小野川湖",
+      "lat": 37.667252777778,
+      "lng": 140.09655833333,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://onogawakoshousuke.com/"
+    },
+    {
+      "ko": "아키모토호",
+      "ja": "秋元湖",
+      "lat": 37.66012152845719,
+      "lng": 140.114864,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.bsc2024.jp/pdf/price.pdf"
+    },
+    {
+      "ko": "고쇼호",
+      "ja": "御所湖",
+      "lat": 39.6698436185644,
+      "lng": 141.00457981852418,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.iwate-sc.jp/facilities/goshoko-boat"
+    },
+    {
+      "ko": "기타카미강",
+      "ja": "北上川",
+      "lat": 39.27110534,
+      "lng": 141.125980475,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.hakkoda-gc.com/pg1667.html"
+    },
+    {
+      "ko": "이타무로댐호",
+      "ja": "板室ダム湖",
+      "lat": 37.0570234,
+      "lng": 139.9311922,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.tochigiji.or.jp/spot/s12547/"
+    },
+    {
+      "ko": "아라카와강",
+      "ja": "荒川",
+      "lat": 36.0819196,
+      "lng": 139.11012796508177,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.kanute.co.jp/hagurebase/"
+    },
+    {
+      "ko": "다마강",
+      "ja": "多摩川",
+      "lat": 35.80002442673554,
+      "lng": 139.1770443,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://mitakerc.net/info"
+    },
+    {
+      "ko": "시로마루호",
+      "ja": "白丸湖",
+      "lat": 35.8115815421123,
+      "lng": 139.11568975448603,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.canoebar.jp/access/shiromaru/"
+    },
+    {
+      "ko": "구리야마강",
+      "ja": "栗山川",
+      "lat": 35.641236475701476,
+      "lng": 140.5153231646394,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.bgf.or.jp/center/center0088/"
+    },
+    {
+      "ko": "가메야마호",
+      "ja": "亀山湖",
+      "lat": 35.224377,
+      "lng": 140.0761986,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.pref.chiba.lg.jp/d-kameyama/jimusyokaronoonegai.html"
+    },
+    {
+      "ko": "미야가세호",
+      "ja": "宮ヶ瀬湖",
+      "lat": 35.52782722488098,
+      "lng": 139.2210757023773,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.pref.kanagawa.jp/docs/u5r/cnt/f550/tabi-016.html"
+    },
+    {
+      "ko": "시마호",
+      "ja": "四万湖",
+      "lat": 36.6271886,
+      "lng": 138.7939783,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://shimacanoe.com/"
+    },
+    {
+      "ko": "오쿠시마호",
+      "ja": "奥四万湖",
+      "lat": 36.701531719576565,
+      "lng": 138.78451035131226,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.pref.gunma.jp/uploaded/attachment/137623.pdf"
+    },
+    {
+      "ko": "스게누마호",
+      "ja": "菅沼",
+      "lat": 36.8229665834841,
+      "lng": 139.37846836295165,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.sugenuma.com/charge"
+    },
+    {
+      "ko": "도겐호",
+      "ja": "洞元湖",
+      "lat": 36.8813813,
+      "lng": 139.05709,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.enjoy-minakami.jp/spot/8029/"
+    },
+    {
+      "ko": "아카야호",
+      "ja": "赤谷湖",
+      "lat": 36.72264657704889,
+      "lng": 138.8931862,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://sarugakyo-navi.jp/news/持ち込みカヌー・sup出艇場所"
+    },
+    {
+      "ko": "오쿠토네호",
+      "ja": "奥利根湖",
+      "lat": 36.9116265,
+      "lng": 139.0568159,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.water.go.jp/kanto/numata/16_riyoukyougikai/riyoukyougikai.html"
+    },
+    {
+      "ko": "나카강",
+      "ja": "那珂川",
+      "lat": 36.5634155,
+      "lng": 140.2442474,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://storm.cx/%E6%96%BD%E8%A8%AD%E7%B4%B9%E4%BB%8B/"
+    },
+    {
+      "ko": "아오키호",
+      "ja": "青木湖",
+      "lat": 36.6101324544909,
+      "lng": 137.84410130688477,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://db.go-nagano.net/themelist/detail/id%3D543"
+    },
+    {
+      "ko": "기자키호",
+      "ja": "木崎湖",
+      "lat": 36.5605701,
+      "lng": 137.8326317650818,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://kizakiko-powwow.com/stay/daycamp/"
+    },
+    {
+      "ko": "지쿠마강",
+      "ja": "千曲川",
+      "lat": 36.93492706761594,
+      "lng": 138.41974785106507,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://shinetsu-activity.jp/play/play-cat/water-sports/"
+    },
+    {
+      "ko": "호쿠류호",
+      "ja": "北竜湖",
+      "lat": 36.90537792357997,
+      "lng": 138.42451603016357,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.jalan.net/kankou/spt_guide000000181730/activity/l000003D7C/"
+    },
+    {
+      "ko": "요로즈이강",
+      "ja": "万水川",
+      "lat": 36.3228668,
+      "lng": 137.9015402,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://canoe-map.com/ken/nagano/yorozui/"
+    },
+    {
+      "ko": "사이강",
+      "ja": "犀川",
+      "lat": 36.5019081,
+      "lng": 137.9548267,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://onamods.livedoor.blog/archives/cat_46917.html?p=2"
+    },
+    {
+      "ko": "시라카바호",
+      "ja": "白樺湖",
+      "lat": 36.1048943,
+      "lng": 138.237099,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.yatsugatakeadventure.com/access/"
+    },
+    {
+      "ko": "온타케호",
+      "ja": "おんたけ湖",
+      "lat": 35.8063689,
+      "lng": 137.55577554893495,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.ontakeko-run.com/visit/"
+    },
+    {
+      "ko": "시젠호",
+      "ja": "自然湖",
+      "lat": 35.809320791141154,
+      "lng": 137.4705056,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.shizenko.jp/precautions/"
+    },
+    {
+      "ko": "오쿠키소호",
+      "ja": "奥木曽湖",
+      "lat": 35.989704672548235,
+      "lng": 137.77085747434387,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.kodamanomori.jp/canoe/"
+    },
+    {
+      "ko": "구즈류호",
+      "ja": "九頭竜湖",
+      "lat": 35.876299341920245,
+      "lng": 136.7578579325409,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.japanecotrack.net/api/pdfs/areas/20220420101347_ptVgE.pdf"
+    },
+    {
+      "ko": "기타가타호",
+      "ja": "北潟湖",
+      "lat": 36.2669208,
+      "lng": 136.2310809,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://info.pref.fukui.lg.jp/fukuikokutai2018/sp/kokutai/game/demo/canoe-polo.html"
+    },
+    {
+      "ko": "미카타호",
+      "ja": "三方湖",
+      "lat": 35.560277379621205,
+      "lng": 135.89366322565613,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.pref.fukui.lg.jp/doc/mikata-seinen/riyounotebiki_d/fil/siori_r8.pdf"
+    },
+    {
+      "ko": "아가노강",
+      "ja": "阿賀野川",
+      "lat": 37.6836243,
+      "lng": 139.453592,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.pref.niigata.lg.jp/green2rhythm/370208.html"
+    },
+    {
+      "ko": "나가라강",
+      "ja": "長良川",
+      "lat": 35.551805558621275,
+      "lng": 136.91031973016356,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://www.kisosansenkoen.jp/~nagaragawa/mnagaragawa_canoeex.html"
+    },
+    {
+      "ko": "기소강",
+      "ja": "木曽川",
+      "lat": 35.43763778089445,
+      "lng": 137.0329669,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://www.aichinow.pref.aichi.jp/spots/detail/2309/"
+    },
+    {
+      "ko": "게타강",
+      "ja": "気田川",
+      "lat": 34.9803933,
+      "lng": 137.8947906,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://inacanoe.ninja-web.net/page005.html"
+    },
+    {
+      "ko": "덴류강",
+      "ja": "天竜川",
+      "lat": 34.9129443,
+      "lng": 137.8152926325409,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.city.hamamatsu.shizuoka.jp/tn-machi/boat/"
+    },
+    {
+      "ko": "미야강",
+      "ja": "宮川",
+      "lat": 34.432772894088785,
+      "lng": 136.63502527434386,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.kankomie.or.jp/spot/3542"
+    },
+    {
+      "ko": "이치노세강",
+      "ja": "一之瀬川",
+      "lat": 34.3831565,
+      "lng": 136.5957359,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://yamap.com/activities/51360964"
+    },
+    {
+      "ko": "구시다강",
+      "ja": "櫛田川",
+      "lat": 34.469459451620665,
+      "lng": 136.3970387116394,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://matsusaka-info.jp/report/detail/post-21.html"
+    },
+    {
+      "ko": "세타강",
+      "ja": "瀬田川",
+      "lat": 34.9285126,
+      "lng": 135.9158325,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://ducs.jp/?page_id=52"
+    },
+    {
+      "ko": "유라강",
+      "ja": "由良川",
+      "lat": 35.26687127644505,
+      "lng": 135.3982696558197,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.openstreetmap.org/way/545021594"
+    },
+    {
+      "ko": "마루야마강",
+      "ja": "円山川",
+      "lat": 35.63425199685737,
+      "lng": 134.82530998147584,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://maruyamagawa.com/qa/"
+    },
+    {
+      "ko": "요시노강·나라현",
+      "ja": "吉野川（奈良）",
+      "lat": 34.3798332,
+      "lng": 135.7891998,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://mobila-carlife.jp/activity/48718/"
+    },
+    {
+      "ko": "히다카강",
+      "ja": "日高川",
+      "lat": 33.9626482041106,
+      "lng": 135.39792174180297,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://town.hidakagawa.lg.jp/contact/"
+    },
+    {
+      "ko": "고자강",
+      "ja": "古座川",
+      "lat": 33.5837232,
+      "lng": 135.6885221,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://www.pref.wakayama.lg.jp/prefg/081300/d00214848.html"
+    },
+    {
+      "ko": "구마노강",
+      "ja": "熊野川",
+      "lat": 33.837629,
+      "lng": 135.85679598147584,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.tb-kumano.jp/en/activities/water-sports-tours/"
+    },
+    {
+      "ko": "기타야마강",
+      "ja": "北山川",
+      "lat": 33.8928386,
+      "lng": 135.8863939,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://mixi.jp/view_bbs.pl?comm_id=369646&id=76868627"
+    },
+    {
+      "ko": "요시이강",
+      "ja": "吉井川",
+      "lat": 34.679380759377146,
+      "lng": 134.07762592327882,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.cgr.mlit.go.jp/okakawa/kawao/kawa/spot/yoshigawa-main.html"
+    },
+    {
+      "ko": "고노강",
+      "ja": "江の川",
+      "lat": 34.8392949,
+      "lng": 132.72191283491821,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://genkimurasakugi.or.jp/faq/"
+    },
+    {
+      "ko": "다카쓰강",
+      "ja": "高津川",
+      "lat": 34.554178417254256,
+      "lng": 131.8082117,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.cgr.mlit.go.jp/hamada/kasen/PDF/r6kasenkeikaku-t.pdf"
+    },
+    {
+      "ko": "히노강",
+      "ja": "日野川",
+      "lat": 35.232795,
+      "lng": 133.41545,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.town.hino.tottori.jp/dd.aspx?menuid=1275"
+    },
+    {
+      "ko": "도고호",
+      "ja": "東郷湖",
+      "lat": 35.49163059194157,
+      "lng": 133.8830006558197,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.yurihama-kankou.jp/2016/09/14/%E6%9D%B1%E9%83%B7%E6%B9%96-%E3%83%89%E3%83%A9%E3%82%B4%E3%83%B3%E3%82%AB%E3%83%8C%E3%83%BC%E4%BD%93%E9%A8%93/"
+    },
+    {
+      "ko": "야치요호",
+      "ja": "八千代湖",
+      "lat": 34.6570324,
+      "lng": 132.6082195,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.cgr.mlit.go.jp/haji/sports/canoe/index2014.htm"
+    },
+    {
+      "ko": "오노호",
+      "ja": "小野湖",
+      "lat": 34.103083368629434,
+      "lng": 131.3082076465576,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://ube-kankou.or.jp/sightseeing/nature-park/post-26.html"
+    },
+    {
+      "ko": "시만토강",
+      "ja": "四万十川",
+      "lat": 33.18212890625,
+      "lng": 132.97087097168,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://kawarakko.com/guide"
+    },
+    {
+      "ko": "니요도강",
+      "ja": "仁淀川",
+      "lat": 33.5698662,
+      "lng": 133.2357178,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://niyodogawa-rivercruise.com/canoe"
+    },
+    {
+      "ko": "요시노강·시코쿠",
+      "ja": "吉野川（四国）",
+      "lat": 34.022657577743026,
+      "lng": 133.78315163729553,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://nishi-awa.jp/reserve/2235/"
+    },
+    {
+      "ko": "나카강",
+      "ja": "那賀川",
+      "lat": 33.861449578755895,
+      "lng": 134.50313159524535,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.bgf.or.jp/center/center0454/"
+    },
+    {
+      "ko": "후추호",
+      "ja": "府中湖",
+      "lat": 34.2832052,
+      "lng": 133.9301992,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://k-boat.co.jp/site/s/3701.htm"
+    },
+    {
+      "ko": "사메우라호",
+      "ja": "さめうら湖",
+      "lat": 33.75066241301614,
+      "lng": 133.54245982803346,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.water.go.jp/yoshino/ikeda/sameura/komen_riyou.html"
+    },
+    {
+      "ko": "히지강",
+      "ja": "肱川",
+      "lat": 33.5389717,
+      "lng": 132.5669604,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.ozucastle.com/activity/canoe_sup"
+    },
+    {
+      "ko": "지쿠고강",
+      "ja": "筑後川",
+      "lat": 33.319070966257506,
+      "lng": 130.49401511401672,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.kurumecanoe.com/"
+    },
+    {
+      "ko": "무라사키강",
+      "ja": "紫川",
+      "lat": 33.88485616743112,
+      "lng": 130.87748157909851,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://mizukankyokan.jp/guide/"
+    },
+    {
+      "ko": "구마강",
+      "ja": "球磨川",
+      "lat": 32.214174628076606,
+      "lng": 130.7669628,
+      "kind": "water",
+      "minZoom": 8,
+      "source": "https://kumagawa-raft.com/qa/"
+    },
+    {
+      "ko": "미도리카와댐호",
+      "ja": "緑川ダム湖",
+      "lat": 32.632782,
+      "lng": 130.909678,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://misato-camp.com/2552/"
+    },
+    {
+      "ko": "오요도강",
+      "ja": "大淀川",
+      "lat": 31.949895435667976,
+      "lng": 131.40336763754271,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.miyazaki-city.tourism.or.jp/spot/10139"
+    },
+    {
+      "ko": "안보강",
+      "ja": "安房川",
+      "lat": 30.313073,
+      "lng": 130.6545516,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://yakushima-asobi.com/guide-tour/sup-sea.php"
+    },
+    {
+      "ko": "미야노우라강",
+      "ja": "宮之浦川",
+      "lat": 30.4322459,
+      "lng": 130.5709672,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.yakushima-guide.jp/_src/1921/%E5%B1%8B%E4%B9%85%E5%B3%B6%E3%82%AC%E3%82%A4%E3%83%89%E3%82%AF%E3%83%A9%E3%83%96%E3%80%80%E9%81%8B%E8%A1%8C%E8%A6%8F%E5%AE%9A.pdf?v=1678069580065"
+    },
+    {
+      "ko": "구리오강",
+      "ja": "栗生川",
+      "lat": 30.273974,
+      "lng": 130.4217257,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.env.go.jp/nature/nationalparks/try/all/act372.html"
+    },
+    {
+      "ko": "스미요강·야쿠가치강 하구",
+      "ja": "住用川・役勝川河口",
+      "lat": 28.26189800130795,
+      "lng": 129.4125450325409,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.mangrovepark.com/canueing-trial"
+    },
+    {
+      "ko": "게사시강",
+      "ja": "慶佐次川",
+      "lat": 26.604313,
+      "lng": 128.14399276057435,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.yanbaru-club.com/"
+    },
+    {
+      "ko": "오쿠쿠비강",
+      "ja": "億首川",
+      "lat": 26.453995797836665,
+      "lng": 127.94327930503235,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://kin-eco.com/?page_id=735"
+    },
+    {
+      "ko": "히자강",
+      "ja": "比謝川",
+      "lat": 26.363674270408307,
+      "lng": 127.74703415819702,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://hijagawa.com/"
+    },
+    {
+      "ko": "미야라강",
+      "ja": "宮良川",
+      "lat": 24.35791188581537,
+      "lng": 124.21282599311523,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://canoetour-ikema.com/canoetour/"
+    },
+    {
+      "ko": "우라우치강",
+      "ja": "浦内川",
+      "lat": 24.402977,
+      "lng": 123.778913,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://urauchigawa.com/access/"
+    },
+    {
+      "ko": "나카마강",
+      "ja": "仲間川",
+      "lat": 24.2797389,
+      "lng": 123.8801318,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.pref.okinawa.jp/_res/projects/default_project/_page_/001/004/312/nakamagawa_kyoutei.pdf"
+    },
+    {
+      "ko": "히나이강",
+      "ja": "ヒナイ川",
+      "lat": 24.38909392347756,
+      "lng": 123.8125656205655,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://iriomote-ecotourism.jp/tokutei-entry-flow/"
+    },
+    {
+      "ko": "나라마타호",
+      "ja": "ならまた湖",
+      "lat": 36.8854228,
+      "lng": 139.0895036,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=Iacj2t0fPf4&t=60"
+    },
+    {
+      "ko": "소하라호",
+      "ja": "曽原湖",
+      "lat": 37.687098,
+      "lng": 140.0735036,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=5sxmwMuum1I&t=222"
+    },
+    {
+      "ko": "시치카슈쿠호",
+      "ja": "七ヶ宿湖",
+      "lat": 37.9789034,
+      "lng": 140.4745113,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=P2Z5Io9F8ME"
+    },
+    {
+      "ko": "모니와호",
+      "ja": "茂庭っ湖",
+      "lat": 37.9331933,
+      "lng": 140.3971303,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=1S3S2H3y0dw"
+    },
+    {
+      "ko": "얀바아가쓰마호",
+      "ja": "八ッ場あがつま湖",
+      "lat": 36.5448464,
+      "lng": 138.6835714,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=tPhgauqfGnk"
+    },
+    {
+      "ko": "기즈강",
+      "ja": "木津川",
+      "lat": 34.7589782,
+      "lng": 135.9365309,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=_5QYBX6VFTU"
+    },
+    {
+      "ko": "오노강",
+      "ja": "大野川",
+      "lat": 33.0625081,
+      "lng": 131.6472458,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=llru-AnB7zk"
+    },
+    {
+      "ko": "레키후네강",
+      "ja": "歴舟川",
+      "lat": 42.5240838,
+      "lng": 143.1933235,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=RwBqfpDP7kI&t=55"
+    },
+    {
+      "ko": "나구리호",
+      "ja": "名栗湖",
+      "lat": 35.8753,
+      "lng": 139.16803,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=fEDY6Dmy6FI"
+    },
+    {
+      "ko": "구사키호",
+      "ja": "草木湖",
+      "lat": 36.56031,
+      "lng": 139.37626,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=tXTIxa7YjnA&t=56"
+    },
+    {
+      "ko": "지치부 사쿠라호",
+      "ja": "秩父さくら湖",
+      "lat": 35.9386285,
+      "lng": 139.0588608,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=nDYtNHznJl8&t=99"
+    },
+    {
+      "ko": "단자와호",
+      "ja": "丹沢湖",
+      "lat": 35.4236044,
+      "lng": 139.0431243,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=sIIb6XwR0yQ"
+    },
+    {
+      "ko": "간나호",
+      "ja": "神流湖",
+      "lat": 36.1388728,
+      "lng": 139.0162366,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=9LUHyNjH6mI"
+    },
+    {
+      "ko": "쓰키가세호",
+      "ja": "月ヶ瀬湖",
+      "lat": 34.7071,
+      "lng": 136.0142,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=PLOf5n1iVGc"
+    },
+    {
+      "ko": "쇼렌지호",
+      "ja": "青蓮寺湖",
+      "lat": 34.5932072,
+      "lng": 136.1140412,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=pdb6YqDn1LU"
+    },
+    {
+      "ko": "오쿠이세 미야가와호",
+      "ja": "奥伊勢宮川湖",
+      "lat": 34.38869,
+      "lng": 136.37809,
+      "kind": "water",
+      "minZoom": 10,
+      "source": "https://www.youtube.com/watch?v=4nKTVfD_84c"
+    },
+    {
+      "ko": "후지산",
+      "ja": "富士山",
+      "lat": 35.3606,
+      "lng": 138.7274,
+      "kind": "mountain",
+      "minZoom": 7,
+      "source": "https://maps.gsi.go.jp/#12/35.3606/138.7274/"
+    }
+  ]
+}

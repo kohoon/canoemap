@@ -24,6 +24,8 @@ function markerColor(status) {
 }
 const map = L.map('map', {zoomControl:false, maxZoom:20, scrollWheelZoom:true}).setView([36.4,137.6],5);
 L.control.zoom({position:'bottomright'}).addTo(map);
+if (window.installJapanCoordinatePicker) window.installJapanCoordinatePicker(map);
+if (window.installJapanPlaceLabels) window.installJapanPlaceLabels(map);
   // Leaflet's zero-width tooltip pane must not determine the content width.
   map.on('tooltipopen', ({tooltip}) => {
     const el=tooltip.getElement();
