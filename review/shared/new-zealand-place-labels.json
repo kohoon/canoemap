@@ -1,0 +1,447 @@
+{
+  "checkedAt": "2026-11-28",
+  "source": "GeoNames NZ CC BY 4.0; DOC campsite coordinates and existing record reference points",
+  "items": [
+    {
+      "ko": "웰링턴",
+      "original": "Wellington",
+      "lat": -41.28664,
+      "lng": 174.77557,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/2179537"
+    },
+    {
+      "ko": "황가누이",
+      "original": "Whanganui",
+      "lat": -39.93333,
+      "lng": 175.05,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2179670"
+    },
+    {
+      "ko": "테아나우",
+      "original": "Te Anau",
+      "lat": -45.41667,
+      "lng": 167.71667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2181625"
+    },
+    {
+      "ko": "타우포",
+      "original": "Taupo",
+      "lat": -38.68333,
+      "lng": 176.08333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2181742"
+    },
+    {
+      "ko": "와나카",
+      "original": "Wanaka",
+      "lat": -44.7,
+      "lng": 169.15,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2184707"
+    },
+    {
+      "ko": "파머스턴노스",
+      "original": "Palmerston North",
+      "lat": -40.35636,
+      "lng": 175.61113,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2185018"
+    },
+    {
+      "ko": "뉴플리머스",
+      "original": "New Plymouth",
+      "lat": -39.06667,
+      "lng": 174.08333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2186239"
+    },
+    {
+      "ko": "넬슨",
+      "original": "Nelson",
+      "lat": -41.27078,
+      "lng": 173.28404,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/2186280"
+    },
+    {
+      "ko": "네이피어",
+      "original": "Napier",
+      "lat": -39.4926,
+      "lng": 176.91233,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2186313"
+    },
+    {
+      "ko": "카이코우라",
+      "original": "Kaikoura",
+      "lat": -42.41667,
+      "lng": 173.68333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2189272"
+    },
+    {
+      "ko": "인버카길",
+      "original": "Invercargill",
+      "lat": -46.4,
+      "lng": 168.35,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2189529"
+    },
+    {
+      "ko": "해밀턴",
+      "original": "Hamilton",
+      "lat": -37.78333,
+      "lng": 175.28333,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2190324"
+    },
+    {
+      "ko": "프란츠요제프",
+      "original": "Franz Josef",
+      "lat": -43.38905,
+      "lng": 170.18189,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2190928"
+    },
+    {
+      "ko": "더니든",
+      "original": "Dunedin",
+      "lat": -45.87416,
+      "lng": 170.50361,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/2191562"
+    },
+    {
+      "ko": "크라이스트처치",
+      "original": "Christchurch",
+      "lat": -43.53333,
+      "lng": 172.63333,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/2192362"
+    },
+    {
+      "ko": "오클랜드",
+      "original": "Auckland",
+      "lat": -36.84853,
+      "lng": 174.76349,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/2193733"
+    },
+    {
+      "ko": "호키티카",
+      "original": "Hokitika",
+      "lat": -42.71667,
+      "lng": 170.96667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2206894"
+    },
+    {
+      "ko": "그레이마우스",
+      "original": "Greymouth",
+      "lat": -42.46667,
+      "lng": 171.2,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2206895"
+    },
+    {
+      "ko": "타우랑가",
+      "original": "Tauranga",
+      "lat": -37.68611,
+      "lng": 176.16667,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/2208032"
+    },
+    {
+      "ko": "퀸스타운",
+      "original": "Queenstown",
+      "lat": -45.03023,
+      "lng": 168.66271,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/6204696"
+    },
+    {
+      "ko": "트와이젤",
+      "original": "Twizel",
+      "lat": -44.25842,
+      "lng": 170.10063,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/6209526"
+    },
+    {
+      "ko": "황가레이",
+      "original": "Whangarei",
+      "lat": -35.73167,
+      "lng": 174.32391,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/6230919"
+    },
+    {
+      "ko": "로토루아",
+      "original": "Rotorua",
+      "lat": -38.13874,
+      "lng": 176.24516,
+      "kind": "city",
+      "minZoom": 5,
+      "source": "https://www.geonames.org/6241325"
+    },
+    {
+      "ko": "픽턴",
+      "original": "Picton",
+      "lat": -41.29067,
+      "lng": 174.00801,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/6243776"
+    },
+    {
+      "ko": "블레넘",
+      "original": "Blenheim",
+      "lat": -41.51603,
+      "lng": 173.9528,
+      "kind": "city",
+      "minZoom": 7,
+      "source": "https://www.geonames.org/6243926"
+    },
+    {
+      "ko": "황가누이강",
+      "original": "Whanganui River",
+      "lat": -38.9415274160522,
+      "lng": 175.146184824748,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/manawatu-whanganui/places/whanganui-national-park/things-to-do/tracks/whanganui-journey/"
+    },
+    {
+      "ko": "타우포호",
+      "original": "Lake Taupō",
+      "lat": -38.683400980876,
+      "lng": 175.959239083035,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.lovetaupo.com/en/see-do/outdoor-adventure/kayaking/"
+    },
+    {
+      "ko": "아라푸니호·와이카토강",
+      "original": "Lake Arapuni / Waikato River",
+      "lat": -38.1662386326887,
+      "lng": 175.65767534575,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://services1.arcgis.com/3JjYDyG3oajxU6HO/arcgis/rest/services/DOC_Campsites/FeatureServer/0"
+    },
+    {
+      "ko": "타라웨라호",
+      "original": "Lake Tarawera",
+      "lat": -38.1850139297852,
+      "lng": 176.50314606032,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/"
+    },
+    {
+      "ko": "레레와카아이투호",
+      "original": "Lake Rerewhakaaitu",
+      "lat": -38.2836362594765,
+      "lng": 176.49602312276,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/"
+    },
+    {
+      "ko": "티키타푸호·블루레이크",
+      "original": "Lake Tikitapu / Blue Lake",
+      "lat": -38.2,
+      "lng": 176.33333,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.rotorualakescouncil.nz/parks-lakes-recreation/lake-reserves/blue-lake-tikitapu"
+    },
+    {
+      "ko": "로토루아호",
+      "original": "Lake Rotorua",
+      "lat": -38.08,
+      "lng": 176.28,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/"
+    },
+    {
+      "ko": "로토이티호·로토루아",
+      "original": "Lake Rotoiti, Rotorua",
+      "lat": -38.04,
+      "lng": 176.43,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/"
+    },
+    {
+      "ko": "오카레카호",
+      "original": "Lake Ōkāreka",
+      "lat": -38.16667,
+      "lng": 176.36667,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/"
+    },
+    {
+      "ko": "로토이티호·넬슨",
+      "original": "Lake Rotoiti, Nelson Lakes",
+      "lat": -41.8057733567343,
+      "lng": 172.847957718725,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/nelson-tasman/places/nelson-lakes-national-park/"
+    },
+    {
+      "ko": "로토로아호·넬슨",
+      "original": "Lake Rotoroa, Nelson Lakes",
+      "lat": -41.7940555773256,
+      "lng": 172.597877811459,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/nelson-tasman/places/nelson-lakes-national-park/"
+    },
+    {
+      "ko": "펠로루스강·테호이에레",
+      "original": "Te Hoiere / Pelorus River",
+      "lat": -41.301094242528,
+      "lng": 173.570141422658,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://services1.arcgis.com/3JjYDyG3oajxU6HO/arcgis/rest/services/DOC_Campsites/FeatureServer/0"
+    },
+    {
+      "ko": "모크호",
+      "original": "Moke Lake",
+      "lat": -44.9982266771578,
+      "lng": 168.573354106516,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.qldc.govt.nz/recreation/lakes-and-boating"
+    },
+    {
+      "ko": "다이아몬드호·글레노키",
+      "original": "Diamond Lake, Glenorchy",
+      "lat": -44.7319519058895,
+      "lng": 168.381318850983,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.qldc.govt.nz/recreation/lakes-and-boating"
+    },
+    {
+      "ko": "와카티푸호",
+      "original": "Lake Whakatipu / Wakatipu",
+      "lat": -44.843716666281,
+      "lng": 168.349994242316,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.qldc.govt.nz/recreation/lakes-and-boating"
+    },
+    {
+      "ko": "하웨아호",
+      "original": "Lake Hāwea",
+      "lat": -44.4408752374578,
+      "lng": 169.261385490226,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.qldc.govt.nz/recreation/lakes-and-boating"
+    },
+    {
+      "ko": "와나카호",
+      "original": "Lake Wānaka",
+      "lat": -44.5,
+      "lng": 169.13333,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.qldc.govt.nz/recreation/lakes-and-boating"
+    },
+    {
+      "ko": "테아나우호",
+      "original": "Lake Te Anau",
+      "lat": -45.231607319676,
+      "lng": 167.811844577942,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/fiordland/places/fiordland-national-park/know-before-you-go/kayaking-packrafting-in-fiordland/"
+    },
+    {
+      "ko": "마나포우리호",
+      "original": "Lake Manapōuri",
+      "lat": -45.5865326896284,
+      "lng": 167.373862042908,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/fiordland/places/fiordland-national-park/know-before-you-go/kayaking-packrafting-in-fiordland/"
+    },
+    {
+      "ko": "카니에레호",
+      "original": "Lake Kaniere",
+      "lat": -42.8087293285019,
+      "lng": 171.15481124957,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/west-coast/places/lake-kaniere-scenic-reserve/"
+    },
+    {
+      "ko": "마히나푸아호",
+      "original": "Lake Māhinapua",
+      "lat": -42.7946865035358,
+      "lng": 170.901068311731,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/west-coast/places/mahinapua-scenic-reserve/"
+    },
+    {
+      "ko": "마포우리카호",
+      "original": "Lake Mapourika",
+      "lat": -43.2986194119581,
+      "lng": 170.225229270483,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://westcoast.co.nz/visit/discover/ideas-and-inspiration/six-luscious-lakes-to-love/"
+    },
+    {
+      "ko": "테카포호",
+      "original": "Lake Tekapo",
+      "lat": -43.88333,
+      "lng": 170.51667,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.mackenzienz.com/visit/paddle-tekapo/"
+    },
+    {
+      "ko": "마보라호수군",
+      "original": "Mavora Lakes",
+      "lat": -45.2680101926329,
+      "lng": 168.174997803441,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/southland/places/mavora-lakes-conservation-park/"
+    }
+  ]
+}

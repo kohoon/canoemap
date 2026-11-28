@@ -1,0 +1,610 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "date": "2026-11-28",
+    "source": "https://services1.arcgis.com/3JjYDyG3oajxU6HO/arcgis/rest/services/DOC_Campsites/FeatureServer/0",
+    "license": "https://www.doc.govt.nz/footer-links/copyright/"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.146184824748,
+          -38.9415274160522
+        ]
+      },
+      "properties": {
+        "record_id": 1,
+        "point_index": 0,
+        "waterbody": "황가누이강(Whanganui River)",
+        "name": "오히네파네 캠핑장(Ohinepane Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "conditional",
+        "source": "https://www.doc.govt.nz/link/ee64fac6881b4af1bfe8494e0465eada.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.070878721095,
+          -39.1092415677007
+        ]
+      },
+      "properties": {
+        "record_id": 1,
+        "point_index": 1,
+        "waterbody": "황가누이강(Whanganui River)",
+        "name": "와카호로 캠핑장(Whakahoro Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "conditional",
+        "source": "https://www.doc.govt.nz/link/afc10f759fa74e848e4f7c5643dccee9.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.05,
+          -39.48333
+        ]
+      },
+      "properties": {
+        "record_id": 1,
+        "point_index": 2,
+        "waterbody": "황가누이강(Whanganui River)",
+        "name": "피피리키 도착 권역(Pīpīriki)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "conditional",
+        "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/manawatu-whanganui/places/whanganui-national-park/things-to-do/tracks/whanganui-journey/",
+        "note": "수역 대표좌표; 발착 좌표 미확정."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.959239083035,
+          -38.683400980876
+        ]
+      },
+      "properties": {
+        "record_id": 2,
+        "point_index": 0,
+        "waterbody": "타우포호(Lake Taupō)",
+        "name": "와카이포 캠핑장(Whakaipo Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/4c662a416549489faf359188803dfaf1.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.65767534575,
+          -38.1662386326887
+        ]
+      },
+      "properties": {
+        "record_id": 3,
+        "point_index": 0,
+        "waterbody": "아라푸니호·와이카토강(Lake Arapuni / Waikato River)",
+        "name": "아로헤나 캠핑장(Arohena Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/e0f6e889c1914112abd4c159327db0e3.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          176.50314606032,
+          -38.1850139297852
+        ]
+      },
+      "properties": {
+        "record_id": 4,
+        "point_index": 0,
+        "waterbody": "타라웨라호(Lake Tarawera)",
+        "name": "타라웨라 아웃렛 캠핑장(Lake Tarawera Outlet Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/aea8e1a0ef874998967e486e29807f3b.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          176.49602312276,
+          -38.2836362594765
+        ]
+      },
+      "properties": {
+        "record_id": 5,
+        "point_index": 0,
+        "waterbody": "레레와카아이투호(Lake Rerewhakaaitu)",
+        "name": "브렛 로드 캠핑장(Rerewhakaaitu, Brett Road Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/9b073d6671c1403e8f9dad1a6022252a.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          176.4960694,
+          -38.2838396
+        ]
+      },
+      "properties": {
+        "record_id": 5,
+        "point_index": 1,
+        "waterbody": "레레와카아이투호(Lake Rerewhakaaitu)",
+        "name": "레레와카아이투호 · 호안 접근 후보(Shore access candidate)",
+        "coordinate_type": "imagery_water_access",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/9b073d6671c1403e8f9dad1a6022252a.aspx",
+        "note": "항공사진 수동 판독 참고점. 약20~40m 위치 오차 및 촬영 시기·수위 차이 가능. 공식 측량 좌표가 아님."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          176.33333,
+          -38.2
+        ]
+      },
+      "properties": {
+        "record_id": 6,
+        "point_index": 0,
+        "waterbody": "티키타푸호·블루레이크(Lake Tikitapu / Blue Lake)",
+        "name": "티키타푸호 수역 참고(Lake Tikitapu)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/",
+        "note": "수역 대표좌표; 발착 좌표 미확정."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          176.28,
+          -38.08
+        ]
+      },
+      "properties": {
+        "record_id": 7,
+        "point_index": 0,
+        "waterbody": "로토루아호(Lake Rotorua)",
+        "name": "로토루아호 수역 참고(Lake Rotorua)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/",
+        "note": "수역 대표좌표; 발착 좌표 미확정."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          176.43,
+          -38.04
+        ]
+      },
+      "properties": {
+        "record_id": 8,
+        "point_index": 0,
+        "waterbody": "로토이티호·로토루아(Lake Rotoiti, Rotorua)",
+        "name": "로토이티호 수역 참고(Lake Rotoiti)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/",
+        "note": "수역 대표좌표; 발착 좌표 미확정."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          176.36667,
+          -38.16667
+        ]
+      },
+      "properties": {
+        "record_id": 9,
+        "point_index": 0,
+        "waterbody": "오카레카호(Lake Ōkāreka)",
+        "name": "오카레카호 수역 참고(Lake Ōkāreka)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/",
+        "note": "수역 대표좌표; 발착 좌표 미확정."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          172.847957718725,
+          -41.8057733567343
+        ]
+      },
+      "properties": {
+        "record_id": 10,
+        "point_index": 0,
+        "waterbody": "로토이티호·넬슨(Lake Rotoiti, Nelson Lakes)",
+        "name": "커 베이 캠핑장(Kerr Bay Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/d734a70dd6584ff995102388fb169168.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          172.597877811459,
+          -41.7940555773256
+        ]
+      },
+      "properties": {
+        "record_id": 11,
+        "point_index": 0,
+        "waterbody": "로토로아호·넬슨(Lake Rotoroa, Nelson Lakes)",
+        "name": "로토로아호 캠핑장(Lake Rotoroa Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/3e2030f135604da3840f551be35849b3.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          173.570141422658,
+          -41.301094242528
+        ]
+      },
+      "properties": {
+        "record_id": 12,
+        "point_index": 0,
+        "waterbody": "펠로루스강·테호이에레(Te Hoiere / Pelorus River)",
+        "name": "펠로루스 브리지 캠핑장(Pelorus Bridge Campground)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/13f853ce73b8447eb57ed9fe85c33d6e.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          168.573354106516,
+          -44.9982266771578
+        ]
+      },
+      "properties": {
+        "record_id": 13,
+        "point_index": 0,
+        "waterbody": "모크호(Moke Lake)",
+        "name": "모크호 캠핑장(Moke Lake Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/11eef5ccf369450f93f0e73347731bef.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          168.5725987,
+          -44.9985228
+        ]
+      },
+      "properties": {
+        "record_id": 13,
+        "point_index": 1,
+        "waterbody": "모크호(Moke Lake)",
+        "name": "모크호 · 호안 접근 후보(Shore access candidate)",
+        "coordinate_type": "imagery_water_access",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/11eef5ccf369450f93f0e73347731bef.aspx",
+        "note": "항공사진 수동 판독 참고점. 약20~40m 위치 오차 및 촬영 시기·수위 차이 가능. 공식 측량 좌표가 아님."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          168.381318850983,
+          -44.7319519058895
+        ]
+      },
+      "properties": {
+        "record_id": 14,
+        "point_index": 0,
+        "waterbody": "다이아몬드호·글레노키(Diamond Lake, Glenorchy)",
+        "name": "다이아몬드호 캠핑장(Diamond Lake Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/35d86e8966d74ab48124fc6b29ca26f6.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          168.349994242316,
+          -44.843716666281
+        ]
+      },
+      "properties": {
+        "record_id": 15,
+        "point_index": 0,
+        "waterbody": "와카티푸호(Lake Whakatipu / Wakatipu)",
+        "name": "킨로크 캠핑장(Kinloch Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/a8115b67bce049f3acdada4d3556c96d.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          168.3500397,
+          -44.8440563
+        ]
+      },
+      "properties": {
+        "record_id": 15,
+        "point_index": 1,
+        "waterbody": "와카티푸호(Lake Whakatipu / Wakatipu)",
+        "name": "와카티푸호 · 호안 접근 후보(Shore access candidate)",
+        "coordinate_type": "imagery_water_access",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/a8115b67bce049f3acdada4d3556c96d.aspx",
+        "note": "항공사진 수동 판독 참고점. 약20~40m 위치 오차 및 촬영 시기·수위 차이 가능. 공식 측량 좌표가 아님."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          169.261385490226,
+          -44.4408752374578
+        ]
+      },
+      "properties": {
+        "record_id": 16,
+        "point_index": 0,
+        "waterbody": "하웨아호(Lake Hāwea)",
+        "name": "키즈 부시 리저브 캠핑장(Kidds Bush Reserve Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/aee39660c6a54e6da2ec5bd95efb3937.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          169.13333,
+          -44.5
+        ]
+      },
+      "properties": {
+        "record_id": 17,
+        "point_index": 0,
+        "waterbody": "와나카호(Lake Wānaka)",
+        "name": "와나카호 수역 참고(Lake Wānaka)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://www.qldc.govt.nz/recreation/lakes-and-boating",
+        "note": "수역 대표좌표; 발착 좌표 미확정."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          167.811844577942,
+          -45.231607319676
+        ]
+      },
+      "properties": {
+        "record_id": 18,
+        "point_index": 0,
+        "waterbody": "테아나우호(Lake Te Anau)",
+        "name": "헨리 크리크 캠핑장(Henry Creek Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/d87709f11ea7429084acc481422878e1.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          167.373862042908,
+          -45.5865326896284
+        ]
+      },
+      "properties": {
+        "record_id": 19,
+        "point_index": 0,
+        "waterbody": "마나포우리호(Lake Manapōuri)",
+        "name": "사우스 암 캠핑장(South Arm Campsite (Lake Manapouri))",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/c594bee1d29549418cba750b518f538f.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          171.15481124957,
+          -42.8087293285019
+        ]
+      },
+      "properties": {
+        "record_id": 20,
+        "point_index": 0,
+        "waterbody": "카니에레호(Lake Kaniere)",
+        "name": "한스 베이 캠핑장(Hans Bay - Lake Kaniere Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/f63676a7ea0d49158c237a08020ae192.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          171.1545897,
+          -42.808767
+        ]
+      },
+      "properties": {
+        "record_id": 20,
+        "point_index": 1,
+        "waterbody": "카니에레호(Lake Kaniere)",
+        "name": "카니에레호 · 호안 접근 후보(Shore access candidate)",
+        "coordinate_type": "imagery_water_access",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/f63676a7ea0d49158c237a08020ae192.aspx",
+        "note": "항공사진 수동 판독 참고점. 약20~40m 위치 오차 및 촬영 시기·수위 차이 가능. 공식 측량 좌표가 아님."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          170.901068311731,
+          -42.7946865035358
+        ]
+      },
+      "properties": {
+        "record_id": 21,
+        "point_index": 0,
+        "waterbody": "마히나푸아호(Lake Māhinapua)",
+        "name": "마히나푸아호 캠핑장(Lake Māhinapua Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/bc426fe344d54ff9ad39301449dab043.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          170.225229270483,
+          -43.2986194119581
+        ]
+      },
+      "properties": {
+        "record_id": 22,
+        "point_index": 0,
+        "waterbody": "마포우리카호(Lake Mapourika)",
+        "name": "오토·맥도널즈 캠핑장(Otto/macdonalds Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/b372a1f0ccb9402585e3f354ee53730e.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          170.51667,
+          -43.88333
+        ]
+      },
+      "properties": {
+        "record_id": 23,
+        "point_index": 0,
+        "waterbody": "테카포호(Lake Tekapo)",
+        "name": "테카포호 수역 참고(Lake Tekapo)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://www.mackenzienz.com/visit/paddle-tekapo/",
+        "note": "수역 대표좌표; 발착 좌표 미확정."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          168.174997803441,
+          -45.2680101926329
+        ]
+      },
+      "properties": {
+        "record_id": 24,
+        "point_index": 0,
+        "waterbody": "마보라호수군(Mavora Lakes)",
+        "name": "마보라호수 캠핑장(Mavora Lakes Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/link/07540cfcf9404be8bb256d49ef81d0d9.aspx",
+        "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    }
+  ]
+}

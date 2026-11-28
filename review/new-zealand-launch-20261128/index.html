@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>뉴질랜드 카누·카약 런칭·랜딩 지도</title>
+<meta name="description" content="뉴질랜드 카누·카약 발착 장소, 좌표, 개인 카누 반입 조건과 조사 근거를 확인하는 지도.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css?v=20261128">
+</head>
+<body>
+<header><div><span class="brand">CANOEMAP · 뉴질랜드 조사</span><h1>카누 런칭·랜딩 지도</h1></div><nav aria-label="자료"><a href="places.csv" download>좌표 CSV</a><a href="places.geojson" download>GeoJSON</a><button id="overview" type="button">전체 지도</button></nav></header>
+<main>
+<section class="sidebar" aria-label="조사 목록">
+<div id="list-view">
+<div class="intro"><p id="summary" aria-live="polite">조사 자료를 불러오고 있습니다.</p><details><summary>확인 상태와 조사 기준</summary><p>2026년 11월 28일 뉴질랜드 자연보전부(DOC)·지역의회·관광기관 공개 자료를 조사했습니다. 북섬·남섬의 내수면 1차 목록입니다.</p><p>물가 후보와 시설·수역 대표점을 구분합니다. 사각 핀은 실제 입수 지점이 아닙니다. 원형 핀도 당일 개방·개인 보트 허용을 보증하지 않습니다. 공식 코스는 거리·구간 안내를 확인한 것이며, 실제 경로선이 없는 코스는 출발·도착 참고 권역만 표시합니다.</p><p>지역별 보팅 규칙, 장비 세척·통제구역과 최신 현장 공지는 상세의 공식 출처에서 확인하세요.</p></details></div>
+<div class="filters"><label class="search">수역·장소·번호 검색<input id="query" type="search" placeholder="예. 황가누이강, Whanganui, 모크호" autocomplete="off"></label><div class="filter-row"><label>지역<select id="region"><option value="">전체 지역</option></select></label><label>개인 카누<select id="permission"><option value="">전체 조건</option><option value="usable">가능·조건부</option><option value="unverified">미확인</option><option value="restricted">제한·중단·가이드</option></select></label></div><label>위치 확인<select id="quality"><option value="">전체</option><option value="courses">대표 코스가 있는 수역</option><option value="waterside">물가 자료·위성 후보</option><option value="reference">시설·수역 참고</option><option value="unresolved">좌표 미확인</option></select></label></div>
+<div class="list-heading"><h2>수역 목록</h2><span id="result-count" aria-live="polite"></span></div><div id="results"></div>
+</div>
+<article id="detail" hidden aria-label="선택한 수역 상세"></article>
+</section>
+<section class="map-area" aria-label="런칭·랜딩 지도"><div id="map"></div><div class="legend"><span>코스: 출발·도착권역</span><span><i class="round"></i>물가 자료·후보</span><span><i class="square"></i>시설·수역 참고</span></div><p id="map-status" role="status" hidden></p></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script><script src="data.js?v=20261128"></script><script src="../shared/new-zealand-coordinate-picker.js?v=20261128"></script><script src="../shared/new-zealand-place-labels.js?v=20261128"></script><script src="app.js?v=20261128"></script>
+</body></html>
