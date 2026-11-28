@@ -1068,13 +1068,18 @@
       ],
       "sources": [
         "https://www.mama.camp/",
-        "https://www.mama.camp/camp"
+        "https://www.mama.camp/camp",
+        "https://www.instagram.com/p/De9N7ARqEeC/",
+        "https://www.instagram.com/canoe_ya_mizubiyori/",
+        "https://mizubiyori.jp/",
+        "https://japan-safe-paddling.org/interview-mizubiyori/"
       ],
-      "permission_note": "최신 첫 화면에 캠핑장 영업 포기·텐트 숙박 불가 공지. 가이드 카누 체험은 별도 운영. 과거 개인 반입 안내의 현재 적용 여부 재확인 필요.",
+      "permission_note": "최신 첫 화면에 캠핑장 영업 포기·텐트 숙박 불가 공지. 가이드 카누 체험은 별도 운영. 과거 개인 반입 안내의 현재 적용 여부 재확인 필요. 카누야 미즈비요리(カヌー舎 湖日和, @canoe_ya_mizubiyori)의 캐나디언 카누 투어 사례 확인. 사용자 제공 게시물 본문에 히바라호(桧原湖)를 명시. 운영자 공식 안내의 집결지는 나가미네 오시자와 선착장(長峯・雄子沢桟橋) 앞 마을 주차장으로, 기존 마마 캠핑장 핀과 구분해야 함. 이번 확인으로 신규 발착 좌표나 개인 카누 반입 허용을 확정하지 않음.",
       "waterbody_ja": "桧原湖",
       "region_ja": "東北",
       "region_ko": "도호쿠",
-      "region_label": "도호쿠(東北)"
+      "region_label": "도호쿠(東北)",
+      "checked_at": "2026-11-28"
     },
     {
       "id": 27,
