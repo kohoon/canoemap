@@ -2,7 +2,7 @@
   "type": "FeatureCollection",
   "metadata": {
     "date": "2026-11-28",
-    "source": "https://services1.arcgis.com/3JjYDyG3oajxU6HO/arcgis/rest/services/DOC_Campsites/FeatureServer/0",
+    "source": "https://services1.arcgis.com/3JjYDyG3oajxU6HO/arcgis/rest/services/DOC_Campsites/FeatureServer/0; LINZ / NZGB Gazetteer (https://gazetteer.linz.govt.nz/gaz.csv)",
     "license": "https://www.doc.govt.nz/footer-links/copyright/"
   },
   "features": [
@@ -604,6 +604,206 @@
         "personal_boat": "unverified",
         "source": "https://www.doc.govt.nz/link/07540cfcf9404be8bb256d49ef81d0d9.aspx",
         "note": "DOC 공식 시설 대표좌표. 물가 발착점 미확정. 영상 대조에서도 이 핀은 시설 대표점으로 유지했습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          173.646306,
+          -35.807611
+        ]
+      },
+      "properties": {
+        "record_id": 25,
+        "point_index": 0,
+        "waterbody": "타하로아호·카이이위 호수군(Lake Taharoa / Kai Iwi Lakes)",
+        "name": "타하로아호·카이이위 호수군 · 수역 참고(Lake Taharoa / Kai Iwi Lakes)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://gazetteer.linz.govt.nz/place/26223",
+        "note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          174.765875,
+          -36.780767
+        ]
+      },
+      "properties": {
+        "record_id": 26,
+        "point_index": 0,
+        "waterbody": "푸푸케호(Lake Pupuke)",
+        "name": "푸푸케호 · 수역 참고(Lake Pupuke)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://gazetteer.linz.govt.nz/place/26118",
+        "note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.138948,
+          -37.567765
+        ]
+      },
+      "properties": {
+        "record_id": 27,
+        "point_index": 0,
+        "waterbody": "푸케티리니호(Lake Puketirini)",
+        "name": "푸케티리니호 · 수역 참고(Lake Puketirini)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://gazetteer.linz.govt.nz/place/2711",
+        "note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.560833,
+          -37.943167
+        ]
+      },
+      "properties": {
+        "record_id": 28,
+        "point_index": 0,
+        "waterbody": "카라피로호(Lake Karāpiro)",
+        "name": "카라피로호 · 수역 참고(Lake Karāpiro)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://gazetteer.linz.govt.nz/place/25938",
+        "note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.786,
+          -38.364611
+        ]
+      },
+      "properties": {
+        "record_id": 29,
+        "point_index": 0,
+        "waterbody": "마라에타이호(Lake Maraetai)",
+        "name": "마라에타이호 · 수역 참고(Lake Maraetai)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://gazetteer.linz.govt.nz/place/25990",
+        "note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          175.832361,
+          -38.437556
+        ]
+      },
+      "properties": {
+        "record_id": 30,
+        "point_index": 0,
+        "waterbody": "와카마루호(Lake Whakamaru)",
+        "name": "와카마루호 · 수역 참고(Lake Whakamaru)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://gazetteer.linz.govt.nz/place/26296",
+        "note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          176.588003,
+          -38.04581
+        ]
+      },
+      "properties": {
+        "record_id": 31,
+        "point_index": 0,
+        "waterbody": "로토마호(Lake Rotomā)",
+        "name": "로토마호 · 수역 참고(Lake Rotomā)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://gazetteer.linz.govt.nz/place/7431",
+        "note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          176.533145,
+          -38.020483
+        ]
+      },
+      "properties": {
+        "record_id": 32,
+        "point_index": 0,
+        "waterbody": "로토에후호(Lake Rotoehu)",
+        "name": "로토에후호 · 수역 참고(Lake Rotoehu)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://gazetteer.linz.govt.nz/place/7429",
+        "note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          171.434472,
+          -42.615583
+        ]
+      },
+      "properties": {
+        "record_id": 33,
+        "point_index": 0,
+        "waterbody": "브러너호·모아나(Lake Brunner / Moana)",
+        "name": "브러너호·모아나 · 수역 참고(Lake Brunner / Moana)",
+        "coordinate_type": "reference_only",
+        "personal_boat": "unverified",
+        "source": "https://gazetteer.linz.govt.nz/place/25800",
+        "note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          171.78388812,
+          -43.08999217
+        ]
+      },
+      "properties": {
+        "record_id": 34,
+        "point_index": 0,
+        "waterbody": "피어슨호·모아나루아(Lake Pearson / Moana Rua)",
+        "name": "피어슨호 캠핑장(Lake Pearson Campsite)",
+        "coordinate_type": "facility_lead",
+        "personal_boat": "unverified",
+        "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/canterbury/places/craigieburn-forest-park/things-to-do/campsites/lake-pearson-moana-rua-campsite/",
+        "note": "DOC 캠핑장 공식 대표좌표. 실제 입수 지점은 미확인입니다."
       }
     }
   ]

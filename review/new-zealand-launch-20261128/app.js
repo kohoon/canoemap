@@ -25,7 +25,7 @@ function markerColor(status) {
 const map = L.map('map', {zoomControl:false, maxZoom:20, scrollWheelZoom:true, zoomAnimation:false, fadeAnimation:false, markerZoomAnimation:false}).setView([-41,173],5);
 L.control.zoom({position:'bottomright'}).addTo(map);
 if (window.installNewZealandCoordinatePicker) window.installNewZealandCoordinatePicker(map);
-if (window.installNewZealandPlaceLabels) window.installNewZealandPlaceLabels(map);
+const placeLabels = window.installNewZealandPlaceLabels?.(map);
   // Leaflet's zero-width tooltip pane must not determine the content width.
   map.on('tooltipopen', ({tooltip}) => {
     const el=tooltip.getElement();
@@ -48,7 +48,9 @@ if (window.installNewZealandPlaceLabels) window.installNewZealandPlaceLabels(map
 const esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxNativeZoom:18,maxZoom:20,attribution:'Tiles © Esri · imagery providers'}).addTo(map);
 const photo = L.tileLayer('https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxNativeZoom:18,maxZoom:20,attribution:'Tiles © Esri Clarity · imagery providers'});
 const normal = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxNativeZoom:19,maxZoom:20,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap 기여자</a>'});
-L.control.layers({'Esri 위성':esri,'Esri Clarity 영상':photo,'일반지도':normal},null,{position:'topright',collapsed:window.matchMedia('(max-width:760px)').matches}).addTo(map);
+const layerControl = L.control.layers({'Esri 위성':esri,'Esri Clarity 영상':photo,'일반지도':normal},placeLabels?{'지명 (LINZ·한국어 주요지명)':placeLabels}:null,{position:'topright',collapsed:window.matchMedia('(max-width:760px)').matches}).addTo(map);
+// Touch devices open the layer list by tapping; synthetic hover must not collapse it.
+if (window.matchMedia('(pointer:coarse)').matches) L.DomEvent.off(layerControl.getContainer(),'mouseenter mouseleave');
 map.attributionControl.addAttribution('시설 좌표 © <a href="https://www.doc.govt.nz/footer-links/copyright/" target="_blank" rel="noopener">DOC · CC BY 4.0</a>');
 const courseLayer = L.layerGroup().addTo(map);
 const endpointLayer = L.layerGroup().addTo(map);

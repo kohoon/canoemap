@@ -863,6 +863,283 @@
       ],
       "permission_note": "카누·카약 활동 안내와 개인 보트 반입·진수시설 사용 허용은 구분합니다. 개인 카누 반입과 당일 개방은 미확인입니다. DOC는 북·남 마보라호 카약 및 마라로아강 카누 활동을 안내합니다. 북쪽 호수의 동력선 허용을 남쪽 호수에 적용하지 않습니다. 현장 도로·문 개방과 캠핑 조건 확인.",
       "checked_at": "2026-11-28"
+    },
+    {
+      "id": 25,
+      "region": "North Island",
+      "region_label": "북섬(North Island)",
+      "waterbody": "타하로아호·카이이위 호수군(Lake Taharoa / Kai Iwi Lakes)",
+      "waterbody_original": "Lake Taharoa / Kai Iwi Lakes",
+      "research_status": "reference_located",
+      "personal_boat": "unverified",
+      "sites": [
+        {
+          "name": "타하로아호·카이이위 호수군 · 수역 참고(Lake Taharoa / Kai Iwi Lakes)",
+          "lat": -35.807611,
+          "lng": 173.646306,
+          "coordinate_type": "reference_only",
+          "coordinate_source": "https://gazetteer.linz.govt.nz/place/26223",
+          "access": "LINZ 지명 대표좌표입니다. 실제 런칭·랜딩 지점이 아니며 차량 하역·물가 접근·개인 카누 반입은 미확인입니다.",
+          "imagery_checked": [],
+          "coordinate_note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+        }
+      ],
+      "sources": [
+        "https://www.kaipara.govt.nz/kai-iwi-lakes",
+        "https://gazetteer.linz.govt.nz/place/26223"
+      ],
+      "permission_note": "카이파라 지구의회는 카이이위 호수군의 카약 등 수상활동을 안내합니다. 이 핀은 타하로아호 참고점으로 다른 호수의 운영 규칙을 대신하지 않습니다. 지정 진수구역·현장 수칙과 장비 세척 조건을 확인하세요.",
+      "checked_at": "2026-11-28"
+    },
+    {
+      "id": 26,
+      "region": "North Island",
+      "region_label": "북섬(North Island)",
+      "waterbody": "푸푸케호(Lake Pupuke)",
+      "waterbody_original": "Lake Pupuke",
+      "research_status": "reference_located",
+      "personal_boat": "unverified",
+      "sites": [
+        {
+          "name": "푸푸케호 · 수역 참고(Lake Pupuke)",
+          "lat": -36.780767,
+          "lng": 174.765875,
+          "coordinate_type": "reference_only",
+          "coordinate_source": "https://gazetteer.linz.govt.nz/place/26118",
+          "access": "LINZ 지명 대표좌표입니다. 실제 런칭·랜딩 지점이 아니며 차량 하역·물가 접근·개인 카누 반입은 미확인입니다.",
+          "imagery_checked": [],
+          "coordinate_note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+        }
+      ],
+      "sources": [
+        "https://ourauckland.aucklandcouncil.govt.nz/news/2026/11/chasing-the-golden-hour/",
+        "https://gazetteer.linz.govt.nz/place/26118"
+      ],
+      "permission_note": "오클랜드 의회가 패들링 장소로 소개합니다. 도심 접근성이 좋은 호수지만 이 핀은 진수장이 아닙니다. 실번공원 등 공원별 발착시설·행사·수질 공지를 별도 확인하세요.",
+      "checked_at": "2026-11-28"
+    },
+    {
+      "id": 27,
+      "region": "North Island",
+      "region_label": "북섬(North Island)",
+      "waterbody": "푸케티리니호(Lake Puketirini)",
+      "waterbody_original": "Lake Puketirini",
+      "research_status": "reference_located",
+      "personal_boat": "unverified",
+      "sites": [
+        {
+          "name": "푸케티리니호 · 수역 참고(Lake Puketirini)",
+          "lat": -37.567765,
+          "lng": 175.138948,
+          "coordinate_type": "reference_only",
+          "coordinate_source": "https://gazetteer.linz.govt.nz/place/2711",
+          "access": "LINZ 지명 대표좌표입니다. 실제 런칭·랜딩 지점이 아니며 차량 하역·물가 접근·개인 카누 반입은 미확인입니다.",
+          "imagery_checked": [],
+          "coordinate_note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+        }
+      ],
+      "sources": [
+        "https://www.waikatodistrict.govt.nz/recreation/rivers-and-lakes",
+        "https://gazetteer.linz.govt.nz/place/2711",
+        "https://www.waikatodistrict.govt.nz/recreation/boat-ramps"
+      ],
+      "permission_note": "와이카토 지구의회가 카약·와카아마·보팅 이용을 안내합니다. 폐탄광에 조성된 호수로 급심부가 있으며 수상스키 등 다른 이용자와 동선을 분리해야 합니다. 보트램프 안내를 확인하세요.",
+      "checked_at": "2026-11-28"
+    },
+    {
+      "id": 28,
+      "region": "North Island",
+      "region_label": "북섬(North Island)",
+      "waterbody": "카라피로호(Lake Karāpiro)",
+      "waterbody_original": "Lake Karāpiro",
+      "research_status": "reference_located",
+      "personal_boat": "unverified",
+      "sites": [
+        {
+          "name": "카라피로호 · 수역 참고(Lake Karāpiro)",
+          "lat": -37.943167,
+          "lng": 175.560833,
+          "coordinate_type": "reference_only",
+          "coordinate_source": "https://gazetteer.linz.govt.nz/place/25938",
+          "access": "LINZ 지명 대표좌표입니다. 실제 런칭·랜딩 지점이 아니며 차량 하역·물가 접근·개인 카누 반입은 미확인입니다.",
+          "imagery_checked": [],
+          "coordinate_note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+        }
+      ],
+      "sources": [
+        "https://www.waipadc.govt.nz/your-waipa/parks-and-reserves/karapiro-parks-and-reserves/mighty-river-domain-at-lake-karapiro",
+        "https://gazetteer.linz.govt.nz/place/25938",
+        "https://www.mpi.govt.nz/biosecurity/exotic-pests-and-diseases-in-new-zealand/long-term-biosecurity-management-programmes/invasive-freshwater-clam-corbicula/how-you-can-help-stop-the-spread-of-freshwater-clams-corbicula"
+      ],
+      "permission_note": "와이파 지구의회는 마이티리버 도메인의 와카아마·조정 등 수상활동을 안내합니다. 경기·행사와 동력선 이용, 댐 접근금지 구간을 확인해야 합니다. 담수조개 통제구역 세척·이동 요건을 적용하세요.",
+      "checked_at": "2026-11-28"
+    },
+    {
+      "id": 29,
+      "region": "North Island",
+      "region_label": "북섬(North Island)",
+      "waterbody": "마라에타이호(Lake Maraetai)",
+      "waterbody_original": "Lake Maraetai",
+      "research_status": "reference_located",
+      "personal_boat": "unverified",
+      "sites": [
+        {
+          "name": "마라에타이호 · 수역 참고(Lake Maraetai)",
+          "lat": -38.364611,
+          "lng": 175.786,
+          "coordinate_type": "reference_only",
+          "coordinate_source": "https://gazetteer.linz.govt.nz/place/25990",
+          "access": "LINZ 지명 대표좌표입니다. 실제 런칭·랜딩 지점이 아니며 차량 하역·물가 접근·개인 카누 반입은 미확인입니다.",
+          "imagery_checked": [],
+          "coordinate_note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+        }
+      ],
+      "sources": [
+        "https://www.fishandgame.org.nz/assets/Fishing/Where-to-fish/Locations/Eastern/Waikato-Hydro-Lakes-fishery-brochure-2020-WEB-VERSION.pdf",
+        "https://gazetteer.linz.govt.nz/place/25990",
+        "https://www.mpi.govt.nz/biosecurity/exotic-pests-and-diseases-in-new-zealand/long-term-biosecurity-management-programmes/invasive-freshwater-clam-corbicula/how-you-can-help-stop-the-spread-of-freshwater-clams-corbicula"
+      ],
+      "permission_note": "Fish & Game의 2020년 안내는 작은 보트·카약의 진수를 설명합니다. 다리 아래 보트 통과가 불가능한 구간이 있으며 호수 전체 통과 가능을 의미하지 않습니다. 댐 배제구역·최근 접근 공지 및 담수조개 통제조건을 확인하세요.",
+      "checked_at": "2026-11-28"
+    },
+    {
+      "id": 30,
+      "region": "North Island",
+      "region_label": "북섬(North Island)",
+      "waterbody": "와카마루호(Lake Whakamaru)",
+      "waterbody_original": "Lake Whakamaru",
+      "research_status": "reference_located",
+      "personal_boat": "unverified",
+      "sites": [
+        {
+          "name": "와카마루호 · 수역 참고(Lake Whakamaru)",
+          "lat": -38.437556,
+          "lng": 175.832361,
+          "coordinate_type": "reference_only",
+          "coordinate_source": "https://gazetteer.linz.govt.nz/place/26296",
+          "access": "LINZ 지명 대표좌표입니다. 실제 런칭·랜딩 지점이 아니며 차량 하역·물가 접근·개인 카누 반입은 미확인입니다.",
+          "imagery_checked": [],
+          "coordinate_note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+        }
+      ],
+      "sources": [
+        "https://www.southwaikato.govt.nz/our-district/sport-and-recreation/parks-and-reserves/lake-whakamaru-reserve",
+        "https://gazetteer.linz.govt.nz/place/26296",
+        "https://www.mpi.govt.nz/biosecurity/exotic-pests-and-diseases-in-new-zealand/long-term-biosecurity-management-programmes/invasive-freshwater-clam-corbicula/how-you-can-help-stop-the-spread-of-freshwater-clams-corbicula"
+      ],
+      "permission_note": "사우스와이카토 지구의회는 호반 보호구역의 보트램프와 해변을 안내합니다. 이 핀은 호수 대표점으로 램프의 정밀 위치가 아닙니다. 댐 안전구역·수상스키 동선·수위변동과 담수조개 통제조건을 확인하세요.",
+      "checked_at": "2026-11-28"
+    },
+    {
+      "id": 31,
+      "region": "North Island",
+      "region_label": "북섬(North Island)",
+      "waterbody": "로토마호(Lake Rotomā)",
+      "waterbody_original": "Lake Rotomā",
+      "research_status": "reference_located",
+      "personal_boat": "unverified",
+      "sites": [
+        {
+          "name": "로토마호 · 수역 참고(Lake Rotomā)",
+          "lat": -38.04581,
+          "lng": 176.588003,
+          "coordinate_type": "reference_only",
+          "coordinate_source": "https://gazetteer.linz.govt.nz/place/7431",
+          "access": "LINZ 지명 대표좌표입니다. 실제 런칭·랜딩 지점이 아니며 차량 하역·물가 접근·개인 카누 반입은 미확인입니다.",
+          "imagery_checked": [],
+          "coordinate_note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+        }
+      ],
+      "sources": [
+        "https://www.rotorualakescouncil.nz/parks-lakes-recreation/lake-reserves/matahi-spit-rotoma",
+        "https://gazetteer.linz.govt.nz/place/7431",
+        "https://www.mpi.govt.nz/biosecurity/exotic-pests-and-diseases-in-new-zealand/long-term-biosecurity-management-programmes/invasive-freshwater-clam-corbicula/how-you-can-help-stop-the-spread-of-freshwater-clams-corbicula"
+      ],
+      "permission_note": "로토루아레이크스 의회가 마타히스핏의 카약 이용과 보트램프를 안내합니다. 이 핀은 호수 대표점입니다. 강풍·동력선 진출입 및 테아라와 호수 담수조개 통제·세척 요건을 확인하세요.",
+      "checked_at": "2026-11-28"
+    },
+    {
+      "id": 32,
+      "region": "North Island",
+      "region_label": "북섬(North Island)",
+      "waterbody": "로토에후호(Lake Rotoehu)",
+      "waterbody_original": "Lake Rotoehu",
+      "research_status": "reference_located",
+      "personal_boat": "unverified",
+      "sites": [
+        {
+          "name": "로토에후호 · 수역 참고(Lake Rotoehu)",
+          "lat": -38.020483,
+          "lng": 176.533145,
+          "coordinate_type": "reference_only",
+          "coordinate_source": "https://gazetteer.linz.govt.nz/place/7429",
+          "access": "LINZ 지명 대표좌표입니다. 실제 런칭·랜딩 지점이 아니며 차량 하역·물가 접근·개인 카누 반입은 미확인입니다.",
+          "imagery_checked": [],
+          "coordinate_note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+        }
+      ],
+      "sources": [
+        "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/",
+        "https://gazetteer.linz.govt.nz/place/7429",
+        "https://www.mpi.govt.nz/biosecurity/exotic-pests-and-diseases-in-new-zealand/long-term-biosecurity-management-programmes/invasive-freshwater-clam-corbicula/how-you-can-help-stop-the-spread-of-freshwater-clams-corbicula"
+      ],
+      "permission_note": "베이오브플렌티 지역의회가 보팅 지도를 제공합니다. 카약 등 호수 레저활동 안내와 개별 호안 접근 허용은 구분합니다. 최신 녹조·수질 경보, 테아라와 호수 담수조개 통제 및 장비 세척 요건을 확인하세요.",
+      "checked_at": "2026-11-28"
+    },
+    {
+      "id": 33,
+      "region": "South Island",
+      "region_label": "남섬(South Island)",
+      "waterbody": "브러너호·모아나(Lake Brunner / Moana)",
+      "waterbody_original": "Lake Brunner / Moana",
+      "research_status": "reference_located",
+      "personal_boat": "unverified",
+      "sites": [
+        {
+          "name": "브러너호·모아나 · 수역 참고(Lake Brunner / Moana)",
+          "lat": -42.615583,
+          "lng": 171.434472,
+          "coordinate_type": "reference_only",
+          "coordinate_source": "https://gazetteer.linz.govt.nz/place/25800",
+          "access": "LINZ 지명 대표좌표입니다. 실제 런칭·랜딩 지점이 아니며 차량 하역·물가 접근·개인 카누 반입은 미확인입니다.",
+          "imagery_checked": [],
+          "coordinate_note": "NZ Gazetteer 수역 대표점. 호안·보트램프 위치로 사용하지 않습니다."
+        }
+      ],
+      "sources": [
+        "https://westcoast.co.nz/visit/see-do/outdoors-and-adventure/walks-and-hikes/lake-brunner-moana-walks/",
+        "https://gazetteer.linz.govt.nz/place/25800"
+      ],
+      "permission_note": "웨스트코스트 관광기관이 호수 만을 카약으로 탐방하는 활동을 소개합니다. 넓은 호수의 돌풍과 호수 출구 아널드강의 유속에 주의하고, 실제 진수장·주차·시설 이용 조건을 별도 확인하세요.",
+      "checked_at": "2026-11-28"
+    },
+    {
+      "id": 34,
+      "region": "South Island",
+      "region_label": "남섬(South Island)",
+      "waterbody": "피어슨호·모아나루아(Lake Pearson / Moana Rua)",
+      "waterbody_original": "Lake Pearson / Moana Rua",
+      "research_status": "reference_located",
+      "personal_boat": "unverified",
+      "sites": [
+        {
+          "name": "피어슨호 캠핑장(Lake Pearson Campsite)",
+          "lat": -43.08999217,
+          "lng": 171.78388812,
+          "coordinate_type": "facility_lead",
+          "coordinate_source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/canterbury/places/craigieburn-forest-park/things-to-do/campsites/lake-pearson-moana-rua-campsite/",
+          "access": "LINZ 지명 대표좌표입니다. 실제 런칭·랜딩 지점이 아니며 차량 하역·물가 접근·개인 카누 반입은 미확인입니다.",
+          "imagery_checked": [],
+          "coordinate_note": "DOC 캠핑장 공식 대표좌표. 실제 입수 지점은 미확인입니다."
+        }
+      ],
+      "sources": [
+        "https://www.doc.govt.nz/globalassets/documents/parks-and-recreation/tracks-and-walks/canterbury/arthurs-pass-brochure.pdf",
+        "https://gazetteer.linz.govt.nz/place/26096",
+        "https://www.doc.govt.nz/parks-and-recreation/places-to-go/canterbury/places/craigieburn-forest-park/things-to-do/campsites/lake-pearson-moana-rua-campsite/"
+      ],
+      "permission_note": "DOC는 카약 활동을 소개하며 캠핑장 안내에서 야생동물 보호구역의 동력선 이용 금지를 명시합니다. 고지대 저수온·강풍과 야생조류를 고려해야 합니다. 비동력 카누의 당일 접근·캠핑 예약은 별도 확인하세요.",
+      "checked_at": "2026-11-28"
     }
   ],
   "courses": [
@@ -1009,18 +1286,27 @@
   ],
   "counts": {
     "waterside_waterbodies": 4,
-    "reference_waterbodies": 20,
+    "reference_waterbodies": 30,
     "unresolved_waterbodies": 0
   },
   "source_titles": {
     "https://services1.arcgis.com/3JjYDyG3oajxU6HO/arcgis/rest/services/DOC_Campsites/FeatureServer/0": "뉴질랜드 자연보전부(DOC) 공식 시설 좌표",
     "https://www.doc.govt.nz/parks-and-recreation/places-to-go/manawatu-whanganui/places/whanganui-national-park/things-to-do/tracks/whanganui-journey/": "DOC 황가누이 저니 공식 안내",
-    "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/": "베이오브플렌티 지역의회 호수 보팅 지도",
+    "https://www.boprc.govt.nz/living-in-the-bay/boating-in-the-bay/recreational-boating/boating-maps/": "www.boprc.govt.nz · 수상활동·시설 안내",
     "https://www.qldc.govt.nz/recreation/lakes-and-boating": "퀸스타운레이크스 지구의회 호수·보팅 안내",
     "https://www.doc.govt.nz/parks-and-recreation/places-to-go/fiordland/places/fiordland-national-park/know-before-you-go/kayaking-packrafting-in-fiordland/": "DOC 피오르드랜드 카약·팩래프팅 안내",
-    "https://www.mpi.govt.nz/biosecurity/exotic-pests-and-diseases-in-new-zealand/long-term-biosecurity-management-programmes/invasive-freshwater-clam-corbicula/how-you-can-help-stop-the-spread-of-freshwater-clams-corbicula": "MPI 담수조개 통제구역·장비 세척 안내"
+    "https://www.mpi.govt.nz/biosecurity/exotic-pests-and-diseases-in-new-zealand/long-term-biosecurity-management-programmes/invasive-freshwater-clam-corbicula/how-you-can-help-stop-the-spread-of-freshwater-clams-corbicula": "MPI 담수조개 통제구역·장비 세척 안내",
+    "https://www.kaipara.govt.nz/kai-iwi-lakes": "www.kaipara.govt.nz · 수상활동·시설 안내",
+    "https://ourauckland.aucklandcouncil.govt.nz/news/2026/11/chasing-the-golden-hour/": "ourauckland.aucklandcouncil.govt.nz · 수상활동·시설 안내",
+    "https://www.waikatodistrict.govt.nz/recreation/rivers-and-lakes": "www.waikatodistrict.govt.nz · 수상활동·시설 안내",
+    "https://www.waipadc.govt.nz/your-waipa/parks-and-reserves/karapiro-parks-and-reserves/mighty-river-domain-at-lake-karapiro": "www.waipadc.govt.nz · 수상활동·시설 안내",
+    "https://www.fishandgame.org.nz/assets/Fishing/Where-to-fish/Locations/Eastern/Waikato-Hydro-Lakes-fishery-brochure-2020-WEB-VERSION.pdf": "www.fishandgame.org.nz · 수상활동·시설 안내",
+    "https://www.southwaikato.govt.nz/our-district/sport-and-recreation/parks-and-reserves/lake-whakamaru-reserve": "www.southwaikato.govt.nz · 수상활동·시설 안내",
+    "https://www.rotorualakescouncil.nz/parks-lakes-recreation/lake-reserves/matahi-spit-rotoma": "www.rotorualakescouncil.nz · 수상활동·시설 안내",
+    "https://westcoast.co.nz/visit/see-do/outdoors-and-adventure/walks-and-hikes/lake-brunner-moana-walks/": "westcoast.co.nz · 수상활동·시설 안내",
+    "https://www.doc.govt.nz/globalassets/documents/parks-and-recreation/tracks-and-walks/canterbury/arthurs-pass-brochure.pdf": "www.doc.govt.nz · 수상활동·시설 안내"
   },
   "scope": "북섬·남섬 내수면 1차 조사. 호수 대표점·시설 좌표는 실제 발착 좌표와 구분. 현장 개방·안전 검증 아님.",
-  "coordinate_dataset_source": "https://services1.arcgis.com/3JjYDyG3oajxU6HO/arcgis/rest/services/DOC_Campsites/FeatureServer/0",
+  "coordinate_dataset_source": "https://services1.arcgis.com/3JjYDyG3oajxU6HO/arcgis/rest/services/DOC_Campsites/FeatureServer/0; LINZ / NZGB Gazetteer (https://gazetteer.linz.govt.nz/gaz.csv)",
   "coordinate_dataset_license": "https://www.doc.govt.nz/footer-links/copyright/"
 }

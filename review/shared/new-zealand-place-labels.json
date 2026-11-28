@@ -442,6 +442,96 @@
       "kind": "water",
       "minZoom": 7,
       "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/southland/places/mavora-lakes-conservation-park/"
+    },
+    {
+      "ko": "타하로아호·카이이위 호수군",
+      "original": "Lake Taharoa / Kai Iwi Lakes",
+      "lat": -35.807611,
+      "lng": 173.646306,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://gazetteer.linz.govt.nz/place/26223"
+    },
+    {
+      "ko": "푸푸케호",
+      "original": "Lake Pupuke",
+      "lat": -36.780767,
+      "lng": 174.765875,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://gazetteer.linz.govt.nz/place/26118"
+    },
+    {
+      "ko": "푸케티리니호",
+      "original": "Lake Puketirini",
+      "lat": -37.567765,
+      "lng": 175.138948,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://gazetteer.linz.govt.nz/place/2711"
+    },
+    {
+      "ko": "카라피로호",
+      "original": "Lake Karāpiro",
+      "lat": -37.943167,
+      "lng": 175.560833,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://gazetteer.linz.govt.nz/place/25938"
+    },
+    {
+      "ko": "마라에타이호",
+      "original": "Lake Maraetai",
+      "lat": -38.364611,
+      "lng": 175.786,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://gazetteer.linz.govt.nz/place/25990"
+    },
+    {
+      "ko": "와카마루호",
+      "original": "Lake Whakamaru",
+      "lat": -38.437556,
+      "lng": 175.832361,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://gazetteer.linz.govt.nz/place/26296"
+    },
+    {
+      "ko": "로토마호",
+      "original": "Lake Rotomā",
+      "lat": -38.04581,
+      "lng": 176.588003,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://gazetteer.linz.govt.nz/place/7431"
+    },
+    {
+      "ko": "로토에후호",
+      "original": "Lake Rotoehu",
+      "lat": -38.020483,
+      "lng": 176.533145,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://gazetteer.linz.govt.nz/place/7429"
+    },
+    {
+      "ko": "브러너호·모아나",
+      "original": "Lake Brunner / Moana",
+      "lat": -42.615583,
+      "lng": 171.434472,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://gazetteer.linz.govt.nz/place/25800"
+    },
+    {
+      "ko": "피어슨호·모아나루아",
+      "original": "Lake Pearson / Moana Rua",
+      "lat": -43.08999217,
+      "lng": 171.78388812,
+      "kind": "water",
+      "minZoom": 7,
+      "source": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/canterbury/places/craigieburn-forest-park/things-to-do/campsites/lake-pearson-moana-rua-campsite/"
     }
   ]
 }
